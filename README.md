@@ -47,6 +47,7 @@ apt 安装**。经确认，ROS 2 全部放在 `ros:jazzy` 容器中，宿主机�
 ├── environment.md                         阶段一环境核查实测记录
 ├── requirements.md / requirements.txt      依赖说明
 ├── ACCEPTANCE.md                          阶段五验收表（PASS/FAIL + 证据路径）
+├── CHANGELOG.md                           更新日志：每次更新改了哪些文件、解决了/暴露了哪些问题
 ├── pytest.ini
 ├── .gitignore                             排除 build/install/log/logs/evidence 与密钥
 │
