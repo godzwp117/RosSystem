@@ -1,0 +1,4 @@
+[INFO] [1791555832.994135565] [rcl]: Found security directory: /ws/security/keystore/enclaves/navsim
+[INFO] [1791555833.030733639] [navigation_sim]: NAVSIM_READY {"node": "navigation_sim", "action": "/rg/nav_execute", "record_path": "/ws/tests/evidence/20261009T142312Z/D8_D9_D15/navsim_goals.jsonl", "simulate_delay_sec": 0.0, "simulate_failure": false, "simulate_reject": false, "path_planning": "none (stub executor)", "executor_threads": 4}
+[INFO] [1791555835.196079250] [navigation_sim]: NAVSIM_COUNTERS {"goals_executed": 0, "journal_path": "/ws/tests/evidence/20261009T142312Z/D8_D9_D15/navsim_goals.jsonl"}
+Failed to publish log message to rosout: publisher's context is invalid, at ./src/rcl/publisher.c:423

@@ -1,0 +1,27 @@
+{
+  "case": "E10",
+  "name": "同一 run_id 重复发布必须幂等",
+  "expected": "返回 ALREADY_PUBLISHED 且远程 SHA 不变",
+  "checks": [
+    {
+      "check": "E10 重复发布返回 ALREADY_PUBLISHED（幂等）",
+      "result": "PASS",
+      "detail": "ALREADY_PUBLISHED"
+    },
+    {
+      "check": "E10b 远程证据分支 SHA 未变化（无重复提交/无覆盖）",
+      "result": "PASS",
+      "detail": "before=80224c0a47d5"
+    }
+  ],
+  "observed": {
+    "checks_total": 2,
+    "checks_passed": 2,
+    "commands": [
+      {
+        "step": "publish_twice",
+        "exit_code": 0
+      }
+    ]
+  }
+}

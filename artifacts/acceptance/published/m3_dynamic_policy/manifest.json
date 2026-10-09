@@ -1,0 +1,163 @@
+{
+  "schema_version": "1.1",
+  "run_id": "m3_dynamic_policy",
+  "timestamp_utc": "2026-10-09T14:25:52Z",
+  "phase": "M3",
+  "status": "PASS",
+  "source": {
+    "repository": "godzwp117/RosSystem",
+    "commit_sha": "ba828a1ceb5fb0da034f8067c6cf586c93e1cebd",
+    "git_dirty": true,
+    "dirty_files": [
+      " M src/rg_gateway/rg_gateway/security_gateway.py",
+      " M tests/integration/redaction_check.py",
+      " M tests/integration/start_system_check.py",
+      "?? tests/integration/dynamic_policy_check.py"
+    ],
+    "tags": []
+  },
+  "environment": {
+    "host_os": "Ubuntu 22.04.5 LTS",
+    "kernel": "6.18.40.1-microsoft-standard-WSL2",
+    "container_name": "rg_jazzy",
+    "ros_distro": "jazzy",
+    "rmw_implementation": "rmw_fastrtps_cpp",
+    "docker_image_id": "sha256:066420e07f60aa18262f2479981def87ebcfcec42eefb0c0c57c4a46098348ca",
+    "docker_image_digest": "ros@sha256:066420e07f60aa18262f2479981def87ebcfcec42eefb0c0c57c4a46098348ca",
+    "ros_domain_id": "42",
+    "python_version": "Python 3.12.3",
+    "rclpy_version": "7.1.12",
+    "sros2_version": "0.13.6",
+    "openssl_version": "OpenSSL 3.0.13 30 Jan 2024 (Library: OpenSSL 3.0.13 30 Jan 2024)",
+    "docker_image_ref": "ros:jazzy",
+    "container_default_domain_id": 42
+  },
+  "security_mode": "enforce",
+  "test_summary": {
+    "passed": 43,
+    "failed": 0,
+    "not_run": 0,
+    "blocked": 0,
+    "total": 43
+  },
+  "notes": [
+    "M3 核心证据：同一持续运行的 Gateway 内，同一 Planner/同 Action/同 task_id/同坐标 (8,8) 在阶段 A BLOCK、切换后阶段 B ALLOW（epoch 0->1）",
+    "越权结论均带 DDS 访问控制层证据（not found in allow rule），非仅客户端超时推断",
+    "tests/evidence/20261009T142018Z 为测试隔离缺陷（ros2 daemon 残留 domain 43）导致的失败轮次，日志保留在磁盘、不计入本包",
+    "file_hashes.json 不包含自身哈希（无法自哈希）；归档包 SHA-256 记录在 exports/<run_id>.tar.gz.sha256 sidecar 中，故打包后包内哈希保持自洽。",
+    "本包为公开证据副本：内容已脱敏，文件哈希按脱敏后内容重新计算；原始证据包仅保存在受控本地环境。"
+  ],
+  "artifacts": {
+    "archive": "m3_dynamic_policy.tar.gz",
+    "archive_sha256": null,
+    "file_count": 245,
+    "total_bytes": 1257560
+  },
+  "status_matrix": [
+    {
+      "item": "P0 环境与通信",
+      "requirement": "实际结果",
+      "result": "PASS",
+      "detail": "Ubuntu 24.04.5 容器 ros:jazzy（ID sha256:066420e0…），rmw_fastrtps_cpp，colcon build 4 包通过"
+    },
+    {
+      "item": "P0 Action 代理",
+      "requirement": "实际结果",
+      "result": "PASS",
+      "detail": "A 区 ALLOW→1 条 Goal；B 区 BLOCK→0 条；12 项负例全部按预期拒绝"
+    },
+    {
+      "item": "M1 审计故障保护",
+      "requirement": "实际结果",
+      "result": "PASS",
+      "detail": "R2 真实 /dev/full ENOSPC、R3 注入 Decision 写失败均 BLOCK(AUDIT_UNAVAILABLE) 且下游 0 条；R4 执行后审计失败如实回传 EXECUTED"
+    },
+    {
+      "item": "M1 构建保护",
+      "requirement": "实际结果",
+      "result": "PASS",
+      "detail": "R5 运行中构建 exit 4 且节点 PID 不变；R6 空闲构建 exit 0"
+    },
+    {
+      "item": "M1 启动生命周期",
+      "requirement": "实际结果",
+      "result": "PASS",
+      "detail": "start_system 就绪、Ctrl+C 退出、无残留、重复启动 exit 4；daemon 按 domain 隔离后 2/2"
+    },
+    {
+      "item": "M2 SROS 2 身份认证",
+      "requirement": "实际结果",
+      "result": "PASS",
+      "detail": "6 个独立 enclave（含新增 /task_admin），Enforce 下合法链路成功，governance allow_unauthenticated_participants=false"
+    },
+    {
+      "item": "M2 DDS 访问控制",
+      "requirement": "实际结果",
+      "result": "PASS",
+      "detail": "权限复核 6 个 enclave 均无宽松通配；planner 无 /rg/nav_execute 与 /rg/task_control/switch 权限"
+    },
+    {
+      "item": "M2 非授权直连拒绝",
+      "requirement": "实际结果",
+      "result": "PASS",
+      "detail": "S3/S4 直连执行端在创建 action client 端点时被 DDS 拒绝，下游 0 条；S3C 正向对照成功"
+    },
+    {
+      "item": "M3 动态任务阶段授权",
+      "requirement": "实际结果",
+      "result": "PASS",
+      "detail": "D2 与 D4：同一 Planner/同 Action/同 task_id/同坐标 (8,8)，阶段 A BLOCK、切换后阶段 B ALLOW，epoch 0→1"
+    },
+    {
+      "item": "M3 管理接口最小权限",
+      "requirement": "实际结果",
+      "result": "PASS",
+      "detail": "D8 /planner 身份在创建管理 Service 端点时被 DDS 拒绝（not found in allow rule）；D9 /task_admin 成功"
+    },
+    {
+      "item": "M3 重放/过期/并发",
+      "requirement": "实际结果",
+      "result": "PASS",
+      "detail": "D6 重放被拒且 epoch 不变；D7 过期 epoch 被拒；D14 两并发请求至多一个成功"
+    },
+    {
+      "item": "M3 在途一致性与恢复",
+      "requirement": "实际结果",
+      "result": "PASS",
+      "detail": "D10/D11 在途与状态未知时拒绝切换；D12 重启后 epoch/阶段/digest 正确且权限未回退、重放保护仍在；D13 状态文件损坏进入 RECOVERY_REQUIRED 并拒绝一切准入"
+    },
+    {
+      "item": "普通模式回归",
+      "requirement": "实际结果",
+      "result": "PASS",
+      "detail": "S1 普通模式 A 区 ALLOW；start_system.sh 未改动仍 2/2 通过；业务流程无回归"
+    },
+    {
+      "item": "证据脱敏与安全门禁",
+      "requirement": "实际结果",
+      "result": "PASS",
+      "detail": "E1–E10 全通过：用户名/路径/Token/私钥脱敏，JSONL 可解析、event_id 关联保持，扫描失败不 push，幂等发布"
+    },
+    {
+      "item": "证据包 Schema 与完整性",
+      "requirement": "实际结果",
+      "result": "PASS",
+      "detail": "M3 证据包逐文件 SHA-256 与 file_hashes.json 一致、无未登记文件、归档 sidecar 一致、无密钥材料"
+    }
+  ],
+  "redaction": {
+    "redacted": true,
+    "redacted_at": "2026-10-09T14:25:52Z",
+    "source_run_id": "m3_dynamic_policy",
+    "source_commit_sha": "ba828a1ceb5fb0da034f8067c6cf586c93e1cebd",
+    "source_package_sha256": "fe6773e250a9cd9ace13699dab1a9642f39091e6cf2d038be33e20708d0075aa",
+    "tool": "scripts/redact_evidence.py",
+    "counts": {
+      "workspace_path": 132,
+      "private_path": 2
+    },
+    "files_redacted": 245,
+    "files_opaque_copied": 0,
+    "note": "公开副本内容已脱敏，file_hashes.json 中的 SHA-256 是脱敏后内容的哈希，与原始包中同名文件不同；source_package_sha256 指向本地原始包，供受控环境自行比对。映射表不随包发布。"
+  }
+}

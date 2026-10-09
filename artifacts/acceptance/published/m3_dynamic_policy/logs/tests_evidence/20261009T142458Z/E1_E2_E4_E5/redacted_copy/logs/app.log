@@ -1,0 +1,6 @@
+INFO start
+INFO user=USER_1 home=${PRIVATE_PATH}
+INFO workspace=${WORKSPACE}/logs
+INFO resource=/rg/guarded_navigate decision=ALLOW reason=ALLOW_IN_POLICY
+INFO ip=${PRIVATE_IP_1} mac=${DEVICE_ID_1}
+INFO latency_ms=12 exit_code=0

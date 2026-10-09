@@ -1,0 +1,7 @@
+[37;1m2026-10-09 14:23:53.842 [31;1m[[37;1mSECURITY[31;1m Error] [37mrr/rg/task_control/switchReply topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1246)[34;1m -> Function [36mcheck_create_datareader[m
+[37;1m2026-10-09 14:23:53.842 [31;1m[[37;1mSECURITY[31;1m Error] [37mError checking creation of local reader  (rr/rg/task_control/switchReply topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1246))
+[34;1m -> Function [36mget_datareader_sec_attributes[m
+[37;1m2026-10-09 14:23:53.842 [31;1m[[37;1mDATA_READER[31;1m Error] [37mProblem creating associated Reader[34;1m -> Function [36menable[m
+TASK_ADMIN_RESULT {"transition_id": "d8-planner-admin", "target_task_id": "patrol_a_001", "target_task_phase": "ZONE_B", "expected_epoch": 0, "service": "/rg/task_control/switch", "outcome": "SERVICE_CLIENT_CREATION_DENIED", "detail": "RCLError: failed to create client: create_client() failed to create response DataReader, at ./src/rmw_client.cpp:334, at ./src/rcl/client.c:146"}
+[INFO] [1791555833.821119254] [rcl]: Found security directory: /ws/security/keystore/enclaves/planner
+terminate called without an active exception

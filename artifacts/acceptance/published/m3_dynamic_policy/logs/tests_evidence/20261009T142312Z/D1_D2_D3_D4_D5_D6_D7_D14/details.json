@@ -1,0 +1,164 @@
+{
+  "case": "D1_D2_D3_D4_D5_D6_D7_D14",
+  "name": "同一网关内的可信阶段切换：A/B 区差异化授权、重放、过期 epoch、并发",
+  "expected": "阶段 A 下 B 区 BLOCK；切换后同一请求 ALLOW；重放/过期 epoch 被拒",
+  "checks": [
+    {
+      "check": "NavigationSim 就绪（domain=42, 安全=False）",
+      "result": "PASS",
+      "detail": "NAVSIM_READY"
+    },
+    {
+      "check": "security_gateway 就绪",
+      "result": "PASS",
+      "detail": "GATEWAY_READY"
+    },
+    {
+      "check": "D1 阶段 A：A 区请求 ALLOW 且下游执行",
+      "result": "PASS",
+      "detail": "EXECUTED/True"
+    },
+    {
+      "check": "D1b NavigationSim 收到 1 条 Goal",
+      "result": "PASS",
+      "detail": "journal 增量=1"
+    },
+    {
+      "check": "D2 阶段 A：B 区请求被 TaskPolicy 拒绝 OUT_OF_REGION",
+      "result": "PASS",
+      "detail": "OUT_OF_REGION/False"
+    },
+    {
+      "check": "D2b 下游未创建 Goal",
+      "result": "PASS",
+      "detail": "journal 增量=0"
+    },
+    {
+      "check": "D2c 判定事件带阶段/epoch/digest 关联",
+      "result": "PASS",
+      "detail": "{'task_phase': 'ZONE_A', 'policy_epoch': 0, 'policy_digest': 'ea8fc0b4783971dc91508affa175630af028127375c109e7c0506cac7c6099ee'}"
+    },
+    {
+      "check": "D3 切换被接受且 epoch 递增到 1",
+      "result": "PASS",
+      "detail": "accepted=True epoch=1"
+    },
+    {
+      "check": "D3b 新阶段 digest 与阶段 A 不同",
+      "result": "PASS",
+      "detail": "A=ea8fc0b47839 B=be28ee857a12"
+    },
+    {
+      "check": "D3c 产生 TaskTransitionEvent 且 epoch 由 0 -> 1",
+      "result": "PASS",
+      "detail": "{'previous_epoch': 0, 'next_epoch': 1, 'reason_code': 'TRANSITION_ACCEPTED'}"
+    },
+    {
+      "check": "D4 阶段 B：与 D2 完全相同的请求（同身份/同 Action/同 task_id/同坐标）变为 ALLOW 并执行",
+      "result": "PASS",
+      "detail": "EXECUTED/True"
+    },
+    {
+      "check": "D4b 下游收到 1 条 Goal",
+      "result": "PASS",
+      "detail": "journal 增量=1"
+    },
+    {
+      "check": "D4c 判定关联到 ZONE_B 与 epoch=1",
+      "result": "PASS",
+      "detail": "{'task_phase': 'ZONE_B', 'policy_epoch': 1}"
+    },
+    {
+      "check": "D4d D2 与 D4 的差异只来自阶段（坐标/身份/Action 均相同）",
+      "result": "PASS",
+      "detail": "d2=(8.0,8.0)->BLOCK@ZONE_A ; d4=(8.0,8.0)->ALLOW@ZONE_B"
+    },
+    {
+      "check": "D5 阶段 B：A 区请求被拒绝 OUT_OF_REGION",
+      "result": "PASS",
+      "detail": "OUT_OF_REGION"
+    },
+    {
+      "check": "D5b 下游未创建 Goal",
+      "result": "PASS",
+      "detail": "journal 增量=0"
+    },
+    {
+      "check": "D6 重放已使用的 transition_id 被拒绝",
+      "result": "PASS",
+      "detail": "False/TRANSITION_REJECTED_REPLAY"
+    },
+    {
+      "check": "D6b epoch 未因重放而改变（仍为 1）",
+      "result": "PASS",
+      "detail": "epoch=1"
+    },
+    {
+      "check": "D7 过期 expected_epoch 被拒绝",
+      "result": "PASS",
+      "detail": "False/TRANSITION_REJECTED_EPOCH_MISMATCH"
+    },
+    {
+      "check": "D14 两个并发切换至多一个被接受（乐观并发控制生效）",
+      "result": "PASS",
+      "detail": "accepted=1 reasons=['TRANSITION_REJECTED_EPOCH_MISMATCH', 'TRANSITION_ACCEPTED']"
+    },
+    {
+      "check": "D14b 最终 epoch 与接受次数一致",
+      "result": "PASS",
+      "detail": "epoch_now=None"
+    }
+  ],
+  "observed": {
+    "epoch_after_all": null,
+    "decisions": [
+      {
+        "reason_code": "ALLOW_IN_POLICY",
+        "task_phase": "ZONE_A",
+        "policy_epoch": 0
+      },
+      {
+        "reason_code": "OUT_OF_REGION",
+        "task_phase": "ZONE_A",
+        "policy_epoch": 0
+      },
+      {
+        "reason_code": "ALLOW_IN_POLICY",
+        "task_phase": "ZONE_B",
+        "policy_epoch": 1
+      },
+      {
+        "reason_code": "OUT_OF_REGION",
+        "task_phase": "ZONE_B",
+        "policy_epoch": 1
+      }
+    ],
+    "transitions": [
+      {
+        "reason_code": "TRANSITION_ACCEPTED",
+        "previous_epoch": 0,
+        "next_epoch": 1
+      },
+      {
+        "reason_code": "TRANSITION_REJECTED_REPLAY",
+        "previous_epoch": 1,
+        "next_epoch": 1
+      },
+      {
+        "reason_code": "TRANSITION_REJECTED_EPOCH_MISMATCH",
+        "previous_epoch": 1,
+        "next_epoch": 1
+      },
+      {
+        "reason_code": "TRANSITION_ACCEPTED",
+        "previous_epoch": 1,
+        "next_epoch": 2
+      },
+      {
+        "reason_code": "TRANSITION_REJECTED_EPOCH_MISMATCH",
+        "previous_epoch": 2,
+        "next_epoch": 2
+      }
+    ]
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "case": "D10_D11",
+  "name": "在途 Goal 与状态未知时不得完成不安全切换",
+  "expected": "存在在途或状态未知的 Goal 时切换被拒绝",
+  "checks": [
+    {
+      "check": "NavigationSim 就绪（domain=42, 安全=False）",
+      "result": "PASS",
+      "detail": "NAVSIM_READY"
+    },
+    {
+      "check": "security_gateway 就绪",
+      "result": "PASS",
+      "detail": "GATEWAY_READY"
+    },
+    {
+      "check": "D10 前置：确实存在在途 Goal",
+      "result": "PASS",
+      "detail": "journal=1"
+    },
+    {
+      "check": "D10 在途 Goal 存在时切换被拒绝",
+      "result": "PASS",
+      "detail": "False/TRANSITION_REJECTED_IN_FLIGHT"
+    },
+    {
+      "check": "D10b epoch 未改变（仍为 0）",
+      "result": "PASS",
+      "detail": "epoch=0"
+    },
+    {
+      "check": "D11 前置：下游确实执行超时（EXECUTION_TIMEOUT）",
+      "result": "PASS",
+      "detail": "EXECUTION_TIMEOUT"
+    },
+    {
+      "check": "D11b 超时不被解读为\"未执行\"（下游确已收到 Goal）",
+      "result": "PASS",
+      "detail": "journal 增量=1"
+    },
+    {
+      "check": "D11c 网关日志显式标记执行状态未知且取消待确认",
+      "result": "PASS",
+      "detail": "TASK_UNCONFIRMED_IN_FLIGHT 出现"
+    },
+    {
+      "check": "D11d 状态未知的 Goal 仍阻塞切换（不得完成不安全切换）",
+      "result": "PASS",
+      "detail": "False/TRANSITION_REJECTED_IN_FLIGHT"
+    },
+    {
+      "check": "D11e 拒绝原因是在途/未确认而非其他",
+      "result": "PASS",
+      "detail": "TRANSITION_REJECTED_IN_FLIGHT"
+    }
+  ],
+  "observed": {
+    "in_flight_blocked": "TRANSITION_REJECTED_IN_FLIGHT",
+    "unconfirmed_blocked": "TRANSITION_REJECTED_IN_FLIGHT",
+    "goals_total": 2
+  }
+}

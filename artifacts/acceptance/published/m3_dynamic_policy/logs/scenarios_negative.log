@@ -1,0 +1,253 @@
+evidence directory: tests/evidence/20261009T141645Z
+
+=== scenario: policy_file_missing ===
+    Authoritative policy file absent: fail closed with POLICY_MISSING.
+    policy: /ws/config/scenarios/task_policy_does_not_exist.yaml
+    [PASS] bringup: NavigationSim ready -- NAVSIM_READY seen in tests/evidence/20261009T141645Z/policy_file_missing/navsim.log
+    [PASS] bringup: security_gateway ready -- GATEWAY_READY seen in tests/evidence/20261009T141645Z/policy_file_missing/gateway.log
+    [PASS] navsim Goal count == 0 -- journal tests/evidence/20261009T141645Z/policy_file_missing/navsim_goals.jsonl has 0 line(s)
+    [PASS] planner[missing] exit code == 0 -- actual exit code 0
+    [PASS] planner[missing] Result.success == False -- status_code='POLICY_MISSING' detail='no authoritative TaskPolicy is loaded'
+    [PASS] planner[missing] status_code == POLICY_MISSING -- actual status_code='POLICY_MISSING'
+    [PASS] DecisionEvent reason_code sequence == ['POLICY_MISSING'] -- actual sequence ['POLICY_MISSING']
+    [PASS] ExecutionEvent count == 0 -- actual 0 ExecutionEvent(s): []
+    [PASS] RosCommEvent count == DecisionEvent count == planner runs -- comm=1 decision=1 planner_runs=1
+    [PASS] event_id traceability (1 RosComm + 1 Decision + <=1 Execution each) -- event_id groups: 1; malformed: none
+    [PASS] BLOCKed event_ids never have an ExecutionEvent -- leaked event_ids: none
+    [PASS] correlatable REJECTED log lines == 1 -- found 1 REJECTED line(s) in tests/evidence/20261009T141645Z/policy_file_missing/gateway.log
+    [PASS] every REJECTED line carries a BLOCKed request_id and event_id -- blocked request_ids=['neg-policy-0001']
+    [PASS] REJECTED lines declare downstream_goal_created=false -- checked 1 line(s)
+    [PASS] executor request_id set matches the ALLOWed set -- journal=[] expected=[]
+
+=== scenario: policy_missing_required_field ===
+    Policy lacks coordinate_frame: schema error, fail closed.
+    policy: /ws/config/scenarios/task_policy_missing_field.yaml
+    [PASS] bringup: NavigationSim ready -- NAVSIM_READY seen in tests/evidence/20261009T141645Z/policy_missing_required_field/navsim.log
+    [PASS] bringup: security_gateway ready -- GATEWAY_READY seen in tests/evidence/20261009T141645Z/policy_missing_required_field/gateway.log
+    [PASS] navsim Goal count == 0 -- journal tests/evidence/20261009T141645Z/policy_missing_required_field/navsim_goals.jsonl has 0 line(s)
+    [PASS] planner[badfield] exit code == 0 -- actual exit code 0
+    [PASS] planner[badfield] Result.success == False -- status_code='POLICY_MISSING' detail='no authoritative TaskPolicy is loaded'
+    [PASS] planner[badfield] status_code == POLICY_MISSING -- actual status_code='POLICY_MISSING'
+    [PASS] DecisionEvent reason_code sequence == ['POLICY_MISSING'] -- actual sequence ['POLICY_MISSING']
+    [PASS] ExecutionEvent count == 0 -- actual 0 ExecutionEvent(s): []
+    [PASS] RosCommEvent count == DecisionEvent count == planner runs -- comm=1 decision=1 planner_runs=1
+    [PASS] event_id traceability (1 RosComm + 1 Decision + <=1 Execution each) -- event_id groups: 1; malformed: none
+    [PASS] BLOCKed event_ids never have an ExecutionEvent -- leaked event_ids: none
+    [PASS] correlatable REJECTED log lines == 1 -- found 1 REJECTED line(s) in tests/evidence/20261009T141645Z/policy_missing_required_field/gateway.log
+    [PASS] every REJECTED line carries a BLOCKed request_id and event_id -- blocked request_ids=['neg-policy-0002']
+    [PASS] REJECTED lines declare downstream_goal_created=false -- checked 1 line(s)
+    [PASS] executor request_id set matches the ALLOWed set -- journal=[] expected=[]
+
+=== scenario: policy_nonfinite_region ===
+    Policy region bound is NaN: never coerced, fail closed.
+    policy: /ws/config/scenarios/task_policy_nonfinite_region.yaml
+    [PASS] bringup: NavigationSim ready -- NAVSIM_READY seen in tests/evidence/20261009T141645Z/policy_nonfinite_region/navsim.log
+    [PASS] bringup: security_gateway ready -- GATEWAY_READY seen in tests/evidence/20261009T141645Z/policy_nonfinite_region/gateway.log
+    [PASS] navsim Goal count == 0 -- journal tests/evidence/20261009T141645Z/policy_nonfinite_region/navsim_goals.jsonl has 0 line(s)
+    [PASS] planner[nanregion] exit code == 0 -- actual exit code 0
+    [PASS] planner[nanregion] Result.success == False -- status_code='POLICY_MISSING' detail='no authoritative TaskPolicy is loaded'
+    [PASS] planner[nanregion] status_code == POLICY_MISSING -- actual status_code='POLICY_MISSING'
+    [PASS] DecisionEvent reason_code sequence == ['POLICY_MISSING'] -- actual sequence ['POLICY_MISSING']
+    [PASS] ExecutionEvent count == 0 -- actual 0 ExecutionEvent(s): []
+    [PASS] RosCommEvent count == DecisionEvent count == planner runs -- comm=1 decision=1 planner_runs=1
+    [PASS] event_id traceability (1 RosComm + 1 Decision + <=1 Execution each) -- event_id groups: 1; malformed: none
+    [PASS] BLOCKed event_ids never have an ExecutionEvent -- leaked event_ids: none
+    [PASS] correlatable REJECTED log lines == 1 -- found 1 REJECTED line(s) in tests/evidence/20261009T141645Z/policy_nonfinite_region/gateway.log
+    [PASS] every REJECTED line carries a BLOCKed request_id and event_id -- blocked request_ids=['neg-policy-0003']
+    [PASS] REJECTED lines declare downstream_goal_created=false -- checked 1 line(s)
+    [PASS] executor request_id set matches the ALLOWed set -- journal=[] expected=[]
+
+=== scenario: policy_inactive ===
+    Policy valid but active:false: treated as no authority, fail closed.
+    policy: /ws/config/scenarios/task_policy_inactive.yaml
+    [PASS] bringup: NavigationSim ready -- NAVSIM_READY seen in tests/evidence/20261009T141645Z/policy_inactive/navsim.log
+    [PASS] bringup: security_gateway ready -- GATEWAY_READY seen in tests/evidence/20261009T141645Z/policy_inactive/gateway.log
+    [PASS] navsim Goal count == 0 -- journal tests/evidence/20261009T141645Z/policy_inactive/navsim_goals.jsonl has 0 line(s)
+    [PASS] planner[inactive] exit code == 0 -- actual exit code 0
+    [PASS] planner[inactive] Result.success == False -- status_code='POLICY_MISSING' detail="authoritative policy '1.0-inactive' is marked active: false"
+    [PASS] planner[inactive] status_code == POLICY_MISSING -- actual status_code='POLICY_MISSING'
+    [PASS] DecisionEvent reason_code sequence == ['POLICY_MISSING'] -- actual sequence ['POLICY_MISSING']
+    [PASS] ExecutionEvent count == 0 -- actual 0 ExecutionEvent(s): []
+    [PASS] RosCommEvent count == DecisionEvent count == planner runs -- comm=1 decision=1 planner_runs=1
+    [PASS] event_id traceability (1 RosComm + 1 Decision + <=1 Execution each) -- event_id groups: 1; malformed: none
+    [PASS] BLOCKed event_ids never have an ExecutionEvent -- leaked event_ids: none
+    [PASS] correlatable REJECTED log lines == 1 -- found 1 REJECTED line(s) in tests/evidence/20261009T141645Z/policy_inactive/gateway.log
+    [PASS] every REJECTED line carries a BLOCKed request_id and event_id -- blocked request_ids=['neg-policy-0004']
+    [PASS] REJECTED lines declare downstream_goal_created=false -- checked 1 line(s)
+    [PASS] executor request_id set matches the ALLOWed set -- journal=[] expected=[]
+
+=== scenario: task_id_mismatch_request_side ===
+    Goal task_id differs from the authoritative policy: TASK_MISMATCH.
+    policy: /ws/config/task_policy.yaml
+    [PASS] bringup: NavigationSim ready -- NAVSIM_READY seen in tests/evidence/20261009T141645Z/task_id_mismatch_request_side/navsim.log
+    [PASS] bringup: security_gateway ready -- GATEWAY_READY seen in tests/evidence/20261009T141645Z/task_id_mismatch_request_side/gateway.log
+    [PASS] navsim Goal count == 0 -- journal tests/evidence/20261009T141645Z/task_id_mismatch_request_side/navsim_goals.jsonl has 0 line(s)
+    [PASS] planner[taskmismatch] exit code == 0 -- actual exit code 0
+    [PASS] planner[taskmismatch] Result.success == False -- status_code='TASK_MISMATCH' detail="request task_id 'patrol_b_042' != policy task_id 'patrol_a_001'"
+    [PASS] planner[taskmismatch] status_code == TASK_MISMATCH -- actual status_code='TASK_MISMATCH'
+    [PASS] DecisionEvent reason_code sequence == ['TASK_MISMATCH'] -- actual sequence ['TASK_MISMATCH']
+    [PASS] ExecutionEvent count == 0 -- actual 0 ExecutionEvent(s): []
+    [PASS] RosCommEvent count == DecisionEvent count == planner runs -- comm=1 decision=1 planner_runs=1
+    [PASS] event_id traceability (1 RosComm + 1 Decision + <=1 Execution each) -- event_id groups: 1; malformed: none
+    [PASS] BLOCKed event_ids never have an ExecutionEvent -- leaked event_ids: none
+    [PASS] correlatable REJECTED log lines == 1 -- found 1 REJECTED line(s) in tests/evidence/20261009T141645Z/task_id_mismatch_request_side/gateway.log
+    [PASS] every REJECTED line carries a BLOCKed request_id and event_id -- blocked request_ids=['neg-task-0001']
+    [PASS] REJECTED lines declare downstream_goal_created=false -- checked 1 line(s)
+    [PASS] executor request_id set matches the ALLOWed set -- journal=[] expected=[]
+
+=== scenario: task_id_mismatch_policy_side ===
+    Authoritative policy is for patrol_b_999: a patrol_a_001 Goal is TASK_MISMATCH.
+    policy: /ws/config/scenarios/task_policy_task_b.yaml
+    [PASS] bringup: NavigationSim ready -- NAVSIM_READY seen in tests/evidence/20261009T141645Z/task_id_mismatch_policy_side/navsim.log
+    [PASS] bringup: security_gateway ready -- GATEWAY_READY seen in tests/evidence/20261009T141645Z/task_id_mismatch_policy_side/gateway.log
+    [PASS] navsim Goal count == 0 -- journal tests/evidence/20261009T141645Z/task_id_mismatch_policy_side/navsim_goals.jsonl has 0 line(s)
+    [PASS] planner[taskmismatch2] exit code == 0 -- actual exit code 0
+    [PASS] planner[taskmismatch2] Result.success == False -- status_code='TASK_MISMATCH' detail="request task_id 'patrol_a_001' != policy task_id 'patrol_b_999'"
+    [PASS] planner[taskmismatch2] status_code == TASK_MISMATCH -- actual status_code='TASK_MISMATCH'
+    [PASS] DecisionEvent reason_code sequence == ['TASK_MISMATCH'] -- actual sequence ['TASK_MISMATCH']
+    [PASS] ExecutionEvent count == 0 -- actual 0 ExecutionEvent(s): []
+    [PASS] RosCommEvent count == DecisionEvent count == planner runs -- comm=1 decision=1 planner_runs=1
+    [PASS] event_id traceability (1 RosComm + 1 Decision + <=1 Execution each) -- event_id groups: 1; malformed: none
+    [PASS] BLOCKed event_ids never have an ExecutionEvent -- leaked event_ids: none
+    [PASS] correlatable REJECTED log lines == 1 -- found 1 REJECTED line(s) in tests/evidence/20261009T141645Z/task_id_mismatch_policy_side/gateway.log
+    [PASS] every REJECTED line carries a BLOCKed request_id and event_id -- blocked request_ids=['neg-task-0002']
+    [PASS] REJECTED lines declare downstream_goal_created=false -- checked 1 line(s)
+    [PASS] executor request_id set matches the ALLOWed set -- journal=[] expected=[]
+
+=== scenario: frame_id_invalid ===
+    Goal frame_id=camera_link while policy coordinate_frame=map: INVALID_TARGET.
+    policy: /ws/config/task_policy.yaml
+    [PASS] bringup: NavigationSim ready -- NAVSIM_READY seen in tests/evidence/20261009T141645Z/frame_id_invalid/navsim.log
+    [PASS] bringup: security_gateway ready -- GATEWAY_READY seen in tests/evidence/20261009T141645Z/frame_id_invalid/gateway.log
+    [PASS] navsim Goal count == 0 -- journal tests/evidence/20261009T141645Z/frame_id_invalid/navsim_goals.jsonl has 0 line(s)
+    [PASS] planner[badframe] exit code == 0 -- actual exit code 0
+    [PASS] planner[badframe] Result.success == False -- status_code='INVALID_TARGET' detail="target frame_id 'camera_link' != policy coordinate_frame 'map'"
+    [PASS] planner[badframe] status_code == INVALID_TARGET -- actual status_code='INVALID_TARGET'
+    [PASS] DecisionEvent reason_code sequence == ['INVALID_TARGET'] -- actual sequence ['INVALID_TARGET']
+    [PASS] ExecutionEvent count == 0 -- actual 0 ExecutionEvent(s): []
+    [PASS] RosCommEvent count == DecisionEvent count == planner runs -- comm=1 decision=1 planner_runs=1
+    [PASS] event_id traceability (1 RosComm + 1 Decision + <=1 Execution each) -- event_id groups: 1; malformed: none
+    [PASS] BLOCKed event_ids never have an ExecutionEvent -- leaked event_ids: none
+    [PASS] correlatable REJECTED log lines == 1 -- found 1 REJECTED line(s) in tests/evidence/20261009T141645Z/frame_id_invalid/gateway.log
+    [PASS] every REJECTED line carries a BLOCKed request_id and event_id -- blocked request_ids=['neg-frame-0001']
+    [PASS] REJECTED lines declare downstream_goal_created=false -- checked 1 line(s)
+    [PASS] executor request_id set matches the ALLOWed set -- journal=[] expected=[]
+
+=== scenario: target_nan ===
+    Goal target.x = NaN: INVALID_TARGET, never coerced.
+    policy: /ws/config/task_policy.yaml
+    [PASS] bringup: NavigationSim ready -- NAVSIM_READY seen in tests/evidence/20261009T141645Z/target_nan/navsim.log
+    [PASS] bringup: security_gateway ready -- GATEWAY_READY seen in tests/evidence/20261009T141645Z/target_nan/gateway.log
+    [PASS] navsim Goal count == 0 -- journal tests/evidence/20261009T141645Z/target_nan/navsim_goals.jsonl has 0 line(s)
+    [PASS] planner[nan] exit code == 0 -- actual exit code 0
+    [PASS] planner[nan] Result.success == False -- status_code='INVALID_TARGET' detail='target.x is not a finite number: nan'
+    [PASS] planner[nan] status_code == INVALID_TARGET -- actual status_code='INVALID_TARGET'
+    [PASS] DecisionEvent reason_code sequence == ['INVALID_TARGET'] -- actual sequence ['INVALID_TARGET']
+    [PASS] ExecutionEvent count == 0 -- actual 0 ExecutionEvent(s): []
+    [PASS] RosCommEvent count == DecisionEvent count == planner runs -- comm=1 decision=1 planner_runs=1
+    [PASS] event_id traceability (1 RosComm + 1 Decision + <=1 Execution each) -- event_id groups: 1; malformed: none
+    [PASS] BLOCKed event_ids never have an ExecutionEvent -- leaked event_ids: none
+    [PASS] correlatable REJECTED log lines == 1 -- found 1 REJECTED line(s) in tests/evidence/20261009T141645Z/target_nan/gateway.log
+    [PASS] every REJECTED line carries a BLOCKed request_id and event_id -- blocked request_ids=['neg-nan-0001']
+    [PASS] REJECTED lines declare downstream_goal_created=false -- checked 1 line(s)
+    [PASS] executor request_id set matches the ALLOWed set -- journal=[] expected=[]
+
+=== scenario: target_infinite ===
+    Goal target.y = inf: INVALID_TARGET, never coerced.
+    policy: /ws/config/task_policy.yaml
+    [PASS] bringup: NavigationSim ready -- NAVSIM_READY seen in tests/evidence/20261009T141645Z/target_infinite/navsim.log
+    [PASS] bringup: security_gateway ready -- GATEWAY_READY seen in tests/evidence/20261009T141645Z/target_infinite/gateway.log
+    [PASS] navsim Goal count == 0 -- journal tests/evidence/20261009T141645Z/target_infinite/navsim_goals.jsonl has 0 line(s)
+    [PASS] planner[inf] exit code == 0 -- actual exit code 0
+    [PASS] planner[inf] Result.success == False -- status_code='INVALID_TARGET' detail='target.y is not a finite number: inf'
+    [PASS] planner[inf] status_code == INVALID_TARGET -- actual status_code='INVALID_TARGET'
+    [PASS] DecisionEvent reason_code sequence == ['INVALID_TARGET'] -- actual sequence ['INVALID_TARGET']
+    [PASS] ExecutionEvent count == 0 -- actual 0 ExecutionEvent(s): []
+    [PASS] RosCommEvent count == DecisionEvent count == planner runs -- comm=1 decision=1 planner_runs=1
+    [PASS] event_id traceability (1 RosComm + 1 Decision + <=1 Execution each) -- event_id groups: 1; malformed: none
+    [PASS] BLOCKed event_ids never have an ExecutionEvent -- leaked event_ids: none
+    [PASS] correlatable REJECTED log lines == 1 -- found 1 REJECTED line(s) in tests/evidence/20261009T141645Z/target_infinite/gateway.log
+    [PASS] every REJECTED line carries a BLOCKed request_id and event_id -- blocked request_ids=['neg-inf-0001']
+    [PASS] REJECTED lines declare downstream_goal_created=false -- checked 1 line(s)
+    [PASS] executor request_id set matches the ALLOWed set -- journal=[] expected=[]
+
+=== scenario: duplicate_request_id ===
+    Same request_id sent twice: ALLOW then DUPLICATE_REQUEST (replay guard).
+    policy: /ws/config/task_policy.yaml
+    [PASS] bringup: NavigationSim ready -- NAVSIM_READY seen in tests/evidence/20261009T141645Z/duplicate_request_id/navsim.log
+    [PASS] bringup: security_gateway ready -- GATEWAY_READY seen in tests/evidence/20261009T141645Z/duplicate_request_id/gateway.log
+    [PASS] navsim Goal count == 1 -- journal tests/evidence/20261009T141645Z/duplicate_request_id/navsim_goals.jsonl has 1 line(s)
+    [PASS] planner[first] exit code == 0 -- actual exit code 0
+    [PASS] planner[replay] exit code == 0 -- actual exit code 0
+    [PASS] planner[first] Result.success == True -- status_code='EXECUTED' detail='recorded target (2.0, 2.0, 0.0) in frame map; no path planning performed'
+    [PASS] planner[first] status_code == EXECUTED -- actual status_code='EXECUTED'
+    [PASS] planner[replay] Result.success == False -- status_code='DUPLICATE_REQUEST' detail="request_id 'neg-dup-0001' was already received within the duplicate window"
+    [PASS] planner[replay] status_code == DUPLICATE_REQUEST -- actual status_code='DUPLICATE_REQUEST'
+    [PASS] DecisionEvent reason_code sequence == ['ALLOW_IN_POLICY', 'DUPLICATE_REQUEST'] -- actual sequence ['ALLOW_IN_POLICY', 'DUPLICATE_REQUEST']
+    [PASS] ExecutionEvent count == 1 -- actual 1 ExecutionEvent(s): ['EXECUTED']
+    [PASS] RosCommEvent count == DecisionEvent count == planner runs -- comm=2 decision=2 planner_runs=2
+    [PASS] event_id traceability (1 RosComm + 1 Decision + <=1 Execution each) -- event_id groups: 2; malformed: none
+    [PASS] BLOCKed event_ids never have an ExecutionEvent -- leaked event_ids: none
+    [PASS] correlatable REJECTED log lines == 1 -- found 1 REJECTED line(s) in tests/evidence/20261009T141645Z/duplicate_request_id/gateway.log
+    [PASS] every REJECTED line carries a BLOCKed request_id and event_id -- blocked request_ids=['neg-dup-0001']
+    [PASS] REJECTED lines declare downstream_goal_created=false -- checked 1 line(s)
+    [PASS] executor request_id set matches the ALLOWed set -- journal=['neg-dup-0001'] expected=['neg-dup-0001']
+
+=== scenario: rate_limit ===
+    max_requests_per_minute=2: third in-region Goal is RATE_LIMIT.
+    policy: /ws/config/scenarios/task_policy_low_rate.yaml
+    [PASS] bringup: NavigationSim ready -- NAVSIM_READY seen in tests/evidence/20261009T141645Z/rate_limit/navsim.log
+    [PASS] bringup: security_gateway ready -- GATEWAY_READY seen in tests/evidence/20261009T141645Z/rate_limit/gateway.log
+    [PASS] navsim Goal count == 2 -- journal tests/evidence/20261009T141645Z/rate_limit/navsim_goals.jsonl has 2 line(s)
+    [PASS] planner[r1] exit code == 0 -- actual exit code 0
+    [PASS] planner[r2] exit code == 0 -- actual exit code 0
+    [PASS] planner[r3] exit code == 0 -- actual exit code 0
+    [PASS] planner[r1] Result.success == True -- status_code='EXECUTED' detail='recorded target (1.0, 1.0, 0.0) in frame map; no path planning performed'
+    [PASS] planner[r1] status_code == EXECUTED -- actual status_code='EXECUTED'
+    [PASS] planner[r2] Result.success == True -- status_code='EXECUTED' detail='recorded target (2.0, 2.0, 0.0) in frame map; no path planning performed'
+    [PASS] planner[r2] status_code == EXECUTED -- actual status_code='EXECUTED'
+    [PASS] planner[r3] Result.success == False -- status_code='RATE_LIMIT' detail='more than 2.0 admitted requests within 60.0s'
+    [PASS] planner[r3] status_code == RATE_LIMIT -- actual status_code='RATE_LIMIT'
+    [PASS] DecisionEvent reason_code sequence == ['ALLOW_IN_POLICY', 'ALLOW_IN_POLICY', 'RATE_LIMIT'] -- actual sequence ['ALLOW_IN_POLICY', 'ALLOW_IN_POLICY', 'RATE_LIMIT']
+    [PASS] ExecutionEvent count == 2 -- actual 2 ExecutionEvent(s): ['EXECUTED', 'EXECUTED']
+    [PASS] RosCommEvent count == DecisionEvent count == planner runs -- comm=3 decision=3 planner_runs=3
+    [PASS] event_id traceability (1 RosComm + 1 Decision + <=1 Execution each) -- event_id groups: 3; malformed: none
+    [PASS] BLOCKed event_ids never have an ExecutionEvent -- leaked event_ids: none
+    [PASS] correlatable REJECTED log lines == 1 -- found 1 REJECTED line(s) in tests/evidence/20261009T141645Z/rate_limit/gateway.log
+    [PASS] every REJECTED line carries a BLOCKed request_id and event_id -- blocked request_ids=['neg-rate-0003']
+    [PASS] REJECTED lines declare downstream_goal_created=false -- checked 1 line(s)
+    [PASS] executor request_id set matches the ALLOWed set -- journal=['neg-rate-0001', 'neg-rate-0002'] expected=['neg-rate-0001', 'neg-rate-0002']
+
+=== scenario: execution_timeout ===
+    Executor stalls past execution_timeout_sec: EXECUTION_TIMEOUT, audited.
+    policy: /ws/config/task_policy.yaml
+    [PASS] bringup: NavigationSim ready -- NAVSIM_READY seen in tests/evidence/20261009T141645Z/execution_timeout/navsim.log
+    [PASS] bringup: security_gateway ready -- GATEWAY_READY seen in tests/evidence/20261009T141645Z/execution_timeout/gateway.log
+    [PASS] navsim Goal count == 1 -- journal tests/evidence/20261009T141645Z/execution_timeout/navsim_goals.jsonl has 1 line(s)
+    [PASS] planner[timeout] exit code == 0 -- actual exit code 0
+    [PASS] planner[timeout] Result.success == False -- status_code='EXECUTION_TIMEOUT' detail='downstream Goal f978be88d84a40829e6a8a0fa1c50f8c WAS created and accepted, but its execution result did not arrive withi'
+    [PASS] planner[timeout] status_code == EXECUTION_TIMEOUT -- actual status_code='EXECUTION_TIMEOUT'
+    [PASS] DecisionEvent reason_code sequence == ['ALLOW_IN_POLICY'] -- actual sequence ['ALLOW_IN_POLICY']
+    [PASS] ExecutionEvent count == 1 -- actual 1 ExecutionEvent(s): ['EXECUTION_TIMEOUT']
+    [PASS] RosCommEvent count == DecisionEvent count == planner runs -- comm=1 decision=1 planner_runs=1
+    [PASS] event_id traceability (1 RosComm + 1 Decision + <=1 Execution each) -- event_id groups: 1; malformed: none
+    [PASS] BLOCKed event_ids never have an ExecutionEvent -- leaked event_ids: none
+    [PASS] correlatable REJECTED log lines == 0 -- found 0 REJECTED line(s) in tests/evidence/20261009T141645Z/execution_timeout/gateway.log
+    [PASS] executor request_id set matches the ALLOWed set -- journal=['neg-timeout-0001'] expected=['neg-timeout-0001']
+
+==============================================================================
+SCENARIO SUMMARY  (12 passed / 12 total)
+==============================================================================
+  [PASS] policy_file_missing                navsim_goals=0 decisions=POLICY_MISSING
+  [PASS] policy_missing_required_field      navsim_goals=0 decisions=POLICY_MISSING
+  [PASS] policy_nonfinite_region            navsim_goals=0 decisions=POLICY_MISSING
+  [PASS] policy_inactive                    navsim_goals=0 decisions=POLICY_MISSING
+  [PASS] task_id_mismatch_request_side      navsim_goals=0 decisions=TASK_MISMATCH
+  [PASS] task_id_mismatch_policy_side       navsim_goals=0 decisions=TASK_MISMATCH
+  [PASS] frame_id_invalid                   navsim_goals=0 decisions=INVALID_TARGET
+  [PASS] target_nan                         navsim_goals=0 decisions=INVALID_TARGET
+  [PASS] target_infinite                    navsim_goals=0 decisions=INVALID_TARGET
+  [PASS] duplicate_request_id               navsim_goals=1 decisions=ALLOW_IN_POLICY,DUPLICATE_REQUEST
+  [PASS] rate_limit                         navsim_goals=2 decisions=ALLOW_IN_POLICY,ALLOW_IN_POLICY,RATE_LIMIT
+  [PASS] execution_timeout                  navsim_goals=1 decisions=ALLOW_IN_POLICY
+evidence: tests/evidence/20261009T141645Z

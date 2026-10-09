@@ -1,0 +1,82 @@
+[
+  {
+    "scenario": "execution_timeout",
+    "step": "navigation_sim",
+    "kind": "ros2 run (long-running)",
+    "argv": [
+      "ros2",
+      "run",
+      "rg_demo_nodes",
+      "navigation_sim",
+      "--ros-args",
+      "-p",
+      "record_path:=/ws/tests/evidence/20261009T141645Z/execution_timeout/navsim_goals.jsonl",
+      "-p",
+      "simulate_delay_sec:=10.0"
+    ],
+    "cwd": "/ws",
+    "pid": 43140,
+    "started_at": "2026-10-09T14:19:59Z",
+    "log_path": "/ws/tests/evidence/20261009T141645Z/execution_timeout/navsim.log",
+    "exit_code": 0,
+    "ready_after_sec": 0.201,
+    "finished_at": "2026-10-09T14:20:18Z",
+    "duration_sec": 18.984
+  },
+  {
+    "scenario": "execution_timeout",
+    "step": "security_gateway",
+    "kind": "ros2 run (long-running)",
+    "argv": [
+      "ros2",
+      "run",
+      "rg_gateway",
+      "security_gateway",
+      "--ros-args",
+      "-p",
+      "policy_path:=/ws/config/task_policy.yaml",
+      "-p",
+      "audit_log_path:=/ws/tests/evidence/20261009T141645Z/execution_timeout/audit.jsonl",
+      "-p",
+      "execution_timeout_sec:=2.0"
+    ],
+    "cwd": "/ws",
+    "pid": 43141,
+    "started_at": "2026-10-09T14:19:59Z",
+    "log_path": "/ws/tests/evidence/20261009T141645Z/execution_timeout/gateway.log",
+    "exit_code": 0,
+    "ready_after_sec": 0.401,
+    "finished_at": "2026-10-09T14:20:10Z",
+    "duration_sec": 10.978
+  },
+  {
+    "scenario": "execution_timeout",
+    "step": "planner_run1:timeout",
+    "kind": "ros2 run (one-shot)",
+    "argv": [
+      "ros2",
+      "run",
+      "rg_demo_nodes",
+      "planner_node",
+      "--ros-args",
+      "-p",
+      "task_id:=patrol_a_001",
+      "-p",
+      "request_id:=neg-timeout-0001",
+      "-p",
+      "frame_id:=map",
+      "-p",
+      "target_x:=1.5",
+      "-p",
+      "target_y:=1.5",
+      "-p",
+      "expect_success:=0"
+    ],
+    "cwd": "/ws",
+    "started_at": "2026-10-09T14:19:59Z",
+    "finished_at": "2026-10-09T14:20:02Z",
+    "duration_sec": 2.572,
+    "exit_code": 0,
+    "log_path": "/ws/tests/evidence/20261009T141645Z/execution_timeout/planner_1_timeout.log"
+  }
+]

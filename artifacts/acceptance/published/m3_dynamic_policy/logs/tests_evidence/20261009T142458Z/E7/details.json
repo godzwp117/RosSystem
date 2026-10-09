@@ -1,0 +1,37 @@
+{
+  "case": "E7",
+  "name": "公开包哈希验证与来源可追溯",
+  "expected": "哈希按脱敏后内容重算、不冒充原始哈希、无映射表",
+  "checks": [
+    {
+      "check": "E7 公开包自身校验通过（哈希按脱敏后内容重算）",
+      "result": "PASS",
+      "detail": "verify exit=0"
+    },
+    {
+      "check": "E7b 公开包文件哈希与原始包不同（未被冒充）",
+      "result": "PASS",
+      "detail": "两个 JSON 的 SHA-256 均与原始包不同"
+    },
+    {
+      "check": "E7c manifest 记录了 source_run_id 与原始包哈希引用",
+      "result": "PASS",
+      "detail": "source_package_sha256=95b49ff9d4639455"
+    },
+    {
+      "check": "E7d 公开包内不含脱敏映射表",
+      "result": "PASS",
+      "detail": "redaction 块只含计数与引用"
+    }
+  ],
+  "observed": {
+    "checks_total": 4,
+    "checks_passed": 4,
+    "commands": [
+      {
+        "step": "verify_published",
+        "exit_code": 0
+      }
+    ]
+  }
+}

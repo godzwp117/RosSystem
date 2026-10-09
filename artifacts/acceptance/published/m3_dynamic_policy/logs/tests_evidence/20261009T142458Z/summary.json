@@ -1,0 +1,448 @@
+{
+  "run_id": "20261009T142458Z",
+  "finished_at": "2026-10-09T14:25:45Z",
+  "workspace": "${WORKSPACE}",
+  "suite": "redaction",
+  "total": 7,
+  "passed": 7,
+  "failed": 0,
+  "scenarios": [
+    {
+      "scenario": "E1_E2_E4_E5",
+      "scenario_id": "E1_E2_E4_E5",
+      "description": "日志脱敏语义：用户名/路径/JSONL 可解析/事件关联/类型保持",
+      "scenario_name": "日志脱敏语义：用户名/路径/JSONL 可解析/事件关联/类型保持",
+      "expected_result": "公开副本中用户名与绝对路径被脱敏，业务字段与结构完整保留",
+      "actual_result": "脱敏命令成功=PASS; E1 宿主真实用户名在公开副本中被脱敏=PASS; E2 绝对本地路径转换为稳定别名 ${WORKSPACE}=PASS; E2b 业务资源名/判定/原因码未被破坏=PASS; E4 JSONL 脱敏后每行仍可解析=PASS; E5 event_id/request_id 跨事件关联未丢失=PASS; E5b 数字类型保持（未被字符串化）=PASS; E5c JSON 中的路径值也被脱敏=PASS; YAML 中 api_key 值被替换为 [REDACTED_SECRET]=PASS; YAML 中业务字段（task_id/policy_version）保留=PASS",
+      "result": "PASS",
+      "status": "PASS",
+      "evidence_dir": "tests/evidence/20261009T142458Z/E1_E2_E4_E5",
+      "command": [
+        "${WORKSPACE}/scripts/redact_evidence.py",
+        "--src",
+        "/tmp/rg_redaction_m4abkh5c/fixture",
+        "--dst",
+        "/tmp/rg_redaction_m4abkh5c/redacted"
+      ],
+      "commands": [
+        {
+          "step": "redact",
+          "argv": [
+            "${WORKSPACE}/scripts/redact_evidence.py",
+            "--src",
+            "/tmp/rg_redaction_m4abkh5c/fixture",
+            "--dst",
+            "/tmp/rg_redaction_m4abkh5c/redacted"
+          ],
+          "exit_code": 0,
+          "duration_sec": 0
+        }
+      ],
+      "exit_code": 0,
+      "duration_ms": 0,
+      "log_path": "tests/evidence/20261009T142458Z/E1_E2_E4_E5/details.json",
+      "evidence_files": [
+        "tests/evidence/20261009T142458Z/E1_E2_E4_E5/details.json",
+        "tests/evidence/20261009T142458Z/E1_E2_E4_E5/redacted_copy/logs/app.log",
+        "tests/evidence/20261009T142458Z/E1_E2_E4_E5/redacted_copy/logs/audit.jsonl",
+        "tests/evidence/20261009T142458Z/E1_E2_E4_E5/redacted_copy/logs/config.yaml"
+      ],
+      "reason_code": null,
+      "checks": [
+        {
+          "check": "脱敏命令成功",
+          "result": "PASS",
+          "detail": "REDACTION SUMMARY {\"source_dir\": \"/tmp/rg_redaction_m4abkh5c/fixture\", \"output_dir\": \"/tmp/rg_redaction_m4abkh5c/redacted\", \"files_redacted\": 3, \"files_opaque_copied\": 0, \"opaque_files\": [], \"files_rejected_as_key_material\": 0, \"rejected_files\": [], \"bytes_in\": 1003, \"bytes_out\": 969, \"redaction_counts\": {\"workspace_path\": 2, \"home_path\": 4, \"username\": 1}}"
+        },
+        {
+          "check": "E1 宿主真实用户名在公开副本中被脱敏",
+          "result": "PASS",
+          "detail": "USER_n 占位"
+        },
+        {
+          "check": "E2 绝对本地路径转换为稳定别名 ${WORKSPACE}",
+          "result": "PASS",
+          "detail": "${WORKSPACE} 已出现且无 /home/"
+        },
+        {
+          "check": "E2b 业务资源名/判定/原因码未被破坏",
+          "result": "PASS",
+          "detail": "rg/guarded_navigate + ALLOW_IN_POLICY"
+        },
+        {
+          "check": "E4 JSONL 脱敏后每行仍可解析",
+          "result": "PASS",
+          "detail": "3 行全部解析成功"
+        },
+        {
+          "check": "E5 event_id/request_id 跨事件关联未丢失",
+          "result": "PASS",
+          "detail": "id 与顺序一致"
+        },
+        {
+          "check": "E5b 数字类型保持（未被字符串化）",
+          "result": "PASS",
+          "detail": "downstream_goal_count 仍为 int"
+        },
+        {
+          "check": "E5c JSON 中的路径值也被脱敏",
+          "result": "PASS",
+          "detail": "${PRIVATE_PATH}"
+        },
+        {
+          "check": "YAML 中 api_key 值被替换为 [REDACTED_SECRET]",
+          "result": "PASS",
+          "detail": "api_key 已脱敏"
+        },
+        {
+          "check": "YAML 中业务字段（task_id/policy_version）保留",
+          "result": "PASS",
+          "detail": "ok"
+        }
+      ],
+      "notes": [],
+      "suite": "redaction"
+    },
+    {
+      "scenario": "E3",
+      "scenario_id": "E3",
+      "description": "含 Token/私钥的材料不得进入公开证据",
+      "scenario_name": "含 Token/私钥的材料不得进入公开证据",
+      "expected_result": "安全扫描判阻断、密钥类文件被拒绝、Token 被脱敏",
+      "actual_result": "E3 含 Token 的目录被安全扫描判定为阻断=PASS; E3b 密钥类文件被拒绝进入发布副本=PASS; E3c 可脱敏的 Token 在公开副本中已被替换=PASS; E3d 脱敏后的副本通过安全扫描=PASS",
+      "result": "PASS",
+      "status": "PASS",
+      "evidence_dir": "tests/evidence/20261009T142458Z/E3",
+      "command": [
+        "${WORKSPACE}/scripts/check_evidence_safety.py",
+        "--path",
+        "/tmp/rg_redaction_m4abkh5c/e3_fixture"
+      ],
+      "commands": [
+        {
+          "step": "safety_scan_injected",
+          "argv": [
+            "${WORKSPACE}/scripts/check_evidence_safety.py",
+            "--path",
+            "/tmp/rg_redaction_m4abkh5c/e3_fixture"
+          ],
+          "exit_code": 1,
+          "duration_sec": 0
+        }
+      ],
+      "exit_code": 1,
+      "duration_ms": 0,
+      "log_path": "tests/evidence/20261009T142458Z/E3/details.json",
+      "evidence_files": [
+        "tests/evidence/20261009T142458Z/E3/details.json"
+      ],
+      "reason_code": null,
+      "checks": [
+        {
+          "check": "E3 含 Token 的目录被安全扫描判定为阻断",
+          "result": "PASS",
+          "detail": "exit=1"
+        },
+        {
+          "check": "E3b 密钥类文件被拒绝进入发布副本",
+          "result": "PASS",
+          "detail": "id_rsa 未出现在脱敏输出"
+        },
+        {
+          "check": "E3c 可脱敏的 Token 在公开副本中已被替换",
+          "result": "PASS",
+          "detail": "token=[REDACTED_SECRET]"
+        },
+        {
+          "check": "E3d 脱敏后的副本通过安全扫描",
+          "result": "PASS",
+          "detail": "safety exit=0"
+        }
+      ],
+      "notes": [],
+      "suite": "redaction"
+    },
+    {
+      "scenario": "E6",
+      "scenario_id": "E6",
+      "description": "M2 安全场景导出保留真实 Goal 数与判定",
+      "scenario_name": "M2 安全场景导出保留真实 Goal 数与判定",
+      "expected_result": "downstream_goal_count / rejection_layer / reason_code / domain 正确",
+      "actual_result": "E6 导出成功=PASS; E6b 真实下游 Goal 数被保留（S3=0, S2=1, S3C=1）=PASS; E6c 拒绝层与原因码被保留=PASS; E6d actual_result 不再是 None/- 占位=PASS; E6e Enforce 场景 domain 标为 43（非容器默认 42）=PASS",
+      "result": "PASS",
+      "status": "PASS",
+      "evidence_dir": "tests/evidence/20261009T142458Z/E6",
+      "command": [
+        "export_acceptance.py",
+        "--run-id",
+        "e6_probe"
+      ],
+      "commands": [
+        {
+          "step": "export",
+          "argv": [
+            "export_acceptance.py",
+            "--run-id",
+            "e6_probe"
+          ],
+          "exit_code": 0,
+          "duration_sec": 0
+        }
+      ],
+      "exit_code": 0,
+      "duration_ms": 0,
+      "log_path": "tests/evidence/20261009T142458Z/E6/details.json",
+      "evidence_files": [
+        "tests/evidence/20261009T142458Z/E6/details.json"
+      ],
+      "reason_code": null,
+      "checks": [
+        {
+          "check": "E6 导出成功",
+          "result": "PASS",
+          "detail": "{\"run_id\": \"e6_probe\", \"package_dir\": \"/tmp/rg_redaction_m4abkh5c/e6/e6_probe\", \"archive\": \"/tmp/rg_redaction_m4abkh5c/e6/e6_probe.tar.gz\", \"archive_sha256\": \"b6abb7857eb14704945aa5e4be1bdb24e7ecaccf6a43d4652801048cb8f6ac13\", \"files\": 245, \"total_bytes\": 1186968, \"scenarios\": 31, \"security_scenarios\": 7, \"excluded\": [], \"test_summary\": {\"passed\": 37, \"failed\": 1, \"not_run\": 0, \"blocked\": 0, \"total\": 38}}"
+        },
+        {
+          "check": "E6b 真实下游 Goal 数被保留（S3=0, S2=1, S3C=1）",
+          "result": "PASS",
+          "detail": "{'S2': 1, 'S3': 0, 'S3C': 1, 'S5': 0}"
+        },
+        {
+          "check": "E6c 拒绝层与原因码被保留",
+          "result": "PASS",
+          "detail": "S3=dds_security / S5=business_task_policy"
+        },
+        {
+          "check": "E6d actual_result 不再是 None/- 占位",
+          "result": "PASS",
+          "detail": "Planner 身份直连 /rg/nav_execute 未能完成执行=PASS; DDS 访问控制层给出明确拒绝证据（不是单纯客户端超时）=PASS; Nav"
+        },
+        {
+          "check": "E6e Enforce 场景 domain 标为 43（非容器默认 42）",
+          "result": "PASS",
+          "detail": "{'S1_normal_mode_a_zone': 42, 'S2': 43}"
+        }
+      ],
+      "notes": [],
+      "suite": "redaction"
+    },
+    {
+      "scenario": "E7",
+      "scenario_id": "E7",
+      "description": "公开包哈希验证与来源可追溯",
+      "scenario_name": "公开包哈希验证与来源可追溯",
+      "expected_result": "哈希按脱敏后内容重算、不冒充原始哈希、无映射表",
+      "actual_result": "E7 公开包自身校验通过（哈希按脱敏后内容重算）=PASS; E7b 公开包文件哈希与原始包不同（未被冒充）=PASS; E7c manifest 记录了 source_run_id 与原始包哈希引用=PASS; E7d 公开包内不含脱敏映射表=PASS",
+      "result": "PASS",
+      "status": "PASS",
+      "evidence_dir": "tests/evidence/20261009T142458Z/E7",
+      "command": [
+        "verify_acceptance.py",
+        "${WORKSPACE}/artifacts/acceptance/published/m2_sros2_enforce"
+      ],
+      "commands": [
+        {
+          "step": "verify_published",
+          "argv": [
+            "verify_acceptance.py",
+            "${WORKSPACE}/artifacts/acceptance/published/m2_sros2_enforce"
+          ],
+          "exit_code": 0,
+          "duration_sec": 0
+        }
+      ],
+      "exit_code": 0,
+      "duration_ms": 0,
+      "log_path": "tests/evidence/20261009T142458Z/E7/details.json",
+      "evidence_files": [
+        "tests/evidence/20261009T142458Z/E7/details.json"
+      ],
+      "reason_code": null,
+      "checks": [
+        {
+          "check": "E7 公开包自身校验通过（哈希按脱敏后内容重算）",
+          "result": "PASS",
+          "detail": "verify exit=0"
+        },
+        {
+          "check": "E7b 公开包文件哈希与原始包不同（未被冒充）",
+          "result": "PASS",
+          "detail": "两个 JSON 的 SHA-256 均与原始包不同"
+        },
+        {
+          "check": "E7c manifest 记录了 source_run_id 与原始包哈希引用",
+          "result": "PASS",
+          "detail": "source_package_sha256=95b49ff9d4639455"
+        },
+        {
+          "check": "E7d 公开包内不含脱敏映射表",
+          "result": "PASS",
+          "detail": "redaction 块只含计数与引用"
+        }
+      ],
+      "notes": [],
+      "suite": "redaction"
+    },
+    {
+      "scenario": "E8",
+      "scenario_id": "E8",
+      "description": "敏感信息扫描失败不得执行 Git push",
+      "scenario_name": "敏感信息扫描失败不得执行 Git push",
+      "expected_result": "发布返回 BLOCKED 且远程 SHA 不变",
+      "actual_result": "E8 含未脱敏凭证的证据发布被拒绝（非 0 退出）=PASS; E8b 发布状态为 BLOCKED，未伪装成功=PASS; E8c 远程证据分支 SHA 未变化（确实没有 push）=PASS",
+      "result": "PASS",
+      "status": "PASS",
+      "evidence_dir": "tests/evidence/20261009T142458Z/E8",
+      "command": [
+        "${WORKSPACE}/scripts/publish_acceptance.py",
+        "--run-id",
+        "e8_token_injection"
+      ],
+      "commands": [
+        {
+          "step": "publish_with_token",
+          "argv": [
+            "${WORKSPACE}/scripts/publish_acceptance.py",
+            "--run-id",
+            "e8_token_injection"
+          ],
+          "exit_code": 1,
+          "duration_sec": 0
+        }
+      ],
+      "exit_code": 1,
+      "duration_ms": 0,
+      "log_path": "tests/evidence/20261009T142458Z/E8/details.json",
+      "evidence_files": [
+        "tests/evidence/20261009T142458Z/E8/details.json"
+      ],
+      "reason_code": null,
+      "checks": [
+        {
+          "check": "E8 含未脱敏凭证的证据发布被拒绝（非 0 退出）",
+          "result": "PASS",
+          "detail": "exit=1"
+        },
+        {
+          "check": "E8b 发布状态为 BLOCKED，未伪装成功",
+          "result": "PASS",
+          "detail": "BLOCKED"
+        },
+        {
+          "check": "E8c 远程证据分支 SHA 未变化（确实没有 push）",
+          "result": "PASS",
+          "detail": "before=80224c0a47d5 after=80224c0a47d5"
+        }
+      ],
+      "notes": [],
+      "suite": "redaction"
+    },
+    {
+      "scenario": "E9",
+      "scenario_id": "E9",
+      "description": "无网络或无权限时保留待发布证据",
+      "scenario_name": "无网络或无权限时保留待发布证据",
+      "expected_result": "状态非 PASS，本地待发布产物保留",
+      "actual_result": "E9 无可用 remote 时发布未报告成功=PASS; E9b 状态不是 PUBLISHED=PASS; E9c 本地待发布产物被保留=PASS",
+      "result": "PASS",
+      "status": "PASS",
+      "evidence_dir": "tests/evidence/20261009T142458Z/E9",
+      "command": [
+        "${WORKSPACE}/scripts/publish_acceptance.py",
+        "--run-id",
+        "e9_offline_retry",
+        "--remote",
+        "no_such_remote_rg"
+      ],
+      "commands": [
+        {
+          "step": "publish_offline",
+          "argv": [
+            "${WORKSPACE}/scripts/publish_acceptance.py",
+            "--run-id",
+            "e9_offline_retry",
+            "--remote",
+            "no_such_remote_rg"
+          ],
+          "exit_code": 1,
+          "duration_sec": 0
+        }
+      ],
+      "exit_code": 1,
+      "duration_ms": 0,
+      "log_path": "tests/evidence/20261009T142458Z/E9/details.json",
+      "evidence_files": [
+        "tests/evidence/20261009T142458Z/E9/details.json"
+      ],
+      "reason_code": null,
+      "checks": [
+        {
+          "check": "E9 无可用 remote 时发布未报告成功",
+          "result": "PASS",
+          "detail": "exit=1"
+        },
+        {
+          "check": "E9b 状态不是 PUBLISHED",
+          "result": "PASS",
+          "detail": "BLOCKED"
+        },
+        {
+          "check": "E9c 本地待发布产物被保留",
+          "result": "PASS",
+          "detail": "${WORKSPACE}/artifacts/acceptance/published/e9_offline_retry"
+        }
+      ],
+      "notes": [],
+      "suite": "redaction"
+    },
+    {
+      "scenario": "E10",
+      "scenario_id": "E10",
+      "description": "同一 run_id 重复发布必须幂等",
+      "scenario_name": "同一 run_id 重复发布必须幂等",
+      "expected_result": "返回 ALREADY_PUBLISHED 且远程 SHA 不变",
+      "actual_result": "E10 重复发布返回 ALREADY_PUBLISHED（幂等）=PASS; E10b 远程证据分支 SHA 未变化（无重复提交/无覆盖）=PASS",
+      "result": "PASS",
+      "status": "PASS",
+      "evidence_dir": "tests/evidence/20261009T142458Z/E10",
+      "command": [
+        "${WORKSPACE}/scripts/publish_acceptance.py",
+        "--run-id",
+        "m2_sros2_enforce"
+      ],
+      "commands": [
+        {
+          "step": "publish_twice",
+          "argv": [
+            "${WORKSPACE}/scripts/publish_acceptance.py",
+            "--run-id",
+            "m2_sros2_enforce"
+          ],
+          "exit_code": 0,
+          "duration_sec": 0
+        }
+      ],
+      "exit_code": 0,
+      "duration_ms": 0,
+      "log_path": "tests/evidence/20261009T142458Z/E10/details.json",
+      "evidence_files": [
+        "tests/evidence/20261009T142458Z/E10/details.json"
+      ],
+      "reason_code": null,
+      "checks": [
+        {
+          "check": "E10 重复发布返回 ALREADY_PUBLISHED（幂等）",
+          "result": "PASS",
+          "detail": "ALREADY_PUBLISHED"
+        },
+        {
+          "check": "E10b 远程证据分支 SHA 未变化（无重复提交/无覆盖）",
+          "result": "PASS",
+          "detail": "before=80224c0a47d5"
+        }
+      ],
+      "notes": [],
+      "suite": "redaction"
+    }
+  ]
+}

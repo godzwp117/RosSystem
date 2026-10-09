@@ -1,0 +1,1071 @@
+{
+  "schema_version": "1.1",
+  "run_id": "m3_dynamic_policy",
+  "security_mode": "enforce",
+  "keystore_path": "${WORKSPACE}/security/keystore",
+  "keystore_included_in_package": false,
+  "enclaves": [
+    {
+      "enclave": "/operator",
+      "role": "operator",
+      "nodes": [
+        "operator_node"
+      ],
+      "allowed_resources": [
+        "/rg/task_info",
+        "parameter_events",
+        "rosout",
+        "~/describe_parameters",
+        "~/get_parameter_types",
+        "~/get_parameters",
+        "~/get_type_description",
+        "~/list_parameters",
+        "~/set_parameters",
+        "~/set_parameters_atomically"
+      ],
+      "denied_resources": []
+    },
+    {
+      "enclave": "/planner",
+      "role": "planner",
+      "nodes": [
+        "planner_node"
+      ],
+      "allowed_resources": [
+        "/rg/guarded_navigate/_action/cancel_goal",
+        "/rg/guarded_navigate/_action/feedback",
+        "/rg/guarded_navigate/_action/get_result",
+        "/rg/guarded_navigate/_action/send_goal",
+        "/rg/guarded_navigate/_action/status",
+        "parameter_events",
+        "rosout",
+        "~/describe_parameters",
+        "~/get_parameter_types",
+        "~/get_parameters",
+        "~/get_type_description",
+        "~/list_parameters",
+        "~/set_parameters",
+        "~/set_parameters_atomically"
+      ],
+      "denied_resources": []
+    },
+    {
+      "enclave": "/gateway",
+      "role": "gateway",
+      "nodes": [
+        "security_gateway"
+      ],
+      "allowed_resources": [
+        "/rg/guarded_navigate/_action/cancel_goal",
+        "/rg/guarded_navigate/_action/feedback",
+        "/rg/guarded_navigate/_action/get_result",
+        "/rg/guarded_navigate/_action/send_goal",
+        "/rg/guarded_navigate/_action/status",
+        "/rg/nav_execute/_action/cancel_goal",
+        "/rg/nav_execute/_action/feedback",
+        "/rg/nav_execute/_action/get_result",
+        "/rg/nav_execute/_action/send_goal",
+        "/rg/nav_execute/_action/status",
+        "/rg/task_control/switch",
+        "parameter_events",
+        "rosout",
+        "~/describe_parameters",
+        "~/get_parameter_types",
+        "~/get_parameters",
+        "~/get_type_description",
+        "~/list_parameters",
+        "~/set_parameters",
+        "~/set_parameters_atomically"
+      ],
+      "denied_resources": []
+    },
+    {
+      "enclave": "/navsim",
+      "role": "navsim",
+      "nodes": [
+        "navigation_sim"
+      ],
+      "allowed_resources": [
+        "/rg/nav_execute/_action/cancel_goal",
+        "/rg/nav_execute/_action/feedback",
+        "/rg/nav_execute/_action/get_result",
+        "/rg/nav_execute/_action/send_goal",
+        "/rg/nav_execute/_action/status",
+        "parameter_events",
+        "rosout",
+        "~/describe_parameters",
+        "~/get_parameter_types",
+        "~/get_parameters",
+        "~/get_type_description",
+        "~/list_parameters",
+        "~/set_parameters",
+        "~/set_parameters_atomically"
+      ],
+      "denied_resources": []
+    },
+    {
+      "enclave": "/task_admin",
+      "role": "task_admin",
+      "nodes": [
+        "task_admin_cli"
+      ],
+      "allowed_resources": [
+        "/rg/task_control/switch",
+        "parameter_events",
+        "rosout",
+        "~/describe_parameters",
+        "~/get_parameter_types",
+        "~/get_parameters",
+        "~/get_type_description",
+        "~/list_parameters",
+        "~/set_parameters",
+        "~/set_parameters_atomically"
+      ],
+      "denied_resources": []
+    },
+    {
+      "enclave": "/unauthorized",
+      "role": "unauthorized",
+      "nodes": [
+        "rogue_client"
+      ],
+      "allowed_resources": [
+        "parameter_events",
+        "rosout",
+        "~/describe_parameters",
+        "~/get_parameter_types",
+        "~/get_parameters",
+        "~/get_type_description",
+        "~/list_parameters",
+        "~/set_parameters",
+        "~/set_parameters_atomically"
+      ],
+      "denied_resources": []
+    }
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "S1_normal_mode_a_zone",
+      "scenario_name": "普通模式合法 A 区请求（domain 42，未启用安全）",
+      "expected_result": "Gateway ALLOW，NavigationSim 收到 1 条 Goal",
+      "actual_result": "NavigationSim 就绪（安全模式=False, domain=42）=PASS; security_gateway 就绪（安全模式=False, enclave=None）=PASS; planner 拿到 EXECUTED 结果=PASS; Gateway 判定 ALLOW=PASS; NavigationSim 收到 1 条 Goal=PASS; 场景结束后容器内无残留节点=PASS",
+      "status": "PASS",
+      "command": [
+        "ros2",
+        "run",
+        "rg_demo_nodes",
+        "planner_node",
+        "--ros-args",
+        "-p",
+        "request_id:=s1-a-zone",
+        "-p",
+        "task_id:=patrol_a_001",
+        "-p",
+        "frame_id:=map",
+        "-p",
+        "target_x:=1.5",
+        "-p",
+        "target_y:=1.5",
+        "-p",
+        "expect_success:=1"
+      ],
+      "exit_code": 0,
+      "duration_ms": 1316,
+      "log_path": "logs/tests_evidence/20261009T142214Z/S1_normal_mode_a_zone/gateway.log",
+      "evidence_files": [
+        "logs/tests_evidence/20261009T142214Z/S1_normal_mode_a_zone/audit.jsonl",
+        "logs/tests_evidence/20261009T142214Z/S1_normal_mode_a_zone/gateway.log",
+        "logs/tests_evidence/20261009T142214Z/S1_normal_mode_a_zone/navsim.log",
+        "logs/tests_evidence/20261009T142214Z/S1_normal_mode_a_zone/navsim_goals.jsonl",
+        "logs/tests_evidence/20261009T142214Z/S1_normal_mode_a_zone/operator.log",
+        "logs/tests_evidence/20261009T142214Z/S1_normal_mode_a_zone/planner.log"
+      ],
+      "reason_code": "ALLOW_IN_POLICY",
+      "checks": [
+        {
+          "check": "NavigationSim 就绪（安全模式=False, domain=42）",
+          "result": "PASS",
+          "detail": "NAVSIM_READY"
+        },
+        {
+          "check": "security_gateway 就绪（安全模式=False, enclave=None）",
+          "result": "PASS",
+          "detail": "GATEWAY_READY"
+        },
+        {
+          "check": "planner 拿到 EXECUTED 结果",
+          "result": "PASS",
+          "detail": "EXECUTED/True"
+        },
+        {
+          "check": "Gateway 判定 ALLOW",
+          "result": "PASS",
+          "detail": "ALLOW_IN_POLICY"
+        },
+        {
+          "check": "NavigationSim 收到 1 条 Goal",
+          "result": "PASS",
+          "detail": "journal 行数=1"
+        },
+        {
+          "check": "场景结束后容器内无残留节点",
+          "result": "PASS",
+          "detail": "无残留"
+        }
+      ],
+      "suite": null,
+      "ros_domain_id": 42,
+      "security_mode": "disabled",
+      "downstream_goal_count": 1,
+      "rejection_layer": "not_applicable",
+      "notes": []
+    },
+    {
+      "scenario_id": "S2",
+      "scenario_name": "Enforce 模式合法 A 区请求：Planner→Gateway→NavigationSim 正常完成",
+      "expected_result": "Enforce 模式合法 A 区请求：Planner→Gateway→NavigationSim 正常完成",
+      "actual_result": "Enforce 下 Planner 成功拿到执行结果（EXECUTED）=PASS; Enforce 下下游新增 1 条 Goal=PASS; Enforce 下判定为 ALLOW_IN_POLICY=PASS; 授权链完整（身份合法 + 基础通信许可 + 业务放行）=PASS",
+      "status": "PASS",
+      "command": [
+        "ros2",
+        "run",
+        "rg_demo_nodes",
+        "planner_node",
+        "--ros-args",
+        "-p",
+        "request_id:=s2-a-zone",
+        "-p",
+        "task_id:=patrol_a_001",
+        "-p",
+        "frame_id:=map",
+        "-p",
+        "target_x:=1.5",
+        "-p",
+        "target_y:=1.5",
+        "-p",
+        "expect_success:=1"
+      ],
+      "exit_code": 0,
+      "duration_ms": 574,
+      "log_path": "logs/tests_evidence/20261009T142214Z/S2/planner.log",
+      "evidence_files": [
+        "logs/tests_evidence/20261009T142214Z/S2/planner.log"
+      ],
+      "reason_code": "ALLOW_IN_POLICY",
+      "checks": [
+        {
+          "check": "Enforce 下 Planner 成功拿到执行结果（EXECUTED）",
+          "result": "PASS",
+          "detail": "EXECUTED/True"
+        },
+        {
+          "check": "Enforce 下下游新增 1 条 Goal",
+          "result": "PASS",
+          "detail": "journal 增量=1"
+        },
+        {
+          "check": "Enforce 下判定为 ALLOW_IN_POLICY",
+          "result": "PASS",
+          "detail": "ALLOW_IN_POLICY"
+        },
+        {
+          "check": "授权链完整（身份合法 + 基础通信许可 + 业务放行）",
+          "result": "PASS",
+          "detail": "三项均满足"
+        }
+      ],
+      "suite": null,
+      "ros_domain_id": 43,
+      "security_mode": "enforce",
+      "source_role": "planner",
+      "source_enclave": "/planner",
+      "requested_resource": "/rg/guarded_navigate",
+      "downstream_goal_count": 1,
+      "rejection_layer": "not_applicable",
+      "notes": []
+    },
+    {
+      "scenario_id": "S5",
+      "scenario_name": "Enforce 模式 B 区越界：身份合法但 TaskPolicy 拒绝",
+      "expected_result": "Enforce 模式 B 区越界：身份合法但 TaskPolicy 拒绝",
+      "actual_result": "身份与基础通信许可合法（请求确实到达网关并有判定记录）=PASS; 业务层拒绝：OUT_OF_REGION=PASS; planner 得到 success=false=PASS; 下游未新增 Goal（越权未执行）=PASS; 拒绝来自 TaskPolicy 而非 DDS（与 S3/S4 区分）=PASS",
+      "status": "PASS",
+      "command": [
+        "ros2",
+        "run",
+        "rg_demo_nodes",
+        "planner_node",
+        "--ros-args",
+        "-p",
+        "request_id:=s5-b-zone",
+        "-p",
+        "task_id:=patrol_a_001",
+        "-p",
+        "frame_id:=map",
+        "-p",
+        "target_x:=9.0",
+        "-p",
+        "target_y:=9.0",
+        "-p",
+        "expect_success:=0"
+      ],
+      "exit_code": 0,
+      "duration_ms": 565,
+      "log_path": "logs/tests_evidence/20261009T142214Z/S5/planner.log",
+      "evidence_files": [
+        "logs/tests_evidence/20261009T142214Z/S5/planner.log"
+      ],
+      "reason_code": "OUT_OF_REGION",
+      "checks": [
+        {
+          "check": "身份与基础通信许可合法（请求确实到达网关并有判定记录）",
+          "result": "PASS",
+          "detail": "OUT_OF_REGION"
+        },
+        {
+          "check": "业务层拒绝：OUT_OF_REGION",
+          "result": "PASS",
+          "detail": "OUT_OF_REGION"
+        },
+        {
+          "check": "planner 得到 success=false",
+          "result": "PASS",
+          "detail": "OUT_OF_REGION/False"
+        },
+        {
+          "check": "下游未新增 Goal（越权未执行）",
+          "result": "PASS",
+          "detail": "journal 增量=0"
+        },
+        {
+          "check": "拒绝来自 TaskPolicy 而非 DDS（与 S3/S4 区分）",
+          "result": "PASS",
+          "detail": "business_task_policy"
+        }
+      ],
+      "suite": null,
+      "ros_domain_id": 43,
+      "security_mode": "enforce",
+      "source_role": "planner",
+      "source_enclave": "/planner",
+      "requested_resource": "/rg/guarded_navigate",
+      "downstream_goal_count": 0,
+      "rejection_layer": "business_task_policy",
+      "notes": []
+    },
+    {
+      "scenario_id": "S3C",
+      "scenario_name": "正向对照：/gateway 身份直连执行接口应当成功",
+      "expected_result": "正向对照：/gateway 身份直连执行接口应当成功",
+      "actual_result": "/gateway 身份直连 /rg/nav_execute 成功（正向对照）=PASS; NavigationSim 收到 1 条直连 Goal=PASS",
+      "status": "PASS",
+      "command": [
+        "python3",
+        "/ws/tests/integration/rogue_action_client.py",
+        "--action",
+        "/rg/nav_execute",
+        "--node-name",
+        "security_gateway",
+        "--request-id",
+        "s3c-gateway-direct",
+        "--x",
+        "1.5",
+        "--y",
+        "1.5",
+        "--server-wait",
+        "8.0"
+      ],
+      "exit_code": 0,
+      "duration_ms": 733,
+      "log_path": "logs/tests_evidence/20261009T142214Z/S3C/rogue_gateway.log",
+      "evidence_files": [
+        "logs/tests_evidence/20261009T142214Z/S3C/rogue_gateway.log"
+      ],
+      "reason_code": "EXECUTED",
+      "checks": [
+        {
+          "check": "/gateway 身份直连 /rg/nav_execute 成功（正向对照）",
+          "result": "PASS",
+          "detail": "outcome=RESULT status=EXECUTED"
+        },
+        {
+          "check": "NavigationSim 收到 1 条直连 Goal",
+          "result": "PASS",
+          "detail": "journal 增量=1"
+        }
+      ],
+      "suite": null,
+      "ros_domain_id": 43,
+      "security_mode": "enforce",
+      "source_role": "gateway",
+      "source_enclave": "/gateway",
+      "requested_resource": "/rg/nav_execute",
+      "downstream_goal_count": 1,
+      "rejection_layer": "not_applicable",
+      "notes": [
+        "该场景证明：同样的客户端代码与同样的目标 Action，在被授权身份下可以成功 —— 因此 S3/S4 的失败只能归因于身份权限。"
+      ]
+    },
+    {
+      "scenario_id": "S3",
+      "scenario_name": "Enforce 模式：Planner 身份直连执行接口应被拒绝",
+      "expected_result": "Enforce 模式：Planner 身份直连执行接口应被拒绝",
+      "actual_result": "Planner 身份直连 /rg/nav_execute 未能完成执行=PASS; DDS 访问控制层给出明确拒绝证据（不是单纯客户端超时）=PASS; NavigationSim 未收到该直连 Goal=PASS; 正向对照（S3C，/gateway 身份）在同一窗口内成功 -> 排除\"服务端没起来/客户端有 bug\"=PASS",
+      "status": "PASS",
+      "command": [
+        "python3",
+        "/ws/tests/integration/rogue_action_client.py",
+        "--action",
+        "/rg/nav_execute",
+        "--node-name",
+        "planner_node",
+        "--request-id",
+        "s3-planner-direct",
+        "--x",
+        "1.5",
+        "--y",
+        "1.5",
+        "--server-wait",
+        "8.0"
+      ],
+      "exit_code": 6,
+      "duration_ms": 222,
+      "log_path": "logs/tests_evidence/20261009T142214Z/S3/rogue_planner.log",
+      "evidence_files": [
+        "logs/tests_evidence/20261009T142214Z/S3/rogue_planner.log"
+      ],
+      "reason_code": "ACTION_CLIENT_CREATION_DENIED",
+      "checks": [
+        {
+          "check": "Planner 身份直连 /rg/nav_execute 未能完成执行",
+          "result": "PASS",
+          "detail": "outcome=ACTION_CLIENT_CREATION_DENIED exit=6"
+        },
+        {
+          "check": "DDS 访问控制层给出明确拒绝证据（不是单纯客户端超时）",
+          "result": "PASS",
+          "detail": "nd_goalReply topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1246)\u001b[34;1m -> Function \u001b[36mcheck_create_datareader\u001b[m; ion of local reader  (rr/rg/nav_execute/_action/send_goalReply topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1246))"
+        },
+        {
+          "check": "NavigationSim 未收到该直连 Goal",
+          "result": "PASS",
+          "detail": "journal 增量=0"
+        },
+        {
+          "check": "正向对照（S3C，/gateway 身份）在同一窗口内成功 -> 排除\"服务端没起来/客户端有 bug\"",
+          "result": "PASS",
+          "detail": "control_ok=True"
+        }
+      ],
+      "suite": null,
+      "ros_domain_id": 43,
+      "security_mode": "enforce",
+      "source_role": "planner",
+      "source_enclave": "/planner",
+      "requested_resource": "/rg/nav_execute",
+      "downstream_goal_count": 0,
+      "rejection_layer": "dds_security",
+      "notes": [
+        "客户端输出中命中安全相关关键字；结论主要依据\"同一客户端、同一时间窗口的正向对照成功\"。",
+        "仅凭客户端超时不能证明 DDS 权限生效；本场景的可信度来自 S3C 正向对照。"
+      ]
+    },
+    {
+      "scenario_id": "S4",
+      "scenario_name": "无授权身份访问执行接口应被拒绝",
+      "expected_result": "无授权身份访问执行接口应被拒绝",
+      "actual_result": "无授权身份无法完成执行调用=PASS; DDS 访问控制层给出明确拒绝证据=PASS; NavigationSim 未收到该未授权 Goal=PASS; 保留可归因的拒绝证据（客户端日志 + 网关/执行端无对应记录）=PASS",
+      "status": "PASS",
+      "command": [
+        "python3",
+        "/ws/tests/integration/rogue_action_client.py",
+        "--action",
+        "/rg/nav_execute",
+        "--node-name",
+        "rogue_client",
+        "--request-id",
+        "s4-unauthorized",
+        "--x",
+        "1.5",
+        "--y",
+        "1.5",
+        "--server-wait",
+        "8.0"
+      ],
+      "exit_code": 6,
+      "duration_ms": 225,
+      "log_path": "logs/tests_evidence/20261009T142214Z/S4/rogue_unauthorized.log",
+      "evidence_files": [
+        "logs/tests_evidence/20261009T142214Z/S4/rogue_unauthorized.log"
+      ],
+      "reason_code": "ACTION_CLIENT_CREATION_DENIED",
+      "checks": [
+        {
+          "check": "无授权身份无法完成执行调用",
+          "result": "PASS",
+          "detail": "outcome=ACTION_CLIENT_CREATION_DENIED exit=6"
+        },
+        {
+          "check": "DDS 访问控制层给出明确拒绝证据",
+          "result": "PASS",
+          "detail": "nd_goalReply topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1246)\u001b[34;1m -> Function \u001b[36mcheck_create_datareader\u001b[m; ion of local reader  (rr/rg/nav_execute/_action/send_goalReply topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1246))"
+        },
+        {
+          "check": "NavigationSim 未收到该未授权 Goal",
+          "result": "PASS",
+          "detail": "journal 增量=0"
+        },
+        {
+          "check": "保留可归因的拒绝证据（客户端日志 + 网关/执行端无对应记录）",
+          "result": "PASS",
+          "detail": "rogue_unauthorized.log"
+        }
+      ],
+      "suite": null,
+      "ros_domain_id": 43,
+      "security_mode": "enforce",
+      "source_role": "unauthorized",
+      "source_enclave": "/unauthorized",
+      "requested_resource": "/rg/nav_execute",
+      "downstream_goal_count": 0,
+      "rejection_layer": "dds_security",
+      "notes": [
+        "未授权身份的有效证书来自同一 CA，权限文件中不含任何业务资源，因此拒绝发生在 DDS 访问控制层而非发现层。"
+      ]
+    },
+    {
+      "scenario_id": "S6",
+      "scenario_name": "安全配置失效不得静默回退为无认证通信",
+      "expected_result": "安全配置失效不得静默回退为无认证通信",
+      "actual_result": "缺少凭证时无法完成执行调用=PASS; 失败发生在安全初始化阶段（SECURITY ERROR），而非静默降级=PASS; 未静默回退为无认证通信（下游未新增 Goal）=PASS; 客户端暴露安全/凭证相关错误，而非\"一切正常\"=PASS",
+      "status": "PASS",
+      "command": [
+        "python3",
+        "/ws/tests/integration/rogue_action_client.py",
+        "--action",
+        "/rg/nav_execute",
+        "--node-name",
+        "rogue_client",
+        "--request-id",
+        "s6-bad-keystore",
+        "--x",
+        "1.5",
+        "--y",
+        "1.5",
+        "--server-wait",
+        "8.0"
+      ],
+      "exit_code": 5,
+      "duration_ms": 93,
+      "log_path": "logs/tests_evidence/20261009T142214Z/S6/rogue_bad_keystore.log",
+      "evidence_files": [
+        "logs/tests_evidence/20261009T142214Z/S6/rogue_bad_keystore.log"
+      ],
+      "reason_code": null,
+      "checks": [
+        {
+          "check": "缺少凭证时无法完成执行调用",
+          "result": "PASS",
+          "detail": "outcome=INIT_FAILED exit=5"
+        },
+        {
+          "check": "失败发生在安全初始化阶段（SECURITY ERROR），而非静默降级",
+          "result": "PASS",
+          "detail": "RCLError: failed to initialize rcl: SECURITY ERROR: directory '/ws/tests/evidence/20261009T142214Z/S6/nonexistent-keystore/enclaves/unauthorized' does not exist., at ./src/rcl/security.c:202"
+        },
+        {
+          "check": "未静默回退为无认证通信（下游未新增 Goal）",
+          "result": "PASS",
+          "detail": "journal 增量=0"
+        },
+        {
+          "check": "客户端暴露安全/凭证相关错误，而非\"一切正常\"",
+          "result": "PASS",
+          "detail": "ROGUE_RESULT {\"request_id\": \"s6-bad-keystore\", \"target_action\": \"/rg/nav_execute\", \"node_name\": \"rogue_client\", \"enclave\": null, \"outcome\": \"INIT_FAILED\", \"detail\": \"RCLError: failed to initialize rcl: SECURITY ERROR: directory '/ws/tests/evidence/20261009T142214Z/S6/nonexistent-keystore/enclaves/unauthorized' does not exist., at ./src/rcl/security.c:202\"}"
+        }
+      ],
+      "suite": null,
+      "ros_domain_id": 43,
+      "security_mode": "enforce",
+      "source_role": "bad-keystore",
+      "source_enclave": "bad-keystore",
+      "requested_resource": "/rg/nav_execute",
+      "downstream_goal_count": 0,
+      "rejection_layer": "dds_security",
+      "notes": [
+        "同一 domain(43) 上的安全栈全程可用（见 S2/S3C 成功），因此\"未新增 Goal\"不能由环境不可用解释，只能由该参与者自身的安全配置失效解释。"
+      ]
+    },
+    {
+      "scenario_id": "D1_D2_D3_D4_D5_D6_D7_D14",
+      "scenario_name": "同一网关内的可信阶段切换：A/B 区差异化授权、重放、过期 epoch、并发",
+      "expected_result": "阶段 A 下 B 区 BLOCK；切换后同一请求 ALLOW；重放/过期 epoch 被拒",
+      "actual_result": "NavigationSim 就绪（domain=42, 安全=False）=PASS; security_gateway 就绪=PASS; D1 阶段 A：A 区请求 ALLOW 且下游执行=PASS; D1b NavigationSim 收到 1 条 Goal=PASS; D2 阶段 A：B 区请求被 TaskPolicy 拒绝 OUT_OF_REGION=PASS; D2b 下游未创建 Goal=PASS; D2c 判定事件带阶段/epoch/digest 关联=PASS; D3 切换被接受且 epoch 递增到 1=PASS; D3b 新阶段 digest 与阶段 A 不同=PASS; D3c 产生 TaskTransitionEvent 且 epoch 由 0 -> 1=PASS; D4 阶段 B：与 D2 完全相同的请求（同身份/同 Action/同 task_id/同坐标）变为 ALLOW 并执行=PASS; D4b 下游收到 1 条 Goal=PASS; D4c 判定关联到 ZONE_B 与 epoch=1=PASS; D4d D2 与 D4 的差异只来自阶段（坐标/身份/Action 均相同）=PASS; D5 阶段 B：A 区请求被拒绝 OUT_OF_REGION=PASS; D5b 下游未创建 Goal=PASS; D6 重放已使用的 transition_id 被拒绝=PASS; D6b epoch 未因重放而改变（仍为 1）=PASS; D7 过期 expected_epoch 被拒绝=PASS; D14 两个并发切换至多一个被接受（乐观并发控制生效）=",
+      "status": "PASS",
+      "command": [
+        "ros2",
+        "run",
+        "rg_demo_nodes",
+        "planner_node",
+        "--ros-args",
+        "-p",
+        "request_id:=d1-a-zone",
+        "-p",
+        "task_id:=patrol_a_001",
+        "-p",
+        "frame_id:=map",
+        "-p",
+        "target_x:=1.5",
+        "-p",
+        "target_y:=1.5",
+        "-p",
+        "expect_success:=1"
+      ],
+      "exit_code": 0,
+      "duration_ms": 5170,
+      "log_path": "logs/tests_evidence/20261009T142312Z/D1_D2_D3_D4_D5_D6_D7_D14/gateway.log",
+      "evidence_files": [
+        "logs/tests_evidence/20261009T142312Z/D1_D2_D3_D4_D5_D6_D7_D14/D14_admin_a.log",
+        "logs/tests_evidence/20261009T142312Z/D1_D2_D3_D4_D5_D6_D7_D14/D14_admin_b.log",
+        "logs/tests_evidence/20261009T142312Z/D1_D2_D3_D4_D5_D6_D7_D14/D1_planner.log",
+        "logs/tests_evidence/20261009T142312Z/D1_D2_D3_D4_D5_D6_D7_D14/D2_planner.log",
+        "logs/tests_evidence/20261009T142312Z/D1_D2_D3_D4_D5_D6_D7_D14/D3_admin.log",
+        "logs/tests_evidence/20261009T142312Z/D1_D2_D3_D4_D5_D6_D7_D14/D4_planner.log",
+        "logs/tests_evidence/20261009T142312Z/D1_D2_D3_D4_D5_D6_D7_D14/D5_planner.log",
+        "logs/tests_evidence/20261009T142312Z/D1_D2_D3_D4_D5_D6_D7_D14/D6_replay.log",
+        "logs/tests_evidence/20261009T142312Z/D1_D2_D3_D4_D5_D6_D7_D14/D7_stale_epoch.log",
+        "logs/tests_evidence/20261009T142312Z/D1_D2_D3_D4_D5_D6_D7_D14/audit.jsonl",
+        "logs/tests_evidence/20261009T142312Z/D1_D2_D3_D4_D5_D6_D7_D14/details.json",
+        "logs/tests_evidence/20261009T142312Z/D1_D2_D3_D4_D5_D6_D7_D14/gateway.log",
+        "logs/tests_evidence/20261009T142312Z/D1_D2_D3_D4_D5_D6_D7_D14/navsim.log",
+        "logs/tests_evidence/20261009T142312Z/D1_D2_D3_D4_D5_D6_D7_D14/navsim_goals.jsonl"
+      ],
+      "reason_code": "TRANSITION_REJECTED_REPLAY",
+      "checks": [
+        {
+          "check": "NavigationSim 就绪（domain=42, 安全=False）",
+          "result": "PASS",
+          "detail": "NAVSIM_READY"
+        },
+        {
+          "check": "security_gateway 就绪",
+          "result": "PASS",
+          "detail": "GATEWAY_READY"
+        },
+        {
+          "check": "D1 阶段 A：A 区请求 ALLOW 且下游执行",
+          "result": "PASS",
+          "detail": "EXECUTED/True"
+        },
+        {
+          "check": "D1b NavigationSim 收到 1 条 Goal",
+          "result": "PASS",
+          "detail": "journal 增量=1"
+        },
+        {
+          "check": "D2 阶段 A：B 区请求被 TaskPolicy 拒绝 OUT_OF_REGION",
+          "result": "PASS",
+          "detail": "OUT_OF_REGION/False"
+        },
+        {
+          "check": "D2b 下游未创建 Goal",
+          "result": "PASS",
+          "detail": "journal 增量=0"
+        },
+        {
+          "check": "D2c 判定事件带阶段/epoch/digest 关联",
+          "result": "PASS",
+          "detail": "{'task_phase': 'ZONE_A', 'policy_epoch': 0, 'policy_digest': 'ea8fc0b4783971dc91508affa175630af028127375c109e7c0506cac7c6099ee'}"
+        },
+        {
+          "check": "D3 切换被接受且 epoch 递增到 1",
+          "result": "PASS",
+          "detail": "accepted=True epoch=1"
+        },
+        {
+          "check": "D3b 新阶段 digest 与阶段 A 不同",
+          "result": "PASS",
+          "detail": "A=ea8fc0b47839 B=be28ee857a12"
+        },
+        {
+          "check": "D3c 产生 TaskTransitionEvent 且 epoch 由 0 -> 1",
+          "result": "PASS",
+          "detail": "{'previous_epoch': 0, 'next_epoch': 1, 'reason_code': 'TRANSITION_ACCEPTED'}"
+        },
+        {
+          "check": "D4 阶段 B：与 D2 完全相同的请求（同身份/同 Action/同 task_id/同坐标）变为 ALLOW 并执行",
+          "result": "PASS",
+          "detail": "EXECUTED/True"
+        },
+        {
+          "check": "D4b 下游收到 1 条 Goal",
+          "result": "PASS",
+          "detail": "journal 增量=1"
+        },
+        {
+          "check": "D4c 判定关联到 ZONE_B 与 epoch=1",
+          "result": "PASS",
+          "detail": "{'task_phase': 'ZONE_B', 'policy_epoch': 1}"
+        },
+        {
+          "check": "D4d D2 与 D4 的差异只来自阶段（坐标/身份/Action 均相同）",
+          "result": "PASS",
+          "detail": "d2=(8.0,8.0)->BLOCK@ZONE_A ; d4=(8.0,8.0)->ALLOW@ZONE_B"
+        },
+        {
+          "check": "D5 阶段 B：A 区请求被拒绝 OUT_OF_REGION",
+          "result": "PASS",
+          "detail": "OUT_OF_REGION"
+        },
+        {
+          "check": "D5b 下游未创建 Goal",
+          "result": "PASS",
+          "detail": "journal 增量=0"
+        },
+        {
+          "check": "D6 重放已使用的 transition_id 被拒绝",
+          "result": "PASS",
+          "detail": "False/TRANSITION_REJECTED_REPLAY"
+        },
+        {
+          "check": "D6b epoch 未因重放而改变（仍为 1）",
+          "result": "PASS",
+          "detail": "epoch=1"
+        },
+        {
+          "check": "D7 过期 expected_epoch 被拒绝",
+          "result": "PASS",
+          "detail": "False/TRANSITION_REJECTED_EPOCH_MISMATCH"
+        },
+        {
+          "check": "D14 两个并发切换至多一个被接受（乐观并发控制生效）",
+          "result": "PASS",
+          "detail": "accepted=1 reasons=['TRANSITION_REJECTED_EPOCH_MISMATCH', 'TRANSITION_ACCEPTED']"
+        },
+        {
+          "check": "D14b 最终 epoch 与接受次数一致",
+          "result": "PASS",
+          "detail": "epoch_now=None"
+        }
+      ],
+      "suite": "dynamic",
+      "ros_domain_id": 42,
+      "security_mode": "disabled",
+      "downstream_goal_count": 1,
+      "rejection_layer": "business_task_policy",
+      "notes": []
+    },
+    {
+      "scenario_id": "D10_D11",
+      "scenario_name": "在途 Goal 与状态未知时不得完成不安全切换",
+      "expected_result": "存在在途或状态未知的 Goal 时切换被拒绝",
+      "actual_result": "NavigationSim 就绪（domain=42, 安全=False）=PASS; security_gateway 就绪=PASS; D10 前置：确实存在在途 Goal=PASS; D10 在途 Goal 存在时切换被拒绝=PASS; D10b epoch 未改变（仍为 0）=PASS; D11 前置：下游确实执行超时（EXECUTION_TIMEOUT）=PASS; D11b 超时不被解读为\"未执行\"（下游确已收到 Goal）=PASS; D11c 网关日志显式标记执行状态未知且取消待确认=PASS; D11d 状态未知的 Goal 仍阻塞切换（不得完成不安全切换）=PASS; D11e 拒绝原因是在途/未确认而非其他=PASS",
+      "status": "PASS",
+      "command": [
+        "python3",
+        "/ws/tests/integration/task_admin_client.py",
+        "--transition-id",
+        "d10-switch",
+        "--target-task-id",
+        "patrol_a_001",
+        "--target-task-phase",
+        "ZONE_B",
+        "--expected-epoch",
+        "0",
+        "--node-name",
+        "task_admin_cli"
+      ],
+      "exit_code": 3,
+      "duration_ms": 5779,
+      "log_path": "logs/tests_evidence/20261009T142312Z/D10_D11/gateway.log",
+      "evidence_files": [
+        "logs/tests_evidence/20261009T142312Z/D10_D11/D10_admin.log",
+        "logs/tests_evidence/20261009T142312Z/D10_D11/D10_planner.log",
+        "logs/tests_evidence/20261009T142312Z/D10_D11/D11_admin.log",
+        "logs/tests_evidence/20261009T142312Z/D10_D11/D11_planner.log",
+        "logs/tests_evidence/20261009T142312Z/D10_D11/audit.jsonl",
+        "logs/tests_evidence/20261009T142312Z/D10_D11/details.json",
+        "logs/tests_evidence/20261009T142312Z/D10_D11/gateway.log",
+        "logs/tests_evidence/20261009T142312Z/D10_D11/navsim.log",
+        "logs/tests_evidence/20261009T142312Z/D10_D11/navsim_goals.jsonl"
+      ],
+      "reason_code": "TRANSITION_REJECTED_IN_FLIGHT",
+      "checks": [
+        {
+          "check": "NavigationSim 就绪（domain=42, 安全=False）",
+          "result": "PASS",
+          "detail": "NAVSIM_READY"
+        },
+        {
+          "check": "security_gateway 就绪",
+          "result": "PASS",
+          "detail": "GATEWAY_READY"
+        },
+        {
+          "check": "D10 前置：确实存在在途 Goal",
+          "result": "PASS",
+          "detail": "journal=1"
+        },
+        {
+          "check": "D10 在途 Goal 存在时切换被拒绝",
+          "result": "PASS",
+          "detail": "False/TRANSITION_REJECTED_IN_FLIGHT"
+        },
+        {
+          "check": "D10b epoch 未改变（仍为 0）",
+          "result": "PASS",
+          "detail": "epoch=0"
+        },
+        {
+          "check": "D11 前置：下游确实执行超时（EXECUTION_TIMEOUT）",
+          "result": "PASS",
+          "detail": "EXECUTION_TIMEOUT"
+        },
+        {
+          "check": "D11b 超时不被解读为\"未执行\"（下游确已收到 Goal）",
+          "result": "PASS",
+          "detail": "journal 增量=1"
+        },
+        {
+          "check": "D11c 网关日志显式标记执行状态未知且取消待确认",
+          "result": "PASS",
+          "detail": "TASK_UNCONFIRMED_IN_FLIGHT 出现"
+        },
+        {
+          "check": "D11d 状态未知的 Goal 仍阻塞切换（不得完成不安全切换）",
+          "result": "PASS",
+          "detail": "False/TRANSITION_REJECTED_IN_FLIGHT"
+        },
+        {
+          "check": "D11e 拒绝原因是在途/未确认而非其他",
+          "result": "PASS",
+          "detail": "TRANSITION_REJECTED_IN_FLIGHT"
+        }
+      ],
+      "suite": "dynamic",
+      "ros_domain_id": 42,
+      "security_mode": "disabled",
+      "downstream_goal_count": 0,
+      "rejection_layer": "business_task_policy",
+      "notes": []
+    },
+    {
+      "scenario_id": "D12_D13",
+      "scenario_name": "重启恢复已提交状态；状态文件损坏进入限制性故障状态",
+      "expected_result": "重启后 epoch/策略正确；损坏时拒绝一切准入与切换",
+      "actual_result": "NavigationSim 就绪（domain=42, 安全=False）=PASS; security_gateway 就绪=PASS; D12 前置：状态文件不存在时冷启动并按可信初始阶段运行=PASS; D12b 切换成功且状态已持久化（epoch=1, ZONE_B）=PASS; NavigationSim 就绪（domain=42, 安全=False）=PASS; security_gateway 就绪=PASS; D12c 重启后恢复出相同的阶段与 epoch=PASS; D12d 重启后 B 区请求仍 ALLOW（权限未回退）=PASS; D12e 重启后仍拒绝重放旧的 transition_id=PASS; NavigationSim 就绪（domain=42, 安全=False）=PASS; security_gateway 就绪=PASS; D13 状态文件损坏时进入限制性故障状态=PASS; D13b 故障状态下合法 A 区请求也被拒绝（不放宽权限）=PASS; D13c 拒绝原因码为 TASK_NOT_ACTIVE=PASS; D13d 故障状态下拒绝任务切换=PASS",
+      "status": "PASS",
+      "command": [
+        "python3",
+        "/ws/tests/integration/task_admin_client.py",
+        "--transition-id",
+        "d12-switch",
+        "--target-task-id",
+        "patrol_a_001",
+        "--target-task-phase",
+        "ZONE_B",
+        "--expected-epoch",
+        "0",
+        "--node-name",
+        "task_admin_cli"
+      ],
+      "exit_code": 3,
+      "duration_ms": 3298,
+      "log_path": "logs/tests_evidence/20261009T142312Z/D12_D13/gateway.log",
+      "evidence_files": [
+        "logs/tests_evidence/20261009T142312Z/D12_D13/D13_admin.log",
+        "logs/tests_evidence/20261009T142312Z/D12_D13/D13_planner.log",
+        "logs/tests_evidence/20261009T142312Z/D12_D13/audit.jsonl",
+        "logs/tests_evidence/20261009T142312Z/D12_D13/details.json",
+        "logs/tests_evidence/20261009T142312Z/D12_D13/gateway.log",
+        "logs/tests_evidence/20261009T142312Z/D12_D13/navsim.log",
+        "logs/tests_evidence/20261009T142312Z/D12_D13/navsim_goals.jsonl"
+      ],
+      "reason_code": "TASK_NOT_ACTIVE",
+      "checks": [
+        {
+          "check": "NavigationSim 就绪（domain=42, 安全=False）",
+          "result": "PASS",
+          "detail": "NAVSIM_READY"
+        },
+        {
+          "check": "security_gateway 就绪",
+          "result": "PASS",
+          "detail": "GATEWAY_READY"
+        },
+        {
+          "check": "D12 前置：状态文件不存在时冷启动并按可信初始阶段运行",
+          "result": "PASS",
+          "detail": "TASK_STATE_COLD_START"
+        },
+        {
+          "check": "D12b 切换成功且状态已持久化（epoch=1, ZONE_B）",
+          "result": "PASS",
+          "detail": "accepted=True epoch=1 file=True"
+        },
+        {
+          "check": "NavigationSim 就绪（domain=42, 安全=False）",
+          "result": "PASS",
+          "detail": "NAVSIM_READY"
+        },
+        {
+          "check": "security_gateway 就绪",
+          "result": "PASS",
+          "detail": "GATEWAY_READY"
+        },
+        {
+          "check": "D12c 重启后恢复出相同的阶段与 epoch",
+          "result": "PASS",
+          "detail": "json\", \"task_phase\": \"ZONE_B\", \"policy_epoch\": 1, \"policy_digest\": \"be28ee857a12de412b41e11875a69914da7e99ae2d33b6e5f4265239caf5d20c\", \"used_transition_ids\": 1}"
+        },
+        {
+          "check": "D12d 重启后 B 区请求仍 ALLOW（权限未回退）",
+          "result": "PASS",
+          "detail": "EXECUTED"
+        },
+        {
+          "check": "D12e 重启后仍拒绝重放旧的 transition_id",
+          "result": "PASS",
+          "detail": "replay rejected"
+        },
+        {
+          "check": "NavigationSim 就绪（domain=42, 安全=False）",
+          "result": "PASS",
+          "detail": "NAVSIM_READY"
+        },
+        {
+          "check": "security_gateway 就绪",
+          "result": "PASS",
+          "detail": "GATEWAY_READY"
+        },
+        {
+          "check": "D13 状态文件损坏时进入限制性故障状态",
+          "result": "PASS",
+          "detail": "TASK_STATE_CORRUPT"
+        },
+        {
+          "check": "D13b 故障状态下合法 A 区请求也被拒绝（不放宽权限）",
+          "result": "PASS",
+          "detail": "TASK_NOT_ACTIVE"
+        },
+        {
+          "check": "D13c 拒绝原因码为 TASK_NOT_ACTIVE",
+          "result": "PASS",
+          "detail": "TASK_NOT_ACTIVE"
+        },
+        {
+          "check": "D13d 故障状态下拒绝任务切换",
+          "result": "PASS",
+          "detail": "TRANSITION_REJECTED_NOT_ACTIVE"
+        }
+      ],
+      "suite": "dynamic",
+      "ros_domain_id": 42,
+      "security_mode": "disabled",
+      "downstream_goal_count": 0,
+      "rejection_layer": "business_task_policy",
+      "notes": []
+    },
+    {
+      "scenario_id": "D8_D9_D15",
+      "scenario_name": "Enforce：仅 /task_admin 可调用管理接口；绕过网关仍被 DDS 拒绝",
+      "expected_result": "/planner 调用管理接口被 DDS 拒绝；/task_admin 成功；直连执行端仍被拒",
+      "actual_result": "NavigationSim 就绪（domain=43, 安全=True）=PASS; security_gateway 就绪=PASS; D8 /planner 身份调用管理接口时在 Service 端点创建阶段被拒绝=PASS; D8b 有 DDS 访问控制层明确拒绝证据（非仅超时推断）=PASS; D8c 管理接口未被调用成功（epoch 仍为 0）=PASS; D9 /task_admin 身份调用管理接口成功=PASS; D9b 切换后策略生效（B 区请求在 Enforce 下 ALLOW）=PASS; D15 Enforce 下绕过网关直连执行端仍被拒绝=PASS; D15b 同样有 DDS 层明确拒绝证据=PASS; D15c 阶段切换不会让 Planner 获得执行端直连权限=PASS",
+      "status": "PASS",
+      "command": [
+        "python3",
+        "/ws/tests/integration/task_admin_client.py",
+        "--transition-id",
+        "d8-planner-admin",
+        "--target-task-id",
+        "patrol_a_001",
+        "--target-task-phase",
+        "ZONE_B",
+        "--expected-epoch",
+        "0",
+        "--node-name",
+        "planner_node"
+      ],
+      "exit_code": 6,
+      "duration_ms": 1238,
+      "log_path": "logs/tests_evidence/20261009T142312Z/D8_D9_D15/gateway.log",
+      "evidence_files": [
+        "logs/tests_evidence/20261009T142312Z/D8_D9_D15/D15_direct.log",
+        "logs/tests_evidence/20261009T142312Z/D8_D9_D15/D8_planner_as_admin.log",
+        "logs/tests_evidence/20261009T142312Z/D8_D9_D15/D9_task_admin.log",
+        "logs/tests_evidence/20261009T142312Z/D8_D9_D15/audit.jsonl",
+        "logs/tests_evidence/20261009T142312Z/D8_D9_D15/details.json",
+        "logs/tests_evidence/20261009T142312Z/D8_D9_D15/gateway.log",
+        "logs/tests_evidence/20261009T142312Z/D8_D9_D15/navsim.log",
+        "logs/tests_evidence/20261009T142312Z/D8_D9_D15/navsim_goals.jsonl"
+      ],
+      "reason_code": "SERVICE_CLIENT_CREATION_DENIED",
+      "checks": [
+        {
+          "check": "NavigationSim 就绪（domain=43, 安全=True）",
+          "result": "PASS",
+          "detail": "NAVSIM_READY"
+        },
+        {
+          "check": "security_gateway 就绪",
+          "result": "PASS",
+          "detail": "GATEWAY_READY"
+        },
+        {
+          "check": "D8 /planner 身份调用管理接口时在 Service 端点创建阶段被拒绝",
+          "result": "PASS",
+          "detail": "outcome=SERVICE_CLIENT_CREATION_DENIED exit=-6"
+        },
+        {
+          "check": "D8b 有 DDS 访问控制层明确拒绝证据（非仅超时推断）",
+          "result": "PASS",
+          "detail": "ly topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1246)\u001b[34;1m -> Function \u001b[36mcheck_create_datareader\u001b[m; ion of local reader  (rr/rg/task_control/switchReply topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1246))"
+        },
+        {
+          "check": "D8c 管理接口未被调用成功（epoch 仍为 0）",
+          "result": "PASS",
+          "detail": "no committed transition"
+        },
+        {
+          "check": "D9 /task_admin 身份调用管理接口成功",
+          "result": "PASS",
+          "detail": "accepted=True epoch=1"
+        },
+        {
+          "check": "D9b 切换后策略生效（B 区请求在 Enforce 下 ALLOW）",
+          "result": "PASS",
+          "detail": "digest=be28ee857a12de41"
+        },
+        {
+          "check": "D15 Enforce 下绕过网关直连执行端仍被拒绝",
+          "result": "PASS",
+          "detail": "outcome=ACTION_CLIENT_CREATION_DENIED"
+        },
+        {
+          "check": "D15b 同样有 DDS 层明确拒绝证据",
+          "result": "PASS",
+          "detail": "DDS deny evidence present"
+        },
+        {
+          "check": "D15c 阶段切换不会让 Planner 获得执行端直连权限",
+          "result": "PASS",
+          "detail": "权限模型不因任务阶段变化而放宽 DDS 层隔离"
+        }
+      ],
+      "suite": "dynamic",
+      "ros_domain_id": 43,
+      "security_mode": "enforce",
+      "source_role": "planner",
+      "source_enclave": "/planner",
+      "requested_resource": "/rg/task_control/switch",
+      "downstream_goal_count": 0,
+      "rejection_layer": "dds_security",
+      "notes": []
+    }
+  ],
+  "generated_from": [
+    "tests/evidence/20261009T142214Z/summary.json",
+    "tests/evidence/20261009T142312Z/summary.json"
+  ],
+  "policy_file": "security/policies/minimal_permissions.xml"
+}

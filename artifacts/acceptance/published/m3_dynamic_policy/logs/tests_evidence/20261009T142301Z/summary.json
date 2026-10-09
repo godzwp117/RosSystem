@@ -1,0 +1,158 @@
+{
+  "run_id": "20261009T142301Z",
+  "finished_at": "2026-10-09T14:23:09Z",
+  "workspace": "${WORKSPACE}",
+  "suite": "start_system",
+  "total": 2,
+  "passed": 2,
+  "failed": 0,
+  "scenarios": [
+    {
+      "scenario": "start_system_normal_lifecycle",
+      "suite": "start_system",
+      "description": "正常启动、就绪检测与 Ctrl+C 优雅退出",
+      "result": "PASS",
+      "started_at": "2026-10-09T14:23:09Z",
+      "evidence_dir": "tests/evidence/20261009T142301Z/start_system_normal_lifecycle",
+      "navsim_goal_count": 0,
+      "decision_sequence": [],
+      "execution_status_codes": [],
+      "reject_log_lines": 0,
+      "planner_results": [],
+      "planner_exit_codes": [],
+      "checks": [
+        {
+          "check": "启动前无残留常驻节点",
+          "result": "PASS",
+          "detail": "基线存活进程数=0"
+        },
+        {
+          "check": "start_system.sh 在超时内输出就绪横幅",
+          "result": "PASS",
+          "detail": "等待上限 180s，耗时 2.0s"
+        },
+        {
+          "check": "/rg/guarded_navigate 可发现且类型为 rg_interfaces/action/PatrolNavigate",
+          "result": "PASS",
+          "detail": "/rg/guarded_navigate [rg_interfaces/action/PatrolNavigate]"
+        },
+        {
+          "check": "/rg/nav_execute 可发现且类型为 rg_interfaces/action/PatrolNavigate",
+          "result": "PASS",
+          "detail": "/rg/nav_execute [rg_interfaces/action/PatrolNavigate]"
+        },
+        {
+          "check": "三个常驻节点进程均存活",
+          "result": "PASS",
+          "detail": "存活 3 个"
+        },
+        {
+          "check": "收到 SIGINT 后输出停止横幅",
+          "result": "PASS",
+          "detail": "在日志中找到「本实例已停止」"
+        },
+        {
+          "check": "脚本退出码为 0",
+          "result": "PASS",
+          "detail": "实际 0"
+        },
+        {
+          "check": "退出耗时在 90s 内",
+          "result": "PASS",
+          "detail": "1.3s"
+        },
+        {
+          "check": "退出后容器内无本实例残留活进程",
+          "result": "PASS",
+          "detail": "无残留"
+        },
+        {
+          "check": "容器保持运行（未被停止）",
+          "result": "PASS",
+          "detail": "State.Running=true"
+        },
+        {
+          "check": "审计与 NavSim 日志目录保留",
+          "result": "PASS",
+          "detail": "${WORKSPACE}/logs/start_system/20261009T142305Z/"
+        }
+      ],
+      "commands": [
+        {
+          "step": "argv",
+          "argv": [
+            "python3",
+            "/tmp/rg_sigint_dfl_launcher.py",
+            "${WORKSPACE}"
+          ],
+          "exit_code": null,
+          "duration_sec": 2.001,
+          "log_path": "tests/evidence/20261009T142301Z/start_system_normal_lifecycle/start_system.log"
+        },
+        {
+          "step": "argv",
+          "argv": [
+            "os.killpg(663485, SIGINT)"
+          ],
+          "exit_code": 0,
+          "duration_sec": 1.265,
+          "log_path": null
+        }
+      ],
+      "expectations": {
+        "description": "启动后 3 个常驻节点与 2 个 Action 就绪；Ctrl+C 后进程组清空、容器保留、日志保留"
+      }
+    },
+    {
+      "scenario": "start_system_duplicate_refused",
+      "suite": "start_system",
+      "description": "运行期重复启动被拒绝且不影响现有实例",
+      "result": "PASS",
+      "started_at": "2026-10-09T14:23:09Z",
+      "evidence_dir": "tests/evidence/20261009T142301Z/start_system_duplicate_refused",
+      "navsim_goal_count": 0,
+      "decision_sequence": [],
+      "execution_status_codes": [],
+      "reject_log_lines": 0,
+      "planner_results": [],
+      "planner_exit_codes": [],
+      "checks": [
+        {
+          "check": "重复启动返回码为 4（已有实例）",
+          "result": "PASS",
+          "detail": "实际返回码 4"
+        },
+        {
+          "check": "重复启动明确提示已有实例",
+          "result": "PASS",
+          "detail": "[error] 检测到已在运行的 RoboGuard 系统实例，拒绝重复启动。"
+        },
+        {
+          "check": "重复启动后节点数量未变（无重复 Gateway/NavigationSim）",
+          "result": "PASS",
+          "detail": "启动前 3 个，重复启动后 3 个"
+        },
+        {
+          "check": "重复启动后节点 PID 完全一致（原实例未被影响）",
+          "result": "PASS",
+          "detail": "PID 集合一致"
+        }
+      ],
+      "commands": [
+        {
+          "step": "argv",
+          "argv": [
+            "bash",
+            "scripts/start_system.sh"
+          ],
+          "exit_code": 4,
+          "duration_sec": 0.322,
+          "log_path": "tests/evidence/20261009T142301Z/start_system_duplicate_refused/duplicate_start.log"
+        }
+      ],
+      "expectations": {
+        "description": "第二次启动返回非零且提示已有实例；现有节点数量与 PID 不变"
+      }
+    }
+  ]
+}

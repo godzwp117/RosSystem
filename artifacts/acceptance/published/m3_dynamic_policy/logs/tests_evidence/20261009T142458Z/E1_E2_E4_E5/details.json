@@ -1,0 +1,67 @@
+{
+  "case": "E1_E2_E4_E5",
+  "name": "日志脱敏语义：用户名/路径/JSONL 可解析/事件关联/类型保持",
+  "expected": "公开副本中用户名与绝对路径被脱敏，业务字段与结构完整保留",
+  "checks": [
+    {
+      "check": "脱敏命令成功",
+      "result": "PASS",
+      "detail": "REDACTION SUMMARY {\"source_dir\": \"/tmp/rg_redaction_m4abkh5c/fixture\", \"output_dir\": \"/tmp/rg_redaction_m4abkh5c/redacted\", \"files_redacted\": 3, \"files_opaque_copied\": 0, \"opaque_files\": [], \"files_rejected_as_key_material\": 0, \"rejected_files\": [], \"bytes_in\": 1003, \"bytes_out\": 969, \"redaction_counts\": {\"workspace_path\": 2, \"home_path\": 4, \"username\": 1}}"
+    },
+    {
+      "check": "E1 宿主真实用户名在公开副本中被脱敏",
+      "result": "PASS",
+      "detail": "USER_n 占位"
+    },
+    {
+      "check": "E2 绝对本地路径转换为稳定别名 ${WORKSPACE}",
+      "result": "PASS",
+      "detail": "${WORKSPACE} 已出现且无 /home/"
+    },
+    {
+      "check": "E2b 业务资源名/判定/原因码未被破坏",
+      "result": "PASS",
+      "detail": "rg/guarded_navigate + ALLOW_IN_POLICY"
+    },
+    {
+      "check": "E4 JSONL 脱敏后每行仍可解析",
+      "result": "PASS",
+      "detail": "3 行全部解析成功"
+    },
+    {
+      "check": "E5 event_id/request_id 跨事件关联未丢失",
+      "result": "PASS",
+      "detail": "id 与顺序一致"
+    },
+    {
+      "check": "E5b 数字类型保持（未被字符串化）",
+      "result": "PASS",
+      "detail": "downstream_goal_count 仍为 int"
+    },
+    {
+      "check": "E5c JSON 中的路径值也被脱敏",
+      "result": "PASS",
+      "detail": "${PRIVATE_PATH}"
+    },
+    {
+      "check": "YAML 中 api_key 值被替换为 [REDACTED_SECRET]",
+      "result": "PASS",
+      "detail": "api_key 已脱敏"
+    },
+    {
+      "check": "YAML 中业务字段（task_id/policy_version）保留",
+      "result": "PASS",
+      "detail": "ok"
+    }
+  ],
+  "observed": {
+    "checks_total": 10,
+    "checks_passed": 10,
+    "commands": [
+      {
+        "step": "redact",
+        "exit_code": 0
+      }
+    ]
+  }
+}

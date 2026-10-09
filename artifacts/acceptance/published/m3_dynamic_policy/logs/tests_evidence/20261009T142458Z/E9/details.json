@@ -1,0 +1,32 @@
+{
+  "case": "E9",
+  "name": "无网络或无权限时保留待发布证据",
+  "expected": "状态非 PASS，本地待发布产物保留",
+  "checks": [
+    {
+      "check": "E9 无可用 remote 时发布未报告成功",
+      "result": "PASS",
+      "detail": "exit=1"
+    },
+    {
+      "check": "E9b 状态不是 PUBLISHED",
+      "result": "PASS",
+      "detail": "BLOCKED"
+    },
+    {
+      "check": "E9c 本地待发布产物被保留",
+      "result": "PASS",
+      "detail": "${WORKSPACE}/artifacts/acceptance/published/e9_offline_retry"
+    }
+  ],
+  "observed": {
+    "checks_total": 3,
+    "checks_passed": 3,
+    "commands": [
+      {
+        "step": "publish_offline",
+        "exit_code": 1
+      }
+    ]
+  }
+}

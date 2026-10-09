@@ -1,0 +1,78 @@
+[
+  {
+    "scenario": "policy_nonfinite_region",
+    "step": "navigation_sim",
+    "kind": "ros2 run (long-running)",
+    "argv": [
+      "ros2",
+      "run",
+      "rg_demo_nodes",
+      "navigation_sim",
+      "--ros-args",
+      "-p",
+      "record_path:=/ws/tests/evidence/20261009T141645Z/policy_nonfinite_region/navsim_goals.jsonl"
+    ],
+    "cwd": "/ws",
+    "pid": 42570,
+    "started_at": "2026-10-09T14:17:19Z",
+    "log_path": "/ws/tests/evidence/20261009T141645Z/policy_nonfinite_region/navsim.log",
+    "exit_code": 0,
+    "ready_after_sec": 0.201,
+    "finished_at": "2026-10-09T14:17:36Z",
+    "duration_sec": 16.862
+  },
+  {
+    "scenario": "policy_nonfinite_region",
+    "step": "security_gateway",
+    "kind": "ros2 run (long-running)",
+    "argv": [
+      "ros2",
+      "run",
+      "rg_gateway",
+      "security_gateway",
+      "--ros-args",
+      "-p",
+      "policy_path:=/ws/config/scenarios/task_policy_nonfinite_region.yaml",
+      "-p",
+      "audit_log_path:=/ws/tests/evidence/20261009T141645Z/policy_nonfinite_region/audit.jsonl"
+    ],
+    "cwd": "/ws",
+    "pid": 42571,
+    "started_at": "2026-10-09T14:17:19Z",
+    "log_path": "/ws/tests/evidence/20261009T141645Z/policy_nonfinite_region/gateway.log",
+    "exit_code": 0,
+    "ready_after_sec": 0.2,
+    "finished_at": "2026-10-09T14:17:28Z",
+    "duration_sec": 8.856
+  },
+  {
+    "scenario": "policy_nonfinite_region",
+    "step": "planner_run1:nanregion",
+    "kind": "ros2 run (one-shot)",
+    "argv": [
+      "ros2",
+      "run",
+      "rg_demo_nodes",
+      "planner_node",
+      "--ros-args",
+      "-p",
+      "task_id:=patrol_a_001",
+      "-p",
+      "request_id:=neg-policy-0003",
+      "-p",
+      "frame_id:=map",
+      "-p",
+      "target_x:=1.5",
+      "-p",
+      "target_y:=1.5",
+      "-p",
+      "expect_success:=0"
+    ],
+    "cwd": "/ws",
+    "started_at": "2026-10-09T14:17:19Z",
+    "finished_at": "2026-10-09T14:17:20Z",
+    "duration_sec": 0.564,
+    "exit_code": 0,
+    "log_path": "/ws/tests/evidence/20261009T141645Z/policy_nonfinite_region/planner_1_nanregion.log"
+  }
+]

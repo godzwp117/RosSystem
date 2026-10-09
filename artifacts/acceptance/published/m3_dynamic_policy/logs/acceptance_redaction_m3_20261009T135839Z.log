@@ -1,0 +1,11 @@
+
+======================================================================
+REDACTION SUMMARY (7 passed / 7 total)
+  [PASS] E1_E2_E4_E5    日志脱敏语义：用户名/路径/JSONL 可解析/事件关联/类型保持
+  [PASS] E3             含 Token/私钥的材料不得进入公开证据
+  [PASS] E6             M2 安全场景导出保留真实 Goal 数与判定
+  [PASS] E7             公开包哈希验证与来源可追溯
+  [PASS] E8             敏感信息扫描失败不得执行 Git push
+  [PASS] E9             无网络或无权限时保留待发布证据
+  [PASS] E10            同一 run_id 重复发布必须幂等
+evidence: tests/evidence/20261009T135839Z

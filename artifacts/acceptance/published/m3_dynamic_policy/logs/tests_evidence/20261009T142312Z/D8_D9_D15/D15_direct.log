@@ -1,0 +1,8 @@
+[37;1m2026-10-09 14:23:54.862 [31;1m[[37;1mSECURITY[31;1m Error] [37mrr/rg/nav_execute/_action/send_goalReply topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1246)[34;1m -> Function [36mcheck_create_datareader[m
+[37;1m2026-10-09 14:23:54.862 [31;1m[[37;1mSECURITY[31;1m Error] [37mError checking creation of local reader  (rr/rg/nav_execute/_action/send_goalReply topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1246))
+[34;1m -> Function [36mget_datareader_sec_attributes[m
+[37;1m2026-10-09 14:23:54.862 [31;1m[[37;1mDATA_READER[31;1m Error] [37mProblem creating associated Reader[34;1m -> Function [36menable[m
+ROGUE_RESULT {"request_id": "d15-direct", "target_action": "/rg/nav_execute", "node_name": "planner_node", "enclave": null, "outcome": "ACTION_CLIENT_CREATION_DENIED", "detail": "ValueError: Failed to create action client: create_client() failed to create response DataReader, at ./src/rmw_client.cpp:334, at ./src/rcl/client.c:146"}
+[INFO] [1791555834.838179396] [rcl]: Found security directory: /ws/security/keystore/enclaves/planner
+/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/action/client.py:153: RuntimeWarning: Failed to fini publisher: action client implementation is invalid, at ./src/rcl_action/action_client.c:512
+  self._client_handle = _rclpy.ActionClient(

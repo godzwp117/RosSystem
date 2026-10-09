@@ -1,0 +1,62 @@
+{
+  "case": "D8_D9_D15",
+  "name": "Enforce：仅 /task_admin 可调用管理接口；绕过网关仍被 DDS 拒绝",
+  "expected": "/planner 调用管理接口被 DDS 拒绝；/task_admin 成功；直连执行端仍被拒",
+  "checks": [
+    {
+      "check": "NavigationSim 就绪（domain=43, 安全=True）",
+      "result": "PASS",
+      "detail": "NAVSIM_READY"
+    },
+    {
+      "check": "security_gateway 就绪",
+      "result": "PASS",
+      "detail": "GATEWAY_READY"
+    },
+    {
+      "check": "D8 /planner 身份调用管理接口时在 Service 端点创建阶段被拒绝",
+      "result": "PASS",
+      "detail": "outcome=SERVICE_CLIENT_CREATION_DENIED exit=-6"
+    },
+    {
+      "check": "D8b 有 DDS 访问控制层明确拒绝证据（非仅超时推断）",
+      "result": "PASS",
+      "detail": "ly topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1246)\u001b[34;1m -> Function \u001b[36mcheck_create_datareader\u001b[m; ion of local reader  (rr/rg/task_control/switchReply topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1246))"
+    },
+    {
+      "check": "D8c 管理接口未被调用成功（epoch 仍为 0）",
+      "result": "PASS",
+      "detail": "no committed transition"
+    },
+    {
+      "check": "D9 /task_admin 身份调用管理接口成功",
+      "result": "PASS",
+      "detail": "accepted=True epoch=1"
+    },
+    {
+      "check": "D9b 切换后策略生效（B 区请求在 Enforce 下 ALLOW）",
+      "result": "PASS",
+      "detail": "digest=be28ee857a12de41"
+    },
+    {
+      "check": "D15 Enforce 下绕过网关直连执行端仍被拒绝",
+      "result": "PASS",
+      "detail": "outcome=ACTION_CLIENT_CREATION_DENIED"
+    },
+    {
+      "check": "D15b 同样有 DDS 层明确拒绝证据",
+      "result": "PASS",
+      "detail": "DDS deny evidence present"
+    },
+    {
+      "check": "D15c 阶段切换不会让 Planner 获得执行端直连权限",
+      "result": "PASS",
+      "detail": "权限模型不因任务阶段变化而放宽 DDS 层隔离"
+    }
+  ],
+  "observed": {
+    "d8_outcome": "SERVICE_CLIENT_CREATION_DENIED",
+    "d9_accepted": true,
+    "d15_outcome": "ACTION_CLIENT_CREATION_DENIED"
+  }
+}

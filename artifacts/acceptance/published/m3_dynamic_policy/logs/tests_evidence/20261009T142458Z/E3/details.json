@@ -1,0 +1,37 @@
+{
+  "case": "E3",
+  "name": "含 Token/私钥的材料不得进入公开证据",
+  "expected": "安全扫描判阻断、密钥类文件被拒绝、Token 被脱敏",
+  "checks": [
+    {
+      "check": "E3 含 Token 的目录被安全扫描判定为阻断",
+      "result": "PASS",
+      "detail": "exit=1"
+    },
+    {
+      "check": "E3b 密钥类文件被拒绝进入发布副本",
+      "result": "PASS",
+      "detail": "id_rsa 未出现在脱敏输出"
+    },
+    {
+      "check": "E3c 可脱敏的 Token 在公开副本中已被替换",
+      "result": "PASS",
+      "detail": "token=[REDACTED_SECRET]"
+    },
+    {
+      "check": "E3d 脱敏后的副本通过安全扫描",
+      "result": "PASS",
+      "detail": "safety exit=0"
+    }
+  ],
+  "observed": {
+    "checks_total": 4,
+    "checks_passed": 4,
+    "commands": [
+      {
+        "step": "safety_scan_injected",
+        "exit_code": 1
+      }
+    ]
+  }
+}

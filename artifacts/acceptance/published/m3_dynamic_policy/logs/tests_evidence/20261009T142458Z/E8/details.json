@@ -1,0 +1,32 @@
+{
+  "case": "E8",
+  "name": "敏感信息扫描失败不得执行 Git push",
+  "expected": "发布返回 BLOCKED 且远程 SHA 不变",
+  "checks": [
+    {
+      "check": "E8 含未脱敏凭证的证据发布被拒绝（非 0 退出）",
+      "result": "PASS",
+      "detail": "exit=1"
+    },
+    {
+      "check": "E8b 发布状态为 BLOCKED，未伪装成功",
+      "result": "PASS",
+      "detail": "BLOCKED"
+    },
+    {
+      "check": "E8c 远程证据分支 SHA 未变化（确实没有 push）",
+      "result": "PASS",
+      "detail": "before=80224c0a47d5 after=80224c0a47d5"
+    }
+  ],
+  "observed": {
+    "checks_total": 3,
+    "checks_passed": 3,
+    "commands": [
+      {
+        "step": "publish_with_token",
+        "exit_code": 1
+      }
+    ]
+  }
+}

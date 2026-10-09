@@ -1,0 +1,25 @@
+{
+  "run_id": "m3_dynamic_policy",
+  "source_commit_sha": "ba828a1ceb5fb0da034f8067c6cf586c93e1cebd",
+  "source_package_sha256": "fe6773e250a9cd9ace13699dab1a9642f39091e6cf2d038be33e20708d0075aa",
+  "published_archive": "m3_dynamic_policy.tar.gz",
+  "published_archive_sha256": "8991085560bb1bea0ba35baaf35dc69863a0c557558d0ddfaaf79806d1568fbb",
+  "content_digest": "c5cf6c603afd45db4b904eff22d55b2d035b4e3488a0e39964ff6afc166570ba",
+  "redaction": {
+    "redacted": true,
+    "redacted_at": "2026-10-09T14:25:52Z",
+    "source_run_id": "m3_dynamic_policy",
+    "source_commit_sha": "ba828a1ceb5fb0da034f8067c6cf586c93e1cebd",
+    "source_package_sha256": "fe6773e250a9cd9ace13699dab1a9642f39091e6cf2d038be33e20708d0075aa",
+    "tool": "scripts/redact_evidence.py",
+    "counts": {
+      "workspace_path": 132,
+      "private_path": 2
+    },
+    "files_redacted": 245,
+    "files_opaque_copied": 0,
+    "note": "公开副本内容已脱敏，file_hashes.json 中的 SHA-256 是脱敏后内容的哈希，与原始包中同名文件不同；source_package_sha256 指向本地原始包，供受控环境自行比对。映射表不随包发布。"
+  },
+  "created_at": "2026-10-09T14:25:52Z",
+  "note": "归档哈希记录在包外，避免\"归档哈希写回包内 manifest 导致归档变化\"的循环依赖；包内 manifest.artifacts.archive_sha256 因此为 null。"
+}

@@ -1,0 +1,78 @@
+[
+  {
+    "scenario": "target_infinite",
+    "step": "navigation_sim",
+    "kind": "ros2 run (long-running)",
+    "argv": [
+      "ros2",
+      "run",
+      "rg_demo_nodes",
+      "navigation_sim",
+      "--ros-args",
+      "-p",
+      "record_path:=/ws/tests/evidence/20261009T141645Z/target_infinite/navsim_goals.jsonl"
+    ],
+    "cwd": "/ws",
+    "pid": 42905,
+    "started_at": "2026-10-09T14:19:04Z",
+    "log_path": "/ws/tests/evidence/20261009T141645Z/target_infinite/navsim.log",
+    "exit_code": 0,
+    "ready_after_sec": 0.401,
+    "finished_at": "2026-10-09T14:19:23Z",
+    "duration_sec": 19.072
+  },
+  {
+    "scenario": "target_infinite",
+    "step": "security_gateway",
+    "kind": "ros2 run (long-running)",
+    "argv": [
+      "ros2",
+      "run",
+      "rg_gateway",
+      "security_gateway",
+      "--ros-args",
+      "-p",
+      "policy_path:=/ws/config/task_policy.yaml",
+      "-p",
+      "audit_log_path:=/ws/tests/evidence/20261009T141645Z/target_infinite/audit.jsonl"
+    ],
+    "cwd": "/ws",
+    "pid": 42906,
+    "started_at": "2026-10-09T14:19:04Z",
+    "log_path": "/ws/tests/evidence/20261009T141645Z/target_infinite/gateway.log",
+    "exit_code": 0,
+    "ready_after_sec": 0.601,
+    "finished_at": "2026-10-09T14:19:15Z",
+    "duration_sec": 11.065
+  },
+  {
+    "scenario": "target_infinite",
+    "step": "planner_run1:inf",
+    "kind": "ros2 run (one-shot)",
+    "argv": [
+      "ros2",
+      "run",
+      "rg_demo_nodes",
+      "planner_node",
+      "--ros-args",
+      "-p",
+      "task_id:=patrol_a_001",
+      "-p",
+      "request_id:=neg-inf-0001",
+      "-p",
+      "frame_id:=map",
+      "-p",
+      "target_x:=1.5",
+      "-p",
+      "target_y:=inf",
+      "-p",
+      "expect_success:=0"
+    ],
+    "cwd": "/ws",
+    "started_at": "2026-10-09T14:19:05Z",
+    "finished_at": "2026-10-09T14:19:05Z",
+    "duration_sec": 0.578,
+    "exit_code": 0,
+    "log_path": "/ws/tests/evidence/20261009T141645Z/target_infinite/planner_1_inf.log"
+  }
+]

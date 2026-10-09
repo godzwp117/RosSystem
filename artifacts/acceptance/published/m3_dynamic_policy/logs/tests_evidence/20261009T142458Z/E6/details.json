@@ -1,0 +1,42 @@
+{
+  "case": "E6",
+  "name": "M2 安全场景导出保留真实 Goal 数与判定",
+  "expected": "downstream_goal_count / rejection_layer / reason_code / domain 正确",
+  "checks": [
+    {
+      "check": "E6 导出成功",
+      "result": "PASS",
+      "detail": "{\"run_id\": \"e6_probe\", \"package_dir\": \"/tmp/rg_redaction_m4abkh5c/e6/e6_probe\", \"archive\": \"/tmp/rg_redaction_m4abkh5c/e6/e6_probe.tar.gz\", \"archive_sha256\": \"b6abb7857eb14704945aa5e4be1bdb24e7ecaccf6a43d4652801048cb8f6ac13\", \"files\": 245, \"total_bytes\": 1186968, \"scenarios\": 31, \"security_scenarios\": 7, \"excluded\": [], \"test_summary\": {\"passed\": 37, \"failed\": 1, \"not_run\": 0, \"blocked\": 0, \"total\": 38}}"
+    },
+    {
+      "check": "E6b 真实下游 Goal 数被保留（S3=0, S2=1, S3C=1）",
+      "result": "PASS",
+      "detail": "{'S2': 1, 'S3': 0, 'S3C': 1, 'S5': 0}"
+    },
+    {
+      "check": "E6c 拒绝层与原因码被保留",
+      "result": "PASS",
+      "detail": "S3=dds_security / S5=business_task_policy"
+    },
+    {
+      "check": "E6d actual_result 不再是 None/- 占位",
+      "result": "PASS",
+      "detail": "Planner 身份直连 /rg/nav_execute 未能完成执行=PASS; DDS 访问控制层给出明确拒绝证据（不是单纯客户端超时）=PASS; Nav"
+    },
+    {
+      "check": "E6e Enforce 场景 domain 标为 43（非容器默认 42）",
+      "result": "PASS",
+      "detail": "{'S1_normal_mode_a_zone': 42, 'S2': 43}"
+    }
+  ],
+  "observed": {
+    "checks_total": 5,
+    "checks_passed": 5,
+    "commands": [
+      {
+        "step": "export",
+        "exit_code": 0
+      }
+    ]
+  }
+}

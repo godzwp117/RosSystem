@@ -1,0 +1,1 @@
+{"received_at": "2026-10-09T14:21:35.063Z", "action": "/rg/nav_execute", "goal_id": "acde5839dfd54a87ba0e61b15157e65b", "request_id": "rel-r4", "task_id": "patrol_a_001", "frame_id": "map", "x": 1.5, "y": 1.5, "z": 0.0, "recorded_only": true, "path_planning": false}

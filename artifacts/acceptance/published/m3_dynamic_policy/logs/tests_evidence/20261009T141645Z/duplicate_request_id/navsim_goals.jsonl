@@ -1,0 +1,1 @@
+{"received_at": "2026-10-09T14:19:24.224Z", "action": "/rg/nav_execute", "goal_id": "a8c8ed0cbdc94d8aba199b4204a23317", "request_id": "neg-dup-0001", "task_id": "patrol_a_001", "frame_id": "map", "x": 2.0, "y": 2.0, "z": 0.0, "recorded_only": true, "path_planning": false}

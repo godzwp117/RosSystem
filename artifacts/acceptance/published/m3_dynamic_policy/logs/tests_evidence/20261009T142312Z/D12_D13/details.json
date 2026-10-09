@@ -1,0 +1,86 @@
+{
+  "case": "D12_D13",
+  "name": "重启恢复已提交状态；状态文件损坏进入限制性故障状态",
+  "expected": "重启后 epoch/策略正确；损坏时拒绝一切准入与切换",
+  "checks": [
+    {
+      "check": "NavigationSim 就绪（domain=42, 安全=False）",
+      "result": "PASS",
+      "detail": "NAVSIM_READY"
+    },
+    {
+      "check": "security_gateway 就绪",
+      "result": "PASS",
+      "detail": "GATEWAY_READY"
+    },
+    {
+      "check": "D12 前置：状态文件不存在时冷启动并按可信初始阶段运行",
+      "result": "PASS",
+      "detail": "TASK_STATE_COLD_START"
+    },
+    {
+      "check": "D12b 切换成功且状态已持久化（epoch=1, ZONE_B）",
+      "result": "PASS",
+      "detail": "accepted=True epoch=1 file=True"
+    },
+    {
+      "check": "NavigationSim 就绪（domain=42, 安全=False）",
+      "result": "PASS",
+      "detail": "NAVSIM_READY"
+    },
+    {
+      "check": "security_gateway 就绪",
+      "result": "PASS",
+      "detail": "GATEWAY_READY"
+    },
+    {
+      "check": "D12c 重启后恢复出相同的阶段与 epoch",
+      "result": "PASS",
+      "detail": "json\", \"task_phase\": \"ZONE_B\", \"policy_epoch\": 1, \"policy_digest\": \"be28ee857a12de412b41e11875a69914da7e99ae2d33b6e5f4265239caf5d20c\", \"used_transition_ids\": 1}"
+    },
+    {
+      "check": "D12d 重启后 B 区请求仍 ALLOW（权限未回退）",
+      "result": "PASS",
+      "detail": "EXECUTED"
+    },
+    {
+      "check": "D12e 重启后仍拒绝重放旧的 transition_id",
+      "result": "PASS",
+      "detail": "replay rejected"
+    },
+    {
+      "check": "NavigationSim 就绪（domain=42, 安全=False）",
+      "result": "PASS",
+      "detail": "NAVSIM_READY"
+    },
+    {
+      "check": "security_gateway 就绪",
+      "result": "PASS",
+      "detail": "GATEWAY_READY"
+    },
+    {
+      "check": "D13 状态文件损坏时进入限制性故障状态",
+      "result": "PASS",
+      "detail": "TASK_STATE_CORRUPT"
+    },
+    {
+      "check": "D13b 故障状态下合法 A 区请求也被拒绝（不放宽权限）",
+      "result": "PASS",
+      "detail": "TASK_NOT_ACTIVE"
+    },
+    {
+      "check": "D13c 拒绝原因码为 TASK_NOT_ACTIVE",
+      "result": "PASS",
+      "detail": "TASK_NOT_ACTIVE"
+    },
+    {
+      "check": "D13d 故障状态下拒绝任务切换",
+      "result": "PASS",
+      "detail": "TRANSITION_REJECTED_NOT_ACTIVE"
+    }
+  ],
+  "observed": {
+    "state_path": "tests/evidence/20261009T142312Z/persist_state/task_state.json",
+    "corrupt_rejected": "TASK_NOT_ACTIVE"
+  }
+}

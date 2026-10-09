@@ -1,0 +1,203 @@
+{
+  "scenario": "policy_missing_required_field",
+  "suite": "negative",
+  "description": "Policy lacks coordinate_frame: schema error, fail closed.",
+  "policy_path": "/ws/config/scenarios/task_policy_missing_field.yaml",
+  "result": "PASS",
+  "started_at": "2026-10-09T14:17:19Z",
+  "evidence_dir": "tests/evidence/20261009T141645Z/policy_missing_required_field",
+  "navsim_goal_count": 0,
+  "decision_sequence": [
+    "POLICY_MISSING"
+  ],
+  "execution_status_codes": [],
+  "reject_log_lines": 1,
+  "planner_results": [
+    {
+      "request_id": "neg-policy-0002",
+      "task_id": "patrol_a_001",
+      "frame_id": "map",
+      "target": {
+        "x": 1.5,
+        "y": 1.5,
+        "z": 0.0
+      },
+      "egress_action": "/rg/guarded_navigate",
+      "goal_id": "2384188d4dcd47a5b8dd0fdc85de10f9",
+      "outcome": "RESULT",
+      "accepted": true,
+      "goal_status": "STATUS_ABORTED",
+      "success": false,
+      "status_code": "POLICY_MISSING",
+      "detail": "no authoritative TaskPolicy is loaded",
+      "feedback_seen": null
+    }
+  ],
+  "planner_exit_codes": [
+    0
+  ],
+  "checks": [
+    {
+      "check": "bringup: NavigationSim ready",
+      "result": "PASS",
+      "detail": "NAVSIM_READY seen in tests/evidence/20261009T141645Z/policy_missing_required_field/navsim.log"
+    },
+    {
+      "check": "bringup: security_gateway ready",
+      "result": "PASS",
+      "detail": "GATEWAY_READY seen in tests/evidence/20261009T141645Z/policy_missing_required_field/gateway.log"
+    },
+    {
+      "check": "navsim Goal count == 0",
+      "result": "PASS",
+      "detail": "journal tests/evidence/20261009T141645Z/policy_missing_required_field/navsim_goals.jsonl has 0 line(s)"
+    },
+    {
+      "check": "planner[badfield] exit code == 0",
+      "result": "PASS",
+      "detail": "actual exit code 0"
+    },
+    {
+      "check": "planner[badfield] Result.success == False",
+      "result": "PASS",
+      "detail": "status_code='POLICY_MISSING' detail='no authoritative TaskPolicy is loaded'"
+    },
+    {
+      "check": "planner[badfield] status_code == POLICY_MISSING",
+      "result": "PASS",
+      "detail": "actual status_code='POLICY_MISSING'"
+    },
+    {
+      "check": "DecisionEvent reason_code sequence == ['POLICY_MISSING']",
+      "result": "PASS",
+      "detail": "actual sequence ['POLICY_MISSING']"
+    },
+    {
+      "check": "ExecutionEvent count == 0",
+      "result": "PASS",
+      "detail": "actual 0 ExecutionEvent(s): []"
+    },
+    {
+      "check": "RosCommEvent count == DecisionEvent count == planner runs",
+      "result": "PASS",
+      "detail": "comm=1 decision=1 planner_runs=1"
+    },
+    {
+      "check": "event_id traceability (1 RosComm + 1 Decision + <=1 Execution each)",
+      "result": "PASS",
+      "detail": "event_id groups: 1; malformed: none"
+    },
+    {
+      "check": "BLOCKed event_ids never have an ExecutionEvent",
+      "result": "PASS",
+      "detail": "leaked event_ids: none"
+    },
+    {
+      "check": "correlatable REJECTED log lines == 1",
+      "result": "PASS",
+      "detail": "found 1 REJECTED line(s) in tests/evidence/20261009T141645Z/policy_missing_required_field/gateway.log"
+    },
+    {
+      "check": "every REJECTED line carries a BLOCKed request_id and event_id",
+      "result": "PASS",
+      "detail": "blocked request_ids=['neg-policy-0002']"
+    },
+    {
+      "check": "REJECTED lines declare downstream_goal_created=false",
+      "result": "PASS",
+      "detail": "checked 1 line(s)"
+    },
+    {
+      "check": "executor request_id set matches the ALLOWed set",
+      "result": "PASS",
+      "detail": "journal=[] expected=[]"
+    }
+  ],
+  "commands": [
+    {
+      "scenario": "policy_missing_required_field",
+      "step": "navigation_sim",
+      "kind": "ros2 run (long-running)",
+      "argv": [
+        "ros2",
+        "run",
+        "rg_demo_nodes",
+        "navigation_sim",
+        "--ros-args",
+        "-p",
+        "record_path:=/ws/tests/evidence/20261009T141645Z/policy_missing_required_field/navsim_goals.jsonl"
+      ],
+      "cwd": "/ws",
+      "pid": 42514,
+      "started_at": "2026-10-09T14:17:02Z",
+      "log_path": "/ws/tests/evidence/20261009T141645Z/policy_missing_required_field/navsim.log",
+      "exit_code": 0,
+      "ready_after_sec": 0.201,
+      "finished_at": "2026-10-09T14:17:19Z",
+      "duration_sec": 16.777
+    },
+    {
+      "scenario": "policy_missing_required_field",
+      "step": "security_gateway",
+      "kind": "ros2 run (long-running)",
+      "argv": [
+        "ros2",
+        "run",
+        "rg_gateway",
+        "security_gateway",
+        "--ros-args",
+        "-p",
+        "policy_path:=/ws/config/scenarios/task_policy_missing_field.yaml",
+        "-p",
+        "audit_log_path:=/ws/tests/evidence/20261009T141645Z/policy_missing_required_field/audit.jsonl"
+      ],
+      "cwd": "/ws",
+      "pid": 42515,
+      "started_at": "2026-10-09T14:17:02Z",
+      "log_path": "/ws/tests/evidence/20261009T141645Z/policy_missing_required_field/gateway.log",
+      "exit_code": 0,
+      "ready_after_sec": 0.201,
+      "finished_at": "2026-10-09T14:17:11Z",
+      "duration_sec": 8.77
+    },
+    {
+      "scenario": "policy_missing_required_field",
+      "step": "planner_run1:badfield",
+      "kind": "ros2 run (one-shot)",
+      "argv": [
+        "ros2",
+        "run",
+        "rg_demo_nodes",
+        "planner_node",
+        "--ros-args",
+        "-p",
+        "task_id:=patrol_a_001",
+        "-p",
+        "request_id:=neg-policy-0002",
+        "-p",
+        "frame_id:=map",
+        "-p",
+        "target_x:=1.5",
+        "-p",
+        "target_y:=1.5",
+        "-p",
+        "expect_success:=0"
+      ],
+      "cwd": "/ws",
+      "started_at": "2026-10-09T14:17:02Z",
+      "finished_at": "2026-10-09T14:17:03Z",
+      "duration_sec": 0.565,
+      "exit_code": 0,
+      "log_path": "/ws/tests/evidence/20261009T141645Z/policy_missing_required_field/planner_1_badfield.log"
+    }
+  ],
+  "expectations": {
+    "navsim_goals": 0,
+    "decision_codes": [
+      "POLICY_MISSING"
+    ],
+    "execution_events": 0,
+    "reject_logs": 1,
+    "executed_request_ids": []
+  }
+}

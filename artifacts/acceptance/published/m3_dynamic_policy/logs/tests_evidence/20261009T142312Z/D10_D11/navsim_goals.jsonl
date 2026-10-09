@@ -1,0 +1,2 @@
+{"received_at": "2026-10-09T14:23:20.494Z", "action": "/rg/nav_execute", "goal_id": "0790898ce1054a1ea58708be97ffc9ab", "request_id": "d10-inflight", "task_id": "patrol_a_001", "frame_id": "map", "x": 1.5, "y": 1.5, "z": 0.0, "recorded_only": true, "path_planning": false}
+{"received_at": "2026-10-09T14:23:28.710Z", "action": "/rg/nav_execute", "goal_id": "a456bb8301a348be89291d733e497cb2", "request_id": "d11-timeout", "task_id": "patrol_a_001", "frame_id": "map", "x": 2.0, "y": 2.0, "z": 0.0, "recorded_only": true, "path_planning": false}

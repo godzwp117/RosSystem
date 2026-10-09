@@ -1,0 +1,2 @@
+{"received_at": "2026-10-09T14:23:12.905Z", "action": "/rg/nav_execute", "goal_id": "f1b94be1d8f544199abf37c9da714149", "request_id": "d1-a-zone", "task_id": "patrol_a_001", "frame_id": "map", "x": 1.5, "y": 1.5, "z": 0.0, "recorded_only": true, "path_planning": false}
+{"received_at": "2026-10-09T14:23:15.503Z", "action": "/rg/nav_execute", "goal_id": "ff96bccb7c0d4149a6a8e6fc8ab598f2", "request_id": "d4-b-zone-after-switch", "task_id": "patrol_a_001", "frame_id": "map", "x": 8.0, "y": 8.0, "z": 0.0, "recorded_only": true, "path_planning": false}

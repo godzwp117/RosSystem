@@ -1,0 +1,5 @@
+[INFO] [1791555581.124982491] [navigation_sim]: NAVSIM_READY {"node": "navigation_sim", "action": "/rg/nav_execute", "record_path": "/ws/tests/evidence/20261009T141645Z/rate_limit/navsim_goals.jsonl", "simulate_delay_sec": 0.0, "simulate_failure": false, "simulate_reject": false, "path_planning": "none (stub executor)", "executor_threads": 4}
+[INFO] [1791555581.574364161] [navigation_sim]: NAVSIM_GOAL {"goal_id": "a2b100610dd343daa851a3105690a0e5", "request_id": "neg-rate-0001", "task_id": "patrol_a_001", "frame_id": "map", "x": 1.0, "y": 1.0, "z": 0.0, "goals_executed": 1, "received_at": "2026-10-09T14:19:41.573Z"}
+[INFO] [1791555582.144017543] [navigation_sim]: NAVSIM_GOAL {"goal_id": "8721c4df8e954eba8527ff9171643132", "request_id": "neg-rate-0002", "task_id": "patrol_a_001", "frame_id": "map", "x": 2.0, "y": 2.0, "z": 0.0, "goals_executed": 2, "received_at": "2026-10-09T14:19:42.143Z"}
+[INFO] [1791555591.438582682] [navigation_sim]: NAVSIM_COUNTERS {"goals_executed": 2, "journal_path": "/ws/tests/evidence/20261009T141645Z/rate_limit/navsim_goals.jsonl"}
+Failed to publish log message to rosout: publisher's context is invalid, at ./src/rcl/publisher.c:423
