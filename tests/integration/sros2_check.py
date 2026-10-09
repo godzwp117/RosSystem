@@ -181,7 +181,9 @@ def run_rogue(case_dir, action, node_name, enclave, domain, secure,
 
 
 class Case:
-    def __init__(self, case_id, name, expected, secure, enclave=None, resource=None):
+    def __init__(self, case_id, name, expected, secure, enclave=None, resource=None,
+                 domain=None):
+        self.domain = domain
         self.case_id = case_id
         self.name = name
         self.expected = expected
@@ -231,6 +233,9 @@ class Case:
             'log_path': evidence[0] if evidence else None,
             'evidence_files': evidence,
             'reason_code': self.reason,
+            # 该场景实际执行的 ROS_DOMAIN_ID（普通 42 / Enforce 43），
+            # 与容器默认 domain 区分记录。
+            'ros_domain_id': self.domain,
             'security_mode': 'enforce' if self.secure else 'disabled',
             'source_role': self.enclave.strip('/') if self.enclave else None,
             'source_enclave': self.enclave,
@@ -522,7 +527,8 @@ def main(argv=None) -> int:
     # ---------------- S1：普通模式（独立 domain 42）----------------
     if not wanted or 'S1' in wanted:
         case = Case('S1_normal_mode_a_zone', '普通模式合法 A 区请求（domain 42，未启用安全）',
-                    'Gateway ALLOW，NavigationSim 收到 1 条 Goal', secure=False)
+                    'Gateway ALLOW，NavigationSim 收到 1 条 Goal', secure=False,
+                    domain=int(NORMAL_DOMAIN))
         print('\n=== S1 普通模式合法 A 区请求 ===')
         nodes, journal, audit, gw_log = start_stack(case, NORMAL_DOMAIN, False,
                                                     {'navsim': None, 'gateway': None,
@@ -548,7 +554,8 @@ def main(argv=None) -> int:
     # ------------- S2/S5/S3/S3C/S4/S6：共享一个 Enforce 安全栈 -------------
     shared_ids = ['S2', 'S5', 'S3', 'S3C', 'S4', 'S6']
     if not wanted or (wanted & set(shared_ids)):
-        ctx_case = Case('_stack', 'Enforce 共享安全栈（domain 43）', '栈就绪', secure=True)
+        ctx_case = Case('_stack', 'Enforce 共享安全栈（domain 43）', '栈就绪', secure=True,
+                        domain=int(SECURE_DOMAIN))
         print('\n=== 启动 Enforce 安全栈（domain {0}）==='.format(SECURE_DOMAIN))
         nodes, journal, audit, gw_log = start_stack(
             ctx_case, SECURE_DOMAIN, True,
@@ -572,7 +579,8 @@ def main(argv=None) -> int:
                          'bad-keystore', ACTION_EXECUTE)):
                     if wanted and cid not in wanted:
                         continue
-                    case = Case(cid, name, name, secure=True, enclave=enclave, resource=resource)
+                    case = Case(cid, name, name, secure=True, enclave=enclave, resource=resource,
+                                domain=int(SECURE_DOMAIN))
                     # 共享栈：场景目录各自独立，但断言读取共享的 journal/audit
                     case.dir = os.path.join(run_dir, cid)
                     os.makedirs(case.dir, exist_ok=True)
@@ -583,7 +591,8 @@ def main(argv=None) -> int:
                 for cid in shared_ids:
                     if wanted and cid not in wanted:
                         continue
-                    case = Case(cid, '依赖 Enforce 安全栈的场景', '栈必须先就绪', secure=True)
+                    case = Case(cid, '依赖 Enforce 安全栈的场景', '必须先就绪', secure=True,
+                                domain=int(SECURE_DOMAIN))
                     case.dir = os.path.join(run_dir, cid)
                     os.makedirs(case.dir, exist_ok=True)
                     case.check('Enforce 安全栈就绪（前置条件）', False,
