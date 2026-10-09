@@ -88,6 +88,18 @@ def action_goal_id_to_hex(goal_id: Any) -> str:
 
 
 class SecurityGateway(Node):
+    # --- 下游执行状态 / 取消状态的显式取值（任务 B4） -------------------------
+    #: Goal 已创建并被接受，但结果未按时返回：执行状态未知，任务可能仍在运行。
+    DOWNSTREAM_STATE_UNKNOWN = 'UNKNOWN_MAY_STILL_BE_RUNNING'
+    #: 连 Goal 是否被下游接受都未确认。
+    DOWNSTREAM_STATE_NOT_CONFIRMED = 'NOT_CONFIRMED_CREATED'
+    #: 取消请求已发出，但未等待/未获得确认。
+    CANCEL_REQUESTED_UNCONFIRMED = 'REQUESTED_UNCONFIRMED'
+    #: 取消请求本身发送失败。
+    CANCEL_REQUEST_FAILED = 'REQUEST_FAILED'
+    #: 该场景不适用取消（例如 Goal 从未被接受）。
+    CANCEL_NOT_APPLICABLE = 'NOT_APPLICABLE'
+
     def __init__(self) -> None:
         super().__init__('security_gateway')
 
@@ -110,6 +122,16 @@ class SecurityGateway(Node):
         rate_window_sec = float(self.declare_parameter(
             'rate_window_sec', 60.0).value)
         self.audit_fsync = bool(self.declare_parameter('audit_fsync', False).value)
+        # 仅用于故障注入测试（任务 B2）。取值 none|comm|decision|execution|all。
+        # 安全性：该机制**只能制造审计写失败**，从而让请求被拒绝；它没有任何分支会放行请求，
+        # 因此不构成"故障绕过"。默认 none；启用时会写显式告警。取值非法时拒绝启动，
+        # 避免拼写错误导致"以为注入了、其实没有"。
+        self.audit_fault_injection = str(
+            self.declare_parameter('audit_fault_injection', 'none').value).strip().lower()
+        if self.audit_fault_injection not in self.AUDIT_FAULT_CHOICES:
+            raise ValueError(
+                'audit_fault_injection must be one of {0}, got {1!r}'.format(
+                    self.AUDIT_FAULT_CHOICES, self.audit_fault_injection))
 
         # Fail fast: an unwritable audit sink must stop the Gateway rather than
         # let it run without an audit trail.
@@ -120,6 +142,7 @@ class SecurityGateway(Node):
         self._tracker = RequestTracker(
             duplicate_ttl_sec=duplicate_ttl_sec, rate_window_sec=rate_window_sec)
         self._audit_failures = 0
+        self._post_execution_audit_failures = 0
         self._blocked_count = 0
         self._allowed_count = 0
         self._forwarded_count = 0
@@ -155,7 +178,16 @@ class SecurityGateway(Node):
             'downstream_accept_timeout_sec': self.downstream_accept_timeout_sec,
             'duplicate_ttl_sec': duplicate_ttl_sec,
             'rate_window_sec': rate_window_sec,
+            'audit_fault_injection': self.audit_fault_injection,
         }, ensure_ascii=False))
+
+        if self.audit_fault_injection != 'none':
+            self.get_logger().warning('AUDIT_FAULT_INJECTION_ACTIVE ' + json.dumps({
+                'audit_fault_injection': self.audit_fault_injection,
+                'purpose': 'test-only fault injection for task B2',
+                'safety': 'this mechanism can only cause audit write failures and therefore more '
+                          'rejections; it has no code path that can allow or bypass a request',
+            }, ensure_ascii=False))
 
         if policy is None:
             self.get_logger().error('POLICY_UNAVAILABLE ' + json.dumps({
@@ -177,21 +209,67 @@ class SecurityGateway(Node):
         }, ensure_ascii=False))
 
     # ------------------------------------------------------------------ audit
-    def _write_event(self, event: Any) -> bool:
-        """Persist one audit record. Returns False when the sink is unusable."""
+    #: 仅用于故障注入测试的取值。它**只能制造失败**，不能放行任何请求，
+    #: 因此不具备"绕过"能力；默认 none，启用时启动日志会显式告警。
+    AUDIT_FAULT_CHOICES = ('none', 'comm', 'decision', 'execution', 'all')
+
+    def _write_event(self, event: Any, phase: str = 'pre_execution') -> bool:
+        """Persist one audit record. Returns False when the sink is unusable.
+
+        ``phase`` 区分两类审计故障（任务 B2 要求不得混淆）：
+
+        * ``pre_execution``  —— 执行**前**必须落库的事件（RosCommEvent / DecisionEvent）。
+          写失败意味着"这次请求没有可审计的准入记录"，调用方必须 fail closed，
+          不得创建下游 Goal。
+        * ``post_execution`` —— 下游动作**已经发生**之后的执行结果记录（ExecutionEvent）。
+          此时物理动作不可撤销，写失败只能如实记为"结果未能入库"，
+          **绝不能**据此声称下游没有执行。
+        """
+        event_type = getattr(event, 'EVENT_TYPE', 'unknown')
+        injected = self._audit_fault_target(event_type)
+        if injected:
+            return self._record_audit_failure(
+                event, phase,
+                'injected fault: simulated {0} write failure (test-only, fail-only)'.format(injected))
+
         try:
             self._writer.write(event)
         except Exception as exc:  # noqa: BLE001 - audit failure must never crash silently
-            self._audit_failures += 1
-            self.get_logger().error('AUDIT_WRITE_FAILED ' + json.dumps({
-                'event_type': getattr(event, 'EVENT_TYPE', 'unknown'),
-                'event_id': getattr(event, 'event_id', 'unknown'),
-                'audit_log_path': self._audit_log_path,
-                'error': str(exc),
-                'effect': 'fail closed: the request will not be forwarded',
-            }, ensure_ascii=False))
-            return False
+            return self._record_audit_failure(event, phase, str(exc))
         return True
+
+    def _audit_fault_target(self, event_type: str) -> str:
+        """故障注入命中时返回被注入的事件类别，否则返回空串。"""
+        if self.audit_fault_injection == 'none':
+            return ''
+        mapping = {'RosCommEvent': 'comm', 'DecisionEvent': 'decision', 'ExecutionEvent': 'execution'}
+        target = mapping.get(event_type, '')
+        if not target:
+            return ''
+        if self.audit_fault_injection == 'all' or self.audit_fault_injection == target:
+            return target
+        return ''
+
+    def _record_audit_failure(self, event: Any, phase: str, error: str) -> bool:
+        event_type = getattr(event, 'EVENT_TYPE', 'unknown')
+        if phase == 'pre_execution':
+            self._audit_failures += 1
+            effect = 'fail closed: no downstream Goal will be created for this request'
+        else:
+            self._post_execution_audit_failures += 1
+            effect = ('downstream action may already have completed; the write failure is recorded, '
+                      'but the physical action cannot be undone. This MUST NOT be read as '
+                      '"downstream did not execute".')
+        self.get_logger().error('AUDIT_WRITE_FAILED ' + json.dumps({
+            'event_type': event_type,
+            'event_id': getattr(event, 'event_id', 'unknown'),
+            'request_id': getattr(event, 'request_id', None),
+            'phase': phase,
+            'audit_log_path': self._audit_log_path,
+            'error': error,
+            'effect': effect,
+        }, ensure_ascii=False))
+        return False
 
     # ------------------------------------------------------------- execution
     def _on_execute(self, goal_handle: Any) -> PatrolNavigate.Result:
@@ -262,7 +340,7 @@ class SecurityGateway(Node):
                 policy_version=decision.policy_version,
             )
 
-        self._write_event(DecisionEvent(
+        decision_event_written = self._write_event(DecisionEvent(
             event_id=event_id,
             request_id=request_id,
             task_id=task_id,
@@ -272,6 +350,21 @@ class SecurityGateway(Node):
             detail=decision.detail,
             decision_at=utc_now_iso(),
         ))
+
+        # 执行前审计必须完整：RosCommEvent 或 DecisionEvent 任一未能落库，都不得创建下游 Goal。
+        #
+        # 这里**不补写**第二条 DecisionEvent：同一 event_id 只允许一条判定记录，
+        # 否则审计链出现歧义（"到底哪条判定生效"）。审计链的缺口本身就是"审计不可用"的
+        # 证据，而拒绝原因由 REJECTED 日志（另一个 sink）承载，可关联到 request_id/event_id。
+        if decision.allowed and not decision_event_written:
+            decision = Decision(
+                decision=reason_codes.DECISION_BLOCK,
+                reason_code=reason_codes.AUDIT_UNAVAILABLE,
+                detail=('decision audit record could not be persisted to {0}; '
+                        'failing closed before creating any downstream Goal').format(
+                            self._audit_log_path),
+                policy_version=decision.policy_version,
+            )
 
         # 5. BLOCK: return the business result and never touch the downstream client.
         if not decision.allowed:
@@ -330,14 +423,24 @@ class SecurityGateway(Node):
                 'downstream Goal acceptance from {0}'.format(self.downstream_action),
             )
         except WaitTimeout as exc:
+            # 连"Goal 是否被下游接受"都未确认：不存在任何下游执行结果。
+            detail = (
+                'downstream Goal acceptance was NOT confirmed within {0:.3f}s; it is unknown whether '
+                'the downstream Action Server {1} received the Goal. No downstream result exists. '
+                'Cancel is not applicable.'.format(
+                    self.downstream_accept_timeout_sec, self.downstream_action))
             return self._finish_failure(
                 goal_handle, event_id, request_id, task_id, downstream_goal_id,
-                reason_codes.EXECUTION_TIMEOUT, str(exc), forwarded)
+                reason_codes.EXECUTION_TIMEOUT, detail, forwarded,
+                downstream_state=self.DOWNSTREAM_STATE_NOT_CONFIRMED,
+                cancel_state=self.CANCEL_NOT_APPLICABLE, raw_error=str(exc))
         except Exception as exc:  # noqa: BLE001 - transport failure is fail-closed
             return self._finish_failure(
                 goal_handle, event_id, request_id, task_id, downstream_goal_id,
                 reason_codes.EXECUTION_TIMEOUT,
-                'downstream Goal could not be sent: {0}'.format(exc), forwarded)
+                'downstream Goal could not be sent: {0}'.format(exc), forwarded,
+                downstream_state=self.DOWNSTREAM_STATE_NOT_CONFIRMED,
+                cancel_state=self.CANCEL_NOT_APPLICABLE, raw_error=str(exc))
 
         if not downstream_handle.accepted:
             return self._finish_failure(
@@ -359,15 +462,28 @@ class SecurityGateway(Node):
                 'downstream execution result from {0}'.format(self.downstream_action),
             )
         except WaitTimeout as exc:
-            self._try_cancel(downstream_handle)
+            # 关键语义（任务 B4）：Goal 已经创建并被下游接受，超时只说明"结果未按时返回"，
+            # 既不能推断下游已停止，也不能推断下游没有执行。
+            cancel_state = self._try_cancel(downstream_handle)
+            detail = (
+                'downstream Goal {0} WAS created and accepted, but its execution result did not arrive '
+                'within {1:.3f}s. Downstream execution state is UNKNOWN and the task may still be '
+                'running. Cancel was {2} (request sent, confirmation NOT awaited). '
+                'This timeout is NOT evidence that the downstream stopped, and NOT evidence that it '
+                'never executed.'.format(
+                    downstream_goal_id, self.execution_timeout_sec, cancel_state))
             return self._finish_failure(
                 goal_handle, event_id, request_id, task_id, downstream_goal_id,
-                reason_codes.EXECUTION_TIMEOUT, str(exc), forwarded)
+                reason_codes.EXECUTION_TIMEOUT, detail, forwarded,
+                downstream_state=self.DOWNSTREAM_STATE_UNKNOWN,
+                cancel_state=cancel_state, raw_error=str(exc))
         except Exception as exc:  # noqa: BLE001
             return self._finish_failure(
                 goal_handle, event_id, request_id, task_id, downstream_goal_id,
                 reason_codes.EXECUTION_FAILED,
-                'downstream result unavailable: {0}'.format(exc), forwarded)
+                'downstream result unavailable: {0}'.format(exc), forwarded,
+                downstream_state=self.DOWNSTREAM_STATE_UNKNOWN,
+                cancel_state=self.CANCEL_NOT_APPLICABLE, raw_error=str(exc))
 
         downstream_result = wrapped_result.result
         success = bool(getattr(downstream_result, 'success', False))
@@ -385,7 +501,7 @@ class SecurityGateway(Node):
             status_code=status_code,
             detail='downstream result: {0}'.format(detail),
             finished_at=utc_now_iso(),
-        ))
+        ), phase='post_execution')
 
         self.get_logger().info('EXECUTION_RESULT ' + json.dumps({
             'event_id': event_id,
@@ -403,8 +519,14 @@ class SecurityGateway(Node):
 
     def _finish_failure(self, goal_handle: Any, event_id: str, request_id: str, task_id: str,
                         downstream_goal_id: str, status_code: str, detail: str,
-                        forwarded: bool) -> PatrolNavigate.Result:
-        """Fail-closed completion: no Result is invented, the failure is audited."""
+                        forwarded: bool, downstream_state: str = 'NOT_APPLICABLE',
+                        cancel_state: str = 'NOT_APPLICABLE',
+                        raw_error: str = '') -> PatrolNavigate.Result:
+        """Fail-closed completion: no Result is invented, the failure is audited.
+
+        ExecutionEvent 属于"下游动作已经发生之后"的记录（``phase='post_execution'``）：
+        写失败不能再改变已经发生的物理动作，只如实记录。
+        """
         self._write_event(ExecutionEvent(
             event_id=event_id,
             request_id=request_id,
@@ -414,23 +536,50 @@ class SecurityGateway(Node):
             status_code=status_code,
             detail=detail,
             finished_at=utc_now_iso(),
-        ))
+        ), phase='post_execution')
+
         self.get_logger().error('EXECUTION_FAILURE ' + json.dumps({
             'event_id': event_id,
             'request_id': request_id,
             'downstream_goal_id': downstream_goal_id,
             'status_code': status_code,
             'forwarded': forwarded,
+            'downstream_state': downstream_state,
+            'cancel_state': cancel_state,
+            'raw_error': raw_error or None,
             'detail': detail,
         }, ensure_ascii=False))
+
+        # 与超时相关的状态单独再打一条机器可读日志，便于在对照实验中把
+        # "DDS 层拒绝 / Action Server 不可达 / 业务阻断 / 执行状态未知" 区分开。
+        if status_code == reason_codes.EXECUTION_TIMEOUT:
+            self.get_logger().error('EXECUTION_TIMEOUT_STATE ' + json.dumps({
+                'event_id': event_id,
+                'request_id': request_id,
+                'downstream_goal_id': downstream_goal_id,
+                'downstream_state': downstream_state,
+                'cancel_state': cancel_state,
+                'execution_may_continue': downstream_state == self.DOWNSTREAM_STATE_UNKNOWN,
+                'note': ('Gateway timeout does not prove the downstream stopped, nor that it never ran.'),
+            }, ensure_ascii=False))
+
         goal_handle.abort()
         return PatrolNavigate.Result(success=False, status_code=status_code, detail=detail)
 
-    def _try_cancel(self, downstream_handle: Any) -> None:
+    def _try_cancel(self, downstream_handle: Any) -> str:
+        """发出下游取消请求，但**不等待确认**，返回取消状态。
+
+        刻意不再叠加一次有界等待：`cancel_goal_async()` 的结果本身也只是"服务端是否受理取消"，
+        并不能证明执行已停止。因此对外只能声明"已请求、未确认"。
+        """
         try:
             downstream_handle.cancel_goal_async()
-        except Exception:  # noqa: BLE001 - best effort only
-            pass
+        except Exception as exc:  # noqa: BLE001 - best effort only
+            self.get_logger().warning('CANCEL_REQUEST_FAILED ' + json.dumps({
+                'error': str(exc),
+            }, ensure_ascii=False))
+            return self.CANCEL_REQUEST_FAILED
+        return self.CANCEL_REQUESTED_UNCONFIRMED
 
     def _on_downstream_feedback(self, upstream_goal_handle: Any, feedback_msg: Any) -> None:
         """Mirror downstream Feedback upstream. Best effort, never fatal."""
@@ -451,6 +600,8 @@ class SecurityGateway(Node):
             'allowed': self._allowed_count,
             'forwarded': self._forwarded_count,
             'audit_failures': self._audit_failures,
+            'post_execution_audit_failures': self._post_execution_audit_failures,
+            'audit_fault_injection': self.audit_fault_injection,
             'audit_records': self._writer.written,
         }
 

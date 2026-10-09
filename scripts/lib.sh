@@ -114,9 +114,66 @@ rg_require_container() {
   return 0
 }
 
-# Kill any node process left over from a previous run. The bracket trick stops
-# pkill from matching its own command line.
+# ---------------------------------------------------------------------------
+# 运行中实例检测（任务 B3）
+#
+# 背景：构建/测试脚本此前会无条件调用 rg_reap_stragglers（内部是 pkill -9），
+# 一旦用户正在运行受管理实例，构建就会把它的节点杀掉。正确行为是**拒绝执行**，
+# 而不是替用户清理正在运行的系统。
+# ---------------------------------------------------------------------------
+
+# 受管理实例的记录文件（由 scripts/start_system.sh 维护）
+rg_instance_record() {
+  echo "${RG_WS_HOST}/logs/start_system/current_instance.env"
+}
+
+# 若记录中的实例进程组仍有非僵尸成员，输出该 PGID；否则输出空。
+rg_running_instance_pgid() {
+  local record pgid
+  record="$(rg_instance_record)"
+  [ -f "${record}" ] || return 0
+  pgid="$(sed -n 's/^launch_pgid=//p' "${record}" 2>/dev/null | head -1)"
+  [ -n "${pgid}" ] || return 0
+  # 只统计非僵尸进程（容器 PID 1 不回收孤儿，僵尸会被误判为存活）
+  if rg_ros "ps -eo pgid=,stat= --no-headers 2>/dev/null | grep -qE '^[[:space:]]*${pgid}[[:space:]]+[^Z]'" >/dev/null 2>&1; then
+    echo "${pgid}"
+  fi
+}
+
+# 本项目的三个常驻节点进程 PID（排除僵尸）
+rg_managed_node_pids() {
+  rg_ros "ps -eo pid=,stat=,cmd= --no-headers 2>/dev/null \
+    | grep -vE '^[[:space:]]*[0-9]+[[:space:]]+Z' \
+    | grep -E 'rg_gateway/lib/rg_gateway/security_gateway|rg_demo_nodes/lib/rg_demo_nodes/(navigation_sim|operator_node)' \
+    | grep -v grep | sed 's/^ *//' | cut -d' ' -f1" 2>/dev/null | tr '\n' ' '
+}
+
+# 无运行中实例返回 0；存在则打印明确错误并返回 4。
+rg_require_no_running_instance() {
+  local pgid pids
+  pgid="$(rg_running_instance_pgid)"
+  pids="$(rg_managed_node_pids)"
+  if [ -n "${pgid}" ] || [ -n "${pids// /}" ]; then
+    echo "ERROR: 检测到正在运行的受管理实例，拒绝执行本次操作。" >&2
+    [ -n "${pgid}" ] && echo "       实例进程组(容器内 PGID): ${pgid}" >&2
+    [ -n "${pids// /}" ] && echo "       常驻节点 PID: ${pids}" >&2
+    echo "       请先停止该实例（在其前台终端按 Ctrl+C；或 scripts/start_system.sh 提示的命令）。" >&2
+    echo "       本脚本不会主动清理正在运行的 ROS 2 节点。" >&2
+    return 4
+  fi
+  return 0
+}
+
+# 清理上一轮遗留的节点进程。
+# 为安全起见：检测到**运行中的受管理实例**时默认跳过清理，避免误杀用户正在使用的系统；
+# 测试脚手架确实需要强制清理时，显式设置 RG_REAP_FORCE=1。
 rg_reap_stragglers() {
+  if [ "${RG_REAP_FORCE:-0}" != "1" ]; then
+    if ! rg_require_no_running_instance >/dev/null 2>&1; then
+      echo "[reap] 检测到运行中的受管理实例 -> 跳过清理（确需强制清理请设 RG_REAP_FORCE=1）" >&2
+      return 0
+    fi
+  fi
   rg_ros '
     killed=0
     for pattern in \
