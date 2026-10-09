@@ -1,2 +1,0 @@
-ROGUE_RESULT {"request_id": "s3c-gateway-direct", "target_action": "/rg/nav_execute", "node_name": "security_gateway", "enclave": null, "outcome": "RESULT", "success": true, "status_code": "EXECUTED", "detail": "recorded target (1.5, 1.5, 0.0) in frame map; no path planning performed"}
-[INFO] [1791538316.778996877] [rcl]: Found security directory: /ws/security/keystore/enclaves/gateway
