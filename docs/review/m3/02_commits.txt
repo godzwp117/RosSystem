@@ -1,0 +1,8 @@
+3a6d2df docs(m3): record M3 changes, defects found and limitations in CHANGELOG
+c00b2e0 test(m3): add dynamic authorization acceptance evidence
+ba828a1 feat(m3): enforce transition consistency and recovery
+ca8a72d feat(m3): add trusted task transition service
+9ebeff1 feat(m3): add versioned task policy state model
+b8d37e8 feat(evidence): add safe automated publication and redaction
+6a1a105 feat(evidence): add safe automated publication and redaction
+7ea4583 fix(evidence): preserve security scenario results and domain semantics

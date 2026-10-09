@@ -1,0 +1,178 @@
+# 本工作流只做**已发布证据的静态校验**，不执行 ROS 2 / SROS 2 / Docker 测试。
+# 真正的动态安全验证必须在具备 Jazzy + SROS 2 + Docker 的本地容器环境执行
+# （见 README.md §3 与 scripts/run_acceptance_and_publish.sh）。
+# 因此本工作流不能被理解为"云端完成了真实安全链路验证"。
+
+name: evidence-validation
+
+on:
+  push:
+    branches:
+      - 'evidence/**'
+    paths:
+      - 'artifacts/acceptance/published/**'
+  pull_request:
+    paths:
+      - 'artifacts/acceptance/published/**'
+      - 'artifacts/acceptance/schema/**'
+      - 'scripts/verify_acceptance.py'
+      - 'scripts/check_evidence_safety.py'
+  workflow_dispatch:
+
+# 最小权限：只读即可完成全部校验；不授予写权限，
+# 这样在不可信 PR 中也不会暴露可写凭证。
+permissions:
+  contents: read
+
+concurrency:
+  group: evidence-validation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-published-evidence:
+    runs-on: ubuntu-24.04
+    # 防御自触发循环：本工作流不写回仓库，但仍然跳过机器人自身的提交。
+    if: github.actor != 'github-actions[bot]'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 发现本次变更涉及的已发布证据包
+        id: discover
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+          fi
+          if [ -z "${BASE}" ] || ! git cat-file -e "${BASE}^{commit}" 2>/dev/null; then
+            BASE="$(git rev-list --max-parents=0 HEAD | tail -1)"
+          fi
+          CHANGED="$(git diff --name-only "${BASE}" HEAD -- artifacts/acceptance/published || true)"
+          PKGS="$(echo "${CHANGED}" | awk -F/ '/^artifacts\/acceptance\/published\/[^/]+/ {print $4}' | sort -u | grep -v '^$' | grep -v '\.tar\.gz$' || true)"
+          echo "packages<<EOF" >> "$GITHUB_OUTPUT"
+          echo "${PKGS}" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "发现证据包: ${PKGS:-（无）}"
+
+      - name: 校验每个已发布证据包
+        if: steps.discover.outputs.packages != ''
+        run: |
+          set -euo pipefail
+          FAIL=0
+          for pkg in ${{ steps.discover.outputs.packages }}; do
+            DIR="artifacts/acceptance/published/${pkg}"
+            [ -d "${DIR}" ] || continue
+            echo "=================== ${pkg} ==================="
+
+            echo "--- [1/6] 目录规范与必需文件 ---"
+            python3 scripts/verify_acceptance.py "${DIR}" || FAIL=1
+
+            echo "--- [2/6] JSON Schema 有效性 ---"
+            python3 - "${DIR}" <<'PY' || FAIL=1
+          import json, sys, os
+          root = sys.argv[1]
+          schema_path = 'artifacts/acceptance/schema/acceptance.schema.json'
+          schema = json.load(open(schema_path, encoding='utf-8'))
+          ok = True
+          for name in ('manifest.json', 'test_results.json', 'file_hashes.json',
+                       'security_results.json', 'environment.json'):
+              path = os.path.join(root, name)
+              if not os.path.isfile(path):
+                  continue
+              try:
+                  json.load(open(path, encoding='utf-8'))
+                  print('  可解析: {0}'.format(name))
+              except json.JSONDecodeError as exc:
+                  print('  JSON 解析失败: {0}: {1}'.format(name, exc))
+                  ok = False
+          print('  schema 版本枚举: {0}'.format(
+              schema['properties']['schema_version'].get('enum')))
+          sys.exit(0 if ok else 1)
+          PY
+
+            echo "--- [3/6] 密钥/敏感信息扫描 ---"
+            python3 scripts/check_evidence_safety.py --path "${DIR}" || FAIL=1
+
+            echo "--- [4/6] 文件完整性（逐文件 SHA-256） ---"
+            python3 - "${DIR}" <<'PY' || FAIL=1
+          import hashlib, json, os, sys
+          root = sys.argv[1]
+          doc = json.load(open(os.path.join(root, 'file_hashes.json'), encoding='utf-8'))
+          bad = []
+          for entry in doc['files']:
+              path = os.path.join(root, entry['path'])
+              if not os.path.isfile(path):
+                  bad.append('缺失: ' + entry['path']); continue
+              digest = hashlib.sha256(open(path, 'rb').read()).hexdigest()
+              if digest != entry['sha256']:
+                  bad.append('哈希不符: ' + entry['path'])
+          if bad:
+              print('  完整性失败: {0}'.format(bad[:5])); sys.exit(1)
+          print('  {0} 个文件哈希一致'.format(len(doc['files'])))
+          PY
+
+            echo "--- [5/6] 来源 commit SHA 与脱敏声明 ---"
+            python3 - "${DIR}" <<'PY' || FAIL=1
+          import json, os, sys
+          root = sys.argv[1]
+          manifest = json.load(open(os.path.join(root, 'manifest.json'), encoding='utf-8'))
+          source = manifest.get('source') or {}
+          commit = source.get('commit_sha')
+          redaction = manifest.get('redaction') or {}
+          problems = []
+          if not commit or len(str(commit)) < 7:
+              problems.append('缺少来源 commit SHA')
+          if redaction.get('redacted') is not True:
+              problems.append('缺少脱敏声明 (redaction.redacted)')
+          if not redaction.get('source_package_sha256'):
+              problems.append('缺少原始证据包哈希引用')
+          if problems:
+              print('  失败: {0}'.format(problems)); sys.exit(1)
+          print('  source_commit: {0}'.format(commit))
+          print('  source_package_sha256: {0}'.format(
+              str(redaction.get('source_package_sha256'))[:16] + '…'))
+          PY
+
+            echo "--- [6/6] PASS 场景必须带真实执行证据 ---"
+            python3 - "${DIR}" <<'PY' || FAIL=1
+          import json, os, sys
+          root = sys.argv[1]
+          records = []
+          for name in ('test_results.json', 'security_results.json'):
+              path = os.path.join(root, name)
+              if os.path.isfile(path):
+                  records.extend(json.load(open(path, encoding='utf-8')).get('scenarios') or [])
+          bad = []
+          for record in records:
+              if record.get('status') != 'PASS' and record.get('result') != 'PASS':
+                  continue
+              if not record.get('command'):
+                  bad.append('{0}: 无 command'.format(record.get('scenario_id')))
+              if record.get('exit_code') is None:
+                  bad.append('{0}: 无 exit_code'.format(record.get('scenario_id')))
+              if not record.get('evidence_files'):
+                  bad.append('{0}: 无 evidence_files'.format(record.get('scenario_id')))
+          if bad:
+              print('  证据不足: {0}'.format(bad[:5])); sys.exit(1)
+          print('  {0} 个 PASS 场景均带命令/返回码/证据文件'.format(len(records)))
+          PY
+          done
+          exit ${FAIL}
+
+      - name: 结论
+        run: |
+          if [ -z "${{ steps.discover.outputs.packages }}" ]; then
+            echo "本次未变更已发布证据包，无需校验。"
+          else
+            echo "已发布证据包校验完成（静态校验；动态安全验证在本地容器环境执行）。"
+          fi

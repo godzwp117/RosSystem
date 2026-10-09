@@ -13,7 +13,8 @@ testable without a ROS graph, and must never depend on the middleware for its
 correctness.
 """
 
-from . import events, futures, policy_engine, reason_codes, request_tracker, task_policy
+from . import (events, futures, policy_engine, reason_codes, request_tracker,
+               state_store, task_policy, task_state)
 from .events import (
     AuditSinkError,
     DecisionEvent,
@@ -29,6 +30,12 @@ from .events import (
 from .futures import WaitTimeout, wait_for_future
 from .policy_engine import Decision, NavRequest, evaluate
 from .request_tracker import RequestTracker
+from .state_store import STATE_FILENAME, StateStoreError, TaskStateStore
+from .task_state import (
+    ActiveTaskSnapshot, STATE_ACTIVE, STATE_RECOVERY_REQUIRED, STATE_SWITCHING,
+    STATE_UNINITIALIZED, TASK_STATES, TaskPhase, TaskStateMachine, TaskTransitionEvent,
+    canonical_policy_payload, compute_policy_digest, parse_task_phases,
+)
 from .task_policy import (
     AllowedRegion,
     PolicyError,
@@ -47,6 +54,19 @@ __all__ = [
     'reason_codes',
     'request_tracker',
     'task_policy',
+    'task_state',
+    'state_store',
+    'TaskStateStore',
+    'StateStoreError',
+    'STATE_FILENAME',
+    'ActiveTaskSnapshot',
+    'TaskPhase',
+    'TaskStateMachine',
+    'TaskTransitionEvent',
+    'canonical_policy_payload',
+    'compute_policy_digest',
+    'parse_task_phases',
+    'TASK_STATES',
     'AllowedRegion',
     'AuditSinkError',
     'Decision',

@@ -36,7 +36,7 @@ import sys
 import tarfile
 from datetime import datetime, timezone
 
-SCHEMA_VERSION = '1.0'
+SCHEMA_VERSION = '1.1'
 REPOSITORY = 'godzwp117/RosSystem'
 DEFAULT_CONTAINER = os.environ.get('RG_CONTAINER', 'rg_jazzy')
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -212,6 +212,10 @@ def collect_environment() -> dict:
             except json.JSONDecodeError:
                 parsed = []
             env['docker_image_digest'] = parsed[0] if parsed else None
+    # 容器默认 domain 与"某场景实际执行的 domain"是两件事：M2 起安全场景跑在 43，
+    # 而容器默认是 42。显式记录前者，避免把默认值误当成场景执行值。
+    raw_domain = str(env.get('ros_domain_id') or '').strip()
+    env['container_default_domain_id'] = int(raw_domain) if raw_domain.isdigit() else None
     return env
 
 
@@ -269,13 +273,20 @@ def scenario_from_runner_entry(entry: dict, pkg: 'PackageBuilder', evidence_rel:
         expected_bits.append('execution_events={0}'.format(expectations['execution_events']))
     if 'reject_logs' in expectations:
         expected_bits.append('reject_logs={0}'.format(expectations['reject_logs']))
-    expected = '; '.join(expected_bits) or (entry.get('description') or 'see checks')
+    # 安全对照实验（sros2_check）的 summary 已经给出真实 expected/actual，
+    # 直接采用；只有缺失时才从 scenario_runner 风格的字段推导，
+    # 否则会把下游 Goal 数、拒绝层等真实结果覆盖成 None/-。
+    expected = (entry.get('expected_result')
+                or '; '.join(expected_bits)
+                or (entry.get('description') or 'see checks'))
 
-    actual = 'navsim_goals={0}; decisions={1}; executions={2}; rejects={3}'.format(
-        entry.get('navsim_goal_count'),
-        ','.join(entry.get('decision_sequence') or []) or '-',
-        ','.join(entry.get('execution_status_codes') or []) or '-',
-        entry.get('reject_log_lines'))
+    actual = entry.get('actual_result')
+    if not actual:
+        actual = 'navsim_goals={0}; decisions={1}; executions={2}; rejects={3}'.format(
+            entry.get('navsim_goal_count'),
+            ','.join(entry.get('decision_sequence') or []) or '-',
+            ','.join(entry.get('execution_status_codes') or []) or '-',
+            entry.get('reject_log_lines'))
 
     commands = entry.get('commands') or []
     if not commands and entry.get('command'):
@@ -321,6 +332,17 @@ def scenario_from_runner_entry(entry: dict, pkg: 'PackageBuilder', evidence_rel:
 
     scenario_id = entry.get('scenario') or entry.get('scenario_id')
     scenario_name = entry.get('description') or entry.get('scenario_name') or scenario_id
+
+    # 场景实际执行的 domain：优先条目自带；否则按 security_mode 取该套件记录的执行
+    # domain（Enforce 场景跑在 43）。绝不把容器默认 domain 当成安全场景的执行 domain。
+    ros_domain_id = entry.get('ros_domain_id')
+    if ros_domain_id is None:
+        domains = entry.get('_suite_domains') or {}
+        mode = entry.get('security_mode')
+        if mode == 'enforce':
+            ros_domain_id = domains.get('secure_domain')
+        elif mode == 'disabled':
+            ros_domain_id = domains.get('normal_domain')
     record = {
         'scenario_id': scenario_id,
         'scenario_name': scenario_name,
@@ -338,6 +360,8 @@ def scenario_from_runner_entry(entry: dict, pkg: 'PackageBuilder', evidence_rel:
         'checks': entry.get('checks') or [],
         'suite': entry.get('suite'),
     }
+    if ros_domain_id is not None:
+        record['ros_domain_id'] = ros_domain_id
     # 安全对照实验场景会带 security_mode / enclave / rejection_layer 等字段，
     # 必须原样保留，否则 security_results.json 会丢失"拒绝发生在哪一层"的关键信息。
     for key in ('security_mode', 'source_role', 'source_enclave', 'requested_resource',
@@ -345,6 +369,18 @@ def scenario_from_runner_entry(entry: dict, pkg: 'PackageBuilder', evidence_rel:
         if entry.get(key) is not None:
             record[key] = entry[key]
     return record
+
+
+def _suite_domains(doc: dict) -> dict:
+    """从 summary 顶层读取该套件的普通/安全 domain（sros2_check 会写出这两个字段）。"""
+    out = {}
+    for key in ('normal_domain', 'secure_domain'):
+        value = doc.get(key)
+        try:
+            out[key] = int(str(value).strip())
+        except (TypeError, ValueError):
+            out[key] = None
+    return out
 
 
 def collect_scenarios(summary_paths: list, pkg: PackageBuilder) -> tuple:
@@ -364,6 +400,7 @@ def collect_scenarios(summary_paths: list, pkg: PackageBuilder) -> tuple:
         run_name = os.path.basename(os.path.dirname(summary_path))
         sources.append({'path': summary_path, 'status': 'OK',
                         'run': run_name, 'scenarios': len(summary.get('scenarios') or [])})
+        suite_domains = _suite_domains(summary)
         for entry in summary.get('scenarios') or []:
             ev_dir = entry.get('evidence_dir')
             rel_files: list = []
@@ -383,6 +420,7 @@ def collect_scenarios(summary_paths: list, pkg: PackageBuilder) -> tuple:
                         rel_files.append(copied)
             entry = dict(entry)
             entry['_evidence_files'] = rel_files
+            entry['_suite_domains'] = suite_domains
             scenarios.append(scenario_from_runner_entry(entry, pkg, ev_dir or ''))
         pkg.copy_file(summary_path, os.path.join('logs', 'tests_evidence', run_name, 'summary.json'))
         md = os.path.join(os.path.dirname(summary_path), 'summary.md')
@@ -392,7 +430,7 @@ def collect_scenarios(summary_paths: list, pkg: PackageBuilder) -> tuple:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description='导出标准化验收证据包')
-    parser.add_argument('--phase', required=True, choices=['P0', 'M1', 'M2'])
+    parser.add_argument('--phase', required=True, choices=['P0', 'M1', 'M2', 'M3'])
     parser.add_argument('--status', required=True, choices=['PASS', 'FAIL', 'PARTIAL', 'BLOCKED'])
     parser.add_argument('--run-id', default=None)
     parser.add_argument('--security-mode', default='disabled', choices=['disabled', 'enforce'])
@@ -579,6 +617,12 @@ def main(argv=None) -> int:
 
     # --- 汇总 ---
     all_records = list(scenarios) + list((security or {}).get('scenarios', []))
+    # 场景未自带 ros_domain_id 时回退到容器默认 domain；自带的一律保留
+    # （M2 起安全场景跑在 domain 43，不能标成容器的 42）。
+    default_domain = environment.get('container_default_domain_id')
+    for record in all_records:
+        if record.get('ros_domain_id') is None:
+            record['ros_domain_id'] = default_domain
     test_summary = {
         'passed': sum(1 for s in all_records if s['status'] == 'PASS'),
         'failed': sum(1 for s in all_records if s['status'] == 'FAIL'),
