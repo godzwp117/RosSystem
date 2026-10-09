@@ -310,9 +310,11 @@ def scenario_from_runner_entry(entry: dict, pkg: 'PackageBuilder', evidence_rel:
     if log_path is None and evidence_files:
         log_path = evidence_files[0]
 
+    scenario_id = entry.get('scenario') or entry.get('scenario_id')
+    scenario_name = entry.get('description') or entry.get('scenario_name') or scenario_id
     record = {
-        'scenario_id': entry.get('scenario'),
-        'scenario_name': entry.get('description') or entry.get('scenario'),
+        'scenario_id': scenario_id,
+        'scenario_name': scenario_name,
         'expected_result': expected,
         'actual_result': actual,
         # scenario_runner 用 'result'，本仓较新的检查脚本用 'status'，两者都要接受，
@@ -358,7 +360,7 @@ def collect_scenarios(summary_paths: list, pkg: PackageBuilder) -> tuple:
             rel_files: list = []
             if ev_dir and os.path.isdir(ev_dir):
                 rel_files = pkg.copy_tree(
-                    ev_dir, os.path.join('logs', 'tests_evidence', run_name, entry.get('scenario', 'unknown')))
+                    ev_dir, os.path.join('logs', 'tests_evidence', run_name, scenario_id or 'unknown'))
             entry = dict(entry)
             entry['_evidence_files'] = rel_files
             scenarios.append(scenario_from_runner_entry(entry, pkg, ev_dir or ''))

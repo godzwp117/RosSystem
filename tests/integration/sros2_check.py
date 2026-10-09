@@ -215,7 +215,9 @@ class Case:
                 for name in sorted(files):
                     evidence.append(os.path.relpath(os.path.join(base, name), ROOT))
         return {
+            'scenario': self.case_id,
             'scenario_id': self.case_id,
+            'description': self.name,
             'scenario_name': self.name,
             'expected_result': self.expected,
             'actual_result': '; '.join('{0}={1}'.format(c['check'], c['result']) for c in self.checks)[:800],
