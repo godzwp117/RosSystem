@@ -278,6 +278,11 @@ def scenario_from_runner_entry(entry: dict, pkg: 'PackageBuilder', evidence_rel:
         entry.get('reject_log_lines'))
 
     commands = entry.get('commands') or []
+    if not commands and entry.get('command'):
+        # 兼容：部分检查脚本只给单数 command（已经是 argv 数组）
+        commands = [{'argv': list(entry['command']),
+                     'exit_code': entry.get('exit_code'),
+                     'duration_sec': (entry.get('duration_ms') or 0) / 1000.0}]
     argv: list = []
     exit_code = None
     duration_ms = 0
@@ -362,6 +367,16 @@ def collect_scenarios(summary_paths: list, pkg: PackageBuilder) -> tuple:
                 entry_id = (entry.get('scenario') or entry.get('scenario_id') or 'unknown')
                 rel_files = pkg.copy_tree(
                     ev_dir, os.path.join('logs', 'tests_evidence', run_name, entry_id))
+            if not rel_files and entry.get('evidence_files'):
+                # 兼容：summary 未提供 evidence_dir 时，直接按仓库相对路径逐个复制，
+                # 避免"场景通过但证据文件没进包"从而被校验器判为证据不足。
+                for rel in entry['evidence_files']:
+                    copied = pkg.copy_file(
+                        os.path.join(REPO_ROOT, rel),
+                        os.path.join('logs', 'tests_evidence', run_name, entry_id,
+                                     os.path.basename(rel)))
+                    if copied:
+                        rel_files.append(copied)
             entry = dict(entry)
             entry['_evidence_files'] = rel_files
             scenarios.append(scenario_from_runner_entry(entry, pkg, ev_dir or ''))
