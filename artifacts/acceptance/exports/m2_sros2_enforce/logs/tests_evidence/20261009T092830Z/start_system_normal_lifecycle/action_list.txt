@@ -1,2 +1,0 @@
-/rg/guarded_navigate [rg_interfaces/action/PatrolNavigate]
-/rg/nav_execute [rg_interfaces/action/PatrolNavigate]

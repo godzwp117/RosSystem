@@ -1,0 +1,10 @@
+[INFO] [launch]: All log files can be found below ${PRIVATE_PATH}
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [operator_node-1]: process started with pid [33735]
+[INFO] [navigation_sim-2]: process started with pid [33736]
+[INFO] [security_gateway-3]: process started with pid [33737]
+[operator_node-1] [INFO] [1791538115.543685320] [operator_node]: TASK_INFO {"task_id": "patrol_a_001", "policy_version": "1.0", "coordinate_frame": "map", "description": "perimeter patrol, A zone", "published_at": "2026-10-09T09:28:35.537Z", "authority": "advisory_only", "note": "task summary only; the authoritative TaskPolicy is read by security_gateway from config/task_policy.yaml and cannot be overridden by this message"}
+[operator_node-1] [INFO] [1791538115.543939781] [operator_node]: OPERATOR_READY {"node": "operator_node", "topic": "/rg/task_info", "task_id": "patrol_a_001", "publish_period_sec": 2.0, "authority": "advisory_only"}
+[navigation_sim-2] [INFO] [1791538115.555226710] [navigation_sim]: NAVSIM_READY {"node": "navigation_sim", "action": "/rg/nav_execute", "record_path": "/ws/logs/start_system/20261009T092835Z/navsim_goals.jsonl", "simulate_delay_sec": 0.0, "simulate_failure": false, "simulate_reject": false, "path_planning": "none (stub executor)", "executor_threads": 4}
+[security_gateway-3] [INFO] [1791538115.557159346] [security_gateway]: GATEWAY_START {"node": "security_gateway", "upstream_action": "/rg/guarded_navigate", "downstream_action": "/rg/nav_execute", "policy_path": "/ws/config/task_policy.yaml", "audit_log_path": "/ws/logs/start_system/20261009T092835Z/audit.jsonl", "execution_timeout_sec": 10.0, "downstream_accept_timeout_sec": 10.0, "duplicate_ttl_sec": 600.0, "rate_window_sec": 60.0, "audit_fault_injection": "none"}
+[security_gateway-3] [INFO] [1791538115.557567709] [security_gateway]: GATEWAY_READY {"downstream_server_available": true, "policy_loaded": true, "policy_version": "1.0", "task_id": "patrol_a_001", "executor": "MultiThreadedExecutor", "executor_threads": 4, "server_callback_group": "ReentrantCallbackGroup", "client_callback_group": "ReentrantCallbackGroup(separate)"}

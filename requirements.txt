@@ -1,8 +1,0 @@
-# Minimal Python dependencies for the ROS-free core (src/rg_policy).
-#
-# The ROS 2 runtime is NOT installed from here -- it is provided by the
-# `ros:jazzy` container (see environment.md / requirements.md). These two
-# packages are only needed to run tests/unit on a plain Python interpreter
-# without ROS, which is possible because rg_policy never imports rclpy.
-PyYAML>=6.0
-pytest>=7.0

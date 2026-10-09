@@ -1,3 +1,0 @@
-Sl   /usr/bin/python3 /ws/install/rg_demo_nodes/lib/rg_demo_nodes/operator_node --ros-args -r __node:=operator_node --params-file /tmp/launch_params_19im2giw
-Sl   /usr/bin/python3 /ws/install/rg_demo_nodes/lib/rg_demo_nodes/navigation_sim --ros-args -r __node:=navigation_sim --params-file /tmp/launch_params_hd5lllo0
-Sl   /usr/bin/python3 /ws/install/rg_gateway/lib/rg_gateway/security_gateway --ros-args -r __node:=security_gateway --params-file /tmp/launch_params_drfp7d3f

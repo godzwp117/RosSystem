@@ -1,8 +1,0 @@
-# Scenario fixture: schema-valid but not in force. An inactive policy is treated
-# as "no usable authority" => POLICY_MISSING, i.e. fail closed.
-task_id: patrol_a_001
-policy_version: "1.0-inactive"
-active: false
-coordinate_frame: map
-allowed_region: {x_min: 0.0, x_max: 4.0, y_min: 0.0, y_max: 4.0}
-max_requests_per_minute: 10
