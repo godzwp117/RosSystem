@@ -59,6 +59,7 @@
             <service>/rg/guarded_navigate/_action/send_goal</service>
             <service>/rg/guarded_navigate/_action/cancel_goal</service>
             <service>/rg/guarded_navigate/_action/get_result</service>
+            <service>/rg/task_control/switch</service>
             <service>~/describe_parameters</service>
             <service>~/get_parameter_types</service>
             <service>~/get_parameters</service>
@@ -104,6 +105,29 @@
           <topics publish="ALLOW">
             <topic>/rg/nav_execute/_action/status</topic>
             <topic>/rg/nav_execute/_action/feedback</topic>
+            <topic>rosout</topic>
+            <topic>parameter_events</topic>
+          </topics>
+        </profile>
+      </profiles>
+    </enclave>
+
+    <enclave path="/task_admin">
+      <profiles>
+        <profile ns="/" node="task_admin_cli">
+          <services request="ALLOW">
+            <service>/rg/task_control/switch</service>
+          </services>
+          <services reply="ALLOW">
+            <service>~/describe_parameters</service>
+            <service>~/get_parameter_types</service>
+            <service>~/get_parameters</service>
+            <service>~/get_type_description</service>
+            <service>~/list_parameters</service>
+            <service>~/set_parameters</service>
+            <service>~/set_parameters_atomically</service>
+          </services>
+          <topics publish="ALLOW">
             <topic>rosout</topic>
             <topic>parameter_events</topic>
           </topics>

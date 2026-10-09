@@ -27,7 +27,7 @@ KEYSTORE_CTR="${RG_CONTAINER_WS}/security/keystore"
 POLICY_CTR="${RG_CONTAINER_WS}/security/policies/minimal_permissions.xml"
 POLICY_HOST="${RG_WS_HOST}/security/policies/minimal_permissions.xml"
 KEYSTORE_HOST="${RG_WS_HOST}/security/keystore"
-ENCLAVES="/operator /planner /gateway /navsim /unauthorized"
+ENCLAVES="/operator /planner /gateway /navsim /task_admin /unauthorized"
 SECURE_DOMAIN_ID="${RG_SECURE_DOMAIN_ID:-43}"
 
 if [ ! -f "${POLICY_HOST}" ]; then

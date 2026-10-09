@@ -56,6 +56,11 @@ BLOCK_REASON_CODES: Tuple[str, ...] = tuple(
 # --------------------------------------------------------------------------
 AUDIT_UNAVAILABLE = 'AUDIT_UNAVAILABLE'
 
+# 状态机不处于 ACTIVE（SWITCHING / RECOVERY_REQUIRED）时拒绝新 Goal。
+# 与 AUDIT_UNAVAILABLE 同样属于"词汇扩展"：DECISION_REASON_CODES 保持不变，
+# 仅把它加入可接受的决策原因码集合。
+TASK_NOT_ACTIVE = 'TASK_NOT_ACTIVE'
+
 # --- M3 任务切换原因码（新增，不改动既有 8 个冻结原因码）---------------------
 TRANSITION_ACCEPTED = 'TRANSITION_ACCEPTED'
 TRANSITION_REJECTED_UNKNOWN_TASK = 'TRANSITION_REJECTED_UNKNOWN_TASK'
@@ -88,7 +93,8 @@ TRANSITION_REJECT_REASON_CODES: Tuple[str, ...] = tuple(
     if code.startswith('TRANSITION_REJECTED') or code == TRANSITION_FAILED_PERSIST)
 
 #: Vocabulary accepted by DecisionEvent validation (frozen 8 + documented extension).
-ACCEPTED_DECISION_REASON_CODES: Tuple[str, ...] = DECISION_REASON_CODES + (AUDIT_UNAVAILABLE,)
+ACCEPTED_DECISION_REASON_CODES: Tuple[str, ...] = (
+    DECISION_REASON_CODES + (AUDIT_UNAVAILABLE, TASK_NOT_ACTIVE))
 
 # --------------------------------------------------------------------------
 # Decision verdicts
@@ -126,6 +132,7 @@ TASK_ID_UNKNOWN = 'UNKNOWN'
 # Human-readable explanations, attached to audit records and Result.detail.
 # --------------------------------------------------------------------------
 REASON_DESCRIPTIONS = {
+    TASK_NOT_ACTIVE: '任务状态机不处于 ACTIVE，暂不接受新的导航请求',
     TRANSITION_ACCEPTED: '任务阶段切换已接受并提交，epoch 已递增',
     TRANSITION_REJECTED_UNKNOWN_TASK: '目标任务或阶段不在可信配置中',
     TRANSITION_REJECTED_EPOCH_MISMATCH: 'expected_epoch 与当前 epoch 不一致（过期请求）',

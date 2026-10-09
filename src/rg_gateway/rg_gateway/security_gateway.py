@@ -47,6 +47,7 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 import signal
 import sys
 import time
@@ -58,8 +59,14 @@ from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 
+from rg_interfaces.srv import SwitchTask
+
 from rg_interfaces.action import PatrolNavigate
-from rg_policy import reason_codes
+from rg_policy import reason_codes, task_state
+from rg_policy.task_state import (
+    STATE_ACTIVE, TaskStateMachine, TaskTransitionEvent, parse_task_phases,
+)
+from rg_policy.task_policy import PolicySchemaError, PolicyProvider, TaskPolicy
 from rg_policy.events import (
     AuditSinkError,
     DecisionEvent,
@@ -72,7 +79,6 @@ from rg_policy.events import (
 from rg_policy.futures import WaitTimeout, wait_for_future
 from rg_policy.policy_engine import Decision, NavRequest, evaluate
 from rg_policy.request_tracker import RequestTracker
-from rg_policy.task_policy import PolicyProvider
 
 DEFAULT_UPSTREAM_ACTION = '/rg/guarded_navigate'
 DEFAULT_DOWNSTREAM_ACTION = '/rg/nav_execute'
@@ -143,9 +149,20 @@ class SecurityGateway(Node):
             duplicate_ttl_sec=duplicate_ttl_sec, rate_window_sec=rate_window_sec)
         self._audit_failures = 0
         self._post_execution_audit_failures = 0
+        self._transition_audit_failures = 0
         self._blocked_count = 0
         self._allowed_count = 0
         self._forwarded_count = 0
+
+        # M3：任务状态切换与 Goal 准入共享同一把可重入锁。
+        # 用 RLock 是因为切换回调内部会再次读取状态，避免自锁死。
+        self._transition_lock = threading.RLock()
+        self._in_flight = 0
+        self._admission_registered = False
+        self._transition_count = 0
+        self._rejected_transition_count = 0
+        self._task_state = None
+        self._persistence = None
 
         self._server_cb_group = ReentrantCallbackGroup()
         self._client_cb_group = ReentrantCallbackGroup()
@@ -163,8 +180,14 @@ class SecurityGateway(Node):
             self.downstream_action,
             callback_group=self._client_cb_group,
         )
+        # M3 管理接口：单独的回调组，避免与 Action 执行回调互相阻塞。
+        self._admin_cb_group = ReentrantCallbackGroup()
+        self._switch_service = self.create_service(
+            SwitchTask, '/rg/task_control/switch', self._on_switch_task,
+            callback_group=self._admin_cb_group)
 
         policy, policy_error = self._policy_provider.current()
+        self._init_task_control(policy)
         self._downstream_available = self._client.wait_for_server(
             timeout_sec=self.server_ready_timeout_sec)
 
@@ -213,6 +236,195 @@ class SecurityGateway(Node):
     #: 因此不具备"绕过"能力；默认 none，启用时启动日志会显式告警。
     AUDIT_FAULT_CHOICES = ('none', 'comm', 'decision', 'execution', 'all')
 
+    # ---------------------------------------------------------- M3 任务状态
+    def _init_task_control(self, policy: Any) -> None:
+        """初始化可信任务状态机。配置不可信时**不静默降级**，而是进入限制性状态。"""
+        enable = bool(self.declare_parameter('enable_task_control', True).value)
+        self._enable_task_control = enable
+        if not enable:
+            self.get_logger().warning('TASK_CONTROL_DISABLED ' + json.dumps({
+                'effect': 'M3 动态约束未启用，按静态策略运行；这是显式配置，不是降级'}))
+            return
+
+        document = getattr(self._policy_provider, 'document', None)
+        try:
+            phases = parse_task_phases(document) if document else {}
+        except PolicySchemaError as exc:
+            self.get_logger().error('TASK_CONTROL_INVALID ' + json.dumps({
+                'error': str(exc),
+                'effect': ('task_phases 非法：进入 RECOVERY_REQUIRED，'
+                           '所有 Goal 将被拒绝（不会退回旧的宽松权限）')}))
+            self._task_state = TaskStateMachine.__new__(TaskStateMachine)
+            self._task_state.mark_recovery_required('invalid task_phases: {0}'.format(exc))
+            return
+
+        if not phases:
+            self.get_logger().warning('TASK_CONTROL_SINGLE_PHASE ' + json.dumps({
+                'reason': '策略中没有 task_phases，按单阶段运行（等同静态策略）'}))
+            return
+
+        initial = str(document.get('initial_task_phase') or '').strip()
+        if not initial:
+            # 没有明确初始阶段时，采用配置中**第一个**阶段，而不是任意猜测
+            initial = sorted(phases)[0]
+        try:
+            self._task_state = TaskStateMachine(phases, initial)
+        except PolicySchemaError as exc:
+            self.get_logger().error('TASK_CONTROL_INVALID ' + json.dumps({
+                'error': str(exc), 'effect': '进入 RECOVERY_REQUIRED'}))
+            self._task_state = TaskStateMachine.__new__(TaskStateMachine)
+            self._task_state.mark_recovery_required(str(exc))
+            return
+
+        snapshot = self._task_state.snapshot
+        self.get_logger().info('TASK_CONTROL_READY ' + json.dumps({
+            'service': '/rg/task_control/switch',
+            'task_id': snapshot.task_id,
+            'task_phase': snapshot.task_phase,
+            'policy_epoch': snapshot.policy_epoch,
+            'policy_digest': snapshot.policy_digest,
+            'available_phases': sorted(phases),
+        }, ensure_ascii=False))
+
+    def _admission_block_reason(self) -> Optional[str]:
+        """状态机不允许准入时返回原因文本，否则返回 None。"""
+        if self._task_state is None:
+            return None
+        state = self._task_state.state
+        if state != STATE_ACTIVE:
+            return ('task state machine is {0}; no new Goal is admitted until it '
+                    'returns to ACTIVE'.format(state))
+        return None
+
+    def _effective_policy(self, policy: Any, snapshot: Any) -> Any:
+        """把当前生效快照投影成 TaskPolicy，供纯函数 evaluate() 使用。"""
+        if policy is None or snapshot is None:
+            return None
+        return TaskPolicy(
+            task_id=snapshot.task_id,
+            policy_version=snapshot.policy_version,
+            active=snapshot.active,
+            coordinate_frame=snapshot.coordinate_frame,
+            region=snapshot.allowed_region,
+            max_requests_per_minute=snapshot.max_requests_per_minute,
+            source_path=policy.source_path,
+            loaded_at=policy.loaded_at,
+            extra_fields=policy.extra_fields,
+        )
+
+    def _release_in_flight(self) -> None:
+        with self._transition_lock:
+            if self._admission_registered:
+                self._in_flight = max(0, self._in_flight - 1)
+                self._admission_registered = False
+
+    def _in_flight_count(self) -> int:
+        with self._transition_lock:
+            return self._in_flight
+
+    def _on_switch_task(self, request: Any, response: Any) -> Any:
+        """可信任务切换服务。所有校验都在共享同步边界内完成。"""
+        transition_id = str(getattr(request, 'transition_id', '') or '').strip()
+        target_task_id = str(getattr(request, 'target_task_id', '') or '').strip()
+        target_phase = str(getattr(request, 'target_task_phase', '') or '').strip()
+        expected_epoch = int(getattr(request, 'expected_epoch', -1))
+
+        snapshot_before = self._task_state.snapshot if self._task_state is not None else None
+
+        def respond(accepted: bool, reason: str, detail: str, snapshot) -> Any:
+            response.accepted = bool(accepted)
+            response.reason_code = reason
+            response.current_epoch = snapshot.policy_epoch if snapshot else 0
+            response.active_task_id = snapshot.task_id if snapshot else ''
+            response.active_task_phase = snapshot.task_phase if snapshot else ''
+            response.policy_digest = snapshot.policy_digest if snapshot else ''
+            response.detail = detail
+            return response
+
+        if self._task_state is None:
+            self._rejected_transition_count += 1
+            return respond(False, reason_codes.TRANSITION_REJECTED_NOT_ACTIVE,
+                           '任务状态机未启用（enable_task_control=false 或策略缺少 task_phases）',
+                           snapshot_before)
+
+        # 整段切换流程持锁：在途检查、状态迁移、持久化与提交相对于 Goal 准入是原子的。
+        with self._transition_lock:
+            plan = self._task_state.request_transition(
+                transition_id, target_task_id, target_phase, expected_epoch,
+                self._in_flight)
+
+            if not plan.accepted:
+                self._rejected_transition_count += 1
+                snapshot = self._task_state.snapshot
+                self._write_transition_event(plan, snapshot, snapshot,
+                                             reason_codes.DECISION_BLOCK)
+                self.get_logger().warning('TASK_TRANSITION_REJECTED ' + json.dumps({
+                    'transition_id': transition_id,
+                    'target_task_phase': target_phase,
+                    'reason_code': plan.reason_code,
+                    'in_flight': self._in_flight,
+                    'current_epoch': snapshot.policy_epoch if snapshot else None,
+                    'current_task_phase': snapshot.task_phase if snapshot else None,
+                    'detail': plan.detail,
+                }, ensure_ascii=False))
+                return respond(False, plan.reason_code, plan.detail, snapshot)
+
+            # 已通过全部校验：先持久化，再原子提交。持久化失败即回退，
+            # 绝不把"尚未提交的新权限"暴露给后续请求。
+            persisted, persist_detail = self._persist_transition(plan)
+            if not persisted:
+                self._task_state.abort(persist_detail, recovery=True)
+                self._rejected_transition_count += 1
+                snapshot = self._task_state.snapshot
+                self._write_transition_event(plan, snapshot, snapshot,
+                                             reason_codes.DECISION_BLOCK,
+                                             reason_code=reason_codes.TRANSITION_FAILED_PERSIST)
+                self.get_logger().error('TASK_TRANSITION_PERSIST_FAILED ' + json.dumps({
+                    'transition_id': transition_id, 'detail': persist_detail,
+                    'effect': '进入 RECOVERY_REQUIRED，保持旧快照，不接受新的切换'}))
+                return respond(False, reason_codes.TRANSITION_FAILED_PERSIST,
+                               persist_detail, snapshot)
+
+            snapshot = self._task_state.commit(plan)
+            self._transition_count += 1
+            self._write_transition_event(plan, snapshot_before, snapshot,
+                                         reason_codes.DECISION_ALLOW)
+            self.get_logger().info('TASK_TRANSITION_COMMITTED ' + json.dumps({
+                'transition_id': transition_id,
+                'previous_task_phase': snapshot_before.task_phase if snapshot_before else None,
+                'next_task_phase': snapshot.task_phase,
+                'previous_epoch': snapshot_before.policy_epoch if snapshot_before else None,
+                'next_epoch': snapshot.policy_epoch,
+                'policy_digest': snapshot.policy_digest,
+            }, ensure_ascii=False))
+            return respond(True, reason_codes.TRANSITION_ACCEPTED,
+                           '切换已提交，epoch={0}'.format(snapshot.policy_epoch), snapshot)
+
+    def _persist_transition(self, plan: Any):
+        """持久化钩子。M3 第 4 阶段接入原子状态文件；未接入时视为成功但不谎报已持久化。"""
+        if self._persistence is None:
+            return True, 'no persistent store configured'
+        return self._persistence.commit(plan, self._task_state)
+
+    def _write_transition_event(self, plan: Any, previous: Any, current: Any,
+                                decision: str, reason_code: Optional[str] = None) -> None:
+        event = TaskTransitionEvent(
+            transition_id=plan.transition_id,
+            previous_task_phase=previous.task_phase if previous else '',
+            next_task_phase=(plan.target.task_phase if plan.target else
+                             (current.task_phase if current else '')),
+            previous_epoch=previous.policy_epoch if previous else -1,
+            next_epoch=current.policy_epoch if current else -1,
+            previous_policy_digest=previous.policy_digest if previous else '',
+            next_policy_digest=(plan.target.digest if plan.target else
+                                (current.policy_digest if current else '')),
+            decision=decision,
+            reason_code=reason_code or plan.reason_code,
+            transition_at=utc_now_iso(),
+            detail=plan.detail,
+        )
+        self._write_event(event, phase='task_transition')
+
     def _write_event(self, event: Any, phase: str = 'pre_execution') -> bool:
         """Persist one audit record. Returns False when the sink is unusable.
 
@@ -255,6 +467,13 @@ class SecurityGateway(Node):
         if phase == 'pre_execution':
             self._audit_failures += 1
             effect = 'fail closed: no downstream Goal will be created for this request'
+        elif phase == 'task_transition':
+            # 任务切换审计与"导航请求审计"是两套语义：既不能说"不会创建下游 Goal"，
+            # 也不能说"动作已完成不可撤销"。状态文件才是切换的权威记录，
+            # 因此这里只如实记账并暴露审计链缺口。
+            self._transition_audit_failures += 1
+            effect = ('task transition audit record could not be persisted; the authoritative '
+                      'record is the persisted state file, but the audit chain now has a gap')
         else:
             self._post_execution_audit_failures += 1
             effect = ('downstream action may already have completed; the write failure is recorded, '
@@ -309,28 +528,53 @@ class SecurityGateway(Node):
         # 3. Authoritative policy (read-only; missing/invalid => fail closed).
         policy, policy_error = self._policy_provider.current()
 
-        # 4. Pure synchronous decision.
-        request = NavRequest(
-            request_id=request_id, task_id=task_id, frame_id=frame_id, x=x, y=y, z=z)
-        decision = evaluate(request, policy)
+        # 4. M3 同步边界：任务状态检查、策略判定与"登记在途"必须在同一临界区内完成。
+        #    否则会出现这样的竞态：切换请求看到在途为 0 并通过校验，而此刻一个已经
+        #    判定为 ALLOW 的 Goal 还没登记为在途，切换提交后它仍带着旧权限继续执行。
+        with self._transition_lock:
+            state_block = self._admission_block_reason()
+            snapshot = self._task_state.snapshot if self._task_state is not None else None
+            effective_policy = self._effective_policy(policy, snapshot)
+            if effective_policy is not None:
+                policy = effective_policy
 
-        if decision.allowed and is_duplicate:
-            decision = Decision(
-                decision=reason_codes.DECISION_BLOCK,
-                reason_code=reason_codes.DUPLICATE_REQUEST,
-                detail='request_id {0!r} was already received within the duplicate window'.format(
-                    request_id),
-                policy_version=decision.policy_version,
-            )
-        elif decision.allowed and not self._tracker.admit(
-                now_monotonic, policy.max_requests_per_minute):
-            decision = Decision(
-                decision=reason_codes.DECISION_BLOCK,
-                reason_code=reason_codes.RATE_LIMIT,
-                detail='more than {0} admitted requests within {1}s'.format(
-                    policy.max_requests_per_minute, self._tracker.snapshot()['rate_window_sec']),
-                policy_version=decision.policy_version,
-            )
+            # 5. Pure synchronous decision.
+            request = NavRequest(
+                request_id=request_id, task_id=task_id, frame_id=frame_id, x=x, y=y, z=z)
+            decision = evaluate(request, policy)
+
+            # 状态机不处于 ACTIVE 时一律拒绝，且拒绝优先于任何放行判定。
+            if state_block is not None:
+                decision = Decision(
+                    decision=reason_codes.DECISION_BLOCK,
+                    reason_code=reason_codes.TASK_NOT_ACTIVE,
+                    detail=state_block,
+                    policy_version=decision.policy_version)
+            elif decision.allowed and is_duplicate:
+                decision = Decision(
+                    decision=reason_codes.DECISION_BLOCK,
+                    reason_code=reason_codes.DUPLICATE_REQUEST,
+                    detail='request_id {0!r} was already received within the '
+                           'duplicate window'.format(request_id),
+                    policy_version=decision.policy_version,
+                )
+            elif decision.allowed and not self._tracker.admit(
+                    now_monotonic, policy.max_requests_per_minute):
+                decision = Decision(
+                    decision=reason_codes.DECISION_BLOCK,
+                    reason_code=reason_codes.RATE_LIMIT,
+                    detail='more than {0} admitted requests within {1}s'.format(
+                        policy.max_requests_per_minute,
+                        self._tracker.snapshot()['rate_window_sec']),
+                    policy_version=decision.policy_version,
+                )
+
+            # 准入成功的 Goal 必须在**解除同步保护之前**登记为在途。
+            # 后续若审计失败会把结果改成 BLOCK，那时下游 Goal 从未创建，
+            # 因此在 BLOCK 分支里会撤销这次登记（见下方）。
+            self._admission_registered = bool(decision.allowed)
+            if self._admission_registered:
+                self._in_flight += 1
 
         if not comm_event_written:
             decision = Decision(
@@ -349,6 +593,9 @@ class SecurityGateway(Node):
             reason_code=decision.reason_code,
             detail=decision.detail,
             decision_at=utc_now_iso(),
+            task_phase=snapshot.task_phase if snapshot is not None else None,
+            policy_epoch=snapshot.policy_epoch if snapshot is not None else None,
+            policy_digest=snapshot.policy_digest if snapshot is not None else None,
         ))
 
         # 执行前审计必须完整：RosCommEvent 或 DecisionEvent 任一未能落库，都不得创建下游 Goal。
@@ -366,8 +613,12 @@ class SecurityGateway(Node):
                 policy_version=decision.policy_version,
             )
 
-        # 5. BLOCK: return the business result and never touch the downstream client.
+        # 6. BLOCK: return the business result and never touch the downstream client.
         if not decision.allowed:
+            # 判定阶段曾按"放行"登记过在途名额，但随后被审计失败改判为 BLOCK，
+            # 此时下游 Goal 从未创建，必须撤销登记，否则在途计数永远无法归零、
+            # 任务切换会被永久阻塞（拒绝服务）。
+            self._release_in_flight()
             self._blocked_count += 1
             self.get_logger().warning('REJECTED ' + json.dumps({
                 'event_id': event_id,
@@ -385,7 +636,13 @@ class SecurityGateway(Node):
                 success=False, status_code=decision.reason_code, detail=decision.detail)
 
         self._allowed_count += 1
-        return self._forward(goal_handle, event_id, request_id, task_id, target)
+        # 在途名额已在上面的临界区内登记完毕，因此切换请求不可能在
+        # "已判定放行但尚未登记"的窗口里通过校验。用 try/finally 保证正常完成、
+        # 下游拒绝、超时、取消未确认、异常退出等**所有**路径都会释放名额。
+        try:
+            return self._forward(goal_handle, event_id, request_id, task_id, target)
+        finally:
+            self._release_in_flight()
 
     # -------------------------------------------------------------- forwarding
     def _forward(self, goal_handle: Any, event_id: str, request_id: str,
@@ -601,6 +858,15 @@ class SecurityGateway(Node):
             'forwarded': self._forwarded_count,
             'audit_failures': self._audit_failures,
             'post_execution_audit_failures': self._post_execution_audit_failures,
+            'transition_audit_failures': self._transition_audit_failures,
+            'in_flight': self._in_flight,
+            'transitions_committed': self._transition_count,
+            'transitions_rejected': self._rejected_transition_count,
+            'task_state': self._task_state.state if self._task_state else None,
+            'task_phase': (self._task_state.snapshot.task_phase
+                           if self._task_state and self._task_state.snapshot else None),
+            'policy_epoch': (self._task_state.snapshot.policy_epoch
+                             if self._task_state and self._task_state.snapshot else None),
             'audit_fault_injection': self.audit_fault_injection,
             'audit_records': self._writer.written,
         }

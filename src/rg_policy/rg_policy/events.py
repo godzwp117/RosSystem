@@ -155,6 +155,10 @@ class DecisionEvent:
     reason_code: str
     detail: str
     decision_at: str
+    # --- M3 可选关联字段（向后兼容：老代码不传则为 None，事件结构不破坏）---
+    task_phase: str = None
+    policy_epoch: int = None
+    policy_digest: str = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, 'event_id', _require_str(self.event_id, 'event_id'))
@@ -188,6 +192,9 @@ class DecisionEvent:
             'reason_code': self.reason_code,
             'detail': self.detail,
             'decision_at': self.decision_at,
+            'task_phase': self.task_phase,
+            'policy_epoch': self.policy_epoch,
+            'policy_digest': self.policy_digest,
         }
 
 

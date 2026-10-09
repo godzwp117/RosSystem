@@ -251,6 +251,20 @@ class PolicyProvider:
         with self._lock:
             return self._reload_count
 
+    @property
+    def document(self) -> Optional[Dict[str, Any]]:
+        """只读地返回原始策略文档（M3 用它读取 task_phases / initial_task_phase）。
+
+        刻意不做缓存：只在启动阶段读取一次用于建立可信阶段目录，
+        运行期以不可变快照为准，避免"改了 YAML 就改了权限"。
+        """
+        try:
+            with open(self._path, 'r', encoding='utf-8') as handle:
+                loaded = yaml.safe_load(handle)
+        except (OSError, yaml.YAMLError):
+            return None
+        return loaded if isinstance(loaded, dict) else None
+
     def _stat_key(self) -> Optional[Tuple[int, int]]:
         try:
             info = os.stat(self._path)

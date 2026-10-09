@@ -1,0 +1,21 @@
+# M3 可信任务切换请求（Task C5）
+#
+# 安全边界说明：
+#   * 本请求**不携带任何策略正文**（区域/速率/版本），只有"切到哪个已知阶段"的意图，
+#     因此客户端无法通过自报参数放大自己的权限。
+#   * 可信身份来自 SROS 2 enclave（/task_admin），不来自本消息里的任何字段；
+#     消息中也没有 role/admin 之类的自报字段可供伪造。
+#   * expected_epoch 用于乐观并发控制：epoch 过期即拒绝，避免旧请求覆盖新状态。
+
+string transition_id        # 幂等键；同一 id 只能成功一次
+string target_task_id       # 目标任务（必须与当前任务同一 task_id）
+string target_task_phase    # 目标阶段（必须存在于可信配置的 task_phases 中）
+int32  expected_epoch       # 客户端认为的当前 epoch；不一致则拒绝
+---
+bool   accepted             # 是否接受并已提交
+string reason_code          # 取自 rg_policy.reason_codes
+int32  current_epoch        # 处理后的当前 epoch（被拒绝时保持原值）
+string active_task_id       # 处理后的生效任务
+string active_task_phase    # 处理后的生效阶段
+string policy_digest        # 处理后的生效策略摘要
+string detail               # 人类可读说明
