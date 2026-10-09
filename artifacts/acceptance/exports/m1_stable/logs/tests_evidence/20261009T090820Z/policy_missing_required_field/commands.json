@@ -1,0 +1,78 @@
+[
+  {
+    "scenario": "policy_missing_required_field",
+    "step": "navigation_sim",
+    "kind": "ros2 run (long-running)",
+    "argv": [
+      "ros2",
+      "run",
+      "rg_demo_nodes",
+      "navigation_sim",
+      "--ros-args",
+      "-p",
+      "record_path:=/ws/tests/evidence/20261009T090820Z/policy_missing_required_field/navsim_goals.jsonl"
+    ],
+    "cwd": "/ws",
+    "pid": 27914,
+    "started_at": "2026-10-09T09:08:37Z",
+    "log_path": "/ws/tests/evidence/20261009T090820Z/policy_missing_required_field/navsim.log",
+    "exit_code": 0,
+    "ready_after_sec": 0.201,
+    "finished_at": "2026-10-09T09:08:55Z",
+    "duration_sec": 17.952
+  },
+  {
+    "scenario": "policy_missing_required_field",
+    "step": "security_gateway",
+    "kind": "ros2 run (long-running)",
+    "argv": [
+      "ros2",
+      "run",
+      "rg_gateway",
+      "security_gateway",
+      "--ros-args",
+      "-p",
+      "policy_path:=/ws/config/scenarios/task_policy_missing_field.yaml",
+      "-p",
+      "audit_log_path:=/ws/tests/evidence/20261009T090820Z/policy_missing_required_field/audit.jsonl"
+    ],
+    "cwd": "/ws",
+    "pid": 27915,
+    "started_at": "2026-10-09T09:08:37Z",
+    "log_path": "/ws/tests/evidence/20261009T090820Z/policy_missing_required_field/gateway.log",
+    "exit_code": 0,
+    "ready_after_sec": 0.801,
+    "finished_at": "2026-10-09T09:08:46Z",
+    "duration_sec": 9.374
+  },
+  {
+    "scenario": "policy_missing_required_field",
+    "step": "planner_run1:badfield",
+    "kind": "ros2 run (one-shot)",
+    "argv": [
+      "ros2",
+      "run",
+      "rg_demo_nodes",
+      "planner_node",
+      "--ros-args",
+      "-p",
+      "task_id:=patrol_a_001",
+      "-p",
+      "request_id:=neg-policy-0002",
+      "-p",
+      "frame_id:=map",
+      "-p",
+      "target_x:=1.5",
+      "-p",
+      "target_y:=1.5",
+      "-p",
+      "expect_success:=0"
+    ],
+    "cwd": "/ws",
+    "started_at": "2026-10-09T09:08:38Z",
+    "finished_at": "2026-10-09T09:08:38Z",
+    "duration_sec": 0.567,
+    "exit_code": 0,
+    "log_path": "/ws/tests/evidence/20261009T090820Z/policy_missing_required_field/planner_1_badfield.log"
+  }
+]

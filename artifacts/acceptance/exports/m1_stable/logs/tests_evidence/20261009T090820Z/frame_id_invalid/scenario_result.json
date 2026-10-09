@@ -1,0 +1,203 @@
+{
+  "scenario": "frame_id_invalid",
+  "suite": "negative",
+  "description": "Goal frame_id=camera_link while policy coordinate_frame=map: INVALID_TARGET.",
+  "policy_path": "/ws/config/task_policy.yaml",
+  "result": "PASS",
+  "started_at": "2026-10-09T09:10:23Z",
+  "evidence_dir": "tests/evidence/20261009T090820Z/frame_id_invalid",
+  "navsim_goal_count": 0,
+  "decision_sequence": [
+    "INVALID_TARGET"
+  ],
+  "execution_status_codes": [],
+  "reject_log_lines": 1,
+  "planner_results": [
+    {
+      "request_id": "neg-frame-0001",
+      "task_id": "patrol_a_001",
+      "frame_id": "camera_link",
+      "target": {
+        "x": 1.5,
+        "y": 1.5,
+        "z": 0.0
+      },
+      "egress_action": "/rg/guarded_navigate",
+      "goal_id": "37904233bc7142b59e309be0cd22db35",
+      "outcome": "RESULT",
+      "accepted": true,
+      "goal_status": "STATUS_ABORTED",
+      "success": false,
+      "status_code": "INVALID_TARGET",
+      "detail": "target frame_id 'camera_link' != policy coordinate_frame 'map'",
+      "feedback_seen": null
+    }
+  ],
+  "planner_exit_codes": [
+    0
+  ],
+  "checks": [
+    {
+      "check": "bringup: NavigationSim ready",
+      "result": "PASS",
+      "detail": "NAVSIM_READY seen in tests/evidence/20261009T090820Z/frame_id_invalid/navsim.log"
+    },
+    {
+      "check": "bringup: security_gateway ready",
+      "result": "PASS",
+      "detail": "GATEWAY_READY seen in tests/evidence/20261009T090820Z/frame_id_invalid/gateway.log"
+    },
+    {
+      "check": "navsim Goal count == 0",
+      "result": "PASS",
+      "detail": "journal tests/evidence/20261009T090820Z/frame_id_invalid/navsim_goals.jsonl has 0 line(s)"
+    },
+    {
+      "check": "planner[badframe] exit code == 0",
+      "result": "PASS",
+      "detail": "actual exit code 0"
+    },
+    {
+      "check": "planner[badframe] Result.success == False",
+      "result": "PASS",
+      "detail": "status_code='INVALID_TARGET' detail=\"target frame_id 'camera_link' != policy coordinate_frame 'map'\""
+    },
+    {
+      "check": "planner[badframe] status_code == INVALID_TARGET",
+      "result": "PASS",
+      "detail": "actual status_code='INVALID_TARGET'"
+    },
+    {
+      "check": "DecisionEvent reason_code sequence == ['INVALID_TARGET']",
+      "result": "PASS",
+      "detail": "actual sequence ['INVALID_TARGET']"
+    },
+    {
+      "check": "ExecutionEvent count == 0",
+      "result": "PASS",
+      "detail": "actual 0 ExecutionEvent(s): []"
+    },
+    {
+      "check": "RosCommEvent count == DecisionEvent count == planner runs",
+      "result": "PASS",
+      "detail": "comm=1 decision=1 planner_runs=1"
+    },
+    {
+      "check": "event_id traceability (1 RosComm + 1 Decision + <=1 Execution each)",
+      "result": "PASS",
+      "detail": "event_id groups: 1; malformed: none"
+    },
+    {
+      "check": "BLOCKed event_ids never have an ExecutionEvent",
+      "result": "PASS",
+      "detail": "leaked event_ids: none"
+    },
+    {
+      "check": "correlatable REJECTED log lines == 1",
+      "result": "PASS",
+      "detail": "found 1 REJECTED line(s) in tests/evidence/20261009T090820Z/frame_id_invalid/gateway.log"
+    },
+    {
+      "check": "every REJECTED line carries a BLOCKed request_id and event_id",
+      "result": "PASS",
+      "detail": "blocked request_ids=['neg-frame-0001']"
+    },
+    {
+      "check": "REJECTED lines declare downstream_goal_created=false",
+      "result": "PASS",
+      "detail": "checked 1 line(s)"
+    },
+    {
+      "check": "executor request_id set matches the ALLOWed set",
+      "result": "PASS",
+      "detail": "journal=[] expected=[]"
+    }
+  ],
+  "commands": [
+    {
+      "scenario": "frame_id_invalid",
+      "step": "navigation_sim",
+      "kind": "ros2 run (long-running)",
+      "argv": [
+        "ros2",
+        "run",
+        "rg_demo_nodes",
+        "navigation_sim",
+        "--ros-args",
+        "-p",
+        "record_path:=/ws/tests/evidence/20261009T090820Z/frame_id_invalid/navsim_goals.jsonl"
+      ],
+      "cwd": "/ws",
+      "pid": 28192,
+      "started_at": "2026-10-09T09:10:05Z",
+      "log_path": "/ws/tests/evidence/20261009T090820Z/frame_id_invalid/navsim.log",
+      "exit_code": 0,
+      "ready_after_sec": 0.201,
+      "finished_at": "2026-10-09T09:10:23Z",
+      "duration_sec": 17.419
+    },
+    {
+      "scenario": "frame_id_invalid",
+      "step": "security_gateway",
+      "kind": "ros2 run (long-running)",
+      "argv": [
+        "ros2",
+        "run",
+        "rg_gateway",
+        "security_gateway",
+        "--ros-args",
+        "-p",
+        "policy_path:=/ws/config/task_policy.yaml",
+        "-p",
+        "audit_log_path:=/ws/tests/evidence/20261009T090820Z/frame_id_invalid/audit.jsonl"
+      ],
+      "cwd": "/ws",
+      "pid": 28193,
+      "started_at": "2026-10-09T09:10:05Z",
+      "log_path": "/ws/tests/evidence/20261009T090820Z/frame_id_invalid/gateway.log",
+      "exit_code": 0,
+      "ready_after_sec": 0.601,
+      "finished_at": "2026-10-09T09:10:15Z",
+      "duration_sec": 9.413
+    },
+    {
+      "scenario": "frame_id_invalid",
+      "step": "planner_run1:badframe",
+      "kind": "ros2 run (one-shot)",
+      "argv": [
+        "ros2",
+        "run",
+        "rg_demo_nodes",
+        "planner_node",
+        "--ros-args",
+        "-p",
+        "task_id:=patrol_a_001",
+        "-p",
+        "request_id:=neg-frame-0001",
+        "-p",
+        "frame_id:=camera_link",
+        "-p",
+        "target_x:=1.5",
+        "-p",
+        "target_y:=1.5",
+        "-p",
+        "expect_success:=0"
+      ],
+      "cwd": "/ws",
+      "started_at": "2026-10-09T09:10:06Z",
+      "finished_at": "2026-10-09T09:10:07Z",
+      "duration_sec": 0.808,
+      "exit_code": 0,
+      "log_path": "/ws/tests/evidence/20261009T090820Z/frame_id_invalid/planner_1_badframe.log"
+    }
+  ],
+  "expectations": {
+    "navsim_goals": 0,
+    "decision_codes": [
+      "INVALID_TARGET"
+    ],
+    "execution_events": 0,
+    "reject_logs": 1,
+    "executed_request_ids": []
+  }
+}

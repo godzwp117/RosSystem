@@ -1,0 +1,36 @@
+/opt/ros/jazzy/lib/python3.12/site-packages/ros2doctor/api/__init__.py: 162: UserWarning: Fail to call PackageReport class functions.
+/opt/ros/jazzy/lib/python3.12/site-packages/ros2doctor/api/__init__.py: 162: UserWarning: Fail to call RosdistroReport class functions.
+
+   NETWORK CONFIGURATION
+inet         : 127.0.0.1
+inet4        : ['127.0.0.1']
+inet6        : ['::1']
+netmask      : 255.0.0.0
+device       : lo
+flags        : 73<RUNNING,LOOPBACK,UP>
+mtu          : 65536
+inet         : 172.17.0.2
+inet4        : ['172.17.0.2']
+ether        : 3a:4a:28:76:2e:4c
+netmask      : 255.255.0.0
+device       : eth0
+flags        : 4163<RUNNING,UP,MULTICAST,BROADCAST>
+mtu          : 1500
+broadcast    : 172.17.255.255
+
+   PLATFORM INFORMATION
+system           : Linux
+platform info    : Linux-6.18.40.1-microsoft-standard-WSL2-x86_64-with-glibc2.39
+release          : 6.18.40.1-microsoft-standard-WSL2
+processor        : x86_64
+
+   QOS COMPATIBILITY LIST
+compatibility status    : No publisher/subscriber pairs found
+
+   RMW MIDDLEWARE
+middleware name    : rmw_fastrtps_cpp
+
+   TOPIC LIST
+topic               : none
+publisher count     : 0
+subscriber count    : 0

@@ -1,0 +1,2 @@
+PLANNER_RESULT {"request_id": "s5-b-zone", "task_id": "patrol_a_001", "frame_id": "map", "target": {"x": 9.0, "y": 9.0, "z": 0.0}, "egress_action": "/rg/guarded_navigate", "goal_id": "8186119a4b9c4fb5a3a54afd84437546", "outcome": "RESULT", "accepted": true, "goal_status": "STATUS_ABORTED", "success": false, "status_code": "OUT_OF_REGION", "detail": "target (9.0, 9.0) outside allowed_region {'x_min': 0.0, 'x_max': 4.0, 'y_min': 0.0, 'y_max': 4.0}", "feedback_seen": null}
+[INFO] [1791538316.275576762] [rcl]: Found security directory: /ws/security/keystore/enclaves/planner

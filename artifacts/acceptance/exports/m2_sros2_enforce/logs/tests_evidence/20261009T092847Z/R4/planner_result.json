@@ -1,0 +1,22 @@
+{
+  "request_id": "rel-r4",
+  "task_id": "patrol_a_001",
+  "frame_id": "map",
+  "target": {
+    "x": 1.5,
+    "y": 1.5,
+    "z": 0.0
+  },
+  "egress_action": "/rg/guarded_navigate",
+  "goal_id": "086e8ab3b9c948939a9ea398706d9310",
+  "outcome": "RESULT",
+  "accepted": true,
+  "goal_status": "STATUS_SUCCEEDED",
+  "success": true,
+  "status_code": "EXECUTED",
+  "detail": "recorded target (1.5, 1.5, 0.0) in frame map; no path planning performed",
+  "feedback_seen": {
+    "progress": 0.5,
+    "phase": "DOWNSTREAM:EXECUTING"
+  }
+}

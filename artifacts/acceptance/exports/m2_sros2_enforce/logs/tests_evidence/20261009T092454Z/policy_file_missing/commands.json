@@ -1,0 +1,78 @@
+[
+  {
+    "scenario": "policy_file_missing",
+    "step": "navigation_sim",
+    "kind": "ros2 run (long-running)",
+    "argv": [
+      "ros2",
+      "run",
+      "rg_demo_nodes",
+      "navigation_sim",
+      "--ros-args",
+      "-p",
+      "record_path:=/ws/tests/evidence/20261009T092454Z/policy_file_missing/navsim_goals.jsonl"
+    ],
+    "cwd": "/ws",
+    "pid": 32910,
+    "started_at": "2026-10-09T09:24:54Z",
+    "log_path": "/ws/tests/evidence/20261009T092454Z/policy_file_missing/navsim.log",
+    "exit_code": 0,
+    "ready_after_sec": 0.201,
+    "finished_at": "2026-10-09T09:25:12Z",
+    "duration_sec": 18.199
+  },
+  {
+    "scenario": "policy_file_missing",
+    "step": "security_gateway",
+    "kind": "ros2 run (long-running)",
+    "argv": [
+      "ros2",
+      "run",
+      "rg_gateway",
+      "security_gateway",
+      "--ros-args",
+      "-p",
+      "policy_path:=/ws/config/scenarios/task_policy_does_not_exist.yaml",
+      "-p",
+      "audit_log_path:=/ws/tests/evidence/20261009T092454Z/policy_file_missing/audit.jsonl"
+    ],
+    "cwd": "/ws",
+    "pid": 32911,
+    "started_at": "2026-10-09T09:24:54Z",
+    "log_path": "/ws/tests/evidence/20261009T092454Z/policy_file_missing/gateway.log",
+    "exit_code": 0,
+    "ready_after_sec": 0.2,
+    "finished_at": "2026-10-09T09:25:04Z",
+    "duration_sec": 10.194
+  },
+  {
+    "scenario": "policy_file_missing",
+    "step": "planner_run1:missing",
+    "kind": "ros2 run (one-shot)",
+    "argv": [
+      "ros2",
+      "run",
+      "rg_demo_nodes",
+      "planner_node",
+      "--ros-args",
+      "-p",
+      "task_id:=patrol_a_001",
+      "-p",
+      "request_id:=neg-policy-0001",
+      "-p",
+      "frame_id:=map",
+      "-p",
+      "target_x:=1.5",
+      "-p",
+      "target_y:=1.5",
+      "-p",
+      "expect_success:=0"
+    ],
+    "cwd": "/ws",
+    "started_at": "2026-10-09T09:24:54Z",
+    "finished_at": "2026-10-09T09:24:54Z",
+    "duration_sec": 0.568,
+    "exit_code": 0,
+    "log_path": "/ws/tests/evidence/20261009T092454Z/policy_file_missing/planner_1_missing.log"
+  }
+]

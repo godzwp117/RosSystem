@@ -1,0 +1,78 @@
+[
+  {
+    "scenario": "policy_inactive",
+    "step": "navigation_sim",
+    "kind": "ros2 run (long-running)",
+    "argv": [
+      "ros2",
+      "run",
+      "rg_demo_nodes",
+      "navigation_sim",
+      "--ros-args",
+      "-p",
+      "record_path:=/ws/tests/evidence/20261009T090820Z/policy_inactive/navsim_goals.jsonl"
+    ],
+    "cwd": "/ws",
+    "pid": 28026,
+    "started_at": "2026-10-09T09:09:12Z",
+    "log_path": "/ws/tests/evidence/20261009T090820Z/policy_inactive/navsim.log",
+    "exit_code": 0,
+    "ready_after_sec": 0.201,
+    "finished_at": "2026-10-09T09:09:30Z",
+    "duration_sec": 18.07
+  },
+  {
+    "scenario": "policy_inactive",
+    "step": "security_gateway",
+    "kind": "ros2 run (long-running)",
+    "argv": [
+      "ros2",
+      "run",
+      "rg_gateway",
+      "security_gateway",
+      "--ros-args",
+      "-p",
+      "policy_path:=/ws/config/scenarios/task_policy_inactive.yaml",
+      "-p",
+      "audit_log_path:=/ws/tests/evidence/20261009T090820Z/policy_inactive/audit.jsonl"
+    ],
+    "cwd": "/ws",
+    "pid": 28027,
+    "started_at": "2026-10-09T09:09:12Z",
+    "log_path": "/ws/tests/evidence/20261009T090820Z/policy_inactive/gateway.log",
+    "exit_code": 0,
+    "ready_after_sec": 1.001,
+    "finished_at": "2026-10-09T09:09:22Z",
+    "duration_sec": 9.829
+  },
+  {
+    "scenario": "policy_inactive",
+    "step": "planner_run1:inactive",
+    "kind": "ros2 run (one-shot)",
+    "argv": [
+      "ros2",
+      "run",
+      "rg_demo_nodes",
+      "planner_node",
+      "--ros-args",
+      "-p",
+      "task_id:=patrol_a_001",
+      "-p",
+      "request_id:=neg-policy-0004",
+      "-p",
+      "frame_id:=map",
+      "-p",
+      "target_x:=1.5",
+      "-p",
+      "target_y:=1.5",
+      "-p",
+      "expect_success:=0"
+    ],
+    "cwd": "/ws",
+    "started_at": "2026-10-09T09:09:13Z",
+    "finished_at": "2026-10-09T09:09:14Z",
+    "duration_sec": 0.823,
+    "exit_code": 0,
+    "log_path": "/ws/tests/evidence/20261009T090820Z/policy_inactive/planner_1_inactive.log"
+  }
+]
