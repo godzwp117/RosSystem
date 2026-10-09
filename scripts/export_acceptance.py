@@ -359,8 +359,9 @@ def collect_scenarios(summary_paths: list, pkg: PackageBuilder) -> tuple:
             ev_dir = entry.get('evidence_dir')
             rel_files: list = []
             if ev_dir and os.path.isdir(ev_dir):
+                entry_id = (entry.get('scenario') or entry.get('scenario_id') or 'unknown')
                 rel_files = pkg.copy_tree(
-                    ev_dir, os.path.join('logs', 'tests_evidence', run_name, scenario_id or 'unknown'))
+                    ev_dir, os.path.join('logs', 'tests_evidence', run_name, entry_id))
             entry = dict(entry)
             entry['_evidence_files'] = rel_files
             scenarios.append(scenario_from_runner_entry(entry, pkg, ev_dir or ''))
