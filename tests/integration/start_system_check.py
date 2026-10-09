@@ -83,10 +83,24 @@ def live_node_processes() -> list:
     return [line.strip() for line in out.splitlines() if line.strip()]
 
 
+def reset_ros_daemon(domain: str) -> None:
+    """把 ros2 daemon 重置到指定 domain。
+
+    Jazzy 的 `ros2 action list` 没有 --no-daemon，始终走 daemon，而 daemon 是**按
+    domain 缓存**的。M3 的 SROS2/动态用例跑在 domain 43；若不重置，随后在 domain 42
+    做的可发现性断言会因为 daemon 仍绑在 43 而"看不到任何 Action"。
+    这是**测试隔离缺陷**（曾导致一次误报 FAIL），不是产品缺陷。
+    """
+    container_exec('source /opt/ros/jazzy/setup.bash >/dev/null 2>&1; '
+                   'export ROS_DOMAIN_ID={0}; timeout 30 ros2 daemon stop >/dev/null 2>&1; '
+                   'timeout 30 ros2 daemon start >/dev/null 2>&1; true'.format(domain))
+
+
 def action_list() -> str:
     rc, out = container_exec(
         'source /opt/ros/jazzy/setup.bash >/dev/null 2>&1; cd /ws; '
-        'source install/setup.bash >/dev/null 2>&1; timeout 30 ros2 action list -t 2>&1')
+        'source install/setup.bash >/dev/null 2>&1; export ROS_DOMAIN_ID=42; '
+        'timeout 30 ros2 action list -t 2>&1')
     return out.strip()
 
 
@@ -139,6 +153,7 @@ class Scenario:
 
 
 def main(argv=None) -> int:
+    reset_ros_daemon('42')
     parser = argparse.ArgumentParser(description='start_system.sh 生命周期回归检查')
     parser.add_argument('--run-id', default=None)
     parser.add_argument('--keep-running', action='store_true', help='检查结束后不停止实例（排障用）')

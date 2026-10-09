@@ -244,10 +244,29 @@ def e3(case, tmp):
                'safety exit={0}'.format(scan_code))
 
 
+def find_sros2_summary():
+    """动态发现最近一次 sros2 场景 summary，避免把 run_id 写死。
+
+    写死 run_id 会在 evidence 目录被清理后变成假失败（曾发生一次）。
+    """
+    import glob
+    candidates = []
+    for path in glob.glob(os.path.join(ROOT, 'tests', 'evidence', '*', 'summary.json')):
+        try:
+            with open(path, 'r', encoding='utf-8') as handle:
+                doc = json.load(handle)
+        except (OSError, json.JSONDecodeError):
+            continue
+        if doc.get('suite') == 'sros2':
+            candidates.append((os.path.getmtime(path), path))
+    return sorted(candidates)[-1][1] if candidates else None
+
+
 def e6(case, tmp):
-    summary = os.path.join(ROOT, 'tests', 'evidence', '20261009T093144Z', 'summary.json')
-    if not os.path.isfile(summary):
-        case.check('E6 前置：存在 M2 安全场景 summary', False, summary)
+    summary = find_sros2_summary()
+    if not summary:
+        case.check('E6 前置：存在 sros2 安全场景 summary', False,
+                   '未找到 suite=sros2 的 summary（请先运行 sros2_check.py）')
         return
     outdir = os.path.join(tmp, 'e6')
     code, output = sh([sys.executable, os.path.join(SCRIPTS, 'export_acceptance.py'),

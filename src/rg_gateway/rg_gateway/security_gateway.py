@@ -159,7 +159,9 @@ class SecurityGateway(Node):
         # 用 RLock 是因为切换回调内部会再次读取状态，避免自锁死。
         self._transition_lock = threading.RLock()
         self._in_flight = 0
-        self._admission_registered = False
+        self._unconfirmed_in_flight = 0
+        self._last_clear_token = ''
+        self._clear_token_param = self.declare_parameter('unconfirmed_clear_token', '')
         self._transition_count = 0
         self._rejected_transition_count = 0
         self._task_state = None
@@ -370,15 +372,49 @@ class SecurityGateway(Node):
             extra_fields=policy.extra_fields,
         )
 
-    def _release_in_flight(self) -> None:
+    def _release_in_flight(self, confirmed: bool = True) -> None:
+        """释放**本次请求**的在途名额（调用方负责只在确实登记过时调用）。
+
+        confirmed=False 表示**下游是否已停止无法确认**（执行超时、取消未确认）。
+        这类 Goal 不能当作安全结束：名额转入 `_unconfirmed_in_flight`，继续阻塞任务切换，
+        直到运维通过一次性确认令牌显式清除（可审计，不是简单清零）。
+        """
         with self._transition_lock:
-            if self._admission_registered:
-                self._in_flight = max(0, self._in_flight - 1)
-                self._admission_registered = False
+            self._in_flight = max(0, self._in_flight - 1)
+            if not confirmed:
+                self._unconfirmed_in_flight += 1
+                self.get_logger().warning('TASK_UNCONFIRMED_IN_FLIGHT ' + json.dumps({
+                    'unconfirmed_in_flight': self._unconfirmed_in_flight,
+                    'effect': ('该 Goal 的下游执行状态未知，名额继续占用并阻塞任务切换；'
+                               '不得视为已安全结束'),
+                    'recovery': ('确认下游确实已停止后，设置参数 unconfirmed_clear_token '
+                                 '为一个新的唯一值以一次性清除（会被审计）'),
+                }, ensure_ascii=False))
+
+    def _clear_unconfirmed_in_flight(self) -> None:
+        """一次性、可审计的保守恢复：仅当运维显式给出**新的**确认令牌时清除。
+
+        参数只在 __init__ 声明一次；在回调里重复 declare_parameter 会抛
+        ParameterAlreadyDeclaredException，使服务回调异常退出、客户端拿不到任何响应
+        （表现为"没有结果"而不是"被拒绝"，会掩盖真实的授权语义）。
+        """
+        token = str(self._clear_token_param.value or '').strip()
+        if not token or token == self._last_clear_token:
+            return
+        with self._transition_lock:
+            cleared = self._unconfirmed_in_flight
+            self._unconfirmed_in_flight = 0
+            self._last_clear_token = token
+        self.get_logger().warning('TASK_UNCONFIRMED_CLEARED ' + json.dumps({
+            'cleared_count': cleared, 'token': token,
+            'effect': ('运维显式确认后清除未确认在途计数；此操作已被记录，'
+                       '清除本身不代表下游确实已停止'),
+        }, ensure_ascii=False))
 
     def _in_flight_count(self) -> int:
+        """切换屏障使用的在途总数：已登记 + 状态未知未确认。"""
         with self._transition_lock:
-            return self._in_flight
+            return self._in_flight + self._unconfirmed_in_flight
 
     def _on_switch_task(self, request: Any, response: Any) -> Any:
         """可信任务切换服务。所有校验都在共享同步边界内完成。"""
@@ -406,10 +442,11 @@ class SecurityGateway(Node):
                            snapshot_before)
 
         # 整段切换流程持锁：在途检查、状态迁移、持久化与提交相对于 Goal 准入是原子的。
+        self._clear_unconfirmed_in_flight()
         with self._transition_lock:
             plan = self._task_state.request_transition(
                 transition_id, target_task_id, target_phase, expected_epoch,
-                self._in_flight)
+                self._in_flight + self._unconfirmed_in_flight)
 
             if not plan.accepted:
                 self._rejected_transition_count += 1
@@ -421,6 +458,7 @@ class SecurityGateway(Node):
                     'target_task_phase': target_phase,
                     'reason_code': plan.reason_code,
                     'in_flight': self._in_flight,
+            'unconfirmed_in_flight': self._unconfirmed_in_flight,
                     'current_epoch': snapshot.policy_epoch if snapshot else None,
                     'current_task_phase': snapshot.task_phase if snapshot else None,
                     'detail': plan.detail,
@@ -628,10 +666,11 @@ class SecurityGateway(Node):
                 )
 
             # 准入成功的 Goal 必须在**解除同步保护之前**登记为在途。
-            # 后续若审计失败会把结果改成 BLOCK，那时下游 Goal 从未创建，
-            # 因此在 BLOCK 分支里会撤销这次登记（见下方）。
-            self._admission_registered = bool(decision.allowed)
-            if self._admission_registered:
+            # 注意：这里用的是**本次请求的局部变量** admitted，而不是节点级共享标志 ——
+            # MultiThreadedExecutor 会并发执行多个 _on_execute，共享标志会被互相覆盖，
+            # 导致某个请求的 in-flight 永远不被释放（或释放错次数）。
+            admitted = bool(decision.allowed)
+            if admitted:
                 self._in_flight += 1
 
         if not comm_event_written:
@@ -676,7 +715,9 @@ class SecurityGateway(Node):
             # 判定阶段曾按"放行"登记过在途名额，但随后被审计失败改判为 BLOCK，
             # 此时下游 Goal 从未创建，必须撤销登记，否则在途计数永远无法归零、
             # 任务切换会被永久阻塞（拒绝服务）。
-            self._release_in_flight()
+            if admitted:
+                with self._transition_lock:
+                    self._in_flight = max(0, self._in_flight - 1)
             self._blocked_count += 1
             self.get_logger().warning('REJECTED ' + json.dumps({
                 'event_id': event_id,
@@ -695,12 +736,25 @@ class SecurityGateway(Node):
 
         self._allowed_count += 1
         # 在途名额已在上面的临界区内登记完毕，因此切换请求不可能在
-        # "已判定放行但尚未登记"的窗口里通过校验。用 try/finally 保证正常完成、
-        # 下游拒绝、超时、取消未确认、异常退出等**所有**路径都会释放名额。
+        # "已判定放行但尚未登记"的窗口里通过校验。
+        #
+        # 关键：只有"下游确认结束"的路径才真正释放名额。M1 已明确
+        # EXECUTION_TIMEOUT 不代表下游已停止（UNKNOWN_MAY_STILL_BE_RUNNING），
+        # 因此这类 Goal 必须继续占用名额、继续阻塞任务切换 —— 否则就出现
+        # "下游还在跑，权限却已经换掉"的不安全切换。
+        confirmed = True
         try:
-            return self._forward(goal_handle, event_id, request_id, task_id, target)
+            result = self._forward(goal_handle, event_id, request_id, task_id, target)
+            status = str(getattr(result, 'status_code', '') or '')
+            detail = str(getattr(result, 'detail', '') or '')
+            if (status == reason_codes.EXECUTION_TIMEOUT
+                    or self.DOWNSTREAM_STATE_UNKNOWN in detail
+                    or self.CANCEL_REQUESTED_UNCONFIRMED in detail):
+                confirmed = False
+            return result
         finally:
-            self._release_in_flight()
+            if admitted:
+                self._release_in_flight(confirmed=confirmed)
 
     # -------------------------------------------------------------- forwarding
     def _forward(self, goal_handle: Any, event_id: str, request_id: str,
