@@ -1,0 +1,461 @@
+{
+  "run_id": "20261009T093144Z",
+  "finished_at": "2026-10-09T09:32:00Z",
+  "workspace": "/ws",
+  "suite": "sros2",
+  "normal_domain": "42",
+  "secure_domain": "43",
+  "total": 7,
+  "passed": 7,
+  "failed": 0,
+  "scenarios": [
+    {
+      "scenario_id": "S1_normal_mode_a_zone",
+      "scenario_name": "普通模式合法 A 区请求（domain 42，未启用安全）",
+      "expected_result": "Gateway ALLOW，NavigationSim 收到 1 条 Goal",
+      "actual_result": "NavigationSim 就绪（安全模式=False, domain=42）=PASS; security_gateway 就绪（安全模式=False, enclave=None）=PASS; planner 拿到 EXECUTED 结果=PASS; Gateway 判定 ALLOW=PASS; NavigationSim 收到 1 条 Goal=PASS; 场景结束后容器内无残留节点=PASS",
+      "result": "PASS",
+      "status": "PASS",
+      "command": [
+        "ros2",
+        "run",
+        "rg_demo_nodes",
+        "planner_node",
+        "--ros-args",
+        "-p",
+        "request_id:=s1-a-zone",
+        "-p",
+        "task_id:=patrol_a_001",
+        "-p",
+        "frame_id:=map",
+        "-p",
+        "target_x:=1.5",
+        "-p",
+        "target_y:=1.5",
+        "-p",
+        "expect_success:=1"
+      ],
+      "exit_code": 0,
+      "duration_ms": 6986,
+      "log_path": "tests/evidence/20261009T093144Z/S1_normal_mode_a_zone/audit.jsonl",
+      "evidence_files": [
+        "tests/evidence/20261009T093144Z/S1_normal_mode_a_zone/audit.jsonl",
+        "tests/evidence/20261009T093144Z/S1_normal_mode_a_zone/gateway.log",
+        "tests/evidence/20261009T093144Z/S1_normal_mode_a_zone/navsim.log",
+        "tests/evidence/20261009T093144Z/S1_normal_mode_a_zone/navsim_goals.jsonl",
+        "tests/evidence/20261009T093144Z/S1_normal_mode_a_zone/operator.log",
+        "tests/evidence/20261009T093144Z/S1_normal_mode_a_zone/planner.log"
+      ],
+      "reason_code": "ALLOW_IN_POLICY",
+      "security_mode": "disabled",
+      "source_role": null,
+      "source_enclave": null,
+      "requested_resource": null,
+      "downstream_goal_count": 1,
+      "rejection_layer": "not_applicable",
+      "checks": [
+        {
+          "check": "NavigationSim 就绪（安全模式=False, domain=42）",
+          "result": "PASS",
+          "detail": "NAVSIM_READY"
+        },
+        {
+          "check": "security_gateway 就绪（安全模式=False, enclave=None）",
+          "result": "PASS",
+          "detail": "GATEWAY_READY"
+        },
+        {
+          "check": "planner 拿到 EXECUTED 结果",
+          "result": "PASS",
+          "detail": "EXECUTED/True"
+        },
+        {
+          "check": "Gateway 判定 ALLOW",
+          "result": "PASS",
+          "detail": "ALLOW_IN_POLICY"
+        },
+        {
+          "check": "NavigationSim 收到 1 条 Goal",
+          "result": "PASS",
+          "detail": "journal 行数=1"
+        },
+        {
+          "check": "场景结束后容器内无残留节点",
+          "result": "PASS",
+          "detail": "无残留"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "scenario_id": "S2",
+      "scenario_name": "Enforce 模式合法 A 区请求：Planner→Gateway→NavigationSim 正常完成",
+      "expected_result": "Enforce 模式合法 A 区请求：Planner→Gateway→NavigationSim 正常完成",
+      "actual_result": "Enforce 下 Planner 成功拿到执行结果（EXECUTED）=PASS; Enforce 下下游新增 1 条 Goal=PASS; Enforce 下判定为 ALLOW_IN_POLICY=PASS; 授权链完整（身份合法 + 基础通信许可 + 业务放行）=PASS",
+      "result": "PASS",
+      "status": "PASS",
+      "command": [
+        "ros2",
+        "run",
+        "rg_demo_nodes",
+        "planner_node",
+        "--ros-args",
+        "-p",
+        "request_id:=s2-a-zone",
+        "-p",
+        "task_id:=patrol_a_001",
+        "-p",
+        "frame_id:=map",
+        "-p",
+        "target_x:=1.5",
+        "-p",
+        "target_y:=1.5",
+        "-p",
+        "expect_success:=1"
+      ],
+      "exit_code": 0,
+      "duration_ms": 1076,
+      "log_path": "tests/evidence/20261009T093144Z/S2/planner.log",
+      "evidence_files": [
+        "tests/evidence/20261009T093144Z/S2/planner.log"
+      ],
+      "reason_code": "ALLOW_IN_POLICY",
+      "security_mode": "enforce",
+      "source_role": "planner",
+      "source_enclave": "/planner",
+      "requested_resource": "/rg/guarded_navigate",
+      "downstream_goal_count": 1,
+      "rejection_layer": "not_applicable",
+      "checks": [
+        {
+          "check": "Enforce 下 Planner 成功拿到执行结果（EXECUTED）",
+          "result": "PASS",
+          "detail": "EXECUTED/True"
+        },
+        {
+          "check": "Enforce 下下游新增 1 条 Goal",
+          "result": "PASS",
+          "detail": "journal 增量=1"
+        },
+        {
+          "check": "Enforce 下判定为 ALLOW_IN_POLICY",
+          "result": "PASS",
+          "detail": "ALLOW_IN_POLICY"
+        },
+        {
+          "check": "授权链完整（身份合法 + 基础通信许可 + 业务放行）",
+          "result": "PASS",
+          "detail": "三项均满足"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "scenario_id": "S5",
+      "scenario_name": "Enforce 模式 B 区越界：身份合法但 TaskPolicy 拒绝",
+      "expected_result": "Enforce 模式 B 区越界：身份合法但 TaskPolicy 拒绝",
+      "actual_result": "身份与基础通信许可合法（请求确实到达网关并有判定记录）=PASS; 业务层拒绝：OUT_OF_REGION=PASS; planner 得到 success=false=PASS; 下游未新增 Goal（越权未执行）=PASS; 拒绝来自 TaskPolicy 而非 DDS（与 S3/S4 区分）=PASS",
+      "result": "PASS",
+      "status": "PASS",
+      "command": [
+        "ros2",
+        "run",
+        "rg_demo_nodes",
+        "planner_node",
+        "--ros-args",
+        "-p",
+        "request_id:=s5-b-zone",
+        "-p",
+        "task_id:=patrol_a_001",
+        "-p",
+        "frame_id:=map",
+        "-p",
+        "target_x:=9.0",
+        "-p",
+        "target_y:=9.0",
+        "-p",
+        "expect_success:=0"
+      ],
+      "exit_code": 0,
+      "duration_ms": 580,
+      "log_path": "tests/evidence/20261009T093144Z/S5/planner.log",
+      "evidence_files": [
+        "tests/evidence/20261009T093144Z/S5/planner.log"
+      ],
+      "reason_code": "OUT_OF_REGION",
+      "security_mode": "enforce",
+      "source_role": "planner",
+      "source_enclave": "/planner",
+      "requested_resource": "/rg/guarded_navigate",
+      "downstream_goal_count": 0,
+      "rejection_layer": "business_task_policy",
+      "checks": [
+        {
+          "check": "身份与基础通信许可合法（请求确实到达网关并有判定记录）",
+          "result": "PASS",
+          "detail": "OUT_OF_REGION"
+        },
+        {
+          "check": "业务层拒绝：OUT_OF_REGION",
+          "result": "PASS",
+          "detail": "OUT_OF_REGION"
+        },
+        {
+          "check": "planner 得到 success=false",
+          "result": "PASS",
+          "detail": "OUT_OF_REGION/False"
+        },
+        {
+          "check": "下游未新增 Goal（越权未执行）",
+          "result": "PASS",
+          "detail": "journal 增量=0"
+        },
+        {
+          "check": "拒绝来自 TaskPolicy 而非 DDS（与 S3/S4 区分）",
+          "result": "PASS",
+          "detail": "business_task_policy"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "scenario_id": "S3C",
+      "scenario_name": "正向对照：/gateway 身份直连执行接口应当成功",
+      "expected_result": "正向对照：/gateway 身份直连执行接口应当成功",
+      "actual_result": "/gateway 身份直连 /rg/nav_execute 成功（正向对照）=PASS; NavigationSim 收到 1 条直连 Goal=PASS",
+      "result": "PASS",
+      "status": "PASS",
+      "command": [
+        "python3",
+        "/ws/tests/integration/rogue_action_client.py",
+        "--action",
+        "/rg/nav_execute",
+        "--node-name",
+        "security_gateway",
+        "--request-id",
+        "s3c-gateway-direct",
+        "--x",
+        "1.5",
+        "--y",
+        "1.5",
+        "--server-wait",
+        "8.0"
+      ],
+      "exit_code": 0,
+      "duration_ms": 735,
+      "log_path": "tests/evidence/20261009T093144Z/S3C/rogue_gateway.log",
+      "evidence_files": [
+        "tests/evidence/20261009T093144Z/S3C/rogue_gateway.log"
+      ],
+      "reason_code": "EXECUTED",
+      "security_mode": "enforce",
+      "source_role": "gateway",
+      "source_enclave": "/gateway",
+      "requested_resource": "/rg/nav_execute",
+      "downstream_goal_count": 1,
+      "rejection_layer": "not_applicable",
+      "checks": [
+        {
+          "check": "/gateway 身份直连 /rg/nav_execute 成功（正向对照）",
+          "result": "PASS",
+          "detail": "outcome=RESULT status=EXECUTED"
+        },
+        {
+          "check": "NavigationSim 收到 1 条直连 Goal",
+          "result": "PASS",
+          "detail": "journal 增量=1"
+        }
+      ],
+      "notes": [
+        "该场景证明：同样的客户端代码与同样的目标 Action，在被授权身份下可以成功 —— 因此 S3/S4 的失败只能归因于身份权限。"
+      ]
+    },
+    {
+      "scenario_id": "S3",
+      "scenario_name": "Enforce 模式：Planner 身份直连执行接口应被拒绝",
+      "expected_result": "Enforce 模式：Planner 身份直连执行接口应被拒绝",
+      "actual_result": "Planner 身份直连 /rg/nav_execute 未能完成执行=PASS; DDS 访问控制层给出明确拒绝证据（不是单纯客户端超时）=PASS; NavigationSim 未收到该直连 Goal=PASS; 正向对照（S3C，/gateway 身份）在同一窗口内成功 -> 排除\"服务端没起来/客户端有 bug\"=PASS",
+      "result": "PASS",
+      "status": "PASS",
+      "command": [
+        "python3",
+        "/ws/tests/integration/rogue_action_client.py",
+        "--action",
+        "/rg/nav_execute",
+        "--node-name",
+        "planner_node",
+        "--request-id",
+        "s3-planner-direct",
+        "--x",
+        "1.5",
+        "--y",
+        "1.5",
+        "--server-wait",
+        "8.0"
+      ],
+      "exit_code": 6,
+      "duration_ms": 235,
+      "log_path": "tests/evidence/20261009T093144Z/S3/rogue_planner.log",
+      "evidence_files": [
+        "tests/evidence/20261009T093144Z/S3/rogue_planner.log"
+      ],
+      "reason_code": "ACTION_CLIENT_CREATION_DENIED",
+      "security_mode": "enforce",
+      "source_role": "planner",
+      "source_enclave": "/planner",
+      "requested_resource": "/rg/nav_execute",
+      "downstream_goal_count": 0,
+      "rejection_layer": "dds_security",
+      "checks": [
+        {
+          "check": "Planner 身份直连 /rg/nav_execute 未能完成执行",
+          "result": "PASS",
+          "detail": "outcome=ACTION_CLIENT_CREATION_DENIED exit=6"
+        },
+        {
+          "check": "DDS 访问控制层给出明确拒绝证据（不是单纯客户端超时）",
+          "result": "PASS",
+          "detail": "nd_goalReply topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1246)\u001b[34;1m -> Function \u001b[36mcheck_create_datareader\u001b[m; ion of local reader  (rr/rg/nav_execute/_action/send_goalReply topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1246))"
+        },
+        {
+          "check": "NavigationSim 未收到该直连 Goal",
+          "result": "PASS",
+          "detail": "journal 增量=0"
+        },
+        {
+          "check": "正向对照（S3C，/gateway 身份）在同一窗口内成功 -> 排除\"服务端没起来/客户端有 bug\"",
+          "result": "PASS",
+          "detail": "control_ok=True"
+        }
+      ],
+      "notes": [
+        "客户端输出中命中安全相关关键字；结论主要依据\"同一客户端、同一时间窗口的正向对照成功\"。",
+        "仅凭客户端超时不能证明 DDS 权限生效；本场景的可信度来自 S3C 正向对照。"
+      ]
+    },
+    {
+      "scenario_id": "S4",
+      "scenario_name": "无授权身份访问执行接口应被拒绝",
+      "expected_result": "无授权身份访问执行接口应被拒绝",
+      "actual_result": "无授权身份无法完成执行调用=PASS; DDS 访问控制层给出明确拒绝证据=PASS; NavigationSim 未收到该未授权 Goal=PASS; 保留可归因的拒绝证据（客户端日志 + 网关/执行端无对应记录）=PASS",
+      "result": "PASS",
+      "status": "PASS",
+      "command": [
+        "python3",
+        "/ws/tests/integration/rogue_action_client.py",
+        "--action",
+        "/rg/nav_execute",
+        "--node-name",
+        "rogue_client",
+        "--request-id",
+        "s4-unauthorized",
+        "--x",
+        "1.5",
+        "--y",
+        "1.5",
+        "--server-wait",
+        "8.0"
+      ],
+      "exit_code": 6,
+      "duration_ms": 239,
+      "log_path": "tests/evidence/20261009T093144Z/S4/rogue_unauthorized.log",
+      "evidence_files": [
+        "tests/evidence/20261009T093144Z/S4/rogue_unauthorized.log"
+      ],
+      "reason_code": "ACTION_CLIENT_CREATION_DENIED",
+      "security_mode": "enforce",
+      "source_role": "unauthorized",
+      "source_enclave": "/unauthorized",
+      "requested_resource": "/rg/nav_execute",
+      "downstream_goal_count": 0,
+      "rejection_layer": "dds_security",
+      "checks": [
+        {
+          "check": "无授权身份无法完成执行调用",
+          "result": "PASS",
+          "detail": "outcome=ACTION_CLIENT_CREATION_DENIED exit=6"
+        },
+        {
+          "check": "DDS 访问控制层给出明确拒绝证据",
+          "result": "PASS",
+          "detail": "nd_goalReply topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1246)\u001b[34;1m -> Function \u001b[36mcheck_create_datareader\u001b[m; ion of local reader  (rr/rg/nav_execute/_action/send_goalReply topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1246))"
+        },
+        {
+          "check": "NavigationSim 未收到该未授权 Goal",
+          "result": "PASS",
+          "detail": "journal 增量=0"
+        },
+        {
+          "check": "保留可归因的拒绝证据（客户端日志 + 网关/执行端无对应记录）",
+          "result": "PASS",
+          "detail": "rogue_unauthorized.log"
+        }
+      ],
+      "notes": [
+        "未授权身份的有效证书来自同一 CA，权限文件中不含任何业务资源，因此拒绝发生在 DDS 访问控制层而非发现层。"
+      ]
+    },
+    {
+      "scenario_id": "S6",
+      "scenario_name": "安全配置失效不得静默回退为无认证通信",
+      "expected_result": "安全配置失效不得静默回退为无认证通信",
+      "actual_result": "缺少凭证时无法完成执行调用=PASS; 失败发生在安全初始化阶段（SECURITY ERROR），而非静默降级=PASS; 未静默回退为无认证通信（下游未新增 Goal）=PASS; 客户端暴露安全/凭证相关错误，而非\"一切正常\"=PASS",
+      "result": "PASS",
+      "status": "PASS",
+      "command": [
+        "python3",
+        "/ws/tests/integration/rogue_action_client.py",
+        "--action",
+        "/rg/nav_execute",
+        "--node-name",
+        "rogue_client",
+        "--request-id",
+        "s6-bad-keystore",
+        "--x",
+        "1.5",
+        "--y",
+        "1.5",
+        "--server-wait",
+        "8.0"
+      ],
+      "exit_code": 5,
+      "duration_ms": 97,
+      "log_path": "tests/evidence/20261009T093144Z/S6/rogue_bad_keystore.log",
+      "evidence_files": [
+        "tests/evidence/20261009T093144Z/S6/rogue_bad_keystore.log"
+      ],
+      "reason_code": null,
+      "security_mode": "enforce",
+      "source_role": "bad-keystore",
+      "source_enclave": "bad-keystore",
+      "requested_resource": "/rg/nav_execute",
+      "downstream_goal_count": 0,
+      "rejection_layer": "dds_security",
+      "checks": [
+        {
+          "check": "缺少凭证时无法完成执行调用",
+          "result": "PASS",
+          "detail": "outcome=INIT_FAILED exit=5"
+        },
+        {
+          "check": "失败发生在安全初始化阶段（SECURITY ERROR），而非静默降级",
+          "result": "PASS",
+          "detail": "RCLError: failed to initialize rcl: SECURITY ERROR: directory '/ws/tests/evidence/20261009T093144Z/S6/nonexistent-keystore/enclaves/unauthorized' does not exist., at ./src/rcl/security.c:202"
+        },
+        {
+          "check": "未静默回退为无认证通信（下游未新增 Goal）",
+          "result": "PASS",
+          "detail": "journal 增量=0"
+        },
+        {
+          "check": "客户端暴露安全/凭证相关错误，而非\"一切正常\"",
+          "result": "PASS",
+          "detail": "ROGUE_RESULT {\"request_id\": \"s6-bad-keystore\", \"target_action\": \"/rg/nav_execute\", \"node_name\": \"rogue_client\", \"enclave\": null, \"outcome\": \"INIT_FAILED\", \"detail\": \"RCLError: failed to initialize rcl: SECURITY ERROR: directory '/ws/tests/evidence/20261009T093144Z/S6/nonexistent-keystore/enclaves/unauthorized' does not exist., at ./src/rcl/security.c:202\"}"
+        }
+      ],
+      "notes": [
+        "同一 domain(43) 上的安全栈全程可用（见 S2/S3C 成功），因此\"未新增 Goal\"不能由环境不可用解释，只能由该参与者自身的安全配置失效解释。"
+      ]
+    }
+  ]
+}

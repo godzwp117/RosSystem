@@ -1,0 +1,287 @@
+软件定义机器人安全系统 · 工程基底搭建文件
+ROS 2 基底系统工程搭建与集成方案
+五阶段实施版｜由方案 V1.0 重构
+文档版本：V1.1   ·   方案日期：2026-10-09
+
+文档目标
+本方案只解决“如何在本地搭建一个可运行、可扩展、可验证的 ROS 2 业务底座”。不涉及项目组织管理、视觉模型训练或完整安全算法研发。复用成熟通信框架，以少量自主编写的演示节点组成最小业务闭环，保留后续接入 SROS 2、Task-aware Guard、Nav2 和 Gazebo 的接口。
+术语说明：“基底模型”在此是指机器人软件基底/参考系统，不是图像分割、目标检测或大语言基础模型；第一版不需要下载、训练大型 AI 模型。
+五阶段路线
+阶段
+主要问题
+完成判据
+一 选型与部署
+选什么？怎样在本地真正启动？
+版本冻结，最小 ROS 2 示例可互通
+二 接口与事件
+节点如何收发？安全事件如何记录？
+消息、Action、策略、日志契约冻结
+三 最小交互
+最短的数据闭环是什么？如何预留扩展？
+单次请求 ALLOW/BLOCK 均可复现
+四 智能体工程落地
+怎样以提示词生成可运行代码？
+生成项目并完成首次端到端联调
+五 验收与总结
+如何判定基底可用？有哪些限制？
+测试证据、清单及阶段总结齐全
+
+基底建设边界
+本轮不要求完整 Nav2 导航算法、Gazebo 复杂场景、摄像头数据处理、机器人实体设备或完整 SOC/IDS 系统。关键路径是：真实 ROS 2 通信 → 明确的输入输出契约 → 同步准入判断 → 执行器接收/拒绝 → 可关联事件日志。
+
+阶段一｜基底选型与本地部署
+1.1 选型决策：复用 ROS 2，业务节点小规模自研
+组件
+当前选择
+本阶段用途与取舍
+运行系统
+Ubuntu 24.04 LTS（建议原生 x86_64）
+优先减少 DDS 发现与虚拟网络环境问题
+通信框架
+ROS 2 Jazzy
+真实 Node、Topic、Service、Action 与构建工具
+语言/构建
+Python（rclpy） + colcon
+业务节点与接口快速落地
+DDS/RMW
+固定一种实现，例如 rmw_fastrtps_cpp
+记录实际包版本；需要在本机单独验证 SROS 2 支持
+导航执行端
+自行编写轻量 NavigationSim
+返回模拟导航结果，不做路径规划和地图构建
+后续可选
+Nav2 / Gazebo Harmonic
+仅作为兼容扩展，不进入首次全流程依赖
+
+1.2 本地部署的固定流程
+本地部署遵循“安装 Jazzy → 建立工作空间 → 验证原生通信 → 固定依赖”。安装方式以 ROS 2 Jazzy 官方 Ubuntu 文档为准，不能把未经执行的命令视为成功。
+# 安装完成后执行环境核查（示例）
+source /opt/ros/jazzy/setup.bash
+ros2 --version            # 若发行版 CLI 不支持该选项，改用 ros2 doctor --report
+ros2 doctor --report
+printenv ROS_DISTRO RMW_IMPLEMENTATION
+mkdir -p ~/roboguard_ws/src
+cd ~/roboguard_ws && colcon build
+source install/setup.bash
+
+注意：以上为检查与构建示例，不是安装脚本。应先依官方教程安装 Jazzy、colcon 和相关依赖；容器/虚拟机需额外验证 DDS 发现。
+1.3 首个运行证明与产出
+•  运行 talker/listener 验证真实 Topic 通信，保存启动日志。
+•  在 environment.md 记录 ROS_DISTRO、RMW、Python、依赖版本与工作空间路径。
+•  后续固定四个主节点：Operator、Planner、Gateway、NavigationSim；AssetMonitor 可选。
+阶段一完成标志
+ROS 2 可以编译、启动并稳定收发消息；版本已冻结，不依赖硬件或视觉模型。
+阶段二｜接口规范与事件驱动架构
+2.1 冻结最小节点与通信资源
+节点
+承担职责
+对外接口
+operator_node
+装载/宣布当前巡检任务摘要
+Publisher → /rg/task_info
+planner_node
+用静态规则生成 A/B 区目标
+Action Client → /rg/guarded_navigate
+security_gateway
+同步校验目标，放行后代理执行
+Action Server → /rg/guarded_navigate；Action Client → /rg/nav_execute
+navigation_sim
+记录合法目标并返回模拟执行结果
+Action Server → /rg/nav_execute
+asset_monitor（可选）
+输出 ROS Graph 快照，不参与准入
+Graph API → 日志/审计
+
+初期保留两条不同名称但使用相同自定义 Action 类型的资源：入口 `/rg/guarded_navigate` 与执行端 `/rg/nav_execute`。这样无需提前安装 Nav2；未来将 `/rg/nav_execute` 适配为 Nav2 的 `/navigate_to_pose`，不改变 Planner 与安全网关之间的契约。
+2.2 Action 与策略契约
+统一消息类型：rg_interfaces/action/PatrolNavigate.action
+# Goal：业务请求，不依赖客户端自报身份
+string request_id
+string task_id
+geometry_msgs/PoseStamped target
+---
+# Result：已接受并执行后的业务结果
+bool success
+string status_code
+string detail
+---
+# Feedback：最小进度反馈
+float32 progress
+string phase
+
+Action 目标在接收前被拒时，客户端可能得到 GoalRejected，而不是 Result；审计要以 request_id 关联网关拒绝记录。PoseStamped 的 frame_id 必须是 map（或经过可信 TF 转换），不能把图像像素坐标直接当导航坐标。
+可信策略文件：config/task_policy.yaml
+task_id: patrol_a_001
+policy_version: "1.0"
+active: true
+coordinate_frame: map
+allowed_region: {x_min: 0.0, x_max: 4.0, y_min: 0.0, y_max: 4.0}
+max_requests_per_minute: 10
+
+安全策略只由本地可信配置装载。`/rg/task_info` 可以通知 Planner 当前任务，但不得用消息自带的允许区域覆盖权威 TaskPolicy；请求中的 `task_id` 必须与当前激活策略匹配。
+2.3 事件驱动：同步控制 + 异步记录
+这里采用混合架构，而非“所有事情都丢进一个异步事件队列”：导航请求走同步准入决策路径，只有 ALLOW 才能向下游发送 Action Goal；`RosCommEvent` 和 `DecisionEvent` 则由网关异步写入 JSONL（以后可发布审计 Topic）。审计服务失效不能绕过准入判断。
+事件/数据
+最小字段
+产生时机
+RosCommEvent
+event_id、request_id、task_id、observed_via、resource、frame_id、x、y、received_at
+Gateway 收到 Action Goal 后立即生成
+DecisionEvent
+event_id、policy_version、decision、reason_code、decision_at
+规则同步判定完成后产生
+ExecutionEvent
+event_id、downstream_goal_id、success、status_code、finished_at
+NavigationSim 返回执行结果后产生
+RosGraphSnapshot（可选）
+node_names、topics、services、actions、snapshot_at
+AssetMonitor 定期采样
+
+首轮 reason_code 规范
+`ALLOW_IN_POLICY`、`TASK_MISMATCH`、`INVALID_TARGET`、`OUT_OF_REGION`、`POLICY_MISSING`、`DUPLICATE_REQUEST`、`RATE_LIMIT`、`EXECUTION_TIMEOUT`。所有事件共同使用 event_id 关联，关键字段不得默默赋默认值。
+阶段二完成标志
+消息 Action 文件、接口名、TaskPolicy 格式、事件字段、错误码和超时语义都已冻结；每个接口有至少一条有效样例和一条非法样例。
+
+阶段三｜最小信息交互单元与可扩展架构
+3.1 将“一次受控导航请求”定义为最小闭环
+Operator ── /rg/task_info ──> Planner
+Planner ── /rg/guarded_navigate (Action Goal) ──> Gateway
+                     Gateway：读取可信 TaskPolicy → 判定
+                     ├─ BLOCK：拒绝 Goal；生成 DecisionEvent
+                     └─ ALLOW：转发到 /rg/nav_execute
+                                         ↓
+                                   NavigationSim
+                                         ↓
+                               Result / ExecutionEvent
+                                         ↓
+                         Gateway → Planner；审计可追踪
+
+这条链路不需要真正的图像输入、规划模型和动力学模拟。Planner 可以先按照测试参数构造 map 坐标；NavigationSim 收到合法目标后记录坐标并返回成功。这样最小通信单元可以作为今后替换真实 Planner、Nav2 或 Gazebo 的稳定参照。
+3.2 单次请求的处理状态机
+状态
+触发条件
+允许的下一步
+CREATED
+Planner 生成 request_id、task_id 和 target
+SEND
+RECEIVED
+Gateway 接收并验证字段
+VALIDATING
+BLOCKED
+策略失效、越区、重复或超限
+仅记录审计，不发下游 Goal
+FORWARDED
+同步校验通过并创建下游 Goal
+等待执行结果
+SUCCEEDED / FAILED
+执行器返回或超时
+向上游反馈，并归档
+
+3.3 保持扩展性，但只实现必要抽象
+•  接口与判定分离：`policy_engine.evaluate(request, policy)` 为纯 Python 函数，便于后续扩展。
+•  执行端通过 Adapter 转发到 NavigationSim，未来可替换为 Nav2；Planner 不直接依赖执行端。
+•  事件与业务结果分离：Action 返回执行结果，日志独立存储；日志失败不得放行违规请求。
+•  未来通过 SROS 2 限制 Planner 只访问网关，由 Gateway 访问执行端；普通 node_name 不能证明身份。
+•  ROS Graph 仅用于拓扑发现，不用于全量载荷抓取或 DDS 拒绝事件捕获。
+阶段三完成标志
+A 区 ALLOW，下游收到一次 Goal；B 区 BLOCK，下游收到零次 Goal；两条事件链均可由 request_id 追溯。
+阶段四｜智能体驱动工程落地与首次全流程联调
+4.1 实施原则：提示词负责生成，运行结果负责验收
+阶段一至三属于选型、接口和架构约束。阶段四将它们转成一份可交付给编程智能体的工程任务描述，智能体在实际本地工作空间中生成 ROS 2 packages、实现通信、运行构建和测试、反馈失败原因。允许智能体编程，不允许其把示例输出伪装成实际运行记录。
+4.2 可复制的工程实施提示词
+以下是交给具备本地终端和文件操作权限的编程智能体的完整提示词
+你是一名 ROS 2 Jazzy / rclpy 工程开发智能体。请在我授权的本地 Ubuntu 24.04 环境中实现一个最小 ROS 2 机器人业务基底，不训练视觉模型，不安装 Gazebo/Nav2，不加入 Dashboard 或与主线无关的功能。
+ 
+【先检查，不猜测】
+1. 检查 Ubuntu/ROS_DISTRO、Python、colcon、RMW、必需依赖，报告实际结果；如缺失软件，给出安装方案并请求确认，不伪称已经安装。
+2. 在 ~/roboguard_ws 创建 ROS 2 工作空间。用最少的 packages 实现 rg_interfaces、rg_demo_nodes、rg_gateway；是否拆出 rg_policy 由你判断，但接口必须集中、可测试。
+ 
+【需要实现的真实 ROS 2 通信】
+3. operator_node 发布 /rg/task_info (std_msgs/msg/String JSON 任务摘要)。planner_node 根据启动参数发送巡检坐标。
+4. 创建 rg_interfaces/action/PatrolNavigate：Goal(request_id,task_id,geometry_msgs/PoseStamped target)，Result(success,status_code,detail)，Feedback(progress,phase)。
+5. planner_node 只能将 Goal 发到 /rg/guarded_navigate；security_gateway 作为该 Action 的 Server，同时作为 /rg/nav_execute 的 Client；navigation_sim 作为 /rg/nav_execute 的 Server。
+6. Gateway 从 config/task_policy.yaml 只读加载权威任务策略（task_id、policy_version、coordinate_frame、允许区域、频率上限），同步校验字段、任务号、frame_id、有限数、目标范围和重复 request_id。ALLOW 才能下发；BLOCK 不得产生下游 Goal。
+7. 对每个收到的请求创建 RosCommEvent 和 DecisionEvent；成功转发后的结果写入 ExecutionEvent。统一 event_id/request_id；输出 JSONL，包含原因码与策略版本。拒绝的 Goal 要有可关联的拒绝日志。
+ 
+【工程约束】
+8. 不使用普通函数调用替代关键 Action 通信；rclpy Action callbacks 必须使用不会死锁的 executor/callback group 方案。所有等待均有超时，缺失策略一律拒绝，不提供故障绕过。
+9. 初版最小导航执行器收到 Goal 后只记录坐标并返回结果，不实现路径规划。角色与节点名只是业务上下文，不视为密码学身份认证。
+10. 给出 requirements/依赖说明、构建说明、run_demo.sh、README、单元测试、A/B 场景联调脚本。不要将任何密钥或私钥提交到源码。
+ 
+【必须执行验证，不能只交代码】
+11. 运行 colcon build 与必要的 source，分别验证 A 区合法导航（Gateway ALLOW；NavigationSim 收到一条 Goal）和 B 区越区导航（Gateway BLOCK；NavigationSim 收到零条 Goal）。测试基于明确的计数/日志断言，而非只观察终端文本。
+12. 另外验证策略缺失、task_id 不匹配和非法 frame_id 均为拒绝。每次运行保留命令、返回码、测试结果、日志位置；不能运行的项目写明真实阻塞，不允许虚构通过。
+13. 交付目录树、核心接口、所有启动命令、每项测试 PASS/FAIL 以及已知限制。优先保证最小闭环，禁止添加额外机器人功能。
+ 
+【重要边界】
+该阶段先完成真实 ROS 2 消息与执行前准入控制。SROS 2 Enclave/Permissions 仅为后续集成预留，不能在未实际启用和验证时声称已经实现认证或不可绕过的 DDS 资源隔离。
+4.3 首次运行的目标状态
+正常情况：`Operator → Planner → Gateway(ALLOW) → NavigationSim → Result → 事件日志`。异常情况：`Planner(B区) → Gateway(BLOCK) → 事件日志`，下游 Goal 计数始终为零。一次真正的“首次流程走通”必须由本机终端、运行日志和自动断言共同证明，而不能仅有生成的代码文件。
+阶段四完成标志
+生成的代码可编译、可启动、核心 Action 互通，A/B 两条路径真实运行并保留证据；不能通过的步骤记录明确故障与修复状态。
+阶段五｜工程验收与阶段性总结
+5.1 分级验收表
+验收项目
+判据
+证据位置
+环境可复现（P0）
+清洁终端按 README 构建和启动；记录 ROS、RMW、依赖版本
+environment.md、build.log
+真实 ROS 2 通信（P0）
+Planner 与 Gateway、Gateway 与 NavigationSim 均通过 Action 通信
+ros2 action list、联调日志
+正常闭环（P0）
+A 区 Goal 允许；下游执行数量为 1；Result 与 request_id 对应
+tests/normal、JSONL
+阻断闭环（P0）
+B 区 Goal 被拒；下游执行数量为 0；原因码正确
+tests/blocked、JSONL
+异常输入（P0）
+无策略、任务不匹配、frame 错误、NaN/Inf 均按预期失败
+pytest / 场景输出
+接口稳定性（P0）
+Action 文件、Topic 名、策略 Schema 与 README 一致
+rg_interfaces、config/
+事件可追溯（P0）
+Event→Decision→Execution 可关联；拒绝无执行事件
+audit.jsonl
+
+5.1.1 扩展验收（不阻塞首次基底联调）
+扩展项
+补充判据
+SROS 2 资源隔离（P1）
+启用 Enforce 后授权链可通、Planner 直连下游失败，保留权限配置及日志
+Nav2/Gazebo 适配（P2）
+使用 Adapter 替换 NavigationSim，不改 Planner/Guard 接口，并留存测试日志
+
+P0 是“基底系统首次走通”的必备项；P1/P2 是后续增强项。只有真实完成 P1 的 DDS-Security 授权/拒绝对照，才能声称“底层资源访问不可绕过”。基础 Action 代理本身并不提供密码学身份认证。
+5.2 验收结果记录模板
+检查日期：________       主机/系统：________
+ROS_DISTRO / RMW / Git Commit：_________________
+构建结果：PASS / FAIL       启动结果：PASS / FAIL
+合法 A 区：PASS / FAIL     下游收到 Goal 数：____
+越界 B 区：PASS / FAIL     下游收到 Goal 数：____
+错误任务/错误坐标系：PASS / FAIL
+事件链可追踪：PASS / FAIL     日志路径：________
+尚未实现/失败项：______________________________
+下一阶段接口冻结版本：________________________
+
+5.3 交付包清单与阶段性结论
+交付物
+最低内容
+源码与接口
+ROS 2 workspace、Action 接口、Operator/Planner/Gateway/NavSim 节点
+本地部署说明
+依赖与版本、环境脚本、构建/启动命令、已知兼容问题
+策略与事件规范
+TaskPolicy 示例、事件 JSONL、理由码和接口说明
+首次联调证据
+合法/阻断两条路径的运行记录、下游 Goal 计数、失败案例
+阶段总结
+已完成项、未完成项、当前限制、向 SROS 2 / Nav2 / Gazebo 扩展时需新增的适配
+
+阶段五完成后，基底应是一个“能自己启动、能实际交换 ROS 2 Action、能根据可信本地策略准入、能产生执行反馈、能追溯事件”的最小系统。它是未来安全机制研发的运行载体，并非完整机器人产品，也不能把它的规则判断直接包装成已完成的网络安全创新。
+技术参考与版本依据
+内部依据：《ROS 2 基底系统工程搭建与集成方案 V1.0》以及《ROS 2 通信可信分析与动态最小权限防护系统项目计划书 V1.3》。
+ROS 2 Jazzy 官方文档：https://docs.ros.org/en/jazzy/ ；ROS 2 Security：https://docs.ros.org/en/jazzy/Tutorials/Advanced/Security/Introducing-ros2-security.html ；Nav2：https://docs.nav2.org/ ；Gazebo：https://gazebosim.org/docs/harmonic/ 。
+本文件属于工程实施设计，不代表相应命令已经在目标机器上成功执行；所有验收结果必须以实际构建日志、运行记录和测试脚本为准。

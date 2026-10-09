@@ -1,0 +1,14 @@
+# Goal: business request. The client does not self-report identity.
+# Frozen by 方案v1.2 §2.2. Do not reorder or rename fields without bumping the contract version.
+string request_id
+string task_id
+geometry_msgs/PoseStamped target
+---
+# Result: business result after the request has been accepted and executed.
+bool success
+string status_code
+string detail
+---
+# Feedback: minimal progress feedback.
+float32 progress
+string phase

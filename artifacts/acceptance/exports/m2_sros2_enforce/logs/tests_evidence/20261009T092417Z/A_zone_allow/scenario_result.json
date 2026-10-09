@@ -1,0 +1,200 @@
+{
+  "scenario": "A_zone_allow",
+  "suite": "ab",
+  "description": "In-region target: Gateway ALLOW, one downstream Goal, EXECUTED.",
+  "policy_path": "/ws/config/task_policy.yaml",
+  "result": "PASS",
+  "started_at": "2026-10-09T09:24:37Z",
+  "evidence_dir": "tests/evidence/20261009T092417Z/A_zone_allow",
+  "navsim_goal_count": 1,
+  "decision_sequence": [
+    "ALLOW_IN_POLICY"
+  ],
+  "execution_status_codes": [
+    "EXECUTED"
+  ],
+  "reject_log_lines": 0,
+  "planner_results": [
+    {
+      "request_id": "a-zone-request-0001",
+      "task_id": "patrol_a_001",
+      "frame_id": "map",
+      "target": {
+        "x": 1.5,
+        "y": 1.5,
+        "z": 0.0
+      },
+      "egress_action": "/rg/guarded_navigate",
+      "goal_id": "0d1b29a565ba4708be9d39a71eac6122",
+      "outcome": "RESULT",
+      "accepted": true,
+      "goal_status": "STATUS_SUCCEEDED",
+      "success": true,
+      "status_code": "EXECUTED",
+      "detail": "recorded target (1.5, 1.5, 0.0) in frame map; no path planning performed",
+      "feedback_seen": {
+        "progress": 0.5,
+        "phase": "DOWNSTREAM:EXECUTING"
+      }
+    }
+  ],
+  "planner_exit_codes": [
+    0
+  ],
+  "checks": [
+    {
+      "check": "bringup: NavigationSim ready",
+      "result": "PASS",
+      "detail": "NAVSIM_READY seen in tests/evidence/20261009T092417Z/A_zone_allow/navsim.log"
+    },
+    {
+      "check": "bringup: security_gateway ready",
+      "result": "PASS",
+      "detail": "GATEWAY_READY seen in tests/evidence/20261009T092417Z/A_zone_allow/gateway.log"
+    },
+    {
+      "check": "navsim Goal count == 1",
+      "result": "PASS",
+      "detail": "journal tests/evidence/20261009T092417Z/A_zone_allow/navsim_goals.jsonl has 1 line(s)"
+    },
+    {
+      "check": "planner[allow] exit code == 0",
+      "result": "PASS",
+      "detail": "actual exit code 0"
+    },
+    {
+      "check": "planner[allow] Result.success == True",
+      "result": "PASS",
+      "detail": "status_code='EXECUTED' detail='recorded target (1.5, 1.5, 0.0) in frame map; no path planning performed'"
+    },
+    {
+      "check": "planner[allow] status_code == EXECUTED",
+      "result": "PASS",
+      "detail": "actual status_code='EXECUTED'"
+    },
+    {
+      "check": "DecisionEvent reason_code sequence == ['ALLOW_IN_POLICY']",
+      "result": "PASS",
+      "detail": "actual sequence ['ALLOW_IN_POLICY']"
+    },
+    {
+      "check": "ExecutionEvent count == 1",
+      "result": "PASS",
+      "detail": "actual 1 ExecutionEvent(s): ['EXECUTED']"
+    },
+    {
+      "check": "RosCommEvent count == DecisionEvent count == planner runs",
+      "result": "PASS",
+      "detail": "comm=1 decision=1 planner_runs=1"
+    },
+    {
+      "check": "event_id traceability (1 RosComm + 1 Decision + <=1 Execution each)",
+      "result": "PASS",
+      "detail": "event_id groups: 1; malformed: none"
+    },
+    {
+      "check": "BLOCKed event_ids never have an ExecutionEvent",
+      "result": "PASS",
+      "detail": "leaked event_ids: none"
+    },
+    {
+      "check": "correlatable REJECTED log lines == 0",
+      "result": "PASS",
+      "detail": "found 0 REJECTED line(s) in tests/evidence/20261009T092417Z/A_zone_allow/gateway.log"
+    },
+    {
+      "check": "executor request_id set matches the ALLOWed set",
+      "result": "PASS",
+      "detail": "journal=['a-zone-request-0001'] expected=['a-zone-request-0001']"
+    }
+  ],
+  "commands": [
+    {
+      "scenario": "A_zone_allow",
+      "step": "navigation_sim",
+      "kind": "ros2 run (long-running)",
+      "argv": [
+        "ros2",
+        "run",
+        "rg_demo_nodes",
+        "navigation_sim",
+        "--ros-args",
+        "-p",
+        "record_path:=/ws/tests/evidence/20261009T092417Z/A_zone_allow/navsim_goals.jsonl"
+      ],
+      "cwd": "/ws",
+      "pid": 32771,
+      "started_at": "2026-10-09T09:24:17Z",
+      "log_path": "/ws/tests/evidence/20261009T092417Z/A_zone_allow/navsim.log",
+      "exit_code": 0,
+      "ready_after_sec": 0.201,
+      "finished_at": "2026-10-09T09:24:37Z",
+      "duration_sec": 19.771
+    },
+    {
+      "scenario": "A_zone_allow",
+      "step": "security_gateway",
+      "kind": "ros2 run (long-running)",
+      "argv": [
+        "ros2",
+        "run",
+        "rg_gateway",
+        "security_gateway",
+        "--ros-args",
+        "-p",
+        "policy_path:=/ws/config/task_policy.yaml",
+        "-p",
+        "audit_log_path:=/ws/tests/evidence/20261009T092417Z/A_zone_allow/audit.jsonl"
+      ],
+      "cwd": "/ws",
+      "pid": 32772,
+      "started_at": "2026-10-09T09:24:17Z",
+      "log_path": "/ws/tests/evidence/20261009T092417Z/A_zone_allow/gateway.log",
+      "exit_code": 0,
+      "ready_after_sec": 0.601,
+      "finished_at": "2026-10-09T09:24:29Z",
+      "duration_sec": 11.766
+    },
+    {
+      "scenario": "A_zone_allow",
+      "step": "planner_run1:allow",
+      "kind": "ros2 run (one-shot)",
+      "argv": [
+        "ros2",
+        "run",
+        "rg_demo_nodes",
+        "planner_node",
+        "--ros-args",
+        "-p",
+        "task_id:=patrol_a_001",
+        "-p",
+        "request_id:=a-zone-request-0001",
+        "-p",
+        "frame_id:=map",
+        "-p",
+        "target_x:=1.5",
+        "-p",
+        "target_y:=1.5",
+        "-p",
+        "expect_success:=1"
+      ],
+      "cwd": "/ws",
+      "started_at": "2026-10-09T09:24:18Z",
+      "finished_at": "2026-10-09T09:24:18Z",
+      "duration_sec": 0.589,
+      "exit_code": 0,
+      "log_path": "/ws/tests/evidence/20261009T092417Z/A_zone_allow/planner_1_allow.log"
+    }
+  ],
+  "expectations": {
+    "navsim_goals": 1,
+    "decision_codes": [
+      "ALLOW_IN_POLICY"
+    ],
+    "execution_events": 1,
+    "reject_logs": 0,
+    "executed_request_ids": [
+      "a-zone-request-0001"
+    ]
+  }
+}

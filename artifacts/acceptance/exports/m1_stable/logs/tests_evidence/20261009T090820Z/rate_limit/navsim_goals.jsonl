@@ -1,0 +1,2 @@
+{"received_at": "2026-10-09T09:11:17.664Z", "action": "/rg/nav_execute", "goal_id": "5fa62735dbd24d26ad5cb41e727bc7ad", "request_id": "neg-rate-0001", "task_id": "patrol_a_001", "frame_id": "map", "x": 1.0, "y": 1.0, "z": 0.0, "recorded_only": true, "path_planning": false}
+{"received_at": "2026-10-09T09:11:18.238Z", "action": "/rg/nav_execute", "goal_id": "7de389761dcf42c29e03f1f0bddd56f3", "request_id": "neg-rate-0002", "task_id": "patrol_a_001", "frame_id": "map", "x": 2.0, "y": 2.0, "z": 0.0, "recorded_only": true, "path_planning": false}

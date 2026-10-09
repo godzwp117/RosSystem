@@ -1,0 +1,34 @@
+# colcon / ROS 2 build artefacts
+/build/
+/install/
+/log/
+
+# runtime evidence written by the scripts (never committed)
+/logs/
+/tests/evidence/
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# SROS 2 material must never be committed (security/README.md)
+security/keystore/
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.csr
+
+# 验收证据包（Schema / 工具 / 说明纳入版本控制，导出的证据包不纳入）
+/artifacts/acceptance/exports/*
+!/artifacts/acceptance/exports/.gitkeep
+
+# M2 SROS 2 密钥材料：绝不入库
+/security/keystore/
+/security/enclaves/
+
+# 证据发布：published/ 是推送到证据分支前的本地暂存，功能分支不跟踪
+/artifacts/acceptance/published/

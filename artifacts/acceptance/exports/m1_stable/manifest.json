@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "run_id": "m1_stable",
+  "timestamp_utc": "2026-10-09T09:14:05Z",
+  "phase": "M1",
+  "status": "PASS",
+  "source": {
+    "repository": "godzwp117/RosSystem",
+    "commit_sha": "e13199aa86daae34ab97c5b4b2eb8cb4fc461b47",
+    "git_dirty": false,
+    "dirty_files": [],
+    "tags": [
+      "p0-stable-v1.0"
+    ]
+  },
+  "environment": {
+    "host_os": "Ubuntu 22.04.5 LTS",
+    "kernel": "6.18.40.1-microsoft-standard-WSL2",
+    "container_name": "rg_jazzy",
+    "ros_distro": "jazzy",
+    "rmw_implementation": "rmw_fastrtps_cpp",
+    "docker_image_id": "sha256:066420e07f60aa18262f2479981def87ebcfcec42eefb0c0c57c4a46098348ca",
+    "docker_image_digest": "ros@sha256:066420e07f60aa18262f2479981def87ebcfcec42eefb0c0c57c4a46098348ca",
+    "ros_domain_id": "42",
+    "python_version": "Python 3.12.3",
+    "rclpy_version": "7.1.12",
+    "sros2_version": "0.13.6",
+    "openssl_version": "OpenSSL 3.0.13 30 Jan 2024 (Library: OpenSSL 3.0.13 30 Jan 2024)",
+    "docker_image_ref": "ros:jazzy"
+  },
+  "security_mode": "disabled",
+  "test_summary": {
+    "passed": 23,
+    "failed": 0,
+    "not_run": 0,
+    "blocked": 0,
+    "total": 23
+  },
+  "notes": [
+    "P0 稳定基线冻结：标签 p0-stable-v1.0 -> e13199a；修改前快照 p0-before-m1-20261009 -> 59fad86",
+    "B2 审计 fail-closed：RosCommEvent/DecisionEvent 任一写失败即 BLOCK(AUDIT_UNAVAILABLE)，不创建下游 Goal",
+    "B3 构建保护：系统运行时 build.sh exit 4 拒绝构建，实例节点 PID 不变",
+    "B4 超时语义：EXECUTION_TIMEOUT 显式标注执行状态未知与取消待确认",
+    "file_hashes.json 不包含自身哈希（无法自哈希）；归档包 SHA-256 记录在 exports/<run_id>.tar.gz.sha256 sidecar 中，故打包后包内哈希保持自洽。"
+  ],
+  "artifacts": {
+    "archive": "m1_stable.tar.gz",
+    "archive_sha256": null,
+    "file_count": 164,
+    "total_bytes": 738933
+  }
+}
