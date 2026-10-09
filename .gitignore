@@ -1,0 +1,23 @@
+# colcon / ROS 2 build artefacts
+/build/
+/install/
+/log/
+
+# runtime evidence written by the scripts (never committed)
+/logs/
+/tests/evidence/
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# SROS 2 material must never be committed (security/README.md)
+security/keystore/
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.csr
