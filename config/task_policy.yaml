@@ -21,3 +21,22 @@ active: true
 coordinate_frame: map
 allowed_region: {x_min: 0.0, x_max: 4.0, y_min: 0.0, y_max: 4.0}
 max_requests_per_minute: 10
+
+# -----------------------------------------------------------------------------
+# M3 可信任务阶段（Task C）
+#
+# 同一个 task_id 下的两套互不重叠的区域规则。Gateway 只依据**当前生效的
+# ActiveTaskSnapshot** 判定；切换必须经过 /rg/task_control/switch 且由
+# /task_admin enclave 授权，不能靠改这个文件或重启网关来"假装"动态授权。
+#
+# 说明：顶层 allowed_region 就是初始阶段 ZONE_A，保持与 M1/M2 行为一致。
+# -----------------------------------------------------------------------------
+initial_task_phase: ZONE_A
+task_phases:
+  ZONE_A:
+    allowed_region: {x_min: 0.0, x_max: 4.0, y_min: 0.0, y_max: 4.0}
+    policy_version: "1.0"
+  ZONE_B:
+    allowed_region: {x_min: 6.0, x_max: 10.0, y_min: 6.0, y_max: 10.0}
+    policy_version: "1.1"
+
