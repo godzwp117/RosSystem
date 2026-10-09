@@ -1,0 +1,42 @@
+# =============================================================================
+# Authoritative TaskPolicy -- RoboGuard minimal base (阶段二 §2.2)
+#
+# This file is the ONLY authority for the Gateway's admission decision.
+# It is opened read-only by security_gateway; /rg/task_info never overrides it.
+#
+# Frozen schema (all fields required; a missing/invalid field fails closed):
+#   task_id                  non-empty string, must equal Goal.task_id
+#   policy_version           non-empty string, copied into every DecisionEvent
+#   active                   bool; false => POLICY_MISSING (fail closed)
+#   coordinate_frame         non-empty string, must equal Goal.target.header.frame_id
+#   allowed_region           mapping with finite x_min <= x_max, y_min <= y_max (metres)
+#   max_requests_per_minute  finite number > 0 (sliding 60 s window)
+#
+# This file contains no secret. See security/README.md for the (not yet enabled)
+# SROS 2 integration placeholder.
+# =============================================================================
+task_id: patrol_a_001
+policy_version: "1.0"
+active: true
+coordinate_frame: map
+allowed_region: {x_min: 0.0, x_max: 4.0, y_min: 0.0, y_max: 4.0}
+max_requests_per_minute: 10
+
+# -----------------------------------------------------------------------------
+# M3 可信任务阶段（Task C）
+#
+# 同一个 task_id 下的两套互不重叠的区域规则。Gateway 只依据**当前生效的
+# ActiveTaskSnapshot** 判定；切换必须经过 /rg/task_control/switch 且由
+# /task_admin enclave 授权，不能靠改这个文件或重启网关来"假装"动态授权。
+#
+# 说明：顶层 allowed_region 就是初始阶段 ZONE_A，保持与 M1/M2 行为一致。
+# -----------------------------------------------------------------------------
+initial_task_phase: ZONE_A
+task_phases:
+  ZONE_A:
+    allowed_region: {x_min: 0.0, x_max: 4.0, y_min: 0.0, y_max: 4.0}
+    policy_version: "1.0"
+  ZONE_B:
+    allowed_region: {x_min: 6.0, x_max: 10.0, y_min: 6.0, y_max: 10.0}
+    policy_version: "1.1"
+
