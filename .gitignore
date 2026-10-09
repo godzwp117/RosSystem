@@ -29,3 +29,6 @@ security/keystore/
 # M2 SROS 2 密钥材料：绝不入库
 /security/keystore/
 /security/enclaves/
+
+# 证据发布：published/ 是推送到证据分支前的本地暂存，功能分支不跟踪
+/artifacts/acceptance/published/
