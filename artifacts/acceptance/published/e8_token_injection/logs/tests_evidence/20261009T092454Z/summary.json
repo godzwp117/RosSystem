@@ -1,0 +1,2667 @@
+{
+  "run_id": "20261009T092454Z",
+  "finished_at": "2026-10-09T09:28:30Z",
+  "workspace": "/ws",
+  "total": 12,
+  "passed": 12,
+  "failed": 0,
+  "scenarios": [
+    {
+      "scenario": "policy_file_missing",
+      "suite": "negative",
+      "description": "Authoritative policy file absent: fail closed with POLICY_MISSING.",
+      "policy_path": "/ws/config/scenarios/task_policy_does_not_exist.yaml",
+      "result": "PASS",
+      "started_at": "2026-10-09T09:25:12Z",
+      "evidence_dir": "tests/evidence/20261009T092454Z/policy_file_missing",
+      "navsim_goal_count": 0,
+      "decision_sequence": [
+        "POLICY_MISSING"
+      ],
+      "execution_status_codes": [],
+      "reject_log_lines": 1,
+      "planner_results": [
+        {
+          "request_id": "neg-policy-0001",
+          "task_id": "patrol_a_001",
+          "frame_id": "map",
+          "target": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 0.0
+          },
+          "egress_action": "/rg/guarded_navigate",
+          "goal_id": "162eef9b61f64b5abaecde14f92b4a13",
+          "outcome": "RESULT",
+          "accepted": true,
+          "goal_status": "STATUS_ABORTED",
+          "success": false,
+          "status_code": "POLICY_MISSING",
+          "detail": "no authoritative TaskPolicy is loaded",
+          "feedback_seen": null
+        }
+      ],
+      "planner_exit_codes": [
+        0
+      ],
+      "checks": [
+        {
+          "check": "bringup: NavigationSim ready",
+          "result": "PASS",
+          "detail": "NAVSIM_READY seen in tests/evidence/20261009T092454Z/policy_file_missing/navsim.log"
+        },
+        {
+          "check": "bringup: security_gateway ready",
+          "result": "PASS",
+          "detail": "GATEWAY_READY seen in tests/evidence/20261009T092454Z/policy_file_missing/gateway.log"
+        },
+        {
+          "check": "navsim Goal count == 0",
+          "result": "PASS",
+          "detail": "journal tests/evidence/20261009T092454Z/policy_file_missing/navsim_goals.jsonl has 0 line(s)"
+        },
+        {
+          "check": "planner[missing] exit code == 0",
+          "result": "PASS",
+          "detail": "actual exit code 0"
+        },
+        {
+          "check": "planner[missing] Result.success == False",
+          "result": "PASS",
+          "detail": "status_code='POLICY_MISSING' detail='no authoritative TaskPolicy is loaded'"
+        },
+        {
+          "check": "planner[missing] status_code == POLICY_MISSING",
+          "result": "PASS",
+          "detail": "actual status_code='POLICY_MISSING'"
+        },
+        {
+          "check": "DecisionEvent reason_code sequence == ['POLICY_MISSING']",
+          "result": "PASS",
+          "detail": "actual sequence ['POLICY_MISSING']"
+        },
+        {
+          "check": "ExecutionEvent count == 0",
+          "result": "PASS",
+          "detail": "actual 0 ExecutionEvent(s): []"
+        },
+        {
+          "check": "RosCommEvent count == DecisionEvent count == planner runs",
+          "result": "PASS",
+          "detail": "comm=1 decision=1 planner_runs=1"
+        },
+        {
+          "check": "event_id traceability (1 RosComm + 1 Decision + <=1 Execution each)",
+          "result": "PASS",
+          "detail": "event_id groups: 1; malformed: none"
+        },
+        {
+          "check": "BLOCKed event_ids never have an ExecutionEvent",
+          "result": "PASS",
+          "detail": "leaked event_ids: none"
+        },
+        {
+          "check": "correlatable REJECTED log lines == 1",
+          "result": "PASS",
+          "detail": "found 1 REJECTED line(s) in tests/evidence/20261009T092454Z/policy_file_missing/gateway.log"
+        },
+        {
+          "check": "every REJECTED line carries a BLOCKed request_id and event_id",
+          "result": "PASS",
+          "detail": "blocked request_ids=['neg-policy-0001']"
+        },
+        {
+          "check": "REJECTED lines declare downstream_goal_created=false",
+          "result": "PASS",
+          "detail": "checked 1 line(s)"
+        },
+        {
+          "check": "executor request_id set matches the ALLOWed set",
+          "result": "PASS",
+          "detail": "journal=[] expected=[]"
+        }
+      ],
+      "commands": [
+        {
+          "scenario": "policy_file_missing",
+          "step": "navigation_sim",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "navigation_sim",
+            "--ros-args",
+            "-p",
+            "record_path:=/ws/tests/evidence/20261009T092454Z/policy_file_missing/navsim_goals.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 32910,
+          "started_at": "2026-10-09T09:24:54Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/policy_file_missing/navsim.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.201,
+          "finished_at": "2026-10-09T09:25:12Z",
+          "duration_sec": 18.199
+        },
+        {
+          "scenario": "policy_file_missing",
+          "step": "security_gateway",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_gateway",
+            "security_gateway",
+            "--ros-args",
+            "-p",
+            "policy_path:=/ws/config/scenarios/task_policy_does_not_exist.yaml",
+            "-p",
+            "audit_log_path:=/ws/tests/evidence/20261009T092454Z/policy_file_missing/audit.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 32911,
+          "started_at": "2026-10-09T09:24:54Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/policy_file_missing/gateway.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.2,
+          "finished_at": "2026-10-09T09:25:04Z",
+          "duration_sec": 10.194
+        },
+        {
+          "scenario": "policy_file_missing",
+          "step": "planner_run1:missing",
+          "kind": "ros2 run (one-shot)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "planner_node",
+            "--ros-args",
+            "-p",
+            "task_id:=patrol_a_001",
+            "-p",
+            "request_id:=neg-policy-0001",
+            "-p",
+            "frame_id:=map",
+            "-p",
+            "target_x:=1.5",
+            "-p",
+            "target_y:=1.5",
+            "-p",
+            "expect_success:=0"
+          ],
+          "cwd": "/ws",
+          "started_at": "2026-10-09T09:24:54Z",
+          "finished_at": "2026-10-09T09:24:54Z",
+          "duration_sec": 0.568,
+          "exit_code": 0,
+          "log_path": "/ws/tests/evidence/20261009T092454Z/policy_file_missing/planner_1_missing.log"
+        }
+      ],
+      "expectations": {
+        "navsim_goals": 0,
+        "decision_codes": [
+          "POLICY_MISSING"
+        ],
+        "execution_events": 0,
+        "reject_logs": 1,
+        "executed_request_ids": []
+      }
+    },
+    {
+      "scenario": "policy_missing_required_field",
+      "suite": "negative",
+      "description": "Policy lacks coordinate_frame: schema error, fail closed.",
+      "policy_path": "/ws/config/scenarios/task_policy_missing_field.yaml",
+      "result": "PASS",
+      "started_at": "2026-10-09T09:25:30Z",
+      "evidence_dir": "tests/evidence/20261009T092454Z/policy_missing_required_field",
+      "navsim_goal_count": 0,
+      "decision_sequence": [
+        "POLICY_MISSING"
+      ],
+      "execution_status_codes": [],
+      "reject_log_lines": 1,
+      "planner_results": [
+        {
+          "request_id": "neg-policy-0002",
+          "task_id": "patrol_a_001",
+          "frame_id": "map",
+          "target": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 0.0
+          },
+          "egress_action": "/rg/guarded_navigate",
+          "goal_id": "f3a1afad2df94cc98c47145e18b5b659",
+          "outcome": "RESULT",
+          "accepted": true,
+          "goal_status": "STATUS_ABORTED",
+          "success": false,
+          "status_code": "POLICY_MISSING",
+          "detail": "no authoritative TaskPolicy is loaded",
+          "feedback_seen": null
+        }
+      ],
+      "planner_exit_codes": [
+        0
+      ],
+      "checks": [
+        {
+          "check": "bringup: NavigationSim ready",
+          "result": "PASS",
+          "detail": "NAVSIM_READY seen in tests/evidence/20261009T092454Z/policy_missing_required_field/navsim.log"
+        },
+        {
+          "check": "bringup: security_gateway ready",
+          "result": "PASS",
+          "detail": "GATEWAY_READY seen in tests/evidence/20261009T092454Z/policy_missing_required_field/gateway.log"
+        },
+        {
+          "check": "navsim Goal count == 0",
+          "result": "PASS",
+          "detail": "journal tests/evidence/20261009T092454Z/policy_missing_required_field/navsim_goals.jsonl has 0 line(s)"
+        },
+        {
+          "check": "planner[badfield] exit code == 0",
+          "result": "PASS",
+          "detail": "actual exit code 0"
+        },
+        {
+          "check": "planner[badfield] Result.success == False",
+          "result": "PASS",
+          "detail": "status_code='POLICY_MISSING' detail='no authoritative TaskPolicy is loaded'"
+        },
+        {
+          "check": "planner[badfield] status_code == POLICY_MISSING",
+          "result": "PASS",
+          "detail": "actual status_code='POLICY_MISSING'"
+        },
+        {
+          "check": "DecisionEvent reason_code sequence == ['POLICY_MISSING']",
+          "result": "PASS",
+          "detail": "actual sequence ['POLICY_MISSING']"
+        },
+        {
+          "check": "ExecutionEvent count == 0",
+          "result": "PASS",
+          "detail": "actual 0 ExecutionEvent(s): []"
+        },
+        {
+          "check": "RosCommEvent count == DecisionEvent count == planner runs",
+          "result": "PASS",
+          "detail": "comm=1 decision=1 planner_runs=1"
+        },
+        {
+          "check": "event_id traceability (1 RosComm + 1 Decision + <=1 Execution each)",
+          "result": "PASS",
+          "detail": "event_id groups: 1; malformed: none"
+        },
+        {
+          "check": "BLOCKed event_ids never have an ExecutionEvent",
+          "result": "PASS",
+          "detail": "leaked event_ids: none"
+        },
+        {
+          "check": "correlatable REJECTED log lines == 1",
+          "result": "PASS",
+          "detail": "found 1 REJECTED line(s) in tests/evidence/20261009T092454Z/policy_missing_required_field/gateway.log"
+        },
+        {
+          "check": "every REJECTED line carries a BLOCKed request_id and event_id",
+          "result": "PASS",
+          "detail": "blocked request_ids=['neg-policy-0002']"
+        },
+        {
+          "check": "REJECTED lines declare downstream_goal_created=false",
+          "result": "PASS",
+          "detail": "checked 1 line(s)"
+        },
+        {
+          "check": "executor request_id set matches the ALLOWed set",
+          "result": "PASS",
+          "detail": "journal=[] expected=[]"
+        }
+      ],
+      "commands": [
+        {
+          "scenario": "policy_missing_required_field",
+          "step": "navigation_sim",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "navigation_sim",
+            "--ros-args",
+            "-p",
+            "record_path:=/ws/tests/evidence/20261009T092454Z/policy_missing_required_field/navsim_goals.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 32966,
+          "started_at": "2026-10-09T09:25:12Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/policy_missing_required_field/navsim.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.201,
+          "finished_at": "2026-10-09T09:25:30Z",
+          "duration_sec": 17.821
+        },
+        {
+          "scenario": "policy_missing_required_field",
+          "step": "security_gateway",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_gateway",
+            "security_gateway",
+            "--ros-args",
+            "-p",
+            "policy_path:=/ws/config/scenarios/task_policy_missing_field.yaml",
+            "-p",
+            "audit_log_path:=/ws/tests/evidence/20261009T092454Z/policy_missing_required_field/audit.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 32967,
+          "started_at": "2026-10-09T09:25:12Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/policy_missing_required_field/gateway.log",
+          "exit_code": 0,
+          "ready_after_sec": 1.001,
+          "finished_at": "2026-10-09T09:25:22Z",
+          "duration_sec": 9.816
+        },
+        {
+          "scenario": "policy_missing_required_field",
+          "step": "planner_run1:badfield",
+          "kind": "ros2 run (one-shot)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "planner_node",
+            "--ros-args",
+            "-p",
+            "task_id:=patrol_a_001",
+            "-p",
+            "request_id:=neg-policy-0002",
+            "-p",
+            "frame_id:=map",
+            "-p",
+            "target_x:=1.5",
+            "-p",
+            "target_y:=1.5",
+            "-p",
+            "expect_success:=0"
+          ],
+          "cwd": "/ws",
+          "started_at": "2026-10-09T09:25:13Z",
+          "finished_at": "2026-10-09T09:25:14Z",
+          "duration_sec": 0.811,
+          "exit_code": 0,
+          "log_path": "/ws/tests/evidence/20261009T092454Z/policy_missing_required_field/planner_1_badfield.log"
+        }
+      ],
+      "expectations": {
+        "navsim_goals": 0,
+        "decision_codes": [
+          "POLICY_MISSING"
+        ],
+        "execution_events": 0,
+        "reject_logs": 1,
+        "executed_request_ids": []
+      }
+    },
+    {
+      "scenario": "policy_nonfinite_region",
+      "suite": "negative",
+      "description": "Policy region bound is NaN: never coerced, fail closed.",
+      "policy_path": "/ws/config/scenarios/task_policy_nonfinite_region.yaml",
+      "result": "PASS",
+      "started_at": "2026-10-09T09:25:47Z",
+      "evidence_dir": "tests/evidence/20261009T092454Z/policy_nonfinite_region",
+      "navsim_goal_count": 0,
+      "decision_sequence": [
+        "POLICY_MISSING"
+      ],
+      "execution_status_codes": [],
+      "reject_log_lines": 1,
+      "planner_results": [
+        {
+          "request_id": "neg-policy-0003",
+          "task_id": "patrol_a_001",
+          "frame_id": "map",
+          "target": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 0.0
+          },
+          "egress_action": "/rg/guarded_navigate",
+          "goal_id": "b96ea3c52ee949878a939d6fa00be56a",
+          "outcome": "RESULT",
+          "accepted": true,
+          "goal_status": "STATUS_ABORTED",
+          "success": false,
+          "status_code": "POLICY_MISSING",
+          "detail": "no authoritative TaskPolicy is loaded",
+          "feedback_seen": null
+        }
+      ],
+      "planner_exit_codes": [
+        0
+      ],
+      "checks": [
+        {
+          "check": "bringup: NavigationSim ready",
+          "result": "PASS",
+          "detail": "NAVSIM_READY seen in tests/evidence/20261009T092454Z/policy_nonfinite_region/navsim.log"
+        },
+        {
+          "check": "bringup: security_gateway ready",
+          "result": "PASS",
+          "detail": "GATEWAY_READY seen in tests/evidence/20261009T092454Z/policy_nonfinite_region/gateway.log"
+        },
+        {
+          "check": "navsim Goal count == 0",
+          "result": "PASS",
+          "detail": "journal tests/evidence/20261009T092454Z/policy_nonfinite_region/navsim_goals.jsonl has 0 line(s)"
+        },
+        {
+          "check": "planner[nanregion] exit code == 0",
+          "result": "PASS",
+          "detail": "actual exit code 0"
+        },
+        {
+          "check": "planner[nanregion] Result.success == False",
+          "result": "PASS",
+          "detail": "status_code='POLICY_MISSING' detail='no authoritative TaskPolicy is loaded'"
+        },
+        {
+          "check": "planner[nanregion] status_code == POLICY_MISSING",
+          "result": "PASS",
+          "detail": "actual status_code='POLICY_MISSING'"
+        },
+        {
+          "check": "DecisionEvent reason_code sequence == ['POLICY_MISSING']",
+          "result": "PASS",
+          "detail": "actual sequence ['POLICY_MISSING']"
+        },
+        {
+          "check": "ExecutionEvent count == 0",
+          "result": "PASS",
+          "detail": "actual 0 ExecutionEvent(s): []"
+        },
+        {
+          "check": "RosCommEvent count == DecisionEvent count == planner runs",
+          "result": "PASS",
+          "detail": "comm=1 decision=1 planner_runs=1"
+        },
+        {
+          "check": "event_id traceability (1 RosComm + 1 Decision + <=1 Execution each)",
+          "result": "PASS",
+          "detail": "event_id groups: 1; malformed: none"
+        },
+        {
+          "check": "BLOCKed event_ids never have an ExecutionEvent",
+          "result": "PASS",
+          "detail": "leaked event_ids: none"
+        },
+        {
+          "check": "correlatable REJECTED log lines == 1",
+          "result": "PASS",
+          "detail": "found 1 REJECTED line(s) in tests/evidence/20261009T092454Z/policy_nonfinite_region/gateway.log"
+        },
+        {
+          "check": "every REJECTED line carries a BLOCKed request_id and event_id",
+          "result": "PASS",
+          "detail": "blocked request_ids=['neg-policy-0003']"
+        },
+        {
+          "check": "REJECTED lines declare downstream_goal_created=false",
+          "result": "PASS",
+          "detail": "checked 1 line(s)"
+        },
+        {
+          "check": "executor request_id set matches the ALLOWed set",
+          "result": "PASS",
+          "detail": "journal=[] expected=[]"
+        }
+      ],
+      "commands": [
+        {
+          "scenario": "policy_nonfinite_region",
+          "step": "navigation_sim",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "navigation_sim",
+            "--ros-args",
+            "-p",
+            "record_path:=/ws/tests/evidence/20261009T092454Z/policy_nonfinite_region/navsim_goals.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 33021,
+          "started_at": "2026-10-09T09:25:30Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/policy_nonfinite_region/navsim.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.201,
+          "finished_at": "2026-10-09T09:25:47Z",
+          "duration_sec": 17.635
+        },
+        {
+          "scenario": "policy_nonfinite_region",
+          "step": "security_gateway",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_gateway",
+            "security_gateway",
+            "--ros-args",
+            "-p",
+            "policy_path:=/ws/config/scenarios/task_policy_nonfinite_region.yaml",
+            "-p",
+            "audit_log_path:=/ws/tests/evidence/20261009T092454Z/policy_nonfinite_region/audit.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 33022,
+          "started_at": "2026-10-09T09:25:30Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/policy_nonfinite_region/gateway.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.801,
+          "finished_at": "2026-10-09T09:25:39Z",
+          "duration_sec": 9.628
+        },
+        {
+          "scenario": "policy_nonfinite_region",
+          "step": "planner_run1:nanregion",
+          "kind": "ros2 run (one-shot)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "planner_node",
+            "--ros-args",
+            "-p",
+            "task_id:=patrol_a_001",
+            "-p",
+            "request_id:=neg-policy-0003",
+            "-p",
+            "frame_id:=map",
+            "-p",
+            "target_x:=1.5",
+            "-p",
+            "target_y:=1.5",
+            "-p",
+            "expect_success:=0"
+          ],
+          "cwd": "/ws",
+          "started_at": "2026-10-09T09:25:31Z",
+          "finished_at": "2026-10-09T09:25:31Z",
+          "duration_sec": 0.568,
+          "exit_code": 0,
+          "log_path": "/ws/tests/evidence/20261009T092454Z/policy_nonfinite_region/planner_1_nanregion.log"
+        }
+      ],
+      "expectations": {
+        "navsim_goals": 0,
+        "decision_codes": [
+          "POLICY_MISSING"
+        ],
+        "execution_events": 0,
+        "reject_logs": 1,
+        "executed_request_ids": []
+      }
+    },
+    {
+      "scenario": "policy_inactive",
+      "suite": "negative",
+      "description": "Policy valid but active:false: treated as no authority, fail closed.",
+      "policy_path": "/ws/config/scenarios/task_policy_inactive.yaml",
+      "result": "PASS",
+      "started_at": "2026-10-09T09:26:05Z",
+      "evidence_dir": "tests/evidence/20261009T092454Z/policy_inactive",
+      "navsim_goal_count": 0,
+      "decision_sequence": [
+        "POLICY_MISSING"
+      ],
+      "execution_status_codes": [],
+      "reject_log_lines": 1,
+      "planner_results": [
+        {
+          "request_id": "neg-policy-0004",
+          "task_id": "patrol_a_001",
+          "frame_id": "map",
+          "target": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 0.0
+          },
+          "egress_action": "/rg/guarded_navigate",
+          "goal_id": "2c1460f91ee4402d85a47e4688fb5b42",
+          "outcome": "RESULT",
+          "accepted": true,
+          "goal_status": "STATUS_ABORTED",
+          "success": false,
+          "status_code": "POLICY_MISSING",
+          "detail": "authoritative policy '1.0-inactive' is marked active: false",
+          "feedback_seen": null
+        }
+      ],
+      "planner_exit_codes": [
+        0
+      ],
+      "checks": [
+        {
+          "check": "bringup: NavigationSim ready",
+          "result": "PASS",
+          "detail": "NAVSIM_READY seen in tests/evidence/20261009T092454Z/policy_inactive/navsim.log"
+        },
+        {
+          "check": "bringup: security_gateway ready",
+          "result": "PASS",
+          "detail": "GATEWAY_READY seen in tests/evidence/20261009T092454Z/policy_inactive/gateway.log"
+        },
+        {
+          "check": "navsim Goal count == 0",
+          "result": "PASS",
+          "detail": "journal tests/evidence/20261009T092454Z/policy_inactive/navsim_goals.jsonl has 0 line(s)"
+        },
+        {
+          "check": "planner[inactive] exit code == 0",
+          "result": "PASS",
+          "detail": "actual exit code 0"
+        },
+        {
+          "check": "planner[inactive] Result.success == False",
+          "result": "PASS",
+          "detail": "status_code='POLICY_MISSING' detail=\"authoritative policy '1.0-inactive' is marked active: false\""
+        },
+        {
+          "check": "planner[inactive] status_code == POLICY_MISSING",
+          "result": "PASS",
+          "detail": "actual status_code='POLICY_MISSING'"
+        },
+        {
+          "check": "DecisionEvent reason_code sequence == ['POLICY_MISSING']",
+          "result": "PASS",
+          "detail": "actual sequence ['POLICY_MISSING']"
+        },
+        {
+          "check": "ExecutionEvent count == 0",
+          "result": "PASS",
+          "detail": "actual 0 ExecutionEvent(s): []"
+        },
+        {
+          "check": "RosCommEvent count == DecisionEvent count == planner runs",
+          "result": "PASS",
+          "detail": "comm=1 decision=1 planner_runs=1"
+        },
+        {
+          "check": "event_id traceability (1 RosComm + 1 Decision + <=1 Execution each)",
+          "result": "PASS",
+          "detail": "event_id groups: 1; malformed: none"
+        },
+        {
+          "check": "BLOCKed event_ids never have an ExecutionEvent",
+          "result": "PASS",
+          "detail": "leaked event_ids: none"
+        },
+        {
+          "check": "correlatable REJECTED log lines == 1",
+          "result": "PASS",
+          "detail": "found 1 REJECTED line(s) in tests/evidence/20261009T092454Z/policy_inactive/gateway.log"
+        },
+        {
+          "check": "every REJECTED line carries a BLOCKed request_id and event_id",
+          "result": "PASS",
+          "detail": "blocked request_ids=['neg-policy-0004']"
+        },
+        {
+          "check": "REJECTED lines declare downstream_goal_created=false",
+          "result": "PASS",
+          "detail": "checked 1 line(s)"
+        },
+        {
+          "check": "executor request_id set matches the ALLOWed set",
+          "result": "PASS",
+          "detail": "journal=[] expected=[]"
+        }
+      ],
+      "commands": [
+        {
+          "scenario": "policy_inactive",
+          "step": "navigation_sim",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "navigation_sim",
+            "--ros-args",
+            "-p",
+            "record_path:=/ws/tests/evidence/20261009T092454Z/policy_inactive/navsim_goals.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 33076,
+          "started_at": "2026-10-09T09:25:47Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/policy_inactive/navsim.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.201,
+          "finished_at": "2026-10-09T09:26:05Z",
+          "duration_sec": 17.427
+        },
+        {
+          "scenario": "policy_inactive",
+          "step": "security_gateway",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_gateway",
+            "security_gateway",
+            "--ros-args",
+            "-p",
+            "policy_path:=/ws/config/scenarios/task_policy_inactive.yaml",
+            "-p",
+            "audit_log_path:=/ws/tests/evidence/20261009T092454Z/policy_inactive/audit.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 33077,
+          "started_at": "2026-10-09T09:25:47Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/policy_inactive/gateway.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.601,
+          "finished_at": "2026-10-09T09:25:57Z",
+          "duration_sec": 9.421
+        },
+        {
+          "scenario": "policy_inactive",
+          "step": "planner_run1:inactive",
+          "kind": "ros2 run (one-shot)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "planner_node",
+            "--ros-args",
+            "-p",
+            "task_id:=patrol_a_001",
+            "-p",
+            "request_id:=neg-policy-0004",
+            "-p",
+            "frame_id:=map",
+            "-p",
+            "target_x:=1.5",
+            "-p",
+            "target_y:=1.5",
+            "-p",
+            "expect_success:=0"
+          ],
+          "cwd": "/ws",
+          "started_at": "2026-10-09T09:25:48Z",
+          "finished_at": "2026-10-09T09:25:49Z",
+          "duration_sec": 0.816,
+          "exit_code": 0,
+          "log_path": "/ws/tests/evidence/20261009T092454Z/policy_inactive/planner_1_inactive.log"
+        }
+      ],
+      "expectations": {
+        "navsim_goals": 0,
+        "decision_codes": [
+          "POLICY_MISSING"
+        ],
+        "execution_events": 0,
+        "reject_logs": 1,
+        "executed_request_ids": []
+      }
+    },
+    {
+      "scenario": "task_id_mismatch_request_side",
+      "suite": "negative",
+      "description": "Goal task_id differs from the authoritative policy: TASK_MISMATCH.",
+      "policy_path": "/ws/config/task_policy.yaml",
+      "result": "PASS",
+      "started_at": "2026-10-09T09:26:23Z",
+      "evidence_dir": "tests/evidence/20261009T092454Z/task_id_mismatch_request_side",
+      "navsim_goal_count": 0,
+      "decision_sequence": [
+        "TASK_MISMATCH"
+      ],
+      "execution_status_codes": [],
+      "reject_log_lines": 1,
+      "planner_results": [
+        {
+          "request_id": "neg-task-0001",
+          "task_id": "patrol_b_042",
+          "frame_id": "map",
+          "target": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 0.0
+          },
+          "egress_action": "/rg/guarded_navigate",
+          "goal_id": "f8618ba4e50a49bc976e2db03e19ea23",
+          "outcome": "RESULT",
+          "accepted": true,
+          "goal_status": "STATUS_ABORTED",
+          "success": false,
+          "status_code": "TASK_MISMATCH",
+          "detail": "request task_id 'patrol_b_042' != policy task_id 'patrol_a_001'",
+          "feedback_seen": null
+        }
+      ],
+      "planner_exit_codes": [
+        0
+      ],
+      "checks": [
+        {
+          "check": "bringup: NavigationSim ready",
+          "result": "PASS",
+          "detail": "NAVSIM_READY seen in tests/evidence/20261009T092454Z/task_id_mismatch_request_side/navsim.log"
+        },
+        {
+          "check": "bringup: security_gateway ready",
+          "result": "PASS",
+          "detail": "GATEWAY_READY seen in tests/evidence/20261009T092454Z/task_id_mismatch_request_side/gateway.log"
+        },
+        {
+          "check": "navsim Goal count == 0",
+          "result": "PASS",
+          "detail": "journal tests/evidence/20261009T092454Z/task_id_mismatch_request_side/navsim_goals.jsonl has 0 line(s)"
+        },
+        {
+          "check": "planner[taskmismatch] exit code == 0",
+          "result": "PASS",
+          "detail": "actual exit code 0"
+        },
+        {
+          "check": "planner[taskmismatch] Result.success == False",
+          "result": "PASS",
+          "detail": "status_code='TASK_MISMATCH' detail=\"request task_id 'patrol_b_042' != policy task_id 'patrol_a_001'\""
+        },
+        {
+          "check": "planner[taskmismatch] status_code == TASK_MISMATCH",
+          "result": "PASS",
+          "detail": "actual status_code='TASK_MISMATCH'"
+        },
+        {
+          "check": "DecisionEvent reason_code sequence == ['TASK_MISMATCH']",
+          "result": "PASS",
+          "detail": "actual sequence ['TASK_MISMATCH']"
+        },
+        {
+          "check": "ExecutionEvent count == 0",
+          "result": "PASS",
+          "detail": "actual 0 ExecutionEvent(s): []"
+        },
+        {
+          "check": "RosCommEvent count == DecisionEvent count == planner runs",
+          "result": "PASS",
+          "detail": "comm=1 decision=1 planner_runs=1"
+        },
+        {
+          "check": "event_id traceability (1 RosComm + 1 Decision + <=1 Execution each)",
+          "result": "PASS",
+          "detail": "event_id groups: 1; malformed: none"
+        },
+        {
+          "check": "BLOCKed event_ids never have an ExecutionEvent",
+          "result": "PASS",
+          "detail": "leaked event_ids: none"
+        },
+        {
+          "check": "correlatable REJECTED log lines == 1",
+          "result": "PASS",
+          "detail": "found 1 REJECTED line(s) in tests/evidence/20261009T092454Z/task_id_mismatch_request_side/gateway.log"
+        },
+        {
+          "check": "every REJECTED line carries a BLOCKed request_id and event_id",
+          "result": "PASS",
+          "detail": "blocked request_ids=['neg-task-0001']"
+        },
+        {
+          "check": "REJECTED lines declare downstream_goal_created=false",
+          "result": "PASS",
+          "detail": "checked 1 line(s)"
+        },
+        {
+          "check": "executor request_id set matches the ALLOWed set",
+          "result": "PASS",
+          "detail": "journal=[] expected=[]"
+        }
+      ],
+      "commands": [
+        {
+          "scenario": "task_id_mismatch_request_side",
+          "step": "navigation_sim",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "navigation_sim",
+            "--ros-args",
+            "-p",
+            "record_path:=/ws/tests/evidence/20261009T092454Z/task_id_mismatch_request_side/navsim_goals.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 33132,
+          "started_at": "2026-10-09T09:26:05Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/task_id_mismatch_request_side/navsim.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.201,
+          "finished_at": "2026-10-09T09:26:23Z",
+          "duration_sec": 18.066
+        },
+        {
+          "scenario": "task_id_mismatch_request_side",
+          "step": "security_gateway",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_gateway",
+            "security_gateway",
+            "--ros-args",
+            "-p",
+            "policy_path:=/ws/config/task_policy.yaml",
+            "-p",
+            "audit_log_path:=/ws/tests/evidence/20261009T092454Z/task_id_mismatch_request_side/audit.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 33133,
+          "started_at": "2026-10-09T09:26:05Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/task_id_mismatch_request_side/gateway.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.2,
+          "finished_at": "2026-10-09T09:26:15Z",
+          "duration_sec": 10.06
+        },
+        {
+          "scenario": "task_id_mismatch_request_side",
+          "step": "planner_run1:taskmismatch",
+          "kind": "ros2 run (one-shot)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "planner_node",
+            "--ros-args",
+            "-p",
+            "task_id:=patrol_b_042",
+            "-p",
+            "request_id:=neg-task-0001",
+            "-p",
+            "frame_id:=map",
+            "-p",
+            "target_x:=1.5",
+            "-p",
+            "target_y:=1.5",
+            "-p",
+            "expect_success:=0"
+          ],
+          "cwd": "/ws",
+          "started_at": "2026-10-09T09:26:05Z",
+          "finished_at": "2026-10-09T09:26:06Z",
+          "duration_sec": 0.57,
+          "exit_code": 0,
+          "log_path": "/ws/tests/evidence/20261009T092454Z/task_id_mismatch_request_side/planner_1_taskmismatch.log"
+        }
+      ],
+      "expectations": {
+        "navsim_goals": 0,
+        "decision_codes": [
+          "TASK_MISMATCH"
+        ],
+        "execution_events": 0,
+        "reject_logs": 1,
+        "executed_request_ids": []
+      }
+    },
+    {
+      "scenario": "task_id_mismatch_policy_side",
+      "suite": "negative",
+      "description": "Authoritative policy is for patrol_b_999: a patrol_a_001 Goal is TASK_MISMATCH.",
+      "policy_path": "/ws/config/scenarios/task_policy_task_b.yaml",
+      "result": "PASS",
+      "started_at": "2026-10-09T09:26:43Z",
+      "evidence_dir": "tests/evidence/20261009T092454Z/task_id_mismatch_policy_side",
+      "navsim_goal_count": 0,
+      "decision_sequence": [
+        "TASK_MISMATCH"
+      ],
+      "execution_status_codes": [],
+      "reject_log_lines": 1,
+      "planner_results": [
+        {
+          "request_id": "neg-task-0002",
+          "task_id": "patrol_a_001",
+          "frame_id": "map",
+          "target": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 0.0
+          },
+          "egress_action": "/rg/guarded_navigate",
+          "goal_id": "6e9d2924c9c44c33a5edee8cd2383834",
+          "outcome": "RESULT",
+          "accepted": true,
+          "goal_status": "STATUS_ABORTED",
+          "success": false,
+          "status_code": "TASK_MISMATCH",
+          "detail": "request task_id 'patrol_a_001' != policy task_id 'patrol_b_999'",
+          "feedback_seen": null
+        }
+      ],
+      "planner_exit_codes": [
+        0
+      ],
+      "checks": [
+        {
+          "check": "bringup: NavigationSim ready",
+          "result": "PASS",
+          "detail": "NAVSIM_READY seen in tests/evidence/20261009T092454Z/task_id_mismatch_policy_side/navsim.log"
+        },
+        {
+          "check": "bringup: security_gateway ready",
+          "result": "PASS",
+          "detail": "GATEWAY_READY seen in tests/evidence/20261009T092454Z/task_id_mismatch_policy_side/gateway.log"
+        },
+        {
+          "check": "navsim Goal count == 0",
+          "result": "PASS",
+          "detail": "journal tests/evidence/20261009T092454Z/task_id_mismatch_policy_side/navsim_goals.jsonl has 0 line(s)"
+        },
+        {
+          "check": "planner[taskmismatch2] exit code == 0",
+          "result": "PASS",
+          "detail": "actual exit code 0"
+        },
+        {
+          "check": "planner[taskmismatch2] Result.success == False",
+          "result": "PASS",
+          "detail": "status_code='TASK_MISMATCH' detail=\"request task_id 'patrol_a_001' != policy task_id 'patrol_b_999'\""
+        },
+        {
+          "check": "planner[taskmismatch2] status_code == TASK_MISMATCH",
+          "result": "PASS",
+          "detail": "actual status_code='TASK_MISMATCH'"
+        },
+        {
+          "check": "DecisionEvent reason_code sequence == ['TASK_MISMATCH']",
+          "result": "PASS",
+          "detail": "actual sequence ['TASK_MISMATCH']"
+        },
+        {
+          "check": "ExecutionEvent count == 0",
+          "result": "PASS",
+          "detail": "actual 0 ExecutionEvent(s): []"
+        },
+        {
+          "check": "RosCommEvent count == DecisionEvent count == planner runs",
+          "result": "PASS",
+          "detail": "comm=1 decision=1 planner_runs=1"
+        },
+        {
+          "check": "event_id traceability (1 RosComm + 1 Decision + <=1 Execution each)",
+          "result": "PASS",
+          "detail": "event_id groups: 1; malformed: none"
+        },
+        {
+          "check": "BLOCKed event_ids never have an ExecutionEvent",
+          "result": "PASS",
+          "detail": "leaked event_ids: none"
+        },
+        {
+          "check": "correlatable REJECTED log lines == 1",
+          "result": "PASS",
+          "detail": "found 1 REJECTED line(s) in tests/evidence/20261009T092454Z/task_id_mismatch_policy_side/gateway.log"
+        },
+        {
+          "check": "every REJECTED line carries a BLOCKed request_id and event_id",
+          "result": "PASS",
+          "detail": "blocked request_ids=['neg-task-0002']"
+        },
+        {
+          "check": "REJECTED lines declare downstream_goal_created=false",
+          "result": "PASS",
+          "detail": "checked 1 line(s)"
+        },
+        {
+          "check": "executor request_id set matches the ALLOWed set",
+          "result": "PASS",
+          "detail": "journal=[] expected=[]"
+        }
+      ],
+      "commands": [
+        {
+          "scenario": "task_id_mismatch_policy_side",
+          "step": "navigation_sim",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "navigation_sim",
+            "--ros-args",
+            "-p",
+            "record_path:=/ws/tests/evidence/20261009T092454Z/task_id_mismatch_policy_side/navsim_goals.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 33188,
+          "started_at": "2026-10-09T09:26:23Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/task_id_mismatch_policy_side/navsim.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.201,
+          "finished_at": "2026-10-09T09:26:43Z",
+          "duration_sec": 20.176
+        },
+        {
+          "scenario": "task_id_mismatch_policy_side",
+          "step": "security_gateway",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_gateway",
+            "security_gateway",
+            "--ros-args",
+            "-p",
+            "policy_path:=/ws/config/scenarios/task_policy_task_b.yaml",
+            "-p",
+            "audit_log_path:=/ws/tests/evidence/20261009T092454Z/task_id_mismatch_policy_side/audit.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 33189,
+          "started_at": "2026-10-09T09:26:23Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/task_id_mismatch_policy_side/gateway.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.601,
+          "finished_at": "2026-10-09T09:26:35Z",
+          "duration_sec": 12.171
+        },
+        {
+          "scenario": "task_id_mismatch_policy_side",
+          "step": "planner_run1:taskmismatch2",
+          "kind": "ros2 run (one-shot)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "planner_node",
+            "--ros-args",
+            "-p",
+            "task_id:=patrol_a_001",
+            "-p",
+            "request_id:=neg-task-0002",
+            "-p",
+            "frame_id:=map",
+            "-p",
+            "target_x:=1.5",
+            "-p",
+            "target_y:=1.5",
+            "-p",
+            "expect_success:=0"
+          ],
+          "cwd": "/ws",
+          "started_at": "2026-10-09T09:26:23Z",
+          "finished_at": "2026-10-09T09:26:27Z",
+          "duration_sec": 3.565,
+          "exit_code": 0,
+          "log_path": "/ws/tests/evidence/20261009T092454Z/task_id_mismatch_policy_side/planner_1_taskmismatch2.log"
+        }
+      ],
+      "expectations": {
+        "navsim_goals": 0,
+        "decision_codes": [
+          "TASK_MISMATCH"
+        ],
+        "execution_events": 0,
+        "reject_logs": 1,
+        "executed_request_ids": []
+      }
+    },
+    {
+      "scenario": "frame_id_invalid",
+      "suite": "negative",
+      "description": "Goal frame_id=camera_link while policy coordinate_frame=map: INVALID_TARGET.",
+      "policy_path": "/ws/config/task_policy.yaml",
+      "result": "PASS",
+      "started_at": "2026-10-09T09:27:00Z",
+      "evidence_dir": "tests/evidence/20261009T092454Z/frame_id_invalid",
+      "navsim_goal_count": 0,
+      "decision_sequence": [
+        "INVALID_TARGET"
+      ],
+      "execution_status_codes": [],
+      "reject_log_lines": 1,
+      "planner_results": [
+        {
+          "request_id": "neg-frame-0001",
+          "task_id": "patrol_a_001",
+          "frame_id": "camera_link",
+          "target": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 0.0
+          },
+          "egress_action": "/rg/guarded_navigate",
+          "goal_id": "dfb2f3e15a4b4bcf9edde44664d44897",
+          "outcome": "RESULT",
+          "accepted": true,
+          "goal_status": "STATUS_ABORTED",
+          "success": false,
+          "status_code": "INVALID_TARGET",
+          "detail": "target frame_id 'camera_link' != policy coordinate_frame 'map'",
+          "feedback_seen": null
+        }
+      ],
+      "planner_exit_codes": [
+        0
+      ],
+      "checks": [
+        {
+          "check": "bringup: NavigationSim ready",
+          "result": "PASS",
+          "detail": "NAVSIM_READY seen in tests/evidence/20261009T092454Z/frame_id_invalid/navsim.log"
+        },
+        {
+          "check": "bringup: security_gateway ready",
+          "result": "PASS",
+          "detail": "GATEWAY_READY seen in tests/evidence/20261009T092454Z/frame_id_invalid/gateway.log"
+        },
+        {
+          "check": "navsim Goal count == 0",
+          "result": "PASS",
+          "detail": "journal tests/evidence/20261009T092454Z/frame_id_invalid/navsim_goals.jsonl has 0 line(s)"
+        },
+        {
+          "check": "planner[badframe] exit code == 0",
+          "result": "PASS",
+          "detail": "actual exit code 0"
+        },
+        {
+          "check": "planner[badframe] Result.success == False",
+          "result": "PASS",
+          "detail": "status_code='INVALID_TARGET' detail=\"target frame_id 'camera_link' != policy coordinate_frame 'map'\""
+        },
+        {
+          "check": "planner[badframe] status_code == INVALID_TARGET",
+          "result": "PASS",
+          "detail": "actual status_code='INVALID_TARGET'"
+        },
+        {
+          "check": "DecisionEvent reason_code sequence == ['INVALID_TARGET']",
+          "result": "PASS",
+          "detail": "actual sequence ['INVALID_TARGET']"
+        },
+        {
+          "check": "ExecutionEvent count == 0",
+          "result": "PASS",
+          "detail": "actual 0 ExecutionEvent(s): []"
+        },
+        {
+          "check": "RosCommEvent count == DecisionEvent count == planner runs",
+          "result": "PASS",
+          "detail": "comm=1 decision=1 planner_runs=1"
+        },
+        {
+          "check": "event_id traceability (1 RosComm + 1 Decision + <=1 Execution each)",
+          "result": "PASS",
+          "detail": "event_id groups: 1; malformed: none"
+        },
+        {
+          "check": "BLOCKed event_ids never have an ExecutionEvent",
+          "result": "PASS",
+          "detail": "leaked event_ids: none"
+        },
+        {
+          "check": "correlatable REJECTED log lines == 1",
+          "result": "PASS",
+          "detail": "found 1 REJECTED line(s) in tests/evidence/20261009T092454Z/frame_id_invalid/gateway.log"
+        },
+        {
+          "check": "every REJECTED line carries a BLOCKed request_id and event_id",
+          "result": "PASS",
+          "detail": "blocked request_ids=['neg-frame-0001']"
+        },
+        {
+          "check": "REJECTED lines declare downstream_goal_created=false",
+          "result": "PASS",
+          "detail": "checked 1 line(s)"
+        },
+        {
+          "check": "executor request_id set matches the ALLOWed set",
+          "result": "PASS",
+          "detail": "journal=[] expected=[]"
+        }
+      ],
+      "commands": [
+        {
+          "scenario": "frame_id_invalid",
+          "step": "navigation_sim",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "navigation_sim",
+            "--ros-args",
+            "-p",
+            "record_path:=/ws/tests/evidence/20261009T092454Z/frame_id_invalid/navsim_goals.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 33244,
+          "started_at": "2026-10-09T09:26:43Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/frame_id_invalid/navsim.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.201,
+          "finished_at": "2026-10-09T09:27:00Z",
+          "duration_sec": 17.387
+        },
+        {
+          "scenario": "frame_id_invalid",
+          "step": "security_gateway",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_gateway",
+            "security_gateway",
+            "--ros-args",
+            "-p",
+            "policy_path:=/ws/config/task_policy.yaml",
+            "-p",
+            "audit_log_path:=/ws/tests/evidence/20261009T092454Z/frame_id_invalid/audit.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 33245,
+          "started_at": "2026-10-09T09:26:43Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/frame_id_invalid/gateway.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.801,
+          "finished_at": "2026-10-09T09:26:52Z",
+          "duration_sec": 9.381
+        },
+        {
+          "scenario": "frame_id_invalid",
+          "step": "planner_run1:badframe",
+          "kind": "ros2 run (one-shot)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "planner_node",
+            "--ros-args",
+            "-p",
+            "task_id:=patrol_a_001",
+            "-p",
+            "request_id:=neg-frame-0001",
+            "-p",
+            "frame_id:=camera_link",
+            "-p",
+            "target_x:=1.5",
+            "-p",
+            "target_y:=1.5",
+            "-p",
+            "expect_success:=0"
+          ],
+          "cwd": "/ws",
+          "started_at": "2026-10-09T09:26:44Z",
+          "finished_at": "2026-10-09T09:26:44Z",
+          "duration_sec": 0.568,
+          "exit_code": 0,
+          "log_path": "/ws/tests/evidence/20261009T092454Z/frame_id_invalid/planner_1_badframe.log"
+        }
+      ],
+      "expectations": {
+        "navsim_goals": 0,
+        "decision_codes": [
+          "INVALID_TARGET"
+        ],
+        "execution_events": 0,
+        "reject_logs": 1,
+        "executed_request_ids": []
+      }
+    },
+    {
+      "scenario": "target_nan",
+      "suite": "negative",
+      "description": "Goal target.x = NaN: INVALID_TARGET, never coerced.",
+      "policy_path": "/ws/config/task_policy.yaml",
+      "result": "PASS",
+      "started_at": "2026-10-09T09:27:18Z",
+      "evidence_dir": "tests/evidence/20261009T092454Z/target_nan",
+      "navsim_goal_count": 0,
+      "decision_sequence": [
+        "INVALID_TARGET"
+      ],
+      "execution_status_codes": [],
+      "reject_log_lines": 1,
+      "planner_results": [
+        {
+          "request_id": "neg-nan-0001",
+          "task_id": "patrol_a_001",
+          "frame_id": "map",
+          "target": {
+            "x": NaN,
+            "y": 1.5,
+            "z": 0.0
+          },
+          "egress_action": "/rg/guarded_navigate",
+          "goal_id": "3c9c0ce4ec8d49a3ac581e0b3bdf8062",
+          "outcome": "RESULT",
+          "accepted": true,
+          "goal_status": "STATUS_ABORTED",
+          "success": false,
+          "status_code": "INVALID_TARGET",
+          "detail": "target.x is not a finite number: nan",
+          "feedback_seen": null
+        }
+      ],
+      "planner_exit_codes": [
+        0
+      ],
+      "checks": [
+        {
+          "check": "bringup: NavigationSim ready",
+          "result": "PASS",
+          "detail": "NAVSIM_READY seen in tests/evidence/20261009T092454Z/target_nan/navsim.log"
+        },
+        {
+          "check": "bringup: security_gateway ready",
+          "result": "PASS",
+          "detail": "GATEWAY_READY seen in tests/evidence/20261009T092454Z/target_nan/gateway.log"
+        },
+        {
+          "check": "navsim Goal count == 0",
+          "result": "PASS",
+          "detail": "journal tests/evidence/20261009T092454Z/target_nan/navsim_goals.jsonl has 0 line(s)"
+        },
+        {
+          "check": "planner[nan] exit code == 0",
+          "result": "PASS",
+          "detail": "actual exit code 0"
+        },
+        {
+          "check": "planner[nan] Result.success == False",
+          "result": "PASS",
+          "detail": "status_code='INVALID_TARGET' detail='target.x is not a finite number: nan'"
+        },
+        {
+          "check": "planner[nan] status_code == INVALID_TARGET",
+          "result": "PASS",
+          "detail": "actual status_code='INVALID_TARGET'"
+        },
+        {
+          "check": "DecisionEvent reason_code sequence == ['INVALID_TARGET']",
+          "result": "PASS",
+          "detail": "actual sequence ['INVALID_TARGET']"
+        },
+        {
+          "check": "ExecutionEvent count == 0",
+          "result": "PASS",
+          "detail": "actual 0 ExecutionEvent(s): []"
+        },
+        {
+          "check": "RosCommEvent count == DecisionEvent count == planner runs",
+          "result": "PASS",
+          "detail": "comm=1 decision=1 planner_runs=1"
+        },
+        {
+          "check": "event_id traceability (1 RosComm + 1 Decision + <=1 Execution each)",
+          "result": "PASS",
+          "detail": "event_id groups: 1; malformed: none"
+        },
+        {
+          "check": "BLOCKed event_ids never have an ExecutionEvent",
+          "result": "PASS",
+          "detail": "leaked event_ids: none"
+        },
+        {
+          "check": "correlatable REJECTED log lines == 1",
+          "result": "PASS",
+          "detail": "found 1 REJECTED line(s) in tests/evidence/20261009T092454Z/target_nan/gateway.log"
+        },
+        {
+          "check": "every REJECTED line carries a BLOCKed request_id and event_id",
+          "result": "PASS",
+          "detail": "blocked request_ids=['neg-nan-0001']"
+        },
+        {
+          "check": "REJECTED lines declare downstream_goal_created=false",
+          "result": "PASS",
+          "detail": "checked 1 line(s)"
+        },
+        {
+          "check": "executor request_id set matches the ALLOWed set",
+          "result": "PASS",
+          "detail": "journal=[] expected=[]"
+        }
+      ],
+      "commands": [
+        {
+          "scenario": "target_nan",
+          "step": "navigation_sim",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "navigation_sim",
+            "--ros-args",
+            "-p",
+            "record_path:=/ws/tests/evidence/20261009T092454Z/target_nan/navsim_goals.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 33300,
+          "started_at": "2026-10-09T09:27:00Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/target_nan/navsim.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.201,
+          "finished_at": "2026-10-09T09:27:18Z",
+          "duration_sec": 17.379
+        },
+        {
+          "scenario": "target_nan",
+          "step": "security_gateway",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_gateway",
+            "security_gateway",
+            "--ros-args",
+            "-p",
+            "policy_path:=/ws/config/task_policy.yaml",
+            "-p",
+            "audit_log_path:=/ws/tests/evidence/20261009T092454Z/target_nan/audit.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 33301,
+          "started_at": "2026-10-09T09:27:00Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/target_nan/gateway.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.801,
+          "finished_at": "2026-10-09T09:27:10Z",
+          "duration_sec": 9.372
+        },
+        {
+          "scenario": "target_nan",
+          "step": "planner_run1:nan",
+          "kind": "ros2 run (one-shot)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "planner_node",
+            "--ros-args",
+            "-p",
+            "task_id:=patrol_a_001",
+            "-p",
+            "request_id:=neg-nan-0001",
+            "-p",
+            "frame_id:=map",
+            "-p",
+            "target_x:=nan",
+            "-p",
+            "target_y:=1.5",
+            "-p",
+            "expect_success:=0"
+          ],
+          "cwd": "/ws",
+          "started_at": "2026-10-09T09:27:01Z",
+          "finished_at": "2026-10-09T09:27:02Z",
+          "duration_sec": 0.565,
+          "exit_code": 0,
+          "log_path": "/ws/tests/evidence/20261009T092454Z/target_nan/planner_1_nan.log"
+        }
+      ],
+      "expectations": {
+        "navsim_goals": 0,
+        "decision_codes": [
+          "INVALID_TARGET"
+        ],
+        "execution_events": 0,
+        "reject_logs": 1,
+        "executed_request_ids": []
+      }
+    },
+    {
+      "scenario": "target_infinite",
+      "suite": "negative",
+      "description": "Goal target.y = inf: INVALID_TARGET, never coerced.",
+      "policy_path": "/ws/config/task_policy.yaml",
+      "result": "PASS",
+      "started_at": "2026-10-09T09:27:35Z",
+      "evidence_dir": "tests/evidence/20261009T092454Z/target_infinite",
+      "navsim_goal_count": 0,
+      "decision_sequence": [
+        "INVALID_TARGET"
+      ],
+      "execution_status_codes": [],
+      "reject_log_lines": 1,
+      "planner_results": [
+        {
+          "request_id": "neg-inf-0001",
+          "task_id": "patrol_a_001",
+          "frame_id": "map",
+          "target": {
+            "x": 1.5,
+            "y": Infinity,
+            "z": 0.0
+          },
+          "egress_action": "/rg/guarded_navigate",
+          "goal_id": "4cabeee2010140228007f75e0534ad50",
+          "outcome": "RESULT",
+          "accepted": true,
+          "goal_status": "STATUS_ABORTED",
+          "success": false,
+          "status_code": "INVALID_TARGET",
+          "detail": "target.y is not a finite number: inf",
+          "feedback_seen": null
+        }
+      ],
+      "planner_exit_codes": [
+        0
+      ],
+      "checks": [
+        {
+          "check": "bringup: NavigationSim ready",
+          "result": "PASS",
+          "detail": "NAVSIM_READY seen in tests/evidence/20261009T092454Z/target_infinite/navsim.log"
+        },
+        {
+          "check": "bringup: security_gateway ready",
+          "result": "PASS",
+          "detail": "GATEWAY_READY seen in tests/evidence/20261009T092454Z/target_infinite/gateway.log"
+        },
+        {
+          "check": "navsim Goal count == 0",
+          "result": "PASS",
+          "detail": "journal tests/evidence/20261009T092454Z/target_infinite/navsim_goals.jsonl has 0 line(s)"
+        },
+        {
+          "check": "planner[inf] exit code == 0",
+          "result": "PASS",
+          "detail": "actual exit code 0"
+        },
+        {
+          "check": "planner[inf] Result.success == False",
+          "result": "PASS",
+          "detail": "status_code='INVALID_TARGET' detail='target.y is not a finite number: inf'"
+        },
+        {
+          "check": "planner[inf] status_code == INVALID_TARGET",
+          "result": "PASS",
+          "detail": "actual status_code='INVALID_TARGET'"
+        },
+        {
+          "check": "DecisionEvent reason_code sequence == ['INVALID_TARGET']",
+          "result": "PASS",
+          "detail": "actual sequence ['INVALID_TARGET']"
+        },
+        {
+          "check": "ExecutionEvent count == 0",
+          "result": "PASS",
+          "detail": "actual 0 ExecutionEvent(s): []"
+        },
+        {
+          "check": "RosCommEvent count == DecisionEvent count == planner runs",
+          "result": "PASS",
+          "detail": "comm=1 decision=1 planner_runs=1"
+        },
+        {
+          "check": "event_id traceability (1 RosComm + 1 Decision + <=1 Execution each)",
+          "result": "PASS",
+          "detail": "event_id groups: 1; malformed: none"
+        },
+        {
+          "check": "BLOCKed event_ids never have an ExecutionEvent",
+          "result": "PASS",
+          "detail": "leaked event_ids: none"
+        },
+        {
+          "check": "correlatable REJECTED log lines == 1",
+          "result": "PASS",
+          "detail": "found 1 REJECTED line(s) in tests/evidence/20261009T092454Z/target_infinite/gateway.log"
+        },
+        {
+          "check": "every REJECTED line carries a BLOCKed request_id and event_id",
+          "result": "PASS",
+          "detail": "blocked request_ids=['neg-inf-0001']"
+        },
+        {
+          "check": "REJECTED lines declare downstream_goal_created=false",
+          "result": "PASS",
+          "detail": "checked 1 line(s)"
+        },
+        {
+          "check": "executor request_id set matches the ALLOWed set",
+          "result": "PASS",
+          "detail": "journal=[] expected=[]"
+        }
+      ],
+      "commands": [
+        {
+          "scenario": "target_infinite",
+          "step": "navigation_sim",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "navigation_sim",
+            "--ros-args",
+            "-p",
+            "record_path:=/ws/tests/evidence/20261009T092454Z/target_infinite/navsim_goals.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 33356,
+          "started_at": "2026-10-09T09:27:18Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/target_infinite/navsim.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.201,
+          "finished_at": "2026-10-09T09:27:35Z",
+          "duration_sec": 16.855
+        },
+        {
+          "scenario": "target_infinite",
+          "step": "security_gateway",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_gateway",
+            "security_gateway",
+            "--ros-args",
+            "-p",
+            "policy_path:=/ws/config/task_policy.yaml",
+            "-p",
+            "audit_log_path:=/ws/tests/evidence/20261009T092454Z/target_infinite/audit.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 33357,
+          "started_at": "2026-10-09T09:27:18Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/target_infinite/gateway.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.2,
+          "finished_at": "2026-10-09T09:27:27Z",
+          "duration_sec": 8.849
+        },
+        {
+          "scenario": "target_infinite",
+          "step": "planner_run1:inf",
+          "kind": "ros2 run (one-shot)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "planner_node",
+            "--ros-args",
+            "-p",
+            "task_id:=patrol_a_001",
+            "-p",
+            "request_id:=neg-inf-0001",
+            "-p",
+            "frame_id:=map",
+            "-p",
+            "target_x:=1.5",
+            "-p",
+            "target_y:=inf",
+            "-p",
+            "expect_success:=0"
+          ],
+          "cwd": "/ws",
+          "started_at": "2026-10-09T09:27:18Z",
+          "finished_at": "2026-10-09T09:27:19Z",
+          "duration_sec": 0.568,
+          "exit_code": 0,
+          "log_path": "/ws/tests/evidence/20261009T092454Z/target_infinite/planner_1_inf.log"
+        }
+      ],
+      "expectations": {
+        "navsim_goals": 0,
+        "decision_codes": [
+          "INVALID_TARGET"
+        ],
+        "execution_events": 0,
+        "reject_logs": 1,
+        "executed_request_ids": []
+      }
+    },
+    {
+      "scenario": "duplicate_request_id",
+      "suite": "negative",
+      "description": "Same request_id sent twice: ALLOW then DUPLICATE_REQUEST (replay guard).",
+      "policy_path": "/ws/config/task_policy.yaml",
+      "result": "PASS",
+      "started_at": "2026-10-09T09:27:53Z",
+      "evidence_dir": "tests/evidence/20261009T092454Z/duplicate_request_id",
+      "navsim_goal_count": 1,
+      "decision_sequence": [
+        "ALLOW_IN_POLICY",
+        "DUPLICATE_REQUEST"
+      ],
+      "execution_status_codes": [
+        "EXECUTED"
+      ],
+      "reject_log_lines": 1,
+      "planner_results": [
+        {
+          "request_id": "neg-dup-0001",
+          "task_id": "patrol_a_001",
+          "frame_id": "map",
+          "target": {
+            "x": 2.0,
+            "y": 2.0,
+            "z": 0.0
+          },
+          "egress_action": "/rg/guarded_navigate",
+          "goal_id": "49028d2384b84f3f8eb9a4a9e0cfb75c",
+          "outcome": "RESULT",
+          "accepted": true,
+          "goal_status": "STATUS_SUCCEEDED",
+          "success": true,
+          "status_code": "EXECUTED",
+          "detail": "recorded target (2.0, 2.0, 0.0) in frame map; no path planning performed",
+          "feedback_seen": {
+            "progress": 0.5,
+            "phase": "DOWNSTREAM:EXECUTING"
+          }
+        },
+        {
+          "request_id": "neg-dup-0001",
+          "task_id": "patrol_a_001",
+          "frame_id": "map",
+          "target": {
+            "x": 2.5,
+            "y": 2.5,
+            "z": 0.0
+          },
+          "egress_action": "/rg/guarded_navigate",
+          "goal_id": "e08bba770a1f437288c0cbf0dd00896c",
+          "outcome": "RESULT",
+          "accepted": true,
+          "goal_status": "STATUS_ABORTED",
+          "success": false,
+          "status_code": "DUPLICATE_REQUEST",
+          "detail": "request_id 'neg-dup-0001' was already received within the duplicate window",
+          "feedback_seen": null
+        }
+      ],
+      "planner_exit_codes": [
+        0,
+        0
+      ],
+      "checks": [
+        {
+          "check": "bringup: NavigationSim ready",
+          "result": "PASS",
+          "detail": "NAVSIM_READY seen in tests/evidence/20261009T092454Z/duplicate_request_id/navsim.log"
+        },
+        {
+          "check": "bringup: security_gateway ready",
+          "result": "PASS",
+          "detail": "GATEWAY_READY seen in tests/evidence/20261009T092454Z/duplicate_request_id/gateway.log"
+        },
+        {
+          "check": "navsim Goal count == 1",
+          "result": "PASS",
+          "detail": "journal tests/evidence/20261009T092454Z/duplicate_request_id/navsim_goals.jsonl has 1 line(s)"
+        },
+        {
+          "check": "planner[first] exit code == 0",
+          "result": "PASS",
+          "detail": "actual exit code 0"
+        },
+        {
+          "check": "planner[replay] exit code == 0",
+          "result": "PASS",
+          "detail": "actual exit code 0"
+        },
+        {
+          "check": "planner[first] Result.success == True",
+          "result": "PASS",
+          "detail": "status_code='EXECUTED' detail='recorded target (2.0, 2.0, 0.0) in frame map; no path planning performed'"
+        },
+        {
+          "check": "planner[first] status_code == EXECUTED",
+          "result": "PASS",
+          "detail": "actual status_code='EXECUTED'"
+        },
+        {
+          "check": "planner[replay] Result.success == False",
+          "result": "PASS",
+          "detail": "status_code='DUPLICATE_REQUEST' detail=\"request_id 'neg-dup-0001' was already received within the duplicate window\""
+        },
+        {
+          "check": "planner[replay] status_code == DUPLICATE_REQUEST",
+          "result": "PASS",
+          "detail": "actual status_code='DUPLICATE_REQUEST'"
+        },
+        {
+          "check": "DecisionEvent reason_code sequence == ['ALLOW_IN_POLICY', 'DUPLICATE_REQUEST']",
+          "result": "PASS",
+          "detail": "actual sequence ['ALLOW_IN_POLICY', 'DUPLICATE_REQUEST']"
+        },
+        {
+          "check": "ExecutionEvent count == 1",
+          "result": "PASS",
+          "detail": "actual 1 ExecutionEvent(s): ['EXECUTED']"
+        },
+        {
+          "check": "RosCommEvent count == DecisionEvent count == planner runs",
+          "result": "PASS",
+          "detail": "comm=2 decision=2 planner_runs=2"
+        },
+        {
+          "check": "event_id traceability (1 RosComm + 1 Decision + <=1 Execution each)",
+          "result": "PASS",
+          "detail": "event_id groups: 2; malformed: none"
+        },
+        {
+          "check": "BLOCKed event_ids never have an ExecutionEvent",
+          "result": "PASS",
+          "detail": "leaked event_ids: none"
+        },
+        {
+          "check": "correlatable REJECTED log lines == 1",
+          "result": "PASS",
+          "detail": "found 1 REJECTED line(s) in tests/evidence/20261009T092454Z/duplicate_request_id/gateway.log"
+        },
+        {
+          "check": "every REJECTED line carries a BLOCKed request_id and event_id",
+          "result": "PASS",
+          "detail": "blocked request_ids=['neg-dup-0001']"
+        },
+        {
+          "check": "REJECTED lines declare downstream_goal_created=false",
+          "result": "PASS",
+          "detail": "checked 1 line(s)"
+        },
+        {
+          "check": "executor request_id set matches the ALLOWed set",
+          "result": "PASS",
+          "detail": "journal=['neg-dup-0001'] expected=['neg-dup-0001']"
+        }
+      ],
+      "commands": [
+        {
+          "scenario": "duplicate_request_id",
+          "step": "navigation_sim",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "navigation_sim",
+            "--ros-args",
+            "-p",
+            "record_path:=/ws/tests/evidence/20261009T092454Z/duplicate_request_id/navsim_goals.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 33411,
+          "started_at": "2026-10-09T09:27:35Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/duplicate_request_id/navsim.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.201,
+          "finished_at": "2026-10-09T09:27:53Z",
+          "duration_sec": 18.007
+        },
+        {
+          "scenario": "duplicate_request_id",
+          "step": "security_gateway",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_gateway",
+            "security_gateway",
+            "--ros-args",
+            "-p",
+            "policy_path:=/ws/config/task_policy.yaml",
+            "-p",
+            "audit_log_path:=/ws/tests/evidence/20261009T092454Z/duplicate_request_id/audit.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 33412,
+          "started_at": "2026-10-09T09:27:35Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/duplicate_request_id/gateway.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.601,
+          "finished_at": "2026-10-09T09:27:45Z",
+          "duration_sec": 10.001
+        },
+        {
+          "scenario": "duplicate_request_id",
+          "step": "planner_run1:first",
+          "kind": "ros2 run (one-shot)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "planner_node",
+            "--ros-args",
+            "-p",
+            "task_id:=patrol_a_001",
+            "-p",
+            "request_id:=neg-dup-0001",
+            "-p",
+            "frame_id:=map",
+            "-p",
+            "target_x:=2.0",
+            "-p",
+            "target_y:=2.0",
+            "-p",
+            "expect_success:=1"
+          ],
+          "cwd": "/ws",
+          "started_at": "2026-10-09T09:27:35Z",
+          "finished_at": "2026-10-09T09:27:36Z",
+          "duration_sec": 0.572,
+          "exit_code": 0,
+          "log_path": "/ws/tests/evidence/20261009T092454Z/duplicate_request_id/planner_1_first.log"
+        },
+        {
+          "scenario": "duplicate_request_id",
+          "step": "planner_run2:replay",
+          "kind": "ros2 run (one-shot)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "planner_node",
+            "--ros-args",
+            "-p",
+            "task_id:=patrol_a_001",
+            "-p",
+            "request_id:=neg-dup-0001",
+            "-p",
+            "frame_id:=map",
+            "-p",
+            "target_x:=2.5",
+            "-p",
+            "target_y:=2.5",
+            "-p",
+            "expect_success:=0"
+          ],
+          "cwd": "/ws",
+          "started_at": "2026-10-09T09:27:36Z",
+          "finished_at": "2026-10-09T09:27:37Z",
+          "duration_sec": 0.821,
+          "exit_code": 0,
+          "log_path": "/ws/tests/evidence/20261009T092454Z/duplicate_request_id/planner_2_replay.log"
+        }
+      ],
+      "expectations": {
+        "navsim_goals": 1,
+        "decision_codes": [
+          "ALLOW_IN_POLICY",
+          "DUPLICATE_REQUEST"
+        ],
+        "execution_events": 1,
+        "reject_logs": 1,
+        "executed_request_ids": [
+          "neg-dup-0001"
+        ]
+      }
+    },
+    {
+      "scenario": "rate_limit",
+      "suite": "negative",
+      "description": "max_requests_per_minute=2: third in-region Goal is RATE_LIMIT.",
+      "policy_path": "/ws/config/scenarios/task_policy_low_rate.yaml",
+      "result": "PASS",
+      "started_at": "2026-10-09T09:28:11Z",
+      "evidence_dir": "tests/evidence/20261009T092454Z/rate_limit",
+      "navsim_goal_count": 2,
+      "decision_sequence": [
+        "ALLOW_IN_POLICY",
+        "ALLOW_IN_POLICY",
+        "RATE_LIMIT"
+      ],
+      "execution_status_codes": [
+        "EXECUTED",
+        "EXECUTED"
+      ],
+      "reject_log_lines": 1,
+      "planner_results": [
+        {
+          "request_id": "neg-rate-0001",
+          "task_id": "patrol_a_001",
+          "frame_id": "map",
+          "target": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "egress_action": "/rg/guarded_navigate",
+          "goal_id": "935a8e9843ee4ed99ea50ac0a1eb13bb",
+          "outcome": "RESULT",
+          "accepted": true,
+          "goal_status": "STATUS_SUCCEEDED",
+          "success": true,
+          "status_code": "EXECUTED",
+          "detail": "recorded target (1.0, 1.0, 0.0) in frame map; no path planning performed",
+          "feedback_seen": {
+            "progress": 0.5,
+            "phase": "DOWNSTREAM:EXECUTING"
+          }
+        },
+        {
+          "request_id": "neg-rate-0002",
+          "task_id": "patrol_a_001",
+          "frame_id": "map",
+          "target": {
+            "x": 2.0,
+            "y": 2.0,
+            "z": 0.0
+          },
+          "egress_action": "/rg/guarded_navigate",
+          "goal_id": "ca8292c3515e4baeaddf36df32abba0d",
+          "outcome": "RESULT",
+          "accepted": true,
+          "goal_status": "STATUS_SUCCEEDED",
+          "success": true,
+          "status_code": "EXECUTED",
+          "detail": "recorded target (2.0, 2.0, 0.0) in frame map; no path planning performed",
+          "feedback_seen": {
+            "progress": 0.5,
+            "phase": "DOWNSTREAM:EXECUTING"
+          }
+        },
+        {
+          "request_id": "neg-rate-0003",
+          "task_id": "patrol_a_001",
+          "frame_id": "map",
+          "target": {
+            "x": 3.0,
+            "y": 3.0,
+            "z": 0.0
+          },
+          "egress_action": "/rg/guarded_navigate",
+          "goal_id": "055371c889e44efe82cc7b867505b1b2",
+          "outcome": "RESULT",
+          "accepted": true,
+          "goal_status": "STATUS_ABORTED",
+          "success": false,
+          "status_code": "RATE_LIMIT",
+          "detail": "more than 2.0 admitted requests within 60.0s",
+          "feedback_seen": null
+        }
+      ],
+      "planner_exit_codes": [
+        0,
+        0,
+        0
+      ],
+      "checks": [
+        {
+          "check": "bringup: NavigationSim ready",
+          "result": "PASS",
+          "detail": "NAVSIM_READY seen in tests/evidence/20261009T092454Z/rate_limit/navsim.log"
+        },
+        {
+          "check": "bringup: security_gateway ready",
+          "result": "PASS",
+          "detail": "GATEWAY_READY seen in tests/evidence/20261009T092454Z/rate_limit/gateway.log"
+        },
+        {
+          "check": "navsim Goal count == 2",
+          "result": "PASS",
+          "detail": "journal tests/evidence/20261009T092454Z/rate_limit/navsim_goals.jsonl has 2 line(s)"
+        },
+        {
+          "check": "planner[r1] exit code == 0",
+          "result": "PASS",
+          "detail": "actual exit code 0"
+        },
+        {
+          "check": "planner[r2] exit code == 0",
+          "result": "PASS",
+          "detail": "actual exit code 0"
+        },
+        {
+          "check": "planner[r3] exit code == 0",
+          "result": "PASS",
+          "detail": "actual exit code 0"
+        },
+        {
+          "check": "planner[r1] Result.success == True",
+          "result": "PASS",
+          "detail": "status_code='EXECUTED' detail='recorded target (1.0, 1.0, 0.0) in frame map; no path planning performed'"
+        },
+        {
+          "check": "planner[r1] status_code == EXECUTED",
+          "result": "PASS",
+          "detail": "actual status_code='EXECUTED'"
+        },
+        {
+          "check": "planner[r2] Result.success == True",
+          "result": "PASS",
+          "detail": "status_code='EXECUTED' detail='recorded target (2.0, 2.0, 0.0) in frame map; no path planning performed'"
+        },
+        {
+          "check": "planner[r2] status_code == EXECUTED",
+          "result": "PASS",
+          "detail": "actual status_code='EXECUTED'"
+        },
+        {
+          "check": "planner[r3] Result.success == False",
+          "result": "PASS",
+          "detail": "status_code='RATE_LIMIT' detail='more than 2.0 admitted requests within 60.0s'"
+        },
+        {
+          "check": "planner[r3] status_code == RATE_LIMIT",
+          "result": "PASS",
+          "detail": "actual status_code='RATE_LIMIT'"
+        },
+        {
+          "check": "DecisionEvent reason_code sequence == ['ALLOW_IN_POLICY', 'ALLOW_IN_POLICY', 'RATE_LIMIT']",
+          "result": "PASS",
+          "detail": "actual sequence ['ALLOW_IN_POLICY', 'ALLOW_IN_POLICY', 'RATE_LIMIT']"
+        },
+        {
+          "check": "ExecutionEvent count == 2",
+          "result": "PASS",
+          "detail": "actual 2 ExecutionEvent(s): ['EXECUTED', 'EXECUTED']"
+        },
+        {
+          "check": "RosCommEvent count == DecisionEvent count == planner runs",
+          "result": "PASS",
+          "detail": "comm=3 decision=3 planner_runs=3"
+        },
+        {
+          "check": "event_id traceability (1 RosComm + 1 Decision + <=1 Execution each)",
+          "result": "PASS",
+          "detail": "event_id groups: 3; malformed: none"
+        },
+        {
+          "check": "BLOCKed event_ids never have an ExecutionEvent",
+          "result": "PASS",
+          "detail": "leaked event_ids: none"
+        },
+        {
+          "check": "correlatable REJECTED log lines == 1",
+          "result": "PASS",
+          "detail": "found 1 REJECTED line(s) in tests/evidence/20261009T092454Z/rate_limit/gateway.log"
+        },
+        {
+          "check": "every REJECTED line carries a BLOCKed request_id and event_id",
+          "result": "PASS",
+          "detail": "blocked request_ids=['neg-rate-0003']"
+        },
+        {
+          "check": "REJECTED lines declare downstream_goal_created=false",
+          "result": "PASS",
+          "detail": "checked 1 line(s)"
+        },
+        {
+          "check": "executor request_id set matches the ALLOWed set",
+          "result": "PASS",
+          "detail": "journal=['neg-rate-0001', 'neg-rate-0002'] expected=['neg-rate-0001', 'neg-rate-0002']"
+        }
+      ],
+      "commands": [
+        {
+          "scenario": "rate_limit",
+          "step": "navigation_sim",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "navigation_sim",
+            "--ros-args",
+            "-p",
+            "record_path:=/ws/tests/evidence/20261009T092454Z/rate_limit/navsim_goals.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 33490,
+          "started_at": "2026-10-09T09:27:53Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/rate_limit/navsim.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.201,
+          "finished_at": "2026-10-09T09:28:11Z",
+          "duration_sec": 18.356
+        },
+        {
+          "scenario": "rate_limit",
+          "step": "security_gateway",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_gateway",
+            "security_gateway",
+            "--ros-args",
+            "-p",
+            "policy_path:=/ws/config/scenarios/task_policy_low_rate.yaml",
+            "-p",
+            "audit_log_path:=/ws/tests/evidence/20261009T092454Z/rate_limit/audit.jsonl"
+          ],
+          "cwd": "/ws",
+          "pid": 33491,
+          "started_at": "2026-10-09T09:27:53Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/rate_limit/gateway.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.601,
+          "finished_at": "2026-10-09T09:28:03Z",
+          "duration_sec": 10.35
+        },
+        {
+          "scenario": "rate_limit",
+          "step": "planner_run1:r1",
+          "kind": "ros2 run (one-shot)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "planner_node",
+            "--ros-args",
+            "-p",
+            "task_id:=patrol_a_001",
+            "-p",
+            "request_id:=neg-rate-0001",
+            "-p",
+            "frame_id:=map",
+            "-p",
+            "target_x:=1.0",
+            "-p",
+            "target_y:=1.0",
+            "-p",
+            "expect_success:=1"
+          ],
+          "cwd": "/ws",
+          "started_at": "2026-10-09T09:27:53Z",
+          "finished_at": "2026-10-09T09:27:54Z",
+          "duration_sec": 0.566,
+          "exit_code": 0,
+          "log_path": "/ws/tests/evidence/20261009T092454Z/rate_limit/planner_1_r1.log"
+        },
+        {
+          "scenario": "rate_limit",
+          "step": "planner_run2:r2",
+          "kind": "ros2 run (one-shot)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "planner_node",
+            "--ros-args",
+            "-p",
+            "task_id:=patrol_a_001",
+            "-p",
+            "request_id:=neg-rate-0002",
+            "-p",
+            "frame_id:=map",
+            "-p",
+            "target_x:=2.0",
+            "-p",
+            "target_y:=2.0",
+            "-p",
+            "expect_success:=1"
+          ],
+          "cwd": "/ws",
+          "started_at": "2026-10-09T09:27:54Z",
+          "finished_at": "2026-10-09T09:27:54Z",
+          "duration_sec": 0.573,
+          "exit_code": 0,
+          "log_path": "/ws/tests/evidence/20261009T092454Z/rate_limit/planner_2_r2.log"
+        },
+        {
+          "scenario": "rate_limit",
+          "step": "planner_run3:r3",
+          "kind": "ros2 run (one-shot)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "planner_node",
+            "--ros-args",
+            "-p",
+            "task_id:=patrol_a_001",
+            "-p",
+            "request_id:=neg-rate-0003",
+            "-p",
+            "frame_id:=map",
+            "-p",
+            "target_x:=3.0",
+            "-p",
+            "target_y:=3.0",
+            "-p",
+            "expect_success:=0"
+          ],
+          "cwd": "/ws",
+          "started_at": "2026-10-09T09:27:54Z",
+          "finished_at": "2026-10-09T09:27:55Z",
+          "duration_sec": 0.568,
+          "exit_code": 0,
+          "log_path": "/ws/tests/evidence/20261009T092454Z/rate_limit/planner_3_r3.log"
+        }
+      ],
+      "expectations": {
+        "navsim_goals": 2,
+        "decision_codes": [
+          "ALLOW_IN_POLICY",
+          "ALLOW_IN_POLICY",
+          "RATE_LIMIT"
+        ],
+        "execution_events": 2,
+        "reject_logs": 1,
+        "executed_request_ids": [
+          "neg-rate-0001",
+          "neg-rate-0002"
+        ]
+      }
+    },
+    {
+      "scenario": "execution_timeout",
+      "suite": "negative",
+      "description": "Executor stalls past execution_timeout_sec: EXECUTION_TIMEOUT, audited.",
+      "policy_path": "/ws/config/task_policy.yaml",
+      "result": "PASS",
+      "started_at": "2026-10-09T09:28:30Z",
+      "evidence_dir": "tests/evidence/20261009T092454Z/execution_timeout",
+      "navsim_goal_count": 1,
+      "decision_sequence": [
+        "ALLOW_IN_POLICY"
+      ],
+      "execution_status_codes": [
+        "EXECUTION_TIMEOUT"
+      ],
+      "reject_log_lines": 0,
+      "planner_results": [
+        {
+          "request_id": "neg-timeout-0001",
+          "task_id": "patrol_a_001",
+          "frame_id": "map",
+          "target": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 0.0
+          },
+          "egress_action": "/rg/guarded_navigate",
+          "goal_id": "7b95642189ba4b7b92d6f6922283bffa",
+          "outcome": "RESULT",
+          "accepted": true,
+          "goal_status": "STATUS_ABORTED",
+          "success": false,
+          "status_code": "EXECUTION_TIMEOUT",
+          "detail": "downstream Goal 5f833ad1576b45768947132a5499e5ba WAS created and accepted, but its execution result did not arrive within 2.000s. Downstream execution state is UNKNOWN and the task may still be running. Cancel was REQUESTED_UNCONFIRMED (request sent, confirmation NOT awaited). This timeout is NOT evidence that the downstream stopped, and NOT evidence that it never executed.",
+          "feedback_seen": {
+            "progress": 0.5,
+            "phase": "DOWNSTREAM:EXECUTING"
+          }
+        }
+      ],
+      "planner_exit_codes": [
+        0
+      ],
+      "checks": [
+        {
+          "check": "bringup: NavigationSim ready",
+          "result": "PASS",
+          "detail": "NAVSIM_READY seen in tests/evidence/20261009T092454Z/execution_timeout/navsim.log"
+        },
+        {
+          "check": "bringup: security_gateway ready",
+          "result": "PASS",
+          "detail": "GATEWAY_READY seen in tests/evidence/20261009T092454Z/execution_timeout/gateway.log"
+        },
+        {
+          "check": "navsim Goal count == 1",
+          "result": "PASS",
+          "detail": "journal tests/evidence/20261009T092454Z/execution_timeout/navsim_goals.jsonl has 1 line(s)"
+        },
+        {
+          "check": "planner[timeout] exit code == 0",
+          "result": "PASS",
+          "detail": "actual exit code 0"
+        },
+        {
+          "check": "planner[timeout] Result.success == False",
+          "result": "PASS",
+          "detail": "status_code='EXECUTION_TIMEOUT' detail='downstream Goal 5f833ad1576b45768947132a5499e5ba WAS created and accepted, but its execution result did not arrive withi'"
+        },
+        {
+          "check": "planner[timeout] status_code == EXECUTION_TIMEOUT",
+          "result": "PASS",
+          "detail": "actual status_code='EXECUTION_TIMEOUT'"
+        },
+        {
+          "check": "DecisionEvent reason_code sequence == ['ALLOW_IN_POLICY']",
+          "result": "PASS",
+          "detail": "actual sequence ['ALLOW_IN_POLICY']"
+        },
+        {
+          "check": "ExecutionEvent count == 1",
+          "result": "PASS",
+          "detail": "actual 1 ExecutionEvent(s): ['EXECUTION_TIMEOUT']"
+        },
+        {
+          "check": "RosCommEvent count == DecisionEvent count == planner runs",
+          "result": "PASS",
+          "detail": "comm=1 decision=1 planner_runs=1"
+        },
+        {
+          "check": "event_id traceability (1 RosComm + 1 Decision + <=1 Execution each)",
+          "result": "PASS",
+          "detail": "event_id groups: 1; malformed: none"
+        },
+        {
+          "check": "BLOCKed event_ids never have an ExecutionEvent",
+          "result": "PASS",
+          "detail": "leaked event_ids: none"
+        },
+        {
+          "check": "correlatable REJECTED log lines == 0",
+          "result": "PASS",
+          "detail": "found 0 REJECTED line(s) in tests/evidence/20261009T092454Z/execution_timeout/gateway.log"
+        },
+        {
+          "check": "executor request_id set matches the ALLOWed set",
+          "result": "PASS",
+          "detail": "journal=['neg-timeout-0001'] expected=['neg-timeout-0001']"
+        }
+      ],
+      "commands": [
+        {
+          "scenario": "execution_timeout",
+          "step": "navigation_sim",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "navigation_sim",
+            "--ros-args",
+            "-p",
+            "record_path:=/ws/tests/evidence/20261009T092454Z/execution_timeout/navsim_goals.jsonl",
+            "-p",
+            "simulate_delay_sec:=10.0"
+          ],
+          "cwd": "/ws",
+          "pid": 33590,
+          "started_at": "2026-10-09T09:28:11Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/execution_timeout/navsim.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.201,
+          "finished_at": "2026-10-09T09:28:30Z",
+          "duration_sec": 19.208
+        },
+        {
+          "scenario": "execution_timeout",
+          "step": "security_gateway",
+          "kind": "ros2 run (long-running)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_gateway",
+            "security_gateway",
+            "--ros-args",
+            "-p",
+            "policy_path:=/ws/config/task_policy.yaml",
+            "-p",
+            "audit_log_path:=/ws/tests/evidence/20261009T092454Z/execution_timeout/audit.jsonl",
+            "-p",
+            "execution_timeout_sec:=2.0"
+          ],
+          "cwd": "/ws",
+          "pid": 33591,
+          "started_at": "2026-10-09T09:28:11Z",
+          "log_path": "/ws/tests/evidence/20261009T092454Z/execution_timeout/gateway.log",
+          "exit_code": 0,
+          "ready_after_sec": 0.601,
+          "finished_at": "2026-10-09T09:28:22Z",
+          "duration_sec": 11.2
+        },
+        {
+          "scenario": "execution_timeout",
+          "step": "planner_run1:timeout",
+          "kind": "ros2 run (one-shot)",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "planner_node",
+            "--ros-args",
+            "-p",
+            "task_id:=patrol_a_001",
+            "-p",
+            "request_id:=neg-timeout-0001",
+            "-p",
+            "frame_id:=map",
+            "-p",
+            "target_x:=1.5",
+            "-p",
+            "target_y:=1.5",
+            "-p",
+            "expect_success:=0"
+          ],
+          "cwd": "/ws",
+          "started_at": "2026-10-09T09:28:12Z",
+          "finished_at": "2026-10-09T09:28:14Z",
+          "duration_sec": 2.594,
+          "exit_code": 0,
+          "log_path": "/ws/tests/evidence/20261009T092454Z/execution_timeout/planner_1_timeout.log"
+        }
+      ],
+      "expectations": {
+        "navsim_goals": 1,
+        "decision_codes": [
+          "ALLOW_IN_POLICY"
+        ],
+        "execution_events": 1,
+        "reject_logs": 0,
+        "executed_request_ids": [
+          "neg-timeout-0001"
+        ]
+      }
+    }
+  ]
+}

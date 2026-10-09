@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "run_id": "m2_sros2_enforce",
+  "timestamp_utc": "2026-10-09T09:34:30Z",
+  "environment": {
+    "host_os": "Ubuntu 22.04.5 LTS",
+    "kernel": "6.18.40.1-microsoft-standard-WSL2",
+    "container_name": "rg_jazzy",
+    "ros_distro": "jazzy",
+    "rmw_implementation": "rmw_fastrtps_cpp",
+    "docker_image_id": "sha256:066420e07f60aa18262f2479981def87ebcfcec42eefb0c0c57c4a46098348ca",
+    "docker_image_digest": "ros@sha256:066420e07f60aa18262f2479981def87ebcfcec42eefb0c0c57c4a46098348ca",
+    "ros_domain_id": "42",
+    "python_version": "Python 3.12.3",
+    "rclpy_version": "7.1.12",
+    "sros2_version": "0.13.6",
+    "openssl_version": "OpenSSL 3.0.13 30 Jan 2024 (Library: OpenSSL 3.0.13 30 Jan 2024)",
+    "docker_image_ref": "ros:jazzy"
+  }
+}

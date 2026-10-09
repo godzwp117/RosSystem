@@ -1,0 +1,135 @@
+{
+  "run_id": "20261009T092838Z",
+  "finished_at": "2026-10-09T09:28:44Z",
+  "workspace": "${WORKSPACE}",
+  "suite": "build_guard",
+  "total": 2,
+  "passed": 2,
+  "failed": 0,
+  "scenarios": [
+    {
+      "scenario": "R6",
+      "suite": "build_guard",
+      "description": "空闲时（无运行中实例）构建必须成功",
+      "result": "PASS",
+      "started_at": "2026-10-09T09:28:44Z",
+      "evidence_dir": "tests/evidence/20261009T092838Z/R6",
+      "navsim_goal_count": 0,
+      "decision_sequence": [],
+      "execution_status_codes": [],
+      "reject_log_lines": 0,
+      "planner_results": [],
+      "planner_exit_codes": [
+        0
+      ],
+      "checks": [
+        {
+          "check": "前置条件：当前无运行中的常驻节点",
+          "result": "PASS",
+          "detail": "容器内节点数=0"
+        },
+        {
+          "check": "构建成功（exit 0）",
+          "result": "PASS",
+          "detail": "exit=0"
+        },
+        {
+          "check": "输出 BUILD RESULT: PASS",
+          "result": "PASS",
+          "detail": "BUILD RESULT: PASS"
+        },
+        {
+          "check": "构建前状态检查放行",
+          "result": "PASS",
+          "detail": "未发现运行中的受管理实例"
+        }
+      ],
+      "commands": [
+        {
+          "step": "build",
+          "argv": [
+            "bash",
+            "scripts/build.sh"
+          ],
+          "exit_code": 0,
+          "duration_sec": 1.929
+        }
+      ],
+      "expectations": {
+        "description": "空闲时（无运行中实例）构建必须成功"
+      }
+    },
+    {
+      "scenario": "R5",
+      "suite": "build_guard",
+      "description": "系统运行时构建被安全拒绝且实例不受影响",
+      "result": "PASS",
+      "started_at": "2026-10-09T09:28:44Z",
+      "evidence_dir": "tests/evidence/20261009T092838Z/R5",
+      "navsim_goal_count": 0,
+      "decision_sequence": [],
+      "execution_status_codes": [],
+      "reject_log_lines": 0,
+      "planner_results": [],
+      "planner_exit_codes": [
+        4
+      ],
+      "checks": [
+        {
+          "check": "前置条件：受管理实例已启动并就绪",
+          "result": "PASS",
+          "detail": "start_system.sh 输出就绪横幅"
+        },
+        {
+          "check": "前置条件：实例三个常驻节点存活",
+          "result": "PASS",
+          "detail": "容器内节点数=3"
+        },
+        {
+          "check": "系统运行时构建被拒绝（exit 4）",
+          "result": "PASS",
+          "detail": "exit=4"
+        },
+        {
+          "check": "给出明确拒绝原因与处置建议",
+          "result": "PASS",
+          "detail": "[refused] 构建被拒绝：系统正在运行（exit 4）; ERROR: 检测到正在运行的受管理实例，拒绝执行本次操作。"
+        },
+        {
+          "check": "明确声明未执行 colcon build",
+          "result": "PASS",
+          "detail": "未执行 colcon build"
+        },
+        {
+          "check": "未出现 pkill 副作用输出",
+          "result": "PASS",
+          "detail": "无 reap 输出"
+        },
+        {
+          "check": "被拒绝后实例仍在运行（节点数不变）",
+          "result": "PASS",
+          "detail": "before=3 after=3"
+        },
+        {
+          "check": "被拒绝后节点 PID 完全一致（未被打断）",
+          "result": "PASS",
+          "detail": "PID 集合一致"
+        }
+      ],
+      "commands": [
+        {
+          "step": "build",
+          "argv": [
+            "bash",
+            "scripts/build.sh"
+          ],
+          "exit_code": 4,
+          "duration_sec": 0.371
+        }
+      ],
+      "expectations": {
+        "description": "系统运行时构建被安全拒绝且实例不受影响"
+      }
+    }
+  ]
+}
