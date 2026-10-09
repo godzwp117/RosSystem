@@ -21,3 +21,11 @@ security/keystore/
 *.pfx
 *.crt
 *.csr
+
+# 验收证据包（Schema / 工具 / 说明纳入版本控制，导出的证据包不纳入）
+/artifacts/acceptance/exports/*
+!/artifacts/acceptance/exports/.gitkeep
+
+# M2 SROS 2 密钥材料：绝不入库
+/security/keystore/
+/security/enclaves/

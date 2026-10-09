@@ -1,0 +1,325 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/godzwp117/RosSystem/artifacts/acceptance/schema/acceptance.schema.json",
+  "title": "RosSystem 验收证据包 Schema",
+  "description": "定义 artifacts/acceptance/exports/<run_id>/ 证据包的冻结数据契约。manifest.json 校验根 Schema；test_results.json 与 security_results.json 校验 #/$defs/test_results 与 #/$defs/security_results；file_hashes.json 校验 #/$defs/file_hashes。schema_version 1.0 的字段名不得任意更名，只允许向后兼容地扩展。",
+  "version": "1.0",
+
+  "type": "object",
+  "required": [
+    "schema_version",
+    "run_id",
+    "timestamp_utc",
+    "phase",
+    "status",
+    "source",
+    "environment",
+    "security_mode",
+    "test_summary"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": ["1.0"],
+      "description": "证据包数据契约版本。"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{2,63}$",
+      "description": "唯一运行标识，同时用作证据包目录名。"
+    },
+    "timestamp_utc": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$",
+      "description": "证据包生成时刻，ISO8601 UTC，以 Z 结尾。"
+    },
+    "phase": {
+      "type": "string",
+      "enum": ["P0", "M1", "M2"],
+      "description": "该证据包对应的阶段。"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["PASS", "FAIL", "PARTIAL", "BLOCKED"],
+      "description": "该阶段总体结论。禁止在无实际执行证据时填 PASS。"
+    },
+    "source": { "$ref": "#/$defs/source" },
+    "environment": { "$ref": "#/$defs/environment" },
+    "security_mode": {
+      "type": "string",
+      "enum": ["disabled", "enforce"],
+      "description": "本次运行实际生效的 ROS 2 / DDS 安全模式。disabled = 未启用 SROS 2。"
+    },
+    "test_summary": { "$ref": "#/$defs/test_summary" },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "可选备注：环境限制、未验证项、阻塞原因等。"
+    },
+    "artifacts": { "$ref": "#/$defs/artifacts" },
+    "status_matrix": { "$ref": "#/$defs/status_matrix" }
+  },
+  "additionalProperties": true,
+
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["repository", "commit_sha", "git_dirty"],
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "commit_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$",
+          "description": "git rev-parse HEAD 的实际输出。"
+        },
+        "git_dirty": {
+          "type": "boolean",
+          "description": "证据生成时工作区是否存在未提交改动。"
+        },
+        "dirty_files": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "git status --porcelain 的原始行（未提交改动清单）。"
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "证据生成时指向 HEAD 的标签（若有）。"
+        }
+      },
+      "additionalProperties": true
+    },
+
+    "environment": {
+      "type": "object",
+      "required": [
+        "host_os",
+        "container_name",
+        "ros_distro",
+        "rmw_implementation",
+        "docker_image_id",
+        "docker_image_digest"
+      ],
+      "properties": {
+        "host_os": { "type": "string", "minLength": 1 },
+        "container_name": { "type": "string", "minLength": 1 },
+        "ros_distro": { "type": "string", "minLength": 1 },
+        "rmw_implementation": { "type": "string", "minLength": 1 },
+        "docker_image_id": { "type": "string", "minLength": 1 },
+        "docker_image_digest": {
+          "type": ["string", "null"],
+          "description": "RepoDigest。镜像没有可用 RepoDigest 时必须为 null，不允许编造。"
+        },
+        "python_version": { "type": "string" },
+        "rclpy_version": { "type": "string" },
+        "sros2_version": { "type": "string" },
+        "openssl_version": { "type": "string" },
+        "ros_domain_id": { "type": "string" },
+        "kernel": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+
+    "test_summary": {
+      "type": "object",
+      "required": ["passed", "failed", "not_run"],
+      "properties": {
+        "passed": { "type": "integer", "minimum": 0 },
+        "failed": { "type": "integer", "minimum": 0 },
+        "not_run": { "type": "integer", "minimum": 0 },
+        "blocked": { "type": "integer", "minimum": 0 },
+        "total": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+
+    "scenario": {
+      "type": "object",
+      "required": [
+        "scenario_id",
+        "scenario_name",
+        "expected_result",
+        "actual_result",
+        "status",
+        "command",
+        "exit_code",
+        "duration_ms",
+        "log_path",
+        "evidence_files",
+        "reason_code"
+      ],
+      "properties": {
+        "scenario_id": { "type": "string", "minLength": 1 },
+        "scenario_name": { "type": "string", "minLength": 1 },
+        "expected_result": { "type": "string", "minLength": 1 },
+        "actual_result": { "type": "string", "minLength": 1 },
+        "status": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "NOT_RUN", "PARTIAL", "BLOCKED"],
+          "description": "未执行必须显式为 NOT_RUN，禁止默认按通过处理。"
+        },
+        "command": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "实际执行的完整命令 argv。"
+        },
+        "exit_code": {
+          "type": ["integer", "null"],
+          "description": "进程返回码；未执行时为 null。"
+        },
+        "duration_ms": { "type": ["integer", "null"], "minimum": 0 },
+        "log_path": {
+          "type": ["string", "null"],
+          "description": "相对证据包根目录的日志路径；无日志时为 null。"
+        },
+        "evidence_files": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "相对证据包根目录的支撑文件列表。"
+        },
+        "reason_code": {
+          "type": ["string", "null"],
+          "description": "业务原因码 / 拒绝原因；不适用时为 null。"
+        },
+        "security_mode": { "type": "string", "enum": ["disabled", "enforce"] },
+        "source_role": { "type": ["string", "null"] },
+        "source_enclave": { "type": ["string", "null"] },
+        "requested_resource": { "type": ["string", "null"] },
+        "downstream_goal_count": { "type": ["integer", "null"], "minimum": 0 },
+        "rejection_layer": {
+          "type": ["string", "null"],
+          "enum": [
+            "dds_security",
+            "action_server_unreachable",
+            "business_task_policy",
+            "not_applicable",
+            null
+          ],
+          "description": "拒绝发生在哪一层。仅客户端超时不足以证明 DDS 权限生效，需另外归因。"
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["check", "result", "detail"],
+            "properties": {
+              "check": { "type": "string" },
+              "result": { "type": "string", "enum": ["PASS", "FAIL"] },
+              "detail": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+
+    "test_results": {
+      "type": "object",
+      "required": ["schema_version", "run_id", "scenarios"],
+      "properties": {
+        "schema_version": { "type": "string", "enum": ["1.0"] },
+        "run_id": { "type": "string" },
+        "generated_from": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "scenarios": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/scenario" }
+        }
+      },
+      "additionalProperties": true
+    },
+
+    "security_results": {
+      "type": "object",
+      "required": ["schema_version", "run_id", "security_mode", "scenarios"],
+      "properties": {
+        "schema_version": { "type": "string", "enum": ["1.0"] },
+        "run_id": { "type": "string" },
+        "security_mode": { "type": "string", "enum": ["disabled", "enforce"] },
+        "keystore_path": { "type": ["string", "null"] },
+        "enclaves": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["enclave", "role"],
+            "properties": {
+              "enclave": { "type": "string" },
+              "role": { "type": "string" },
+              "allowed_resources": { "type": "array", "items": { "type": "string" } },
+              "denied_resources": { "type": "array", "items": { "type": "string" } }
+            },
+            "additionalProperties": true
+          }
+        },
+        "scenarios": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/scenario" }
+        }
+      },
+      "additionalProperties": true
+    },
+
+    "file_hashes": {
+      "type": "object",
+      "required": ["schema_version", "run_id", "algorithm", "files"],
+      "properties": {
+        "schema_version": { "type": "string", "enum": ["1.0"] },
+        "run_id": { "type": "string" },
+        "algorithm": { "type": "string", "enum": ["sha256"] },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "sha256", "size_bytes"],
+            "properties": {
+              "path": { "type": "string" },
+              "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+              "size_bytes": { "type": "integer", "minimum": 0 }
+            },
+            "additionalProperties": false
+          }
+        },
+        "excluded": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "按脱敏规则排除、未纳入证据包的文件（不得含私钥）。"
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "artifacts": {
+      "type": "object",
+      "properties": {
+        "archive": { "type": ["string", "null"] },
+        "archive_sha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+        "file_count": { "type": "integer", "minimum": 0 },
+        "total_bytes": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+
+    "status_matrix": {
+      "type": "array",
+      "description": "最终状态矩阵。每项结果只允许 PASS/FAIL/PARTIAL/BLOCKED/NOT_RUN。",
+      "items": {
+        "type": "object",
+        "required": ["item", "result"],
+        "properties": {
+          "item": { "type": "string", "minLength": 1 },
+          "requirement": { "type": "string" },
+          "result": {
+            "type": "string",
+            "enum": ["PASS", "FAIL", "PARTIAL", "BLOCKED", "NOT_RUN"]
+          },
+          "detail": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}

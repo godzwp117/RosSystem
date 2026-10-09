@@ -497,6 +497,15 @@ def run_scenario(scenario: Scenario, evidence_dir: str) -> Dict[str, Any]:
         'planner_exit_codes': planner_exits,
         'checks': [check.to_dict() for check in checks],
         'commands': commands,
+        # 显式记录期望值，使验收证据包能给出 expected vs actual 对照，
+        # 而不是只留一个结论性的 PASS/FAIL。
+        'expectations': {
+            'navsim_goals': scenario.expect_navsim_goals,
+            'decision_codes': list(scenario.expect_decision_codes),
+            'execution_events': scenario.expect_execution_events,
+            'reject_logs': scenario.expect_reject_logs,
+            'executed_request_ids': list(scenario.expect_executed_request_ids),
+        },
     }
     with open(os.path.join(scenario_dir, 'commands.json'), 'w', encoding='utf-8') as handle:
         json.dump(commands, handle, ensure_ascii=False, indent=2)
