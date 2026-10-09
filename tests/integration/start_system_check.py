@@ -102,7 +102,10 @@ class Scenario:
         self.dir = None
 
     def check(self, name, ok, detail):
-        self.checks.append({'check': name, 'result': 'PASS' if ok else 'FAIL', 'detail': detail})
+        # detail 必须是字符串：schema 要求 string，列表需显式拼装
+        if isinstance(detail, (list, tuple)):
+            detail = '; '.join(str(item) for item in detail) or '(empty)'
+        self.checks.append({'check': name, 'result': 'PASS' if ok else 'FAIL', 'detail': str(detail)})
         return ok
 
     def command(self, argv, exit_code, duration, log_path=None):
@@ -198,9 +201,9 @@ def main(argv=None) -> int:
     up_ok = '/rg/guarded_navigate' in actions and 'rg_interfaces/action/PatrolNavigate' in actions
     down_ok = '/rg/nav_execute' in actions and 'rg_interfaces/action/PatrolNavigate' in actions
     sc1.check('/rg/guarded_navigate 可发现且类型为 rg_interfaces/action/PatrolNavigate', up_ok,
-              [l for l in actions.splitlines() if 'guarded_navigate' in l] or '未发现')
+              '; '.join(l for l in actions.splitlines() if 'guarded_navigate' in l) or '未发现')
     sc1.check('/rg/nav_execute 可发现且类型为 rg_interfaces/action/PatrolNavigate', down_ok,
-              [l for l in actions.splitlines() if 'nav_execute' in l] or '未发现')
+              '; '.join(l for l in actions.splitlines() if 'nav_execute' in l) or '未发现')
 
     nodes = live_node_processes()
     with open(os.path.join(sc1.dir, 'node_processes.txt'), 'w', encoding='utf-8') as handle:
@@ -236,7 +239,7 @@ def main(argv=None) -> int:
               '实际返回码 {0}'.format(dup.returncode))
     sc2.check('重复启动明确提示已有实例',
               'RoboGuard 系统实例' in (dup.stdout + dup.stderr),
-              [l for l in (dup.stdout + dup.stderr).splitlines() if '已有' in l or '拒绝' in l][:2])
+              '; '.join(l for l in (dup.stdout + dup.stderr).splitlines() if '已有' in l or '拒绝' in l))
     nodes_after = live_node_processes()
     sc2.check('重复启动后节点数量未变（无重复 Gateway/NavigationSim）',
               len(nodes_after) == len(nodes),

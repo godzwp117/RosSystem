@@ -289,6 +289,13 @@ def scenario_from_runner_entry(entry: dict, pkg: 'PackageBuilder', evidence_rel:
     planner_exits = [c for c in (entry.get('planner_exit_codes') or []) if c is not None]
     if planner_exits:
         exit_code = planner_exits[0]
+    else:
+        # 非业务场景（如 start_system 生命周期检查）没有 planner 退出码，
+        # 回退到最后一个有返回码的命令，保证 PASS 场景也有真实返回码可核。
+        for command in reversed(commands):
+            if command.get('exit_code') is not None:
+                exit_code = command['exit_code']
+                break
 
     decision_codes = entry.get('decision_sequence') or []
     exec_codes = entry.get('execution_status_codes') or []
