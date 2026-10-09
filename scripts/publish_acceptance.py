@@ -143,12 +143,22 @@ def rebuild_file_hashes(pkg_dir: str, run_id: str) -> int:
     return len(entries)
 
 
-def make_archive(pkg_dir: str, archive_path: str) -> str:
+def make_archive(pkg_dir: str, archive_path: str, mtime: int = 0) -> str:
+    """生成归档。成员 mtime 固定，保证同一内容产生字节一致的归档（幂等前提）。"""
     if os.path.exists(archive_path):
         os.remove(archive_path)
     run_id = os.path.basename(pkg_dir)
+
+    def _normalize(info):
+        info.mtime = mtime
+        info.uid = 0
+        info.gid = 0
+        info.uname = ''
+        info.gname = ''
+        return info
+
     with tarfile.open(archive_path, 'w:gz') as archive:
-        archive.add(pkg_dir, arcname=run_id)
+        archive.add(pkg_dir, arcname=run_id, filter=_normalize)
     digest = sha256_file(archive_path)
     with open(archive_path + '.sha256', 'w', encoding='utf-8') as handle:
         handle.write('{0}  {1}\n'.format(digest, os.path.basename(archive_path)))
@@ -240,7 +250,12 @@ def main(argv=None) -> int:
     parser.add_argument('--dry-run', action='store_true', help='只做脱敏/校验/扫描，不推送')
     parser.add_argument('--no-push', action='store_true', help='提交到本地 worktree 但不推送')
     parser.add_argument('--max-retries', type=int, default=3)
+    parser.add_argument('--remove-run', default=None,
+                        help='从证据分支移除某个已发布的 run_id（普通提交，非强推）')
     args = parser.parse_args(argv)
+
+    if args.remove_run:
+        return remove_published_run(args)
 
     run_id = args.run_id
     src_dir = args.source_dir or os.path.join(EXPORTS_DIR, run_id)
@@ -286,6 +301,28 @@ def main(argv=None) -> int:
         source_archive_sha = sha256_file(source_archive) if os.path.isfile(source_archive) else None
         result['source_package_sha256'] = source_archive_sha
 
+        # 幂等前置检查：若远程证据分支已有同一 run_id 且 source_package_sha256 相同，
+        # 说明这份证据已经发布过，直接返回，不产生任何新提交。
+        if not args.dry_run and remote_branch_exists(args.remote, args.branch):
+            run(['git', '-C', REPO_ROOT, 'fetch', args.remote, args.branch], timeout=300)
+            rel = 'artifacts/acceptance/published/{0}.publish.json'.format(run_id)
+            code, published_json = run(['git', '-C', REPO_ROOT, 'show',
+                                        'FETCH_HEAD:{0}'.format(rel)], timeout=120)
+            if code == 0:
+                try:
+                    existing = json.loads(published_json)
+                except json.JSONDecodeError:
+                    existing = {}
+                if (existing.get('source_package_sha256')
+                        and existing.get('source_package_sha256') == source_archive_sha):
+                    result['status'] = STATUS_ALREADY
+                    result['remote_sha'] = remote_sha(args.remote, args.branch)
+                    result['detail'] = ('同一 run_id 且源包哈希一致，已发布过，未产生新提交')
+                    step('幂等检查（远程已有同源同 run_id 的发布）', True,
+                         'source_package_sha256={0}'.format(str(source_archive_sha)[:16]))
+                    print(json.dumps(result, ensure_ascii=False))
+                    return 0
+
         # ② 脱敏到 staging
         staging_root = tempfile.mkdtemp(prefix='rg_publish_')
         redacted_dir = os.path.join(staging_root, run_id)
@@ -313,9 +350,12 @@ def main(argv=None) -> int:
         with open(os.path.join(src_dir, 'manifest.json'), 'r', encoding='utf-8') as handle:
             src_manifest = json.load(handle)
         source_commit = (src_manifest.get('source') or {}).get('commit_sha')
+        # 脱敏时间取源包时间戳而不是当前时间：同一次运行的重复发布会得到
+        # 完全一致的公开副本，幂等判断才有意义。
+        redacted_at = (src_manifest.get('timestamp_utc') or utc_now())
         redaction_block = {
             'redacted': True,
-            'redacted_at': utc_now(),
+            'redacted_at': redacted_at,
             'source_run_id': run_id,
             'source_commit_sha': source_commit,
             'source_package_sha256': source_archive_sha,
@@ -353,7 +393,7 @@ def main(argv=None) -> int:
             'published_archive_sha256': archive_digest,
             'content_digest': sha256_tree(published_run_dir),
             'redaction': redaction_block,
-            'created_at': utc_now(),
+            'created_at': redacted_at,
             'note': ('归档哈希记录在包外，避免"归档哈希写回包内 manifest 导致归档变化"的循环依赖；'
                      '包内 manifest.artifacts.archive_sha256 因此为 null。'),
         }
@@ -422,7 +462,38 @@ def main(argv=None) -> int:
                 print(json.dumps(result, ensure_ascii=False))
                 return 1
             if not exists:
+                # 关键：`git checkout --orphan` 会**保留当前索引与工作树**，
+                # 于是新分支会继承整棵源码树（实测把 426 个源码文件推上了证据分支）。
+                # 必须显式清空索引，并把工作树里遗留的受版本管理文件删掉。
                 git(worktree, 'checkout', '--orphan', args.branch)
+                git(worktree, 'rm', '-rf', '--cached', '.')
+                code, out = git(worktree, 'ls-files')
+                if out.strip():
+                    step('清空继承的索引（孤儿分支必须从空开始）', False, out.strip()[:200])
+                    result['status'] = STATUS_FAIL
+                    print(json.dumps(result, ensure_ascii=False))
+                    return 1
+                step('清空继承的索引（孤儿分支从空开始）', True, 'index empty')
+            # 无论是新建分支还是复用已存在分支，索引里都可能混入非证据内容
+            # （新建时来自 checkout --orphan 继承的索引；复用时来自历史污染）。
+            # 这里先把树里所有非 artifacts/acceptance/published/** 的路径移除，
+            # 使证据分支的内容**恒等于**"已发布证据集合"。这是普通提交而非强推，
+            # 历史不会被销毁，但后续每个版本的树都是干净的。
+            listing = git(worktree, 'ls-tree', '-r', '--name-only', 'HEAD')[1].split()
+            prefix = 'artifacts/acceptance/published/'
+            extras = sorted(p for p in listing if p.strip() and not p.startswith(prefix))
+            if extras:
+                chunks = [extras[i:i + 200] for i in range(0, len(extras), 200)]
+                for chunk in chunks:
+                    git(worktree, 'rm', '-r', '-q', '--ignore-unmatch', '--', *chunk)
+                step('清理证据分支上的非证据内容', True,
+                     '移除 {0} 个文件（一次普通提交，非强推）'.format(len(extras)))
+            # 证据分支不应继承代码分支的忽略规则：published/ 在功能分支被 .gitignore
+            # 排除（本地暂存不跟踪），若沿用该规则，`git add` 会**静默地什么都不加**，
+            # 结果提交了空内容却报告成功。这里删掉工作树中的 .gitignore 并强制添加。
+            ignore_in_worktree = os.path.join(worktree, '.gitignore')
+            if os.path.isfile(ignore_in_worktree):
+                os.remove(ignore_in_worktree)
 
             dest_rel = os.path.join('artifacts', 'acceptance', 'published')
             dest_abs = os.path.join(worktree, dest_rel)
@@ -443,7 +514,23 @@ def main(argv=None) -> int:
                 with open(readme, 'w', encoding='utf-8') as handle:
                     handle.write(PUBLISHED_README)
 
-            git(worktree, 'add', '-A', '--', 'artifacts/acceptance/published')
+            git(worktree, 'add', '-f', '-A', '--', 'artifacts/acceptance/published')
+
+            staged = [p for p in git(worktree, 'diff', '--cached', '--name-only')[1].split()
+                      if p.strip()]
+            expected_manifest = os.path.join(dest_rel, run_id, 'manifest.json').replace(os.sep, '/')
+            if not staged:
+                pass  # 幂等路径：无变化，稍后按 ALREADY_PUBLISHED 处理
+            elif expected_manifest not in staged:
+                step('本次证据确实被加入提交', False,
+                     '期望 {0}，实际 staged {1} 个'.format(expected_manifest, len(staged)))
+                result['status'] = STATUS_FAIL
+                result['detail'] = 'git add 未真正加入证据文件（很可能被忽略规则吞掉），已中止推送'
+                print(json.dumps(result, ensure_ascii=False))
+                return 1
+            else:
+                step('本次证据确实被加入提交', True, '{0} 个文件'.format(len(staged)))
+
             code, out = git(worktree, 'diff', '--cached', '--quiet')
             if code == 0:
                 result['status'] = STATUS_ALREADY
@@ -462,6 +549,27 @@ def main(argv=None) -> int:
                     return 1
                 local_sha = git(worktree, 'rev-parse', 'HEAD')[1].strip()
                 result['local_commit_sha'] = local_sha
+
+                # 最终闸门：校验**提交后的结果树**，而不是 diff。
+                # diff 只反映本次相对父提交的改动，看不到从父提交继承来的内容 ——
+                # 第一版正因只看 diff，把 426 个源码文件随证据一起推了上去。
+                tree = git(worktree, 'ls-tree', '-r', '--name-only', 'HEAD')[1].split()
+                prefix = dest_rel.replace(os.sep, '/') + '/'
+                outside = sorted(p for p in tree if p.strip() and not p.startswith(prefix))
+                if outside:
+                    step('结果树只含证据文件（按树校验，非按 diff）', False,
+                         '越界 {0} 个，例如 {1}'.format(len(outside), outside[:5]))
+                    result['status'] = STATUS_FAIL
+                    result['detail'] = '证据分支树内容越界，已中止推送'
+                    print(json.dumps(result, ensure_ascii=False))
+                    return 1
+                if expected_manifest not in tree:
+                    step('结果树包含本次证据 manifest', False, expected_manifest)
+                    result['status'] = STATUS_FAIL
+                    print(json.dumps(result, ensure_ascii=False))
+                    return 1
+                step('结果树只含证据文件（按树校验，非按 diff）', True,
+                     '{0} 个文件，全部位于 {1}'.format(len(tree), dest_rel))
 
                 if args.no_push:
                     result['status'] = STATUS_NO_CHANGES
@@ -490,6 +598,21 @@ def main(argv=None) -> int:
                     if pushed:
                         result['status'] = STATUS_PUBLISHED
                         result['remote_sha'] = remote_sha(args.remote, args.branch)
+                        # 远程复核：必须**重新 fetch** 后再看树。
+                        # 直接读 FETCH_HEAD 会拿到推送前的旧引用，产生假失败。
+                        run(['git', '-C', REPO_ROOT, 'fetch', args.remote, args.branch],
+                            timeout=300)
+                        rc, listing = run(['git', '-C', REPO_ROOT, 'ls-tree', '-r',
+                                           '--name-only', 'FETCH_HEAD'], timeout=120)
+                        top = {line.split('/')[0] for line in listing.splitlines() if line.strip()}
+                        unexpected = sorted(t for t in top if t != 'artifacts')
+                        result['remote_tree_ok'] = not unexpected
+                        if unexpected:
+                            step('远程树只含证据目录', False, '发现额外顶层条目: {0}'.format(unexpected))
+                            result['status'] = STATUS_BLOCKED
+                            result['detail'] = '远程证据分支出现非证据内容，请人工处理'
+                        else:
+                            step('远程树只含证据目录', True, 'ok')
                     else:
                         result['status'] = STATUS_BLOCKED
                         result['detail'] = ('推送失败（网络/权限/冲突）：本地待发布产物已保留，'
@@ -509,6 +632,55 @@ def main(argv=None) -> int:
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result['status'] in (STATUS_PUBLISHED, STATUS_ALREADY, 'DRY_RUN',
                                      STATUS_NO_CHANGES) else 1
+
+
+def remove_published_run(args) -> int:
+    """从证据分支移除某个已发布的 run（用于撤回误发布的测试包）。
+
+    使用普通提交删除文件，不做强推、不改写历史，删除动作本身留在提交记录里可审计。
+    """
+    run_id = args.remove_run
+    if not remote_branch_exists(args.remote, args.branch):
+        print('ERROR: 证据分支不存在: {0}/{1}'.format(args.remote, args.branch))
+        return 2
+    run(['git', '-C', REPO_ROOT, 'fetch', args.remote, args.branch], timeout=300)
+    worktree = tempfile.mkdtemp(prefix='rg_evidence_rm_')
+    os.rmdir(worktree)
+    try:
+        code, out = run(['git', '-C', REPO_ROOT, 'worktree', 'add', '--detach', worktree,
+                         'FETCH_HEAD'], timeout=300)
+        if code != 0:
+            print('ERROR: 创建 worktree 失败: {0}'.format(out.strip()[-200:]))
+            return 1
+        prefix = 'artifacts/acceptance/published/'
+        listing = git(worktree, 'ls-tree', '-r', '--name-only', 'HEAD')[1].split()
+        targets = sorted(p for p in listing if p.strip().startswith(prefix + run_id)
+                         or p.strip() == prefix + run_id + '.tar.gz'
+                         or p.strip() == prefix + run_id + '.tar.gz.sha256'
+                         or p.strip() == prefix + run_id + '.publish.json')
+        if not targets:
+            print('NOTHING_TO_REMOVE {0}'.format(run_id))
+            return 0
+        for i in range(0, len(targets), 200):
+            git(worktree, 'rm', '-q', '--ignore-unmatch', '--', *targets[i:i + 200])
+        code, out = git(worktree, 'commit', '-m',
+                        'evidence({0}): remove published package\n\n'
+                        '撤回测试包；普通提交删除，历史保留可审计。'.format(run_id))
+        if code != 0:
+            print('ERROR: 提交失败: {0}'.format(out.strip()[-200:]))
+            return 1
+        code, out = git(worktree, 'push', args.remote,
+                        'HEAD:refs/heads/{0}'.format(args.branch), timeout=300)
+        if code != 0:
+            run(['git', '-C', REPO_ROOT, 'fetch', args.remote, args.branch], timeout=300)
+            git(worktree, 'rebase', 'FETCH_HEAD')
+            code, out = git(worktree, 'push', args.remote,
+                            'HEAD:refs/heads/{0}'.format(args.branch), timeout=300)
+        print('REMOVED {0} files={1} push_exit={2}'.format(run_id, len(targets), code))
+        return 0 if code == 0 else 1
+    finally:
+        git(REPO_ROOT, 'worktree', 'remove', '--force', worktree)
+        git(REPO_ROOT, 'worktree', 'prune')
 
 
 PUBLISHED_README = """# published/ — 可公开发布的脱敏验收证据

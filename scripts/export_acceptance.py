@@ -430,7 +430,7 @@ def collect_scenarios(summary_paths: list, pkg: PackageBuilder) -> tuple:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description='导出标准化验收证据包')
-    parser.add_argument('--phase', required=True, choices=['P0', 'M1', 'M2'])
+    parser.add_argument('--phase', required=True, choices=['P0', 'M1', 'M2', 'M3'])
     parser.add_argument('--status', required=True, choices=['PASS', 'FAIL', 'PARTIAL', 'BLOCKED'])
     parser.add_argument('--run-id', default=None)
     parser.add_argument('--security-mode', default='disabled', choices=['disabled', 'enforce'])

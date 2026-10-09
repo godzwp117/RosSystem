@@ -91,6 +91,22 @@ def validate(instance, schema: dict, root: dict, path: str = '$', errors: list =
             errors.append('{0}: 类型应为 {1}，实际 {2}'.format(path, expected, type(instance).__name__))
             return errors
 
+    if 'oneOf' in schema:
+        # 至少满足一个分支才算通过；所有分支都失败时报错并列出首个分支的原因。
+        matched = False
+        first_reason = None
+        for option in schema['oneOf']:
+            branch_errors = []
+            validate(instance, option, root, path, branch_errors)
+            if not branch_errors:
+                matched = True
+                break
+            if first_reason is None:
+                first_reason = branch_errors[0]
+        if not matched:
+            errors.append('{0}: 不满足 oneOf 任一分支（{1}）'.format(path, first_reason))
+            return errors
+
     if 'enum' in schema and instance not in schema['enum']:
         errors.append('{0}: 取值必须是 {1} 之一，实际 {2!r}'.format(path, schema['enum'], instance))
 

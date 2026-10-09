@@ -40,7 +40,8 @@
       "enum": [
         "P0",
         "M1",
-        "M2"
+        "M2",
+        "M3"
       ],
       "description": "该证据包对应的阶段。"
     },
@@ -557,9 +558,28 @@
         "excluded": {
           "type": "array",
           "items": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "source": {
+                    "type": "string"
+                  },
+                  "path": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true
+              }
+            ]
           },
-          "description": "按脱敏规则排除、未纳入证据包的文件（不得含私钥）。"
+          "description": "被排除的文件：既可以是路径字符串，也可以是含 source/reason 的对象（导出器使用 {source, reason} 结构记录排除原因）。"
         }
       },
       "additionalProperties": false

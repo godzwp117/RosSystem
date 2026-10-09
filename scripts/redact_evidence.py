@@ -102,6 +102,12 @@ TEXT_SUFFIXES = ('.json', '.jsonl', '.yaml', '.yml', '.log', '.txt', '.md', '.en
 # 这些后缀属于密钥材料，一律拒绝进入发布包
 FORBIDDEN_SUFFIXES = ('.pem', '.key', '.p12', '.pfx', '.jks', '.keystore', '.csr',
                       '.der', '.srl', '.crt', '.p7s', '.p7b', '.kdb')
+# 没有后缀、但语义明确的私钥/凭证文件名（如 SSH 私钥）同样不得进入公开包。
+# 仅靠后缀过滤会漏掉 id_rsa / id_ed25519 这类文件。
+FORBIDDEN_NAMES = frozenset({
+    'id_rsa', 'id_dsa', 'id_ecdsa', 'id_ed25519', '.netrc', '.pgpass',
+    '.git-credentials', 'credentials', 'shadow', '.htpasswd',
+})
 
 
 class Redactor:
@@ -361,7 +367,7 @@ def redact_package(src_dir: str, dst_dir: str, workspace_root: str,
             dst = os.path.join(target_dir, name)
             report['bytes_in'] += os.path.getsize(src)
             lower = name.lower()
-            if lower.endswith(FORBIDDEN_SUFFIXES):
+            if lower.endswith(FORBIDDEN_SUFFIXES) or lower in FORBIDDEN_NAMES:
                 # 密钥类文件绝不进入发布包
                 report['files_blocked'] += 1
                 report['blocked_files'].append(os.path.relpath(src, src_dir))
