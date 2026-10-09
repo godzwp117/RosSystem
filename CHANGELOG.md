@@ -38,6 +38,87 @@
 
 ---
 
+---
+
+## M3 · 2026-10-09 · 证据自动发布/脱敏 + 可信任务动态约束
+
+**关联 Git SHA**：`7ea4583`(B5 修复) `6a1a105`+`b8d37e8`(Task A/B) `9ebeff1`(策略模型)
+`ca8a72d`(切换服务) `ba828a1`(一致性与恢复) `c00b2e0`(验收)
+**证据分支**：`evidence/m3`（脱敏公开证据，当前 `7584bcc`）
+**证据包**：`m3_dynamic_policy`（43/43 PASS，32 业务 + 11 安全场景）
+
+### 变更文件（主要）
+
+| 类型 | 路径 | 说明 |
+| --- | --- | --- |
+| 新增 | `scripts/publish_acceptance.py` | 校验→脱敏→重建哈希→再校验→安全扫描→隔离 worktree 提交→推送 |
+| 新增 | `scripts/redact_evidence.py` | 确定性脱敏（JSON/JSONL/YAML/文本），业务字段白名单 |
+| 新增 | `scripts/check_evidence_safety.py` | 独立敏感信息扫描门禁（不复用脱敏器正则） |
+| 新增 | `scripts/run_acceptance_and_publish.sh` | 受控一条龙；`--no-publish` 供调试 |
+| 新增 | `.github/workflows/evidence-validation.yml` | 已发布证据静态校验（contents: read） |
+| 新增 | `src/rg_policy/rg_policy/task_state.py` | TaskPhase/ActiveTaskSnapshot/digest/状态机 |
+| 新增 | `src/rg_policy/rg_policy/state_store.py` | 原子持久化（temp→fsync→replace→dir fsync） |
+| 新增 | `src/rg_interfaces/srv/SwitchTask.srv` | 管理接口（不含策略正文，无可自报身份字段） |
+| 修改 | `src/rg_gateway/rg_gateway/security_gateway.py` | 同步边界、在途会计、切换服务、恢复 |
+| 修改 | `security/policies/minimal_permissions.xml` | 新增 `/task_admin`；Gateway 获 reply 权限 |
+| 修改 | `config/task_policy.yaml` | 新增 `initial_task_phase` 与 `task_phases` |
+| 新增 | `tests/integration/{dynamic_policy_check,task_admin_client,redaction_check}.py` | D1–D15 / E1–E10 |
+
+### 解决的问题
+
+1. **人工 `git add -f` 上传证据** → 改为受控自动流程，脱敏+校验+扫描全过才推送。
+2. **证据泄露主机身份** → 24 个已提交文件含 `/home/zhangwei`（历史遗留，未改写历史），
+   M3 起公开副本统一为 `${WORKSPACE}`/`HOST_n`/`USER_n`/`[REDACTED_SECRET]`。
+3. **M2 导出丢字段** → 安全场景的 expected/actual/Goal 数/拒绝层/原因码优先保留；
+   区分 `container_default_domain_id`(42) 与 `scenario.ros_domain_id`(Enforce=43)。
+4. **M3 核心目标** → **同一持续运行的 Gateway 内**，同一 Planner、同 Action、同 task_id、
+   同坐标 (8,8)：阶段 A `BLOCK(OUT_OF_REGION)`，可信切换后阶段 B `ALLOW(EXECUTED)`，
+   epoch 0→1，digest 变化并写入 TaskTransitionEvent。
+5. **管理接口最小权限** → 新增 `/task_admin` enclave；`/planner` 调用管理接口在
+   **创建 Service 端点**时被 DDS 拒绝（`not found in allow rule`），
+   不依赖节点名或请求内自报字段。
+6. **在途一致性** → 准入与切换共享同一把锁；准入成功即登记在途；切换期间不批准新 Goal。
+
+### 暴露的问题（本轮真实缺陷，均已修复并留证）
+
+1. **在途会计用节点级共享标志**：MultiThreadedExecutor 并发执行多个 `_on_execute`
+   时互相覆盖，某请求的名额永不释放 → 在途屏障形同虚设。改为每请求局部变量。
+2. **超时时错误释放在途名额**：与 M1"EXECUTION_TIMEOUT 不代表下游已停止"直接冲突，
+   会放过"下游还在跑、权限已切换"的不安全切换。现转入 `_unconfirmed_in_flight`
+   继续阻塞，需一次性确认令牌方可清除（可审计）。
+3. **服务回调里重复 declare_parameter**：第二次抛异常使回调静默失败，客户端收不到
+   任何响应（"没有结果"而非"被拒绝"，掩盖授权语义）。改为启动时声明一次。
+4. **脱敏静默绕过**：按 64KB 采样判定文本，采样边界截断多字节中文字符 →
+   `test_results.json` 被判为二进制**原样复制**。改为整文件解码并记录不透明文件。
+5. **孤儿分支继承索引 + .gitignore 吞掉 `git add`**：首次推送把 426 个源码文件当成
+   "证据"推上 evidence/m3（其中含已公开的历史证据）。修复：清空索引、删除工作树
+   .gitignore、强制添加，并以**结果树**（非 staged diff）作为推送前硬闸门。
+6. **推送后复核读陈旧 FETCH_HEAD** 产生假失败；**幂等因时间戳/mtime 失效**；
+   **扫描器把文件路径误报为高熵机密**。均已修复。
+7. **E8 首版测的不是扫描门禁**：注入的 Token 被脱敏器先移除，断言"扫描应阻断"不成立。
+   经核查该 Token **从未进入 GitHub**（远程内容为 `[REDACTED_SECRET]`），已用
+   `--remove-run` 撤回该测试包；改用脱敏器识别不到的裸 JWT 重新构造 E8。
+8. **测试隔离缺陷**：`ros2 action list` 始终走按 domain 缓存的 daemon，M3 用例跑在
+   domain 43 导致 domain 42 的可发现性断言假失败（`tests/evidence/20261009T142018Z`，
+   日志**保留在磁盘**、未删除，仅不计入证据包）。已在 `start_system_check.py` 中按
+   domain 重置 daemon。
+
+### 实际测试
+
+| 套件 | 场景 | 结果 |
+| --- | --- | --- |
+| 基础回归 | build + 199 单元测试 + A/B 2 + 负例 12 | PASS |
+| M1 可靠性 | R1–R4、R7 故障注入 + R5/R6 构建保护 | PASS 5/5 + 2/2 |
+| M2 SROS 2 | S1–S6 | PASS 7/7 |
+| M3 动态约束 | D1–D15 | PASS 4/4 组（覆盖 15 场景） |
+| 脱敏门禁 | E1–E10 | PASS 7/7 组（覆盖 10 场景） |
+| 启动生命周期 | 正常/重复启动 | PASS 2/2 |
+| 合计 | | **43/43** |
+
+### 已知限制
+
+见「未解决事项总览」I25–I32。
+
 ## U6 · 2026-10-09 · M2：真实 SROS 2 / DDS-Security Enforce 集成与对照实验
 
 **背景**：在既有真实 ROS 2 Action 系统上启用 DDS-Security，把"基础通信资源授权"与
@@ -559,6 +640,14 @@
 | I22 | 未启用证书吊销/轮换（CA 与身份证书 10 年有效） | U6 | 未解决 |
 | I23 | `audit_fault_injection` 位于产品代码中（仅测试用，只能制造失败） | U5 | 待评审（是否改为依赖注入） |
 | I24 | 执行阶段审计写失败无补写机制，审计链完整性依赖 rosout 日志通道 | U5 | 设计取舍，已文档化 |
+| I25 | 已提交的 M1/M2 历史证据含 `/home/zhangwei` 主机路径（24 文件），按约束**未改写历史** | M3 | 未解决（M3 起新发布已脱敏） |
+| I26 | 本地持有 `/task_admin` 私钥的进程即可行使管理员权限；单容器共享 root，**不构成对本地特权进程的强隔离** | M3 | 安全假设已声明 |
+| I27 | 策略 digest 只证明内容关联，**不是数字签名**，不能抵御有写权限的恶意主体 | M3 | 边界已声明 |
+| I28 | 状态文件与审计 JSONL 无跨文件原子性；提交顺序固定"先状态后审计"，审计缺口需靠日志发现 | M3 | 设计取舍，已文档化 |
+| I29 | 未确认在途计数仅在内存中，网关重启后不保留（重启前未确认的下游可能仍在运行） | M3 | 未解决 |
+| I30 | 性能对照（M2 静态 vs M3 动态的 P50/P95 与切换耗时）未采集 | M3 | NOT_RUN |
+| I31 | 未做跨主机/跨 RMW 验证；安全结论仅覆盖本机单容器 + Fast DDS + domain 43 | M3 | 未解决 |
+| I32 | GitHub Actions 仅做静态校验，不代表云端完成 ROS 2/SROS 2 动态验证 | M3 | 边界已声明 |
 
 > 用法：后续条目解决某项时，在该行状态里写 `→ 已由 U<n> 解决`，不要删除原行，
 > 以便保留"何时暴露、何时关闭"的轨迹。
