@@ -66,6 +66,7 @@ from rg_policy import reason_codes, task_state
 from rg_policy.task_state import (
     STATE_ACTIVE, TaskStateMachine, TaskTransitionEvent, parse_task_phases,
 )
+from rg_policy.state_store import StateStoreError, TaskStateStore
 from rg_policy.task_policy import PolicySchemaError, PolicyProvider, TaskPolicy
 from rg_policy.events import (
     AuditSinkError,
@@ -202,6 +203,7 @@ class SecurityGateway(Node):
             'duplicate_ttl_sec': duplicate_ttl_sec,
             'rate_window_sec': rate_window_sec,
             'audit_fault_injection': self.audit_fault_injection,
+            'task_state_path': getattr(self, '_task_state_path', '') or None,
         }, ensure_ascii=False))
 
         if self.audit_fault_injection != 'none':
@@ -276,6 +278,14 @@ class SecurityGateway(Node):
             self._task_state.mark_recovery_required(str(exc))
             return
 
+        # 持久化：状态文件是切换的**权威记录**（审计事件是第二个 sink，二者不构成
+        # 跨文件原子性，提交顺序固定为"先状态、后审计"）。
+        state_path = str(self.declare_parameter('task_state_path', '').value or '').strip()
+        self._task_state_path = state_path
+        if state_path:
+            self._persistence = TaskStateStore(state_path)
+            self._restore_or_cold_start(initial, phases, state_path)
+
         snapshot = self._task_state.snapshot
         self.get_logger().info('TASK_CONTROL_READY ' + json.dumps({
             'service': '/rg/task_control/switch',
@@ -285,6 +295,54 @@ class SecurityGateway(Node):
             'policy_digest': snapshot.policy_digest,
             'available_phases': sorted(phases),
         }, ensure_ascii=False))
+
+    def _restore_or_cold_start(self, initial: str, phases: Any, state_path: str) -> None:
+        """按明确规则恢复：以状态文件为准；损坏即失败关闭；缺失即按可信配置冷启动。"""
+        try:
+            snapshot, used, state = self._persistence.load()
+        except StateStoreError as exc:
+            self.get_logger().error('TASK_STATE_CORRUPT ' + json.dumps({
+                'state_path': state_path, 'error': str(exc),
+                'effect': ('进入 RECOVERY_REQUIRED：所有 Goal 被拒绝，直到人工修复或删除'
+                           '状态文件后重启；不会静默退回旧的宽松权限')}))
+            self._task_state.mark_recovery_required(str(exc))
+            self._write_event(_state_event(reason_codes.STATE_FILE_CORRUPT, str(exc)),
+                              phase='task_transition')
+            return
+
+        if snapshot is None:
+            # 文件缺失：按可信配置的初始阶段冷启动（epoch 0）。这是确定性的保守起点，
+            # 不是"恢复到旧权限"。
+            self.get_logger().warning('TASK_STATE_COLD_START ' + json.dumps({
+                'state_path': state_path, 'initial_task_phase': initial,
+                'effect': '状态文件不存在，按可信配置初始阶段启动，epoch=0'}))
+            self._write_event(_state_event(
+                reason_codes.STATE_RESTORED,
+                'cold start at {0} (no state file)'.format(initial)),
+                phase='task_transition')
+            return
+
+        try:
+            self._task_state.restore(snapshot, used, STATE_ACTIVE)
+        except PolicySchemaError as exc:
+            self.get_logger().error('TASK_STATE_INCONSISTENT ' + json.dumps({
+                'state_path': state_path, 'error': str(exc),
+                'effect': '进入 RECOVERY_REQUIRED，不接受新 Goal 与切换'}))
+            self._task_state.mark_recovery_required(str(exc))
+            self._write_event(_state_event(reason_codes.STATE_FILE_CORRUPT, str(exc)),
+                              phase='task_transition')
+            return
+        self.get_logger().info('TASK_STATE_RESTORED ' + json.dumps({
+            'state_path': state_path,
+            'task_phase': snapshot.task_phase,
+            'policy_epoch': snapshot.policy_epoch,
+            'policy_digest': snapshot.policy_digest,
+            'used_transition_ids': len(used),
+        }, ensure_ascii=False))
+        self._write_event(_state_event(
+            reason_codes.STATE_RESTORED,
+            'restored {0} epoch={1}'.format(snapshot.task_phase, snapshot.policy_epoch)),
+            phase='task_transition')
 
     def _admission_block_reason(self) -> Optional[str]:
         """状态机不允许准入时返回原因文本，否则返回 None。"""
@@ -885,6 +943,17 @@ class SecurityGateway(Node):
             pass
         self._writer.close()
         return super().destroy_node()
+
+
+def _state_event(reason_code: str, detail: str):
+    """状态恢复/损坏的结构化事件（复用 TaskTransitionEvent 结构，语义由 reason_code 区分）。"""
+    return TaskTransitionEvent(
+        transition_id='state-{0}'.format(reason_code.lower()),
+        previous_task_phase='', next_task_phase='',
+        previous_epoch=-1, next_epoch=-1,
+        previous_policy_digest='', next_policy_digest='',
+        decision=reason_codes.DECISION_ALLOW, reason_code=reason_code,
+        transition_at=utc_now_iso(), detail=detail)
 
 
 def _install_sigterm_handler() -> None:
