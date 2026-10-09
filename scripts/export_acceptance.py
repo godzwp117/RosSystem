@@ -363,8 +363,8 @@ def collect_scenarios(summary_paths: list, pkg: PackageBuilder) -> tuple:
         for entry in summary.get('scenarios') or []:
             ev_dir = entry.get('evidence_dir')
             rel_files: list = []
+            entry_id = (entry.get('scenario') or entry.get('scenario_id') or 'unknown')
             if ev_dir and os.path.isdir(ev_dir):
-                entry_id = (entry.get('scenario') or entry.get('scenario_id') or 'unknown')
                 rel_files = pkg.copy_tree(
                     ev_dir, os.path.join('logs', 'tests_evidence', run_name, entry_id))
             if not rel_files and entry.get('evidence_files'):
