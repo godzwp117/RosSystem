@@ -51,6 +51,10 @@ apt 安装**。经确认，ROS 2 全部放在 `ros:jazzy` 容器中，宿主机�
 ├── pytest.ini
 ├── .gitignore                             排除 build/install/log/logs/evidence 与密钥
 │
+├── artifacts/acceptance/                  验收证据体系（Task A）
+│   ├── README.md                          证据格式、生成方式、验收规则
+│   ├── schema/acceptance.schema.json      冻结的数据契约（JSON Schema 2020-12）
+│   └── exports/                           每次运行的证据包（.gitignore 排除）
 ├── config/
 │   ├── task_policy.yaml                   ★权威任务策略（唯一授权来源，只读加载）
 │   └── scenarios/                          负例场景策略夹具
@@ -60,8 +64,11 @@ apt 安装**。经确认，ROS 2 全部放在 `ros:jazzy` 容器中，宿主机�
 │       ├── task_policy_missing_field.yaml  缺字段        → POLICY_MISSING
 │       └── task_policy_nonfinite_region.yaml  x_max=NaN → POLICY_MISSING
 │
-├── security/
-│   └── README.md                          ★SROS 2 预留位（**未启用**，无任何密钥）
+├── security/                              SROS 2 安全配置（M2）
+│   ├── README.md                          能力、运行方式、限制与风险
+│   ├── policies/minimal_permissions.xml   五个 enclave 的最小权限策略
+│   └── keystore/                          运行时密钥库（.gitignore 排除，禁止入库）
+│   └── README.md                          SROS 2 配置说明（M2 已启用；密钥不入库）
 │
 ├── src/
 │   ├── rg_interfaces/                     ament_cmake：Action 契约
@@ -411,15 +418,80 @@ Goal 接受与最终 Result。这在 rclpy 7.1.12 (Jazzy) 下**只有**在特定
 
 ---
 
+## 5bis. M2：SROS 2 / DDS-Security 强制模式
+
+M2 在既有 Action 主链上叠加 **DDS 层访问控制**，与 Gateway 的**任务级策略**构成双层边界。
+业务主链与 `scripts/start_system.sh`（854 行）**未做任何修改**。
+
+```text
+双层边界：
+  第 1 层 DDS-Security（身份 + 资源授权）   —— 谁能和谁说话
+  第 2 层 Gateway TaskPolicy（任务级判定）  —— 这次任务是否允许执行
+```
+
+### 安全身份（每个角色一个独立 Enclave）
+
+| Enclave | 节点 | 允许 | 明确禁止 |
+| --- | --- | --- | --- |
+| `/operator` | `operator_node` | 发布 `/rg/task_info` | 任何 Action 资源 |
+| `/planner` | `planner_node` | `/rg/guarded_navigate` 客户端方向 | **`/rg/nav_execute` 全部资源** |
+| `/gateway` | `security_gateway` | `/rg/guarded_navigate` 服务端 + `/rg/nav_execute` 客户端 | 其他业务资源 |
+| `/navsim` | `navigation_sim` | `/rg/nav_execute` 服务端 | 其他业务资源 |
+| `/unauthorized` | 受控测试身份 | 无业务资源 | 全部业务 Action |
+
+### 命令
+
+```bash
+scripts/setup_sros2.sh          # 生成 keystore + enclave，并独立复核权限是否真为最小权限
+
+# 安全模式对照实验（S1–S6）
+docker exec rg_jazzy bash -lc 'cd /ws && source /opt/ros/jazzy/setup.bash && \
+    source install/setup.bash && python3 tests/integration/sros2_check.py'
+```
+
+安全模式环境变量（**逐进程**指定，禁止全局 enclave）：
+
+```text
+ROS_SECURITY_ENABLE=true
+ROS_SECURITY_STRATEGY=Enforce
+ROS_SECURITY_KEYSTORE=/ws/security/keystore
+ROS_SECURITY_ENCLAVE_OVERRIDE=/<operator|planner|gateway|navsim>
+ROS_DOMAIN_ID=43          # 普通模式仍是 42，两者刻意隔离
+```
+
+### 实测结果（S1–S6，7/7 PASS）
+
+| 场景 | 结果 |
+| --- | --- |
+| S1 普通模式 A 区 | ALLOW，下游 1 条 Goal |
+| S2 Enforce A 区 | `Planner → Gateway → NavigationSim` 完整成功 |
+| S3 Enforce 下 **Planner 身份**直连 `/rg/nav_execute` | **DDS 拒绝**（`send_goalReply topic not found in allow rule`），下游 0 条 |
+| S3C 正向对照：**`/gateway` 身份**直连同一资源 | **成功**，下游 1 条 —— 证明链路与客户端可用，故 S3 的失败只能归因于身份权限 |
+| S4 `/unauthorized` 身份直连 | DDS 拒绝，下游 0 条 |
+| S5 Enforce B 区越界（身份合法） | TaskPolicy 阻断 `OUT_OF_REGION`，下游 0 条 |
+| S6 凭证缺失 | `INIT_FAILED` + `SECURITY ERROR`，**未静默回退**，下游 0 条 |
+
+### 安全模式与普通模式的区别（运维要点）
+
+| 项目 | 普通模式 | 安全模式 |
+| --- | --- | --- |
+| DDS domain | 42 | 43 |
+| 启动方式 | `scripts/start_system.sh` | 由 `tests/integration/sros2_check.py` 逐进程拉起 |
+| 身份 | 无 | 每角色独立 enclave |
+| 图查询（`ros2 action list`） | 可用 | 未分配 CLI 身份，改用文件证据 |
+
 ## 6. 已知限制（如实声明）
 
-1. **SROS 2 / DDS-Security 完全未启用。** 没有 keystore、enclave、permissions 或
-   任何密钥。因此：
-   * 本系统**不提供密码学身份认证**；
-   * 本系统**不提供不可绕过的 DDS 资源隔离**——同一 ROS domain 内的任意进程都可以
-     直接给 `/rg/nav_execute` 发 Goal，绕过 Gateway；
-   * "Gateway 是唯一入口"目前只是**拓扑事实 + 代码约束**，不是强制边界。
-   * 详见 [`security/README.md`](security/README.md)（含 P1 阶段必须补的验证项）。
+1. ~~SROS 2 / DDS-Security 完全未启用~~ → **已由 M2 落地并在 Enforce 模式下实测生效**（见 §5bis）。
+   仍然存在的边界：
+   * 强制隔离只在**安全模式（domain 43 + Enforce）**下成立；普通模式（domain 42）仍是无认证
+     通信，"Gateway 是唯一入口"在普通模式下依然只是拓扑事实 + 代码约束；
+   * 安全模式下 Planner 身份**确实无法**直连 `/rg/nav_execute`（S3 实测 DDS 拒绝），
+     但该结论仅覆盖本机单容器 + `rmw_fastrtps_cpp`；跨主机/跨 RMW 未验证；
+   * 私钥以明文 PEM 落盘（权限 700），能读该目录的进程即可冒充身份；未启用证书吊销/轮换；
+   * sros2 0.13.6 在策略非法时会先写出"默认全开"的 permissions.xml 再报错，
+     本项目以"生成前预检 + 生成后独立复核"夹住，工具链缺陷本身未消除；
+   * 详见 [`security/README.md`](security/README.md) 与 [`CHANGELOG.md`](CHANGELOG.md) 的 I18–I22。
 2. **`navigation_sim` 不做路径规划、不建图**，只记录坐标并返回结果。
 3. **`request_id` 去重是内存态**：Gateway 重启后重复窗口清空；未做持久化。
 4. **频率限制是单进程滑动窗口**（60s），未做分布式/多实例一致性。
@@ -458,9 +530,10 @@ Goal 接受与最终 Result。这在 rclpy 7.1.12 (Jazzy) 下**只有**在特定
 | §3.2 状态机（CREATED→…→SUCCEEDED/FAILED） | `_on_execute` / `_forward` / `_finish_failure` | ✅ |
 | §3.3 接口与判定分离（纯函数） | `policy_engine.evaluate` + 纯函数测试 | ✅ |
 | §3.3 执行端 Adapter 可替换 | `downstream_action` 为参数 | ✅ 预留 |
-| §3.3 SROS 2 限制 Planner 只访问网关 | `security/README.md` 预留 | ⏳ **未实现** |
+| §3.3 SROS 2 限制 Planner 只访问网关 | `security/policies/minimal_permissions.xml` + S3 实测 | ✅ **已实现并实测** |
 | §5.1 P0 各项 | 见 [`ACCEPTANCE.md`](ACCEPTANCE.md) | ✅ 见验收表 |
-| §5.1.1 P1 SROS 2 / P2 Nav2·Gazebo | — | ⏳ **未实现**（不阻塞首次联调） |
+| §5.1.1 P1 SROS 2 | 4 角色独立 enclave + Enforce + S1–S6 | ✅ **已实现**（见 §5bis） |
+| §5.1.1 P2 Nav2·Gazebo | — | ⏳ **未实现**（不阻塞） |
 
 ---
 

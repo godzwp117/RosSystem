@@ -38,6 +38,205 @@
 
 ---
 
+## U6 · 2026-10-09 · M2：真实 SROS 2 / DDS-Security Enforce 集成与对照实验
+
+**背景**：在既有真实 ROS 2 Action 系统上启用 DDS-Security，把"基础通信资源授权"与
+"Gateway 的任务级策略判断"叠加成可验证的双层边界。不重写业务主链、不引入第二套生命周期框架。
+
+**关联 Git SHA**：`9234d0c`（主体）、`03d44db`（证据导出器修复）
+**证据包**：`artifacts/acceptance/exports/m2_sros2_enforce/`（`manifest.json` / `security_results.json` / `file_hashes.json` + tar.gz）
+
+### 变更文件
+
+| 类型 | 路径 | 说明 |
+| --- | --- | --- |
+| 新增 | `security/policies/minimal_permissions.xml` | 5 个 enclave 的最小权限策略（零注释，原因见下） |
+| 新增 | `security/policies/README.md` | 策略设计、资源映射方向、sros2 工具链陷阱 |
+| 新增 | `scripts/setup_sros2.sh` | 生成 keystore/enclave；预检策略、生成后独立复核、收紧权限 |
+| 新增 | `scripts/verify_sros2_permissions.py` | 独立复核 permissions.xml，捕获静默宽松回退 |
+| 新增 | `tests/integration/sros2_check.py` | S1–S6 对照实验（含正向对照 S3C） |
+| 新增 | `tests/integration/rogue_action_client.py` | 受控越权测试客户端（实验仪器，非产品组件） |
+| 修改 | `security/README.md` | 改写为 M2 实况：能力、运行方式、限制与风险 |
+| 修改 | `tests/unit/test_interface_contract.py` | 密钥检查改为"未被 git 跟踪 + 仅限排除目录 + 排除规则真实生效" |
+| 修改 | `scripts/export_acceptance.py` | `--security-summary` 路由；状态键兼容 `result`/`status`；汇总计入安全场景 |
+| 未改动 | `src/**`、`config/**`、`scripts/start_system.sh`（854 行） | 业务主链与统一启动器保持不变 |
+
+### 解决的问题
+
+1. **Agent 的"安全已启用"不能只看开关** → 为 4 个业务角色各建**独立 enclave**
+   （独立证书/私钥），并新增 `/unauthorized` 受控无授权身份；逐进程用
+   `ROS_SECURITY_ENCLAVE_OVERRIDE` 指定身份，**不使用全局 enclave**。
+2. **Action 的底层资源不能凭记忆写** → 先用 `ros2 security generate_policy` 对**真实 ROS 图**
+   采集，得到 Jazzy 的实际展开：`_action/{send_goal,cancel_goal,get_result}`（服务）与
+   `_action/{status,feedback}`（topic），再据此书写策略。
+3. **sros2 会静默回退到"全开"**（本次最重要的发现）→ 实测：策略文件含 XML 注释时
+   `generate_artifacts` 报 `failed to validate namespace`，**但此前已写出默认策略的
+   `permissions.xml`（`rt/*`、`rq/*Request`、`rr/*Reply`，整个 domain 全开）**。
+   处置：策略文件零注释 + `setup_sros2.sh` 预检 + `verify_sros2_permissions.py` 独立复核
+   （出现宽松特征即失败）。
+4. **节点私有参数服务的方向写错会导致节点起不来** → `/planner` 的 `~/describe_parameters`
+   等误置于 `request`（客户端）一侧，实测报
+   `[SECURITY Error] rq/planner_node/describe_parametersRequest topic not found in allow rule`
+   并抛 `RCLError: failed to create service`。修正为 `reply`（该节点是服务端）。
+5. **"客户端超时"不足以证明 DDS 权限生效** → 增设**正向对照 S3C**：同一客户端、同一时间窗口、
+   以 `/gateway`（被授权）身份直连 `/rg/nav_execute` **成功**；而 `/planner`、`/unauthorized`
+   身份在**创建 action client 的 DDS 端点时**即被拒绝
+   （`rr/rg/nav_execute/_action/send_goalReply topic not found in allow rule`）。
+   拒绝因此可归因到 DDS 访问控制层，而非"服务端没起来/客户端有 bug"。
+6. **安全模式与普通模式互相污染** → 安全模式固定使用 **domain 43**，普通模式保持 **42**，
+   两者不共用进程、环境变量或 ros2 daemon 缓存。
+7. **密钥检查判据过时** → M2 后磁盘上必然存在 `.pem`，原测试"磁盘不得有 .pem"会误报。
+   改为校验"未被 git 跟踪 + 只允许出现在 `security/keystore|enclaves` + `.gitignore`
+   规则真实生效（`git check-ignore` 验证）"，比原来更严格。
+
+### 暴露的问题
+
+1. **sros2 0.13.6 不回退失败**：策略非法仍产出可用的（全开的）权限文件。
+   工具链层面的缺陷，本项目只能用"生成前预检 + 生成后复核"两头夹住；
+   若换用其他 RMW/工具链需重新评估。
+2. **私钥明文落盘**：`security/keystore/private/*.key.pem` 未加密，权限已收紧至 700/go-rwx，
+   但能读该目录的进程即可冒充身份；生产需文件系统加密或 HSM。
+3. **结论仅覆盖本机单容器 + `rmw_fastrtps_cpp` + domain 43**：跨主机/跨 RMW/跨 DDS 实现
+   的等价性**未验证**。
+4. **未为 ros2 CLI 分配运维身份**：安全模式下 `ros2 action list` 等观测手段需要额外 enclave，
+   因此本阶段断言全部基于文件证据（JSONL），未使用图查询。
+5. **未启用证书吊销/轮换**：CA 与身份证书有效期 10 年，无 CRL 流程。
+6. **`/unauthorized` 仍被授予发现类基本功**（`ros_discovery_info`、`rosout`、参数服务）：
+   这是刻意的——让它作为"能正常运行的 ROS 节点"却**完全无法触碰业务资源**，
+   从而使拒绝可明确归因到业务资源的访问控制，而不是"节点根本起不来"。
+7. 首次尝试时因策略注释与参数服务方向两处问题连续失败 2 轮；两处都已定位到具体
+   报错行并修复，**未把失败轮次计入通过**。
+
+### 实际测试
+
+| 场景 | 内容 | 结果 |
+| --- | --- | --- |
+| S1 | 普通模式（domain 42）A 区请求 | PASS：ALLOW，下游 1 条 Goal |
+| S2 | Enforce（domain 43）A 区请求 | PASS：Planner→Gateway→NavigationSim 完整成功，下游 1 条 |
+| S3 | Enforce 下 **Planner 身份**直连 `/rg/nav_execute` | PASS：DDS 拒绝（`not found in allow rule`），下游 0 条 |
+| S3C | 正向对照：**`/gateway` 身份**直连同一资源 | PASS：成功，下游 1 条（证明链路与客户端可用） |
+| S4 | Enforce 下 `/unauthorized` 身份直连 | PASS：DDS 拒绝，下游 0 条 |
+| S5 | Enforce 下 B 区越界（身份合法） | PASS：TaskPolicy 阻断 `OUT_OF_REGION`，下游 0 条 |
+| S6 | Enforce 下凭证缺失（keystore 不存在） | PASS：`INIT_FAILED` + `SECURITY ERROR`，未静默回退，下游 0 条 |
+| 权限复核 | `verify_sros2_permissions.py` | PASS：5 个 enclave 均无 `rt/*` 等宽松通配 |
+| 全量回归 | 见下表 | 30/30 PASS |
+
+---
+
+## U5 · 2026-10-09 · M1：可靠性加固与 P0 稳定冻结
+
+**背景**：在冻结 P0 之前修掉三处可靠性缺陷：审计写入失败仍可能放行、构建脚本会打断
+运行中的实例、`EXECUTION_TIMEOUT` 语义可能被误读为"下游已停止"。
+
+**关联 Git SHA**：`e13199a`
+**标签**：`p0-before-m1-20261009` → `59fad86`（修改前快照）、`p0-stable-v1.0` → `e13199a`
+**证据包**：`artifacts/acceptance/exports/m1_stable/`（23/23 PASS）
+
+### 变更文件
+
+| 类型 | 路径 | 说明 |
+| --- | --- | --- |
+| 修改 | `src/rg_gateway/rg_gateway/security_gateway.py` | B2 审计 fail-closed；B4 超时/取消语义；新增 `audit_fault_injection`（仅测试用） |
+| 修改 | `scripts/build.sh` | B3 构建前状态检查，运行中则 exit 4 拒绝 |
+| 修改 | `scripts/lib.sh` | 新增运行中实例检测；`rg_reap_stragglers` 默认不再清理运行中实例 |
+| 新增 | `tests/unit/test_gateway_audit_safety.py` | 15 项：故障注入只能导致失败、两类审计故障计数与文案 |
+| 新增 | `tests/integration/reliability_check.py` | R1–R4、R7 故障注入 |
+| 新增 | `tests/integration/build_guard_check.py` | R5、R6 构建保护（宿主机执行） |
+
+### 解决的问题
+
+1. **DecisionEvent 写入失败仍会创建下游 Goal（真实缺陷）** → 原代码只检查了
+   `RosCommEvent` 的写入结果（第 257 行），`DecisionEvent` 的返回值被丢弃。
+   现在执行前任一事件未落库即 `BLOCK(AUDIT_UNAVAILABLE)`，不再 `_forward()`。
+   验证：R2 用 `/dev/full` 制造**真实 ENOSPC**；R3 注入 Decision 写失败；两者下游 Goal 均为 0。
+2. **执行后审计失败不得被说成"下游没执行"** → 区分 `pre_execution` / `post_execution`
+   两类审计故障并分别计数；R4 证实在 ExecutionEvent 写失败时仍如实回传 `EXECUTED`，
+   且日志明写"动作不可撤销、不得解读为下游未执行"。
+3. **构建会杀掉运行中的实例** → `build.sh` 改为先检查，发现运行中受管理实例即
+   `exit 4` 拒绝；R5 证实在拒绝后实例节点 PID 完全不变，R6 证实空闲时构建仍成功。
+4. **超时语义含糊** → 超时不再可能被读成"下游已停止"：显式给出
+   `UNKNOWN_MAY_STILL_BE_RUNNING` / `NOT_CONFIRMED_CREATED` 与
+   `REQUESTED_UNCONFIRMED`（取消待确认），并输出 `EXECUTION_TIMEOUT_STATE` 机器可读日志
+   与 `execution_may_continue=true`。
+
+### 暴露的问题
+
+1. **故障注入参数属于产品代码**：为可测试性在网关增加了 `audit_fault_injection`。
+   它**只能制造失败**（无任何放行分支）且默认关闭、取值非法即拒绝启动，但仍需在
+   后续评审中确认是否接受这种形态，或改为依赖注入。
+2. **`_finish_failure` 的 ExecutionEvent 写失败仍无补写机制**：审计链会缺口，
+   仅靠 rosout 日志承载。这是刻意的（同一 event_id 只允许一条判定/执行记录），
+   但意味着审计链完整性依赖日志通道。
+3. **构建保护依赖实例记录文件**：若实例由其他方式启动（不经 `start_system.sh`），
+   只能靠进程扫描兜底；跨容器/跨 domain 的实例无法检测。
+4. **未做并发压测**：故障注入均为单请求串行验证。
+
+### 实际测试
+
+| 用例 | 内容 | 结果 |
+| --- | --- | --- |
+| R1 | 正常审计 → ALLOW，三事件齐全，下游 1 条 | PASS |
+| R2 | `RosCommEvent` 写失败（真实 `/dev/full` ENOSPC） | PASS：拒绝，下游 0 条 |
+| R3 | `DecisionEvent` 写失败（注入） | PASS：拒绝，下游 0 条 |
+| R4 | `ExecutionEvent` 写失败（执行后） | PASS：如实回传 EXECUTED，不声称未执行 |
+| R7 | 执行超时语义 | PASS：状态未知 + 取消待确认 |
+| R5/R6 | 构建保护 | PASS：运行中拒绝（exit 4）、空闲可构建 |
+| 全量回归 | build + 155 单元测试 + A/B 2 + 负例 12 + 生命周期 2 | 全部 PASS |
+
+---
+
+## U4 · 2026-10-09 · 建立标准化验收证据体系（Task A）
+
+**背景**：此前"通过/失败"只散落在会话与 README 里，缺少可机检、可追责、可移植的
+证据载体。本次引入 `artifacts/acceptance/` 与导入/校验工具。
+
+**关联 Git SHA**：`d235051`（体系）、`b88a638`（生命周期检查）、`907ea1a`（工具自检缺陷修复）
+**证据包**：本条目本身不产出阶段证据包；后续 U5/U6 的证据包均由该体系生成
+
+### 变更文件
+
+| 类型 | 路径 | 说明 |
+| --- | --- | --- |
+| 新增 | `artifacts/acceptance/schema/acceptance.schema.json` | 冻结的数据契约（JSON Schema 2020-12） |
+| 新增 | `artifacts/acceptance/README.md` | 格式、生成方式、验收规则、Schema 子集说明 |
+| 新增 | `scripts/export_acceptance.py` | 从真实 git/docker/ROS 采集并打包（含脱敏与哈希） |
+| 新增 | `scripts/verify_acceptance.py` | 内置 Schema 子集校验器 + 7 类校验 |
+| 新增 | `tests/integration/start_system_check.py` | 启动器生命周期检查（可产出证据） |
+| 修改 | `.gitignore` | 排除导出的证据包与 SROS 2 密钥材料，保留 schema/工具/说明 |
+| 修改 | `tests/integration/scenario_runner.py` | 输出显式 `expectations`，供期望/实际对照 |
+
+### 解决的问题
+
+1. **证据不可机检** → 冻结 manifest 契约；`verify_acceptance.py` 校验 Schema、必填字段、
+   文件 SHA-256、日志引用存在性、PASS 是否有真实执行证据、是否含密钥材料、归档哈希。
+2. **数据可能被编造** → commit SHA 取自 `git rev-parse HEAD`，镜像 ID/RepoDigest 取自
+   `docker inspect`（无 RepoDigest 时写 `null` 并保留镜像 ID），失败即如实记录。
+3. **脱敏** → `security/keystore`、`build/`、`install/`、`.git/` 与密钥后缀一律排除；
+   正文命中私钥/证书/口令模式的文件也会被排除并记入 `excluded`。
+
+### 暴露的问题
+
+1. **校验器只实现 Schema 子集**（`$ref`/`type`/`required`/`properties`/`items`/`enum`/
+   `pattern`/`minLength`/`minimum`/`additionalProperties`），因此 schema 被刻意限制在该子集内；
+   若扩展 schema 必须同步扩展校验器。
+2. **证据包不纳入版本控制**：全新 clone 无法直接复核，需在目标机重跑脚本。
+3. **工具自身出过两处缺陷，由校验器捕获**：`checks[].detail` 类型为 list（违反 string 约束）
+   与 `exit_code` 推导缺失（PASS 场景被判"缺乏执行证据"）。两次都是先导出、再被
+   `verify_acceptance.py` 判 FAIL 后修复的 —— 这恰好验证了"导出即可信"是不成立的。
+
+### 实际测试
+
+| 项 | 命令 | 结果 |
+| --- | --- | --- |
+| 导出/校验闭环 | `export_acceptance.py` → `verify_acceptance.py` | PASS（目录与 tar.gz 两种入口） |
+| 篡改检测 | 改 manifest → 校验 | PASS（哈希不一致被抓） |
+| 密钥注入检测 | 放入 `leaked.key` → 校验 | PASS（密钥材料被抓） |
+| PASS 无证据检测 | 清空 command/evidence → 校验 | PASS（判为证据不足） |
+| 归档哈希检测 | 伪造 sidecar → 校验 | PASS（判为不一致） |
+| 生命周期检查 | `start_system_check.py` | PASS 2/2 |
+
+---
+
 ## U3 · 2026-10-09 · 建立本更新日志（CHANGELOG）并同步文档索引
 
 **背景**：U1/U2 的改动、踩过的坑与遗留问题此前散落在会话记录与各文档里，
@@ -353,6 +552,13 @@
 | I15 | 节点 SIGINT 收尾打印 KeyboardInterrupt 回溯 | U2（既有现象） | 未修改 |
 | I16 | 本日志为手写，未与 git 提交绑定，存在与代码漂移的风险 | U3 | 未解决（建议同一次提交内追加条目） |
 | I17 | 验证证据位于 `.gitignore` 排除的 `logs/`、`tests/evidence/`，全新 clone 无法直接复核 | U3 | 未解决（需重跑脚本复现） |
+| I18 | sros2 0.13.6 在策略非法时静默产出**默认全开**权限文件 | U6 | 已用"预检 + 独立复核"夹住，工具链缺陷本身未消除 |
+| I19 | SROS 2 私钥以明文 PEM 落盘（权限 700，未加密） | U6 | 未解决（需文件系统加密或 HSM） |
+| I20 | 安全结论仅覆盖本机单容器 + rmw_fastrtps_cpp + domain 43 | U6 | 未解决（跨主机/RMW 未验证） |
+| I21 | 安全模式未为 ros2 CLI 分配运维身份，观测依赖文件证据 | U6 | 未解决 |
+| I22 | 未启用证书吊销/轮换（CA 与身份证书 10 年有效） | U6 | 未解决 |
+| I23 | `audit_fault_injection` 位于产品代码中（仅测试用，只能制造失败） | U5 | 待评审（是否改为依赖注入） |
+| I24 | 执行阶段审计写失败无补写机制，审计链完整性依赖 rosout 日志通道 | U5 | 设计取舍，已文档化 |
 
 > 用法：后续条目解决某项时，在该行状态里写 `→ 已由 U<n> 解决`，不要删除原行，
 > 以便保留"何时暴露、何时关闭"的轨迹。

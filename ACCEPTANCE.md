@@ -193,3 +193,132 @@ Git Commit      : 工作区不是 git 仓库（git rev-parse HEAD 失败）→ �
 
 > `commands.json` 逐条记录每个场景执行的**完整 argv、cwd、起止时间、耗时、返回码、
 > 日志路径**，满足要求 12「每次运行保留命令、返回码、测试结果、日志位置」。
+
+---
+---
+
+# 第二轮：P0 基线冻结 · M1 可靠性加固 · M2 安全通信集成
+
+> 本部分记录 2026-10-09 第二轮工作的验收结果。
+> 上面第一轮的 P0 验收内容**保持原样不改写**，作为历史记录。
+
+## 版本与环境（本轮）
+
+| 项目 | 值 |
+| --- | --- |
+| 起始 HEAD | `59fad86`（任务书给定的参考提交，实测一致） |
+| 修改前快照标签 | `p0-before-m1-20261009` → `59fad86` |
+| P0 稳定标签 | `p0-stable-v1.0` → `e13199a` |
+| M2 完成提交 | `9234d0c`（主体）、`03d44db`（证据导出器修复） |
+| 容器 | `rg_jazzy` |
+| 镜像 ID / RepoDigest | `sha256:066420e07f60aa18262f2479981def87ebcfcec42eefb0c0c57c4a46098348ca`（两者相同） |
+| ROS / RMW | `jazzy` / `rmw_fastrtps_cpp`（`ros-jazzy-rmw-fastrtps-cpp` 8.4.4） |
+| 安全栈 | `ros-jazzy-sros2` 0.13.6，OpenSSL 3.0.13，Fast DDS 含安全插件 |
+| 普通 / 安全 domain | 42 / 43（刻意隔离） |
+
+## M1 验收（B1–B6）
+
+| 编号 | 项目 | 判据 | 结果 | 证据 |
+| --- | --- | --- | --- | --- |
+| B1 | 原始 P0 快照 | 打标签 + 首份证据包，不覆盖用户改动 | **PASS** | `p0-before-m1-20261009`；`exports/p0_before_m1/`（16/16） |
+| B2 | 审计写入失败保护 | 执行前任一审计事件写失败都不得创建下游 Goal | **PASS** | R2（真实 `/dev/full` ENOSPC）、R3（注入 Decision 失败）下游 Goal 均为 0 |
+| B3 | 构建保护 | 运行中拒绝构建，实例不受影响 | **PASS** | R5 exit 4 且节点 PID 不变；R6 空闲构建 exit 0 |
+| B4 | 超时/取消语义 | 不得把超时解读为下游已停止 | **PASS** | R7：`UNKNOWN_MAY_STILL_BE_RUNNING` + `REQUESTED_UNCONFIRMED` + `execution_may_continue=true` |
+| B5 | 完整回归 | 全部 P0 必需测试 | **PASS** | 23/23（见下表） |
+| B6 | 冻结稳定版 | 仅全通过时打标签 | **PASS** | `p0-stable-v1.0` → `e13199a`；`exports/m1_stable/`（23/23） |
+
+M1 回归明细：
+
+| 套件 | 场景数 | 结果 | 证据目录 |
+| --- | --- | --- | --- |
+| colcon build | 1 | PASS | `logs/m1_run_all.log` |
+| 单元测试 | 155 | PASS | `logs/unit_tests.log` |
+| A/B 业务场景 | 2 | PASS | `tests/evidence/20261009T090740Z/` |
+| 负例联调 | 12 | PASS | `tests/evidence/20261009T090820Z/` |
+| start_system 生命周期 | 2 | PASS | `tests/evidence/20261009T091157Z/` |
+| 构建保护 | 2 | PASS | `tests/evidence/20261009T091205Z/` |
+| 可靠性故障注入 | 5 | PASS | `tests/evidence/20261009T091211Z/` |
+
+## M2 验收（C1–C7）
+
+| 编号 | 项目 | 判据 | 结果 | 证据 |
+| --- | --- | --- | --- | --- |
+| C2 | 安全能力核查 | CLI/软件包/RMW/keystore 可用 | **PASS** | `ros2 security` 子命令齐全；`generate_policy` 可采集真实图 |
+| C3 | 身份与权限 | 四角色独立 enclave + 最小权限 | **PASS** | `security/policies/minimal_permissions.xml`；`verify_sros2_permissions.py` PASS |
+| C4 | Enforce 生效 | 逐角色指定 enclave，非全局 | **PASS** | `ROS_SECURITY_ENCLAVE_OVERRIDE` 逐进程指定；S2 全链路成功 |
+| C5 | 保留普通模式 | start_system.sh 不受影响 | **PASS** | S1 通过；start_system 生命周期检查 2/2 通过；该脚本未被修改 |
+| C6 | 对照实验 S1–S6 | 见下 | **PASS** | `tests/evidence/20261009T093144Z/` |
+| C7 | 验收原则 7 条 | 见下 | **PASS** | 见 C7 对照表 |
+
+C6 场景结果：
+
+| 场景 | 安全模式 | 源角色 / Enclave | 请求资源 | 预期 | 实际 | 下游 Goal | 拒绝层 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| S1 | disabled | — | `/rg/guarded_navigate` | ALLOW 1 条 | ALLOW 1 条 | 1 | — |
+| S2 | enforce | planner `/planner` | `/rg/guarded_navigate` | 正常完成 | `EXECUTED` | 1 | — |
+| S3 | enforce | planner `/planner` | `/rg/nav_execute` | 拒绝 | DDS 拒绝创建端点 | 0 | `dds_security` |
+| S3C | enforce | gateway `/gateway` | `/rg/nav_execute` | **成功（正向对照）** | `EXECUTED` | 1 | — |
+| S4 | enforce | `/unauthorized` | `/rg/nav_execute` | 拒绝 | DDS 拒绝创建端点 | 0 | `dds_security` |
+| S5 | enforce | planner `/planner` | `/rg/guarded_navigate` | 业务拒绝 | `OUT_OF_REGION` | 0 | `business_task_policy` |
+| S6 | enforce | 凭证缺失 | `/rg/nav_execute` | 不回退、不放行 | `INIT_FAILED` + `SECURITY ERROR` | 0 | `dds_security` |
+
+C7 验收原则对照：
+
+| # | 原则 | 结果 | 依据 |
+| --- | --- | --- | --- |
+| 1 | Enforce 下合法链路可运行 | PASS | S2 |
+| 2 | Planner 凭证无法直接访问执行端 | PASS | S3（DDS 拒绝证据） |
+| 3 | 无授权参与者无法完成执行调用 | PASS | S4 |
+| 4 | 合法通信中 B 区仍被 Task Guard 阻断 | PASS | S5 |
+| 5 | 安全配置错误不静默回退 | PASS | S6 |
+| 6 | 普通模式基础回归继续通过 | PASS | S1 + 全量回归 30/30 |
+| 7 | 日志与证据可关联到实际测试实例 | PASS | `security_results.json` 每场景带 enclave/resource/拒绝层 |
+
+## 最终状态矩阵（只允许 PASS/FAIL/PARTIAL/BLOCKED/NOT_RUN）
+
+| 工程项 | 要求 | 结果 |
+| --- | --- | --- |
+| P0 环境与通信 | 实际结果 | **PASS** |
+| P0 Action 代理 | 实际结果 | **PASS** |
+| M1 审计故障保护 | 实际结果 | **PASS** |
+| M1 构建保护 | 实际结果 | **PASS** |
+| M1 启动生命周期 | 实际结果 | **PASS** |
+| M2 SROS 2 身份认证 | 实际结果 | **PASS** |
+| M2 DDS 访问控制 | 实际结果 | **PASS** |
+| M2 非授权直连拒绝 | 实际结果 | **PASS** |
+| 普通模式回归 | 实际结果 | **PASS** |
+| 证据包 Schema 校验 | 实际结果 | **PASS** |
+| 证据文件完整性 | 实际结果 | **PASS** |
+
+> 逐项判据与证据见 `artifacts/acceptance/exports/m2_sros2_enforce/manifest.json`
+> 的 `status_matrix` 字段（与上表同源）。
+
+## 证据包（三类）
+
+| 阶段 | 证据包 | 场景 | 归档 SHA-256 |
+| --- | --- | --- | --- |
+| P0（修改前） | `artifacts/acceptance/exports/p0_before_m1/` | 16/16 PASS | `00332348902e79d5793701c3cb9bb42d0d99c0efd77cf335693d90c60520b398` |
+| M1（稳定冻结） | `artifacts/acceptance/exports/m1_stable/` | 23/23 PASS | `25cf60737b8347426d29fa7f57c7cb9e922f33fead259cf9a498abaeb96a77be` |
+| M2（Enforce） | `artifacts/acceptance/exports/m2_sros2_enforce/` | 30/30 PASS（23 业务 + 7 安全） | 见该目录旁的 `.tar.gz.sha256` |
+
+导出与校验命令：
+
+```bash
+python3 scripts/export_acceptance.py --phase M2 --status PASS --run-id <id> \
+    --security-mode enforce --security-summary tests/evidence/<sros2-run>/summary.json
+python3 scripts/verify_acceptance.py artifacts/acceptance/exports/<id>
+```
+
+## 本轮未解决事项
+
+见 [`CHANGELOG.md`](CHANGELOG.md) 的「未解决事项总览」（I1–I24）。与本轮直接相关的是：
+
+| 编号 | 事项 | 状态 |
+| --- | --- | --- |
+| I18 | sros2 0.13.6 在策略非法时静默产出**默认全开**权限文件 | 已用"预检 + 独立复核"夹住；工具链缺陷未消除 |
+| I19 | SROS 2 私钥明文落盘（权限 700，未加密） | 未解决（需文件系统加密/HSM） |
+| I20 | 安全结论仅覆盖本机单容器 + Fast DDS + domain 43 | 未解决（跨主机/RMW 未验证） |
+| I21 | 安全模式未为 ros2 CLI 分配运维身份 | 未解决（观测依赖文件证据） |
+| I22 | 未启用证书吊销/轮换 | 未解决 |
+| I23 | `audit_fault_injection` 位于产品代码 | 待评审 |
+| I24 | 执行阶段审计写失败无补写机制 | 设计取舍，已文档化 |
