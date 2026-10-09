@@ -198,15 +198,55 @@ def test_rg_policy_is_ros_free():
 
 
 def test_no_key_material_is_committed():
-    """Task requirement 10: no keys/private material in the source tree."""
-    forbidden_suffixes = ('.pem', '.key', '.p12', '.pfx', '.crt', '.csr', '.der')
+    """禁止把密钥材料提交到源码（任务 U1 §10 / M2 C4）。
+
+    M2 之后 `security/keystore/` 会成为**运行时**密钥库（SROS 2 私钥、证书、权限签名），
+    因此"磁盘上不存在 .pem"已不再是正确判据。正确且更强的判据是：
+
+    1. 任何密钥类文件都不得被 git 跟踪（`git ls-files`）—— 这才是"不提交源码"的含义；
+    2. 密钥材料只允许出现在明确指定的排除目录（`security/keystore/`、`security/enclaves/`）内，
+       源码树的其他位置一律不允许；
+    3. 这些排除目录必须真的被 `.gitignore` 排除，否则第 1 条只是碰巧成立。
+
+    这样既不放过"误提交私钥"，也不会因为正常的运行时密钥库而误报。
+    """
+    import subprocess
+
+    key_dir_prefixes = ('security/keystore', 'security/enclaves')
+    forbidden_suffixes = ('.pem', '.key', '.p12', '.pfx', '.crt', '.csr', '.der', '.srl')
+
+    # --- 1) 任何被 git 跟踪的密钥类文件都是违规 ---
+    tracked = subprocess.run(['git', 'ls-files'], cwd=WORKSPACE_ROOT,
+                             capture_output=True, text=True, check=False).stdout.splitlines()
+    tracked_keys = [path for path in tracked if path.lower().endswith(forbidden_suffixes)]
+    assert not tracked_keys, '密钥类文件被纳入版本控制: {0}'.format(tracked_keys)
+
+    # --- 2) 源码树里密钥材料只能出现在排除目录内 ---
     offenders = []
     for dirpath, dirnames, filenames in os.walk(WORKSPACE_ROOT):
         dirnames[:] = [name for name in dirnames
                        if name not in {'build', 'install', 'log', 'evidence', '.git',
                                        '__pycache__'}]
         for filename in filenames:
-            if filename.lower().endswith(forbidden_suffixes):
-                offenders.append(os.path.relpath(os.path.join(dirpath, filename),
-                                                 WORKSPACE_ROOT))
-    assert not offenders, 'key-like files present: {0}'.format(offenders)
+            if not filename.lower().endswith(forbidden_suffixes):
+                continue
+            rel = os.path.relpath(os.path.join(dirpath, filename), WORKSPACE_ROOT)
+            if not rel.replace(os.sep, '/').startswith(key_dir_prefixes):
+                offenders.append(rel)
+    assert not offenders, '排除目录之外出现密钥类文件: {0}'.format(offenders)
+
+    # --- 3) 排除目录必须真的被 .gitignore 覆盖 ---
+    ignore_text = ''
+    ignore_path = os.path.join(WORKSPACE_ROOT, '.gitignore')
+    if os.path.isfile(ignore_path):
+        with open(ignore_path, 'r', encoding='utf-8') as handle:
+            ignore_text = handle.read()
+    for pattern in ('/security/keystore/', '/security/enclaves/'):
+        assert pattern in ignore_text, '.gitignore 缺少密钥目录排除规则: {0}'.format(pattern)
+
+    # --- 4) 真被 git 忽略时才允许存在（防止 ignore 规则被写错方向）---
+    if os.path.isdir(os.path.join(WORKSPACE_ROOT, 'security', 'keystore')):
+        check = subprocess.run(
+            ['git', 'check-ignore', '-q', 'security/keystore/private/ca.key.pem'],
+            cwd=WORKSPACE_ROOT, check=False).returncode
+        assert check == 0, 'security/keystore 未被 git 忽略，存在误提交风险'
