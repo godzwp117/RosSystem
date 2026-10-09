@@ -310,12 +310,14 @@ def scenario_from_runner_entry(entry: dict, pkg: 'PackageBuilder', evidence_rel:
     if log_path is None and evidence_files:
         log_path = evidence_files[0]
 
-    return {
+    record = {
         'scenario_id': entry.get('scenario'),
         'scenario_name': entry.get('description') or entry.get('scenario'),
         'expected_result': expected,
         'actual_result': actual,
-        'status': entry.get('result', 'NOT_RUN'),
+        # scenario_runner 用 'result'，本仓较新的检查脚本用 'status'，两者都要接受，
+        # 否则缺失的键会被默认成 NOT_RUN，把"通过"错报成"未执行"。
+        'status': entry.get('result') or entry.get('status') or 'NOT_RUN',
         'command': argv,
         'exit_code': exit_code,
         'duration_ms': duration_ms,
@@ -325,6 +327,13 @@ def scenario_from_runner_entry(entry: dict, pkg: 'PackageBuilder', evidence_rel:
         'checks': entry.get('checks') or [],
         'suite': entry.get('suite'),
     }
+    # 安全对照实验场景会带 security_mode / enclave / rejection_layer 等字段，
+    # 必须原样保留，否则 security_results.json 会丢失"拒绝发生在哪一层"的关键信息。
+    for key in ('security_mode', 'source_role', 'source_enclave', 'requested_resource',
+                'downstream_goal_count', 'rejection_layer', 'notes'):
+        if entry.get(key) is not None:
+            record[key] = entry[key]
+    return record
 
 
 def collect_scenarios(summary_paths: list, pkg: PackageBuilder) -> tuple:
@@ -369,6 +378,9 @@ def main(argv=None) -> int:
                         help='scenario_runner 的 summary.json 路径，可重复；默认为 tests/evidence/*/summary.json')
     parser.add_argument('--security-results', default=None,
                         help='M2 安全对照实验结果 JSON（含 enclaves 与 scenarios）')
+    parser.add_argument('--security-summary', action='append', default=None,
+                        help='安全对照实验的 summary.json（suite=sros2）。其场景写入 '
+                             'security_results.json，且不计入 test_results.json，避免重复计数')
     parser.add_argument('--include', action='append', default=None,
                         help='额外纳入证据包的日志文件或目录，可重复')
     parser.add_argument('--note', action='append', default=None, help='备注，可重复')
@@ -411,22 +423,87 @@ def main(argv=None) -> int:
         (environment['docker_image_digest'] or environment['docker_image_id'])[:30]))
 
     # --- 收集场景证据 ---
+    security_summaries = args.security_summary or []
     if args.scenario_summary:
-        summaries = args.scenario_summary
+        summaries = [p for p in args.scenario_summary if p not in security_summaries]
     else:
         summaries = []
+        skipped_security = []
         evidence_root = os.path.join(REPO_ROOT, 'tests', 'evidence')
         if os.path.isdir(evidence_root):
             for name in sorted(os.listdir(evidence_root)):
                 candidate = os.path.join(evidence_root, name, 'summary.json')
-                if os.path.isfile(candidate):
-                    summaries.append(candidate)
+                if not os.path.isfile(candidate):
+                    continue
+                if candidate in security_summaries:
+                    continue
+                try:
+                    with open(candidate, 'r', encoding='utf-8') as handle:
+                        suite = json.load(handle).get('suite')
+                except (OSError, json.JSONDecodeError):
+                    suite = None
+                if suite == 'sros2':
+                    skipped_security.append(candidate)
+                    continue
+                summaries.append(candidate)
+        if skipped_security and not security_summaries:
+            print('[export] WARN 发现 {0} 个 suite=sros2 的证据目录但未用 --security-summary 指定，'
+                  '已跳过（避免与 test_results 重复计数）:'.format(len(skipped_security)))
+            for item in skipped_security:
+                print('         - {0}'.format(os.path.relpath(item, REPO_ROOT)))
     scenarios, summary_sources = collect_scenarios(summaries, pkg)
     print('[export] scenarios={0} from {1} summary file(s)'.format(len(scenarios), len(summaries)))
 
+    # --- 安全对照实验（suite=sros2）场景：归入 security_results.json ---
+    sec_from_summary = []
+    sec_summary_sources = []
+    if security_summaries:
+        sec_from_summary, sec_summary_sources = collect_scenarios(security_summaries, pkg)
+        print('[export] security scenarios (from summary) = {0}'.format(len(sec_from_summary)))
+
     # --- 安全对照实验结果 ---
     security = None
-    if args.security_results:
+    if security_summaries and not args.security_results:
+        enclaves_meta = []
+        policy_path = os.path.join(REPO_ROOT, 'security', 'policies', 'minimal_permissions.xml')
+        if os.path.isfile(policy_path):
+            try:
+                import xml.etree.ElementTree as _ET
+                root = _ET.parse(policy_path).getroot()
+                for enclave in root.iter():
+                    if enclave.tag.split('}')[-1] != 'enclave':
+                        continue
+                    topics, services, nodes = set(), set(), []
+                    for profile in enclave.iter():
+                        tag = profile.tag.split('}')[-1]
+                        if tag == 'profile':
+                            nodes.append(profile.get('node'))
+                        elif tag == 'topic' and profile.text:
+                            topics.add(profile.text.strip())
+                        elif tag == 'service' and profile.text:
+                            services.add(profile.text.strip())
+                    enclaves_meta.append({
+                        'enclave': enclave.get('path'),
+                        'role': (enclave.get('path') or '').strip('/'),
+                        'nodes': [n for n in nodes if n],
+                        'allowed_resources': sorted(topics | services),
+                        'denied_resources': [],
+                    })
+            except Exception as exc:  # noqa: BLE001
+                print('[export] WARN 解析策略失败: {0}'.format(exc))
+        security = {
+            'schema_version': SCHEMA_VERSION,
+            'run_id': run_id,
+            'security_mode': args.security_mode,
+            'keystore_path': os.path.join(REPO_ROOT, 'security', 'keystore'),
+            'keystore_included_in_package': False,
+            'enclaves': enclaves_meta,
+            'scenarios': sec_from_summary,
+            'generated_from': [s2['path'] for s2 in sec_summary_sources],
+            'policy_file': os.path.relpath(policy_path, REPO_ROOT) if os.path.isfile(policy_path) else None,
+        }
+        pkg.copy_file(policy_path, 'logs/security_policy/minimal_permissions.xml')
+    elif args.security_results:
         if os.path.isfile(args.security_results):
             with open(args.security_results, 'r', encoding='utf-8') as handle:
                 raw = json.load(handle)
@@ -479,16 +556,13 @@ def main(argv=None) -> int:
     pkg.copy_file(os.path.join(REPO_ROOT, 'config', 'task_policy.yaml'), 'logs/config/task_policy.yaml')
 
     # --- 汇总 ---
-    passed = sum(1 for s in scenarios if s['status'] == 'PASS')
-    failed = sum(1 for s in scenarios if s['status'] == 'FAIL')
-    not_run = sum(1 for s in scenarios if s['status'] == 'NOT_RUN')
-    blocked = sum(1 for s in scenarios if s['status'] == 'BLOCKED')
+    all_records = list(scenarios) + list((security or {}).get('scenarios', []))
     test_summary = {
-        'passed': passed,
-        'failed': failed,
-        'not_run': not_run + sum(1 for s in (security or {}).get('scenarios', []) if s['status'] == 'NOT_RUN'),
-        'blocked': blocked,
-        'total': len(scenarios) + len((security or {}).get('scenarios', [])),
+        'passed': sum(1 for s in all_records if s['status'] == 'PASS'),
+        'failed': sum(1 for s in all_records if s['status'] == 'FAIL'),
+        'not_run': sum(1 for s in all_records if s['status'] == 'NOT_RUN'),
+        'blocked': sum(1 for s in all_records if s['status'] == 'BLOCKED'),
+        'total': len(all_records),
     }
 
     status_matrix = None

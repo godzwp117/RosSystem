@@ -219,6 +219,7 @@ class Case:
             'scenario_name': self.name,
             'expected_result': self.expected,
             'actual_result': '; '.join('{0}={1}'.format(c['check'], c['result']) for c in self.checks)[:800],
+            'result': 'PASS' if self.passed else 'FAIL',
             'status': 'PASS' if self.passed else 'FAIL',
             'command': self.commands[0]['argv'] if self.commands else [],
             'exit_code': self.exit_code,
