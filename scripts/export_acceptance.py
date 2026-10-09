@@ -304,7 +304,11 @@ def scenario_from_runner_entry(entry: dict, pkg: 'PackageBuilder', evidence_rel:
 
     decision_codes = entry.get('decision_sequence') or []
     exec_codes = entry.get('execution_status_codes') or []
-    reason = exec_codes[-1] if exec_codes else (decision_codes[-1] if decision_codes else None)
+    # 场景自带 reason_code 时优先采用（安全场景会用 DDS 拒绝 / INIT_FAILED 等
+    # 业务原因码之外的取值表达拒绝层），只有缺失时才从决策/执行序列推断。
+    reason = entry.get('reason_code')
+    if reason is None:
+        reason = exec_codes[-1] if exec_codes else (decision_codes[-1] if decision_codes else None)
 
     evidence_files = list(entry.get('_evidence_files') or [])
     log_path = None
