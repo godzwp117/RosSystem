@@ -444,7 +444,11 @@ def env_07_08(run_dir):
         proc = subprocess.Popen(['docker', 'exec', MAIN_CONTAINER, 'bash', '-lc', script],
                                 stdout=handle, stderr=subprocess.STDOUT,
                                 stdin=subprocess.DEVNULL, start_new_session=True)
-        return {'proc': proc, 'handle': handle, 'log': log_path, 'domain': domain}
+        # 注意：终止 `docker exec` **客户端**不会杀掉容器内的进程。
+        # 因此记录用于精确定位的唯一标记（记录文件路径），清理时按标记终止
+        # 容器内进程 —— 只影响本测试启动的实例，不触碰其他成员的任何进程。
+        return {'proc': proc, 'handle': handle, 'log': log_path, 'domain': domain,
+                'marker': record_path}
 
     try:
         sh(['docker', 'exec', MAIN_CONTAINER, 'bash', '-lc',
@@ -517,8 +521,24 @@ def env_07_08(run_dir):
                 item['handle'].close()
             except Exception:  # noqa: BLE001
                 pass
+        # 按唯一标记终止容器内进程（终止 exec 客户端不足以结束容器内进程）
+        for marker in (rec_a, rec_b):
+            sh(['docker', 'exec', MAIN_CONTAINER, 'bash', '-lc',
+                'for pid in $(ps -eo pid=,cmd= --no-headers '
+                '| grep "record_path:{0}" | grep -v grep | awk "{{print \$1}}"); do '
+                'kill -TERM "$pid" 2>/dev/null; done; sleep 2; '
+                'for pid in $(ps -eo pid=,cmd= --no-headers '
+                '| grep "record_path:{0}" | grep -v grep | awk "{{print \$1}}"); do '
+                'kill -KILL "$pid" 2>/dev/null; done; true'.format(marker)], timeout=120)
         sh(['docker', 'exec', MAIN_CONTAINER, 'bash', '-lc',
             'rm -f {0} {1}'.format(rec_a, rec_b)])
+        # 用括号技巧避免 grep 匹配到自身命令行（否则"残留计数"永远是正数）
+        leftover = sh(['docker', 'exec', MAIN_CONTAINER, 'bash', '-lc',
+                       'ps -eo cmd= --no-headers '
+                       '| grep "record_path:=/tmp/f0env_[ab]" | grep -v grep | wc -l'
+                       ' || true'])[1].strip()
+        case.check('ENV-15 收尾：本测试启动的容器内进程已全部终止',
+                   leftover in ('', '0'), '残留计数={0}'.format(leftover))
     return case
 
 
