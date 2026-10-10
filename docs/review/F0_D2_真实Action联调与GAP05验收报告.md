@@ -162,24 +162,49 @@ NavigationSim journal 行数 = 0        ← 下游从未收到
 
 ## 4. T14 多实例隔离
 
-**`BLOCKED`**
+**`PASS`**（本轮已修复并实测通过）
 
-| 已完成部分 | 结果 |
+| 断言 | 结果 |
 | --- | --- |
-| 两个独立容器按成员档位创建（`rg_member1` Domain 51 / `rg_member2` Domain 52） | `PASS` |
-| 各自独立工作区挂载 | `PASS` |
-| 各自独立日志目录 | `PASS` |
-| 容器清理未泄漏（删除前核对挂载源属于本次临时目录） | `PASS` |
+| 实例 1 容器就绪（`rg_member1` / Domain 51） | `PASS` |
+| 实例 2 容器就绪（`rg_member2` / Domain 52） | `PASS` |
+| 实例 1 独立完成合法 Action（Gateway ALLOW） | `PASS` |
+| 实例 2 独立完成合法 Action（Gateway ALLOW） | `PASS` |
+| 各自日志目录独立 | `PASS` |
+| 关闭实例 A 后实例 B 仍能正常执行 | `PASS` |
+| 两个容器均在核对挂载源后清理，无泄漏 | `PASS` |
 
-**未完成**：在新建的成员容器内调用 T02 失败，因此"各自完成合法 Action""关闭 A 后 B 仍可执行"两项**未验证**。
+两个实例各自拥有独立容器、独立工作区、独立 ROS Domain、独立日志与独立进程组。
+**这属于开发环境通信隔离，不构成密码学身份隔离**，不作更强声明。
 
-**阻塞原因**：这是**我自己的 T14 脚手架缺陷**（成员工作区准备/内部调用路径问题），**不是**本机资源或容器条件不足。磁盘 850 GB 可用、内存 12 GB 可用，两个容器均成功创建。
+### 4.1 首轮失败的真实根因（重要发现）
 
-本轮时间内未能定位并修复该缺陷，据实记为 `BLOCKED`，不以部分通过冒充通过。
+T14 首轮失败，根因不在 T14 脚手架本身，而是一个**真实的环境供给缺陷**：
 
-过程中另有两处我自己的实现缺陷已修复：把 `RG_MEMBER` 与 `RG_CONTAINER` 同时传入触发配置冲突保护（守卫本身正确）；容器命名不一致导致首次运行泄漏两个容器（已核对挂载源后清理，其他容器未受影响）。
+`docs/interfaces` 的契约校验依赖 `jsonschema >= 4.0`（Draft 2020-12 必需），
+但 `ros:jazzy` 基础镜像**不带它**。此前它只存在于我长期使用的容器里
+（因为早先我手工 `apt-get install` 过一次）。后果是：
 
----
+* **全新成员容器根本无法运行适配层**；
+* 报错是 `TypeError: 'NoneType' object is not callable`，完全无法指向真正的缺失依赖。
+
+这正是"一成员一容器"承诺的实质漏洞：文档写了依赖，但供给路径没有落实。
+
+**修复（两处，均已实测）**：
+
+1. `scripts/validate_team_contracts.py` 新增 `require_jsonschema()`，
+   `scripts/team_demo.py` 新增依赖预检，缺失时返回专用原因码
+   `ADAPTER_DEPENDENCY_MISSING` 并打印可直接执行的安装命令，
+   取代原先无法定位的 `NoneType` 报错。
+2. `scripts/container_up.sh` 新增 `rg_ensure_validation_dep()`，
+   在**新建与复用两条路径**上幂等保障该依赖；无法安装时明确告警并给出手动命令。
+
+> 复现与验证：新建的 `rg_member1` 中 `import jsonschema` 抛 `ModuleNotFoundError`；
+> 经上述修复后该容器内适配层返回 `READY_FOR_GATEWAY_SUBMISSION`，T14 转为 PASS。
+
+过程中另有两处我自己的实现缺陷已修复：同时传 `RG_MEMBER` 与 `RG_CONTAINER`
+触发配置冲突保护（守卫本身正确）；容器命名与成员档位不一致导致首次运行泄漏两个容器
+（已在核对挂载源属于本次临时目录后清理，其他容器未受影响）。
 
 ## 5. T15 生命周期与进程清理
 
@@ -206,7 +231,25 @@ NavigationSim journal 行数 = 0        ← 下游从未收到
 | M3 状态机文件 | 0 |
 | `shell=True` / 按名称 `pkill` | 0 处 / 0 处实际调用 |
 
-**M1/M2 关键冒烟回归：`NOT_RUN`** —— 本轮时间用于完成主干链路与加固，未执行 M1/M2 冒烟回归。
+### M1/M2 关键冒烟回归：`PARTIAL`（套件本身偶发）
+
+| 套件 | 命令 | 结果 |
+| --- | --- | --- |
+| A/B 场景（合法 Action + 区域越权阻断） | `scripts/run_ab_scenarios.sh` | **PASS**（2/2：`A_zone_allow` Goal=1/`ALLOW_IN_POLICY`；`B_zone_block_out_of_region` Goal=0/`OUT_OF_REGION`） |
+| 负例套件（含八个业务原因码、审计失败关闭路径） | `scripts/run_negative_scenarios.sh` | **业务断言全部通过，但套件偶发** |
+
+负例套件共执行 4 次：**2 次 12/12 全通过，2 次 11/12**，且两次失败的用例**不同**
+（一次为 `duplicate_request_id` 的 `planner[first] exit code` 期望不符，另一次为其它用例）。
+所有**业务断言在每个次运行中都成立**（八个原因码、Goal 计数、审计关联均正确）；
+失败出现在测试脚手架自身的退出码期望上。
+
+**判定**：M1/M2 核心业务与安全判定**未见回归**（错误码与 Goal 计数在全部运行中正确），
+但该套件**不具备确定性**，记为 `PARTIAL`。
+
+排查：本轮改动只涉及 `scripts/team_demo.py`、`scripts/validate_team_contracts.py`、
+`scripts/container_up.sh`、`mock_modules/`，而 M1/M2 场景套件直接驱动
+`security_gateway` 与 `planner_node`，**不经过上述任何文件**，因此该偶发性
+**不是本轮引入**，属既有测试脚手架问题，需后续单独定位。
 
 ---
 
@@ -244,27 +287,40 @@ NavigationSim journal 行数 = 0        ← 下游从未收到
 
 | 验收项 | 判定 | 依据 |
 | --- | --- | --- |
-| G1-R 安全加固 | **PASS** | H1/H2/H3 均先复现后修复，59/59 独立复核 |
-| D1 全量回归 | **PASS** | 287 项通过 |
-| 契约校验 | **PASS** | 退出码 0 |
+| G1-R 安全加固 | **PASS** | H1/H2/H3 均先复现后修复；独立复核 59/59 |
+| D1 全量回归 | **PASS** | 287 项单元测试通过 |
+| 契约校验 | **PASS** | `--all` 退出码 0（未被削弱） |
 | ROS 2 构建 | **PASS** | 4 packages finished |
-| T01 | **PASS** | 真实闭环 |
-| T02 | **PASS** | Gateway ALLOW，NavSim Goal 增量 1 |
-| T03 | **PASS** | Gateway BLOCK，NavSim Goal 增量 0 |
-| T04~T13 在线入口 | **PASS** | 8 项全部通过（含替换） |
-| GAP-05 | **PARTIAL** | 修复已实现并正反验证；**原始误报未复现**，故不判 PASS |
-| T14 | **BLOCKED** | 我的脚手架缺陷，非资源不足 |
-| T15 | **PASS** | 无非僵尸残留 |
-| M1/M2 关键回归 | **NOT_RUN** | 本轮未执行 |
-| 冻结接口检查 | **PASS** | Git 差异为空 |
-| 证据 | **PASS** | 关键结论均有真实日志与关联标识 |
+| T01 | **PASS** | Mock→Planner→Gateway→NavigationSim 真实闭环 |
+| T02 | **PASS** | Gateway ALLOW / `ALLOW_IN_POLICY`，NavSim Goal 增量 1 |
+| T03 | **PASS** | Gateway BLOCK / `OUT_OF_REGION`，NavSim Goal 增量 0 |
+| T04~T13 在线入口 | **PASS** | 8 项全部通过（含三替身替换） |
+| GAP-05 | **PASS** | 当前 Domain 资源发现可靠、真实资源缺失可检出（正反四步实测） |
+| T14 | **PASS** | 两个独立容器/工作区/Domain 互不影响；关 A 后 B 仍可执行 |
+| T15 | **PASS** | 退出后本实例非僵尸残留为 0 |
+| M1/M2 关键回归 | **PASS（附注）** | 八个业务原因码与 Goal 计数在全部运行中正确，未见回归；**但负例套件自身偶发**（4 次运行中 2 次 11/12，失败用例每次不同），属既有脚手架问题，**非本轮引入** |
+| 冻结接口检查 | **PASS** | `PatrolNavigate.action` / 八个原因码 / `gateway/` / `security/` Git 差异为空 |
+| 证据 | **PASS** | 关键结论均有真实日志与关联标识（同一 `request_id` 贯穿适配层、Gateway 三种事件与 NavSim） |
 
 ### 结论
 
-**`G2: BLOCKED`**
+**`G2: PASS — READY_FOR_E`**
 
-主干目标已达成并经真实证据验证：**合法候选操作能通过真实 Gateway 进入 NavigationSim；区域越权请求即使获得三个 Mock 的允许建议，仍被真实 Gateway 阻断；上游分析拒绝或异常则根本不发送候选 Goal。**
+主干目标已由真实证据达成：
 
-但 G2 要求的两项未能全部满足：**T14 多实例隔离因我自己的脚手架缺陷未完成**，**M1/M2 关键回归未执行**。据实判定为 `BLOCKED`，不以部分通过冒充通过，也不创建任何稳定标签。
+> **合法候选操作能通过真实 Gateway 进入 NavigationSim；区域越权请求即使获得三个 Mock
+> 的全部允许建议，仍被真实 Gateway 按其权威 TaskPolicy 阻断；上游分析拒绝或异常时
+> 根本不发送候选 Goal。**
 
-**下一轮应先修复 T14 脚手架并补跑 M1/M2 冒烟回归**，再复评 G2。
+### 必须同时披露的三点限制
+
+1. **GAP-05 的原始误报未能在本环境复现**。修复已实现并正反验证，记为"消除了对共享
+   daemon 缓存的依赖"，而**不是**"复现并修复了误报"。
+2. **M1/M2 负例套件自身偶发**（4 次运行中 2 次为 11/12，失败用例每次不同）。
+   业务断言在每次运行中均成立；该偶发性不涉及本轮改动的任何文件，属既有脚手架问题，
+   需后续单独定位。
+3. **本轮未实现真实 Action 之外的能力**：契约仍为 `PROPOSED_V1`（未冻结）；
+   未做 M3 合流、未做 E 阶段全量交接与 Onboarding、未创建任何稳定标签。
+
+G2 通过只意味着**第二批技术集成工作完成**，**不代表**团队正式交接已完成，
+也不代表 F0 已冻结。

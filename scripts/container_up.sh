@@ -50,6 +50,28 @@ WS_HOST_NORM="$(rg_normalize_path "${RG_WS_HOST}")"
 
 fail_mismatch() { echo "ERROR: $*" >&2; exit 4; }
 
+rg_ensure_validation_dep() {
+  # 确保契约校验依赖存在。
+  # 背景：Draft 2020-12 需要 jsonschema>=4.0，但 ros:jazzy 基础镜像不带它。
+  # 若只在某个长期容器里手工装过，全新成员容器会直接无法运行适配层，
+  # 且报错是难以定位的 TypeError: 'NoneType' object is not callable。
+  # 幂等：已具备 Draft 2020-12 时直接跳过。
+  echo "[container] ensuring python3-jsonschema (Draft 2020-12 validation)..."
+  if docker exec "${RG_CONTAINER}" python3 -c 'import jsonschema, sys; sys.exit(0 if hasattr(jsonschema, "Draft202012Validator") else 1)' >/dev/null 2>&1; then
+    echo "  [ok] jsonschema with Draft 2020-12 already present"
+    return 0
+  fi
+  if docker exec "${RG_CONTAINER}" bash -lc 'apt-get update -qq >/dev/null 2>&1 && apt-get install -y -qq python3-jsonschema >/dev/null 2>&1'; then
+    echo "  [ok] installed python3-jsonschema"
+    return 0
+  fi
+  echo "  [warn] 无法自动安装 python3-jsonschema（可能无网络或权限）" >&2
+  echo "         适配层与契约校验将无法运行。请手动执行：" >&2
+  echo "           docker exec ${RG_CONTAINER} apt-get install -y python3-jsonschema" >&2
+  return 1
+}
+
+
 if ! command -v docker >/dev/null 2>&1; then
   echo "ERROR: docker not found. Install docker, or run these scripts on a native Jazzy host." >&2
   exit 3
@@ -139,11 +161,13 @@ EOF
   if [ "${ACTUAL_STATE}" = "true" ]; then
     echo "[container] '${RG_CONTAINER}' is already running (configuration verified)."
     echo "[container] effective ROS_DOMAIN_ID=${ACTUAL_DOMAIN:-<unset>} (容器固化值)"
+    rg_ensure_validation_dep || true
     exit 0
   fi
   echo "[container] configuration verified; starting existing container '${RG_CONTAINER}'..."
   docker start "${RG_CONTAINER}" >/dev/null
   echo "[container] started."
+  rg_ensure_validation_dep || true
   exit 0
 fi
 
@@ -177,6 +201,8 @@ echo "[container] created. verified configuration:"
 echo "  workspace mount   : $(rg_normalize_path "${NEW_MOUNT}") -> ${RG_CONTAINER_WS}"
 echo "  ROS_DOMAIN_ID     : ${NEW_DOMAIN}"
 echo "  RMW_IMPLEMENTATION: ${NEW_RMW}"
+
+rg_ensure_validation_dep || true
 
 echo "[container] ready. ROS inside the container:"
 docker exec "${RG_CONTAINER}" bash -lc '

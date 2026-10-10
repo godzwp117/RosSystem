@@ -98,8 +98,26 @@ def check_rfc3339(value) -> bool:
     return True
 
 
+DEPENDENCY_HINT = (
+    '缺少 jsonschema>=4.0（Draft 2020-12 需要）。安装方式：\n'
+    '    apt-get update && apt-get install -y python3-jsonschema\n'
+    '或由 scripts/container_up.sh 在新建容器时自动安装。')
+
+
+def require_jsonschema():
+    """确认 jsonschema 可用；不可用时给出可执行的修复指引。
+
+    为什么需要这个检查：导入失败时模块级变量会是 None，直接调用会得到
+    `TypeError: 'NoneType' object is not callable` —— 这个报错完全无法指向
+    真正的缺失依赖。全新容器里第一次运行就会撞上，因此必须显式报错。
+    """
+    if jsonschema is None or Draft202012Validator is None or FormatChecker is None:
+        raise RuntimeError(DEPENDENCY_HINT)
+
+
 def build_format_checker():
     """构造带严格 date-time 检查器的 FormatChecker。"""
+    require_jsonschema()
     checker = FormatChecker()
     checker.checks('date-time')(check_rfc3339)
     return checker
@@ -152,6 +170,7 @@ def load_schema(name_or_path: str):
 
 
 def make_validator(schema):
+    require_jsonschema()
     return Draft202012Validator(schema, format_checker=build_format_checker())
 
 

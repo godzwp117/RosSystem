@@ -90,6 +90,7 @@ REASON_CONSISTENCY_EVENT_ID = 'ADAPTER_CONSISTENCY_EVENT_ID'
 REASON_CLEANUP_FAILED = 'ADAPTER_CLEANUP_FAILED'
 REASON_AUDIT_WRITE_FAILED = 'ADAPTER_AUDIT_WRITE_FAILED'
 REASON_INPUT_TOO_LARGE = 'ADAPTER_INPUT_TOO_LARGE'
+REASON_DEPENDENCY_MISSING = 'ADAPTER_DEPENDENCY_MISSING'
 
 # 唯一推进条件：三个接口必须分别处于下列状态
 PROCEED_STATES = {
@@ -943,6 +944,15 @@ def main(argv=None) -> int:
 
     # workdir 只能来自受信任的本地命令行参数，且必须是绝对路径下真实存在的目录。
     # 绝不从业务输入 JSON 读取（输入无法影响模块的工作目录）。
+    # 依赖预检：全新容器可能没有 jsonschema（Draft 2020-12 必需）。
+    # 早失败并给出安装方式，避免后续出现 'NoneType' object is not callable。
+    if vtc.jsonschema is None:
+        log_line(vtc.DEPENDENCY_HINT)
+        print(json.dumps({'decision': 'ADAPTER_BLOCK',
+                          'reason_code': REASON_DEPENDENCY_MISSING,
+                          'detail': vtc.DEPENDENCY_HINT}, ensure_ascii=False))
+        return EXIT_CONFIG_INVALID
+
     if not os.path.isabs(args.workdir) or not os.path.isdir(args.workdir):
         log_line('workdir 必须是存在的绝对路径: {0!r}'.format(args.workdir))
         print(json.dumps({'decision': 'ADAPTER_BLOCK',
