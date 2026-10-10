@@ -84,10 +84,31 @@ def live_node_processes() -> list:
 
 
 def action_list() -> str:
+    """就绪探测（GAP-05 修复）。
+
+    原实现用 `ros2 action list`，它经**共享 ROS 2 daemon** 查询图，而 daemon
+    按 Domain 缓存上一次的图 —— 跨 Domain 测试时可能报告上一个 Domain 的结果
+    （假就绪或假失败）。根因是"探测依赖了带缓存的间接层"。
+
+    现改为在本进程内用 rclpy 直接探测（见 domain_ready_probe.py）：
+    自己初始化节点，因此图属于当前进程的 Domain；用 ActionClient.wait_for_server()
+    做真实可达性判断；不经 daemon，也不去重置或杀死其他实例的 daemon。
+
+    输出格式保持为"每行一个 Action 名"，因此调用方的断言无需改动。
+    """
     rc, out = container_exec(
         'source /opt/ros/jazzy/setup.bash >/dev/null 2>&1; cd /ws; '
-        'source install/setup.bash >/dev/null 2>&1; timeout 30 ros2 action list -t 2>&1')
-    return out.strip()
+        'source install/setup.bash >/dev/null 2>&1; '
+        'timeout 40 python3 tests/integration/domain_ready_probe.py '
+        '--action /rg/guarded_navigate --action /rg/nav_execute '
+        '--timeout 12 --json 2>&1')
+    try:
+        payload = json.loads(out.strip().splitlines()[-1])
+    except (ValueError, IndexError):
+        # 探测本身失败时如实回退，不假装有结果
+        return out.strip()
+    lines = [entry['action'] for entry in payload.get('results', []) if entry.get('ready')]
+    return '\n'.join(lines)
 
 
 class Scenario:
