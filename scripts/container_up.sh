@@ -65,10 +65,28 @@ rg_ensure_validation_dep() {
     echo "  [ok] installed python3-jsonschema"
     return 0
   fi
-  echo "  [warn] 无法自动安装 python3-jsonschema（可能无网络或权限）" >&2
-  echo "         适配层与契约校验将无法运行。请手动执行：" >&2
-  echo "           docker exec ${RG_CONTAINER} apt-get install -y python3-jsonschema" >&2
+  echo "ERROR: 无法自动安装 python3-jsonschema（可能无网络或权限）。" >&2
+  echo "       契约校验与安全适配层将**无法运行**，该环境不能视为就绪。" >&2
+  echo "       请手动执行：" >&2
+  echo "         docker exec ${RG_CONTAINER} apt-get install -y python3-jsonschema" >&2
   return 1
+}
+
+# 依赖保障的强制入口：失败即让本次容器准备失败。
+# 背景（A6）：此前调用点是 `rg_ensure_validation_dep || true`，安装失败被**吞掉**，
+# 调用方仍以为环境就绪，直到交接环节才发现模块根本起不来。
+# 这里改为明确失败，并提供显式逃生开关（设置了就不再声称环境就绪）。
+rg_require_validation_dep() {
+  if [ "${RG_SKIP_DEP_CHECK:-0}" = "1" ]; then
+    echo "[container] WARNING: RG_SKIP_DEP_CHECK=1 —— 已跳过依赖检查。" >&2
+    echo "            该环境的契约校验与适配层**不保证可用**，不得声称已就绪。" >&2
+    return 0
+  fi
+  rg_ensure_validation_dep || {
+    echo "ERROR: 容器 '${RG_CONTAINER}' 的依赖检查未通过，环境准备失败。" >&2
+    echo "       如确需在无依赖环境下继续，请显式设置 RG_SKIP_DEP_CHECK=1。" >&2
+    return 1
+  }
 }
 
 
@@ -161,13 +179,13 @@ EOF
   if [ "${ACTUAL_STATE}" = "true" ]; then
     echo "[container] '${RG_CONTAINER}' is already running (configuration verified)."
     echo "[container] effective ROS_DOMAIN_ID=${ACTUAL_DOMAIN:-<unset>} (容器固化值)"
-    rg_ensure_validation_dep || true
+    rg_require_validation_dep || exit 5
     exit 0
   fi
   echo "[container] configuration verified; starting existing container '${RG_CONTAINER}'..."
   docker start "${RG_CONTAINER}" >/dev/null
   echo "[container] started."
-  rg_ensure_validation_dep || true
+  rg_require_validation_dep || exit 5
   exit 0
 fi
 
@@ -202,7 +220,7 @@ echo "  workspace mount   : $(rg_normalize_path "${NEW_MOUNT}") -> ${RG_CONTAINE
 echo "  ROS_DOMAIN_ID     : ${NEW_DOMAIN}"
 echo "  RMW_IMPLEMENTATION: ${NEW_RMW}"
 
-rg_ensure_validation_dep || true
+rg_require_validation_dep || exit 5
 
 echo "[container] ready. ROS inside the container:"
 docker exec "${RG_CONTAINER}" bash -lc '

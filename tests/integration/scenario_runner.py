@@ -98,10 +98,38 @@ def read_text(path: str) -> str:
         return handle.read()
 
 
-def find_node_pids() -> List[int]:
-    """PIDs of node processes belonging to this workspace (never our own)."""
-    found: List[int] = []
+def _proc_field(pid: int, field: str) -> str:
+    try:
+        with open('/proc/{0}/{1}'.format(pid, field), 'r', encoding='utf-8',
+                  errors='replace') as handle:
+            return handle.read().strip()
+    except (OSError, PermissionError):
+        return ''
+
+
+def _proc_environ(pid: int) -> Dict[str, str]:
+    environ = {}
+    try:
+        with open('/proc/{0}/environ'.format(pid), 'rb') as handle:
+            raw = handle.read().decode('utf-8', errors='replace')
+    except (OSError, PermissionError):
+        return environ
+    for item in raw.split('\x00'):
+        if '=' in item:
+            key, value = item.split('=', 1)
+            environ[key] = value
+    return environ
+
+
+def find_node_processes() -> List[Dict[str, Any]]:
+    """本工作区的节点进程，附带**归属信息**（域、会话、进程组、是否本会话）。
+
+    归属信息是安全清理的前提：没有它就无法区分"我上一轮遗留的节点"和
+    "同一容器里另一个成员正在运行的节点"。
+    """
+    found: List[Dict[str, Any]] = []
     self_pid = os.getpid()
+    self_sid = os.getsid(0)
     for entry in os.listdir('/proc'):
         if not entry.isdigit():
             continue
@@ -113,26 +141,81 @@ def find_node_pids() -> List[int]:
                 cmdline = handle.read().decode('utf-8', errors='replace').replace('\x00', ' ')
         except (OSError, PermissionError):
             continue
-        if any(marker in cmdline for marker in NODE_MARKERS):
-            found.append(pid)
+        if not any(marker in cmdline for marker in NODE_MARKERS):
+            continue
+        environ = _proc_environ(pid)
+        stat = _proc_field(pid, 'stat')
+        # stat 的字段 5 是 session，6 是 tty；comm 可能含空格，故从右往左取
+        sid = None
+        try:
+            parts = stat.rsplit(')', 1)[1].split()
+            sid = int(parts[3])
+        except (IndexError, ValueError):
+            sid = None
+        found.append({
+            'pid': pid,
+            'domain': environ.get('ROS_DOMAIN_ID', ''),
+            'sid': sid,
+            'own_session': (sid == self_sid),
+            'test_marker': environ.get('RG_TEST_RUN_ID', ''),
+            'cmdline': cmdline[:160],
+        })
     return found
 
 
+def find_node_pids() -> List[int]:
+    """兼容旧调用点：仅返回 PID 列表。"""
+    return [item['pid'] for item in find_node_processes()]
+
+
 def reap_stragglers(quiet: bool = False) -> List[int]:
-    """Force-kill leftover nodes from a previous run. Returns the PIDs reaped."""
+    """清理遗留节点，**默认只清理可证明属于本实例的进程**。
+
+    安全收紧（A5）
+    --------------
+    原实现扫描 /proc 后对所有匹配进程直接 SIGKILL，不区分 ROS Domain、
+    不区分启动者与容器内的其他实例。在多成员共享同一容器时，这等于杀掉
+    他人正在运行的 Gateway / NavigationSim。
+
+    现按归属分级：
+      * **本会话**（sid == 当前 sid）的节点：确定是本实例启动的，直接清理；
+      * **其他域**（ROS_DOMAIN_ID 与当前不同）的节点：默认**只报告不清理**，
+        因为它们更可能属于另一个实例；
+      * **同域但非本会话**：默认只报告；确需清理须显式设置
+        RG_REAP_FOREIGN=1（会打印明确警告）。
+    """
     reaped: List[int] = []
-    for attempt_signal in (signal.SIGKILL,):
-        pids = find_node_pids()
-        for pid in pids:
+    skipped: List[Dict[str, Any]] = []
+
+    for item in find_node_processes():
+        pid = item['pid']
+        # 归属判定依据是**测试专属标记**，而不是进程名、工作区路径或 Domain：
+        #   * 带 RG_TEST_RUN_ID  -> 本脚手架（含历史轮次）启动的测试节点，可清理；
+        #   * 不带该标记         -> 成员用 start_system.sh 启动的真实系统，绝不触碰。
+        # 本会话的节点同样直接清理（一定是本次运行启动的）。
+        if item.get('test_marker') or item['own_session']:
             try:
-                os.kill(pid, attempt_signal)
+                os.kill(pid, signal.SIGKILL)
                 reaped.append(pid)
             except OSError:
                 pass
-        if pids:
-            time.sleep(0.5)
-    if reaped and not quiet:
-        print('[preflight] reaped leftover node process(es): {0}'.format(reaped))
+        else:
+            skipped.append(item)
+
+    if reaped:
+        time.sleep(0.5)
+    if not quiet:
+        if reaped:
+            print('[preflight] reaped own leftover node process(es): {0}'.format(reaped))
+        if skipped:
+            print('[preflight] 跳过 {0} 个不属于本实例的节点进程（未清理）:'.format(
+                len(skipped)))
+            for item in skipped[:5]:
+                print('    pid={0} domain={1!r} own_session={2}'.format(
+                    item['pid'], item['domain'], item['own_session']))
+            print('    这些进程不带测试标记，可能是成员正在运行的系统；'
+                  '已跳过以避免误杀。')
+            print('    若确认它们确实是遗留测试节点，可手动检查后再处理。')
     return reaped
 
 
@@ -179,6 +262,11 @@ class NodeProcess:
 
         env = dict(os.environ)
         env['PYTHONUNBUFFERED'] = '1'
+        # 测试专属标记：本脚手架启动的节点一定带这个变量。
+        # 成员自己用 start_system.sh 启动的栈**不带**该变量，因此永远不会被
+        # 测试脚手架的遗留清理碰到 —— 这是"只清理自己的进程"的可判定依据。
+        env['RG_TEST_RUN_ID'] = os.environ.get('RG_TEST_RUN_ID') or (
+            'scenario_runner-{0}'.format(os.getpid()))
         os.makedirs(os.path.dirname(log_path), exist_ok=True)
         self._log_handle = open(log_path, 'wb')
         self.log_path = log_path
