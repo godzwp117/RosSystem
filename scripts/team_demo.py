@@ -42,6 +42,7 @@ import argparse
 import errno
 import json
 import os
+import resource
 import signal
 import subprocess
 import sys
@@ -87,6 +88,8 @@ REASON_CONSISTENCY_TASK_ID = 'ADAPTER_CONSISTENCY_TASK_ID'
 REASON_CONSISTENCY_ACTION = 'ADAPTER_CONSISTENCY_ACTION'
 REASON_CONSISTENCY_EVENT_ID = 'ADAPTER_CONSISTENCY_EVENT_ID'
 REASON_CLEANUP_FAILED = 'ADAPTER_CLEANUP_FAILED'
+REASON_AUDIT_WRITE_FAILED = 'ADAPTER_AUDIT_WRITE_FAILED'
+REASON_INPUT_TOO_LARGE = 'ADAPTER_INPUT_TOO_LARGE'
 
 # 唯一推进条件：三个接口必须分别处于下列状态
 PROCEED_STATES = {
@@ -101,7 +104,21 @@ MODULE_ORDER = ('comm_risk', 'identity_trust', 'task_risk')
 GUARDED_ACTION = '/rg/guarded_navigate'
 
 DEFAULT_STDOUT_LIMIT = 65536
+DEFAULT_STDERR_LIMIT = 16384
 DEFAULT_TIMEOUT = 10.0
+# 输入信封与服务端参数的合理上限（防止配置写出明显失真的值）
+MAX_TIMEOUT_SEC = 3600.0
+MAX_OUTPUT_LIMIT = 16 * 1024 * 1024
+MAX_STDERR_LIMIT = 1024 * 1024
+MAX_INPUT_BYTES = 1024 * 1024
+
+# 每个模块位置只接受对应的接口，避免"位置与接口不匹配"的错配配置
+EXPECTED_INTERFACE = {
+    'comm_risk': 'comm_risk_evidence',
+    'identity_trust': 'identity_trust_assessment',
+    'task_risk': 'task_risk_decision',
+}
+ALLOWED_MODES = ('mock', 'external', 'double')
 
 
 # ---------------------------------------------------------------- 工具
@@ -161,15 +178,73 @@ def load_config(path: str) -> dict:
         if interface not in vtc.SCHEMA_FILES or interface == 'module_input':
             raise AdapterBlock(REASON_CONFIG_INVALID,
                                '模块 {0} 的 interface 无效: {1!r}'.format(name, interface))
-        timeout = entry.get('timeout_sec', DEFAULT_TIMEOUT)
-        if not isinstance(timeout, (int, float)) or timeout <= 0:
+        # 位置与接口必须匹配：防止把身份模块的输出当成通信证据使用
+        if interface != EXPECTED_INTERFACE[name]:
+            raise AdapterBlock(
+                REASON_CONFIG_INVALID,
+                '模块 {0} 的 interface 应为 {1!r}，配置为 {2!r}；'
+                '位置与接口错配会把一种证据当成另一种证据使用'.format(
+                    name, EXPECTED_INTERFACE[name], interface))
+
+        mode = entry.get('mode', 'mock')
+        if mode not in ALLOWED_MODES:
             raise AdapterBlock(REASON_CONFIG_INVALID,
-                               '模块 {0} 的 timeout_sec 必须为正数'.format(name))
-        limit = entry.get('max_stdout_bytes', DEFAULT_STDOUT_LIMIT)
-        if not isinstance(limit, int) or limit <= 0:
-            raise AdapterBlock(REASON_CONFIG_INVALID,
-                               '模块 {0} 的 max_stdout_bytes 必须为正整数'.format(name))
+                               '模块 {0} 的 mode 无效: {1!r}（可选 {2}）'.format(
+                                   name, mode, list(ALLOWED_MODES)))
+
+        # 故障注入开关必须是真正的布尔值：字符串 'false' 会被当成真值，
+        # 从而在"看起来关掉了"的配置里意外开启故障注入。
+        fault_flag = entry.get('allow_fault_injection', False)
+        if not isinstance(fault_flag, bool):
+            raise AdapterBlock(
+                REASON_CONFIG_INVALID,
+                '模块 {0} 的 allow_fault_injection 必须是布尔值（当前 {1!r}）；'
+                '字符串会被当作真值，导致故障注入被意外开启'.format(name, fault_flag))
+
+        timeout = _require_number(name, 'timeout_sec', entry.get('timeout_sec',
+                                                                DEFAULT_TIMEOUT),
+                                  0.0, MAX_TIMEOUT_SEC, integer=False)
+        limit = _require_number(name, 'max_stdout_bytes',
+                                entry.get('max_stdout_bytes', DEFAULT_STDOUT_LIMIT),
+                                0, MAX_OUTPUT_LIMIT, integer=True)
+        _require_number(name, 'max_stderr_bytes',
+                        entry.get('max_stderr_bytes', DEFAULT_STDERR_LIMIT),
+                        0, MAX_STDERR_LIMIT, integer=True)
     return config
+
+
+def _require_number(module: str, field: str, value, low, high, *, integer: bool):
+    """校验数值型配置：拒绝布尔、非有限数值与越界值。
+
+    为什么必须显式拒绝布尔：Python 中 `True == 1`，`isinstance(True, int)` 为真。
+    若不排除布尔，`timeout_sec: true` 会被当成 1 秒静默接受。
+    为什么要拒绝 NaN/Infinity：它们能通过 `> 0` 之外的任何朴素比较，
+    会让超时逻辑永远不触发或立即触发。
+    """
+    if isinstance(value, bool):
+        raise AdapterBlock(REASON_CONFIG_INVALID,
+                           '模块 {0} 的 {1} 不能是布尔值（当前 {2!r}）'.format(
+                               module, field, value))
+    if integer:
+        if not isinstance(value, int):
+            raise AdapterBlock(REASON_CONFIG_INVALID,
+                               '模块 {0} 的 {1} 必须是整数（当前 {2!r}）'.format(
+                                   module, field, value))
+    else:
+        if not isinstance(value, (int, float)):
+            raise AdapterBlock(REASON_CONFIG_INVALID,
+                               '模块 {0} 的 {1} 必须是数值（当前 {2!r}）'.format(
+                                   module, field, value))
+        if value != value or value in (float('inf'), float('-inf')):
+            raise AdapterBlock(REASON_CONFIG_INVALID,
+                               '模块 {0} 的 {1} 必须是有限数值（当前 {2!r}）'.format(
+                                   module, field, value))
+    if value <= low or value > high:
+        raise AdapterBlock(
+            REASON_CONFIG_INVALID,
+            '模块 {0} 的 {1} 必须在 ({2}, {3}] 范围内（当前 {4!r}）'.format(
+                module, field, low, high, value))
+    return value
 
 
 # ---------------------------------------------------------------- 严格解析
@@ -206,6 +281,115 @@ def parse_single_json_object(text: str, source: str):
 
 
 # ---------------------------------------------------------------- 进程调用
+def read_bounded(proc, stdin_bytes: bytes, timeout: float,
+                 max_stdout: int, max_stderr: int):
+    """在读取过程中限制子进程输出，而不是读完再检查。
+
+    为什么必须这样做
+    ----------------
+    `subprocess.communicate()` 会先把 stdout/stderr **全部读入内存**，
+    然后调用方才有机会检查长度。一个持续输出的模块因此可以在大小检查生效前
+    就把适配层的内存吃光 —— `max_stdout_bytes` 形同虚设。
+
+    本函数用 selector 边读边计数：
+      * stdout 超过 max_stdout        -> 立即终止并报 STDOUT_TOO_LARGE
+      * stderr 超过 max_stderr        -> **继续排空但只保留前 max_stderr 字节**
+                                         （排空是必要的，否则子进程会因管道写满而阻塞）
+      * 总时长超过 timeout            -> 立即终止并报 TIMEOUT
+      * 输入无法写入（子进程提前退出）-> 记录但不视为模块成功
+
+    返回 (stdout_bytes, stderr_bytes, exceeded) ，其中 exceeded 为 None 或原因标签。
+    调用方负责在 exceeded 非空时终止进程组。
+    """
+    import selectors
+
+    deadline = time.monotonic() + timeout
+    out_chunks = []
+    err_chunks = []
+    out_size = 0
+    err_size = 0          # 实际接收量（用于判断是否需要继续排空）
+    err_kept = 0          # 实际保留量
+    exceeded = None
+
+    stdin_data = stdin_bytes
+    selector = selectors.DefaultSelector()
+    try:
+        for stream, label in ((proc.stdout, 'stdout'), (proc.stderr, 'stderr')):
+            if stream is not None:
+                os.set_blocking(stream.fileno(), False)
+                selector.register(stream, selectors.EVENT_READ, label)
+    except (OSError, ValueError) as exc:
+        exceeded = 'SETUP_FAILED:{0}'.format(exc)
+        return b'', b'', exceeded
+
+    open_streams = 2
+    try:
+        while open_streams > 0:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                exceeded = 'TIMEOUT'
+                break
+
+            # 先尽力写 stdin（非阻塞写同样可能因管道满而阻塞，因此限量写）
+            if stdin_data:
+                try:
+                    written = os.write(proc.stdin.fileno(), stdin_data)
+                    stdin_data = stdin_data[written:]
+                except BlockingIOError:
+                    pass
+                except (BrokenPipeError, OSError, ValueError):
+                    # 子进程提前关闭 stdin：不是致命错误，继续读取输出
+                    stdin_data = b''
+                if not stdin_data:
+                    try:
+                        proc.stdin.close()
+                    except (OSError, ValueError):
+                        pass
+
+            for key, _events in selector.select(timeout=min(0.2, max(remaining, 0.01))):
+                stream = key.fileobj
+                label = key.data
+                try:
+                    chunk = stream.read(65536)
+                except (BlockingIOError, InterruptedError):
+                    continue
+                except (OSError, ValueError):
+                    chunk = b''
+                if not chunk:
+                    selector.unregister(stream)
+                    open_streams -= 1
+                    continue
+                if label == 'stdout':
+                    out_size += len(chunk)
+                    if out_size > max_stdout:
+                        # 关键：一旦超限立即停止，不再继续缓冲
+                        exceeded = 'STDOUT_TOO_LARGE'
+                        out_chunks.append(chunk[:max(0, max_stdout - (out_size - len(chunk)))])
+                        break
+                    out_chunks.append(chunk)
+                else:
+                    err_size += len(chunk)
+                    if err_kept < max_stderr:
+                        keep = chunk[:max_stderr - err_kept]
+                        err_chunks.append(keep)
+                        err_kept += len(keep)
+                    # 超限的 stderr 只丢弃不保留，但仍持续排空
+            if exceeded:
+                break
+    finally:
+        try:
+            selector.close()
+        except Exception:  # noqa: BLE001
+            pass
+        if stdin_data:
+            try:
+                proc.stdin.close()
+            except (OSError, ValueError):
+                pass
+
+    return b''.join(out_chunks), b''.join(err_chunks), exceeded
+
+
 def invoke_module(name: str, entry: dict, envelope_text: str, workdir: str,
                   invocation_id: str, records: list):
     """调用一个模块进程，返回 (document, record)。
@@ -267,18 +451,48 @@ def invoke_module(name: str, entry: dict, envelope_text: str, workdir: str,
     except OSError:
         record['pgid'] = None
 
-    try:
-        out, err = proc.communicate(input=envelope_text.encode('utf-8'), timeout=timeout)
-        record['exit_code'] = proc.returncode
-        record['duration_ms'] = int((time.monotonic() - started) * 1000)
-    except subprocess.TimeoutExpired:
-        record['duration_ms'] = int((time.monotonic() - started) * 1000)
+    stdin_bytes = envelope_text.encode('utf-8')
+    if len(stdin_bytes) > MAX_INPUT_BYTES:
+        record['cleanup'] = terminate_process_group(proc, record)
+        raise AdapterBlock(
+            REASON_INPUT_TOO_LARGE,
+            '模块 {0} 的输入 {1} 字节超过上限 {2}'.format(
+                name, len(stdin_bytes), MAX_INPUT_BYTES))
+
+    stderr_limit = int(entry.get('max_stderr_bytes', DEFAULT_STDERR_LIMIT))
+    out, err, exceeded = read_bounded(proc, stdin_bytes, timeout, limit, stderr_limit)
+    record['duration_ms'] = int((time.monotonic() - started) * 1000)
+    record['stderr_bytes_kept'] = len(err)
+
+    if exceeded == 'TIMEOUT':
         record['cleanup'] = terminate_process_group(proc, record)
         raise AdapterBlock(
             REASON_TIMEOUT,
             '模块 {0} 超时（{1}s），已终止本次调用的进程组；'
-            '本次调用不产生任何允许结论'.format(name, timeout)) from None
+            '本次调用不产生任何允许结论'.format(name, timeout))
+    if exceeded == 'STDOUT_TOO_LARGE':
+        # 超限即终止：不等待子进程把剩余数据写完，也不把剩余输出读进内存
+        record['cleanup'] = terminate_process_group(proc, record)
+        record['stdout_bytes'] = len(out)
+        raise AdapterBlock(
+            REASON_TOO_LARGE,
+            '模块 {0} 的 stdout 超过上限 {1} 字节（读取过程中即终止，'
+            '未完整缓冲）'.format(name, limit))
+    if exceeded:
+        record['cleanup'] = terminate_process_group(proc, record)
+        raise AdapterBlock(
+            REASON_INTERNAL if exceeded.startswith('SETUP_FAILED') else REASON_STDOUT_INVALID,
+            '模块 {0} 输出读取异常: {1}'.format(name, exceeded))
 
+    # 正常路径：等待退出并回收
+    try:
+        proc.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        record['cleanup'] = terminate_process_group(proc, record)
+        raise AdapterBlock(
+            REASON_TIMEOUT,
+            '模块 {0} 在输出关闭后仍未退出，已终止本次调用的进程组'.format(name))
+    record['exit_code'] = proc.returncode
     record['stdout_bytes'] = len(out)
     if err:
         log_line('模块 {0} stderr: {1}'.format(
@@ -437,6 +651,8 @@ def run(envelope_text: str, config_path: str, log_path: str, workdir: str) -> di
         'run_id': None,
         'request_id': None,
         'modules': [],
+        # 自报峰值内存：用于证明有界读取确实生效（无界缓冲会让该值随模块输出增长）
+        'adapter_peak_rss_kb': resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
         'note': ('本结果仅表示适配层的候选输入检查结论；'
                  'READY_FOR_GATEWAY_SUBMISSION 不代表 Gateway 已允许，'
                  '也不代表下游已执行。本层不提交真实 Action。'),
@@ -499,18 +715,56 @@ def run(envelope_text: str, config_path: str, log_path: str, workdir: str) -> di
         result['reason_code'] = REASON_CLEANUP_FAILED
         result['detail'] = '进程清理失败，维持阻断结论'
 
+    result['adapter_peak_rss_kb'] = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+
+    # H2：审计记录是推进的前置条件。顺序很重要 —— 先写审计，再据其成败决定结论。
+    ok, detail = append_log(log_path, result)
+    result['audit_written'] = bool(ok)
+    if not ok:
+        result['audit_error'] = detail
+        if result['decision'] == 'READY_FOR_GATEWAY_SUBMISSION':
+            result['decision'] = 'ADAPTER_BLOCK'
+            result['reason_code'] = REASON_AUDIT_WRITE_FAILED
+            result['detail'] = (
+                '适配层审计记录写入失败（{0}）；'
+                '缺少必要审计证据时不得进入后续提交流程'.format(detail))
+        return result
+
+    # 写回一条"已记录"的结果，便于事后核对本次调用确已入账
+    append_log(log_path, {
+        'invocation_id': invocation_id,
+        'audit_confirm': True,
+        'decision': result['decision'],
+        'reason_code': result['reason_code'],
+        'run_id': result.get('run_id'),
+        'request_id': result.get('request_id'),
+    })
     return result
 
 
-def append_log(log_path: str, result: dict) -> None:
+def append_log(log_path: str, result: dict):
+    """写入适配层审计记录，返回 (ok, detail)。
+
+    H2：审计可靠性是安全边界的一部分。
+    一旦本函数失败，调用方**必须**把 READY 降级为阻断 —— 否则会出现
+    "需要留存适配证据的请求却没有证据，却照样进入 Gateway"的情况。
+    这里只如实报告失败，绝不伪造"已经写入成功"。
+    """
     try:
         directory = os.path.dirname(log_path)
         if directory:
             os.makedirs(directory, exist_ok=True)
+        if os.path.isdir(log_path):
+            raise IsADirectoryError('日志路径是一个目录: {0}'.format(log_path))
         with open(log_path, 'a', encoding='utf-8') as handle:
             handle.write(json.dumps(result, ensure_ascii=False) + '\n')
-    except OSError as exc:
-        log_line('写入适配层日志失败: {0}'.format(exc))
+            handle.flush()
+            os.fsync(handle.fileno())
+        return True, ''
+    except (OSError, ValueError, TypeError) as exc:
+        detail = '{0}: {1}'.format(type(exc).__name__, exc)
+        log_line('写入适配层审计记录失败: {0}'.format(detail))
+        return False, detail
 
 
 def main(argv=None) -> int:
@@ -527,6 +781,16 @@ def main(argv=None) -> int:
     parser.add_argument('--workdir', default=REPO_ROOT,
                         help='模块进程的工作目录')
     args = parser.parse_args(argv)
+
+    # workdir 只能来自受信任的本地命令行参数，且必须是绝对路径下真实存在的目录。
+    # 绝不从业务输入 JSON 读取（输入无法影响模块的工作目录）。
+    if not os.path.isabs(args.workdir) or not os.path.isdir(args.workdir):
+        log_line('workdir 必须是存在的绝对路径: {0!r}'.format(args.workdir))
+        print(json.dumps({'decision': 'ADAPTER_BLOCK',
+                          'reason_code': REASON_CONFIG_INVALID,
+                          'detail': 'workdir 必须是存在的绝对路径: {0!r}'.format(
+                              args.workdir)}, ensure_ascii=False))
+        return EXIT_CONFIG_INVALID
 
     if args.input == '-':
         envelope_text = sys.stdin.read()
@@ -549,7 +813,7 @@ def main(argv=None) -> int:
                   'reason_code': block.reason_code, 'detail': block.detail,
                   'modules': []}
 
-    append_log(args.log, result)
+    # 审计记录已在 run() 内完成（含失败降级）；此处不再重复写入。
 
     # stdout 只输出最终结果 JSON：调用方（含未来 D2 集成）可安全解析
     print(json.dumps(result, ensure_ascii=False, indent=2))

@@ -173,6 +173,28 @@ def apply_fault_injection(fault, allowed: bool) -> bool:
         sys.stdout.buffer.write(b'{"status": "\xff\xfe invalid utf8"}')
         sys.stdout.buffer.flush()
         sys.exit(EXIT_OK)
+    if fault in ('flood_stdout', 'flood_stderr', 'flood_both'):
+        # 持续洪泛：用于验证适配层是否真的在**读取过程中**限流。
+        # 旧实现用 communicate() 会先把全部输出读进内存，本故障可使其内存无界增长；
+        # 新实现应在首次超过 stdout 上限时立即终止本进程。
+        total = int(os.environ.get('F0_MOCK_FLOOD_BYTES', str(64 * 1024 * 1024)))
+        chunk = b'x' * 65536
+        written = 0
+        target_out = fault in ('flood_stdout', 'flood_both')
+        target_err = fault in ('flood_stderr', 'flood_both')
+        try:
+            while written < total:
+                if target_out:
+                    sys.stdout.buffer.write(chunk)
+                    sys.stdout.buffer.flush()
+                if target_err:
+                    sys.stderr.buffer.write(chunk)
+                    sys.stderr.buffer.flush()
+                written += len(chunk)
+        except (BrokenPipeError, OSError):
+            # 适配层已终止本次调用（这正是预期行为）
+            pass
+        sys.exit(EXIT_OK)
     if fault == 'oversize':
         # 输出超过适配层大小上限的内容
         sys.stdout.write('{"padding": "' + ('x' * 200000) + '"}\n')
