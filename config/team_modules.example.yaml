@@ -1,0 +1,67 @@
+# F0 模块适配层示例配置（受信任的本地配置）
+#
+# 安全要点
+# --------
+# * 模块命令**只能**来自本文件。适配层绝不从业务输入 JSON 中读取路径、命令、
+#   producer 或角色名来动态执行程序。
+# * `command` 必须是**参数数组**（YAML 列表）。适配层拒绝字符串形式，
+#   因为字符串会被 Shell 解释，产生命令注入面。适配层内部始终 `shell=False`。
+# * `allow_fault_injection` 只允许在**测试配置**中开启。生产或联调配置必须为 false，
+#   否则模块会接受来自输入的协议层故障注入。
+# * 本配置**不提供**任何指向执行端（/rg/nav_execute）的入口。适配层只处理候选操作，
+#   不创建新的下游执行通道。
+#
+# 逐模块替换
+# ----------
+# 把某个模块从 mock 换成真实实现时，只改该模块的 mode 与 command 两项，
+# 不需要改动其他模块的配置，也不需要改动 SecurityGateway 或 Action 契约：
+#
+#   comm_risk:
+#     mode: external
+#     interface: comm_risk_evidence
+#     command: ["python3", "path/to/your_comm_module.py"]
+#     timeout_sec: 10
+#     max_stdout_bytes: 65536
+
+adapter:
+  # 适配层调用记录（JSONL）。与模块 stdout 严格分离，便于事后复核。
+  log_path: logs/team_adapter.jsonl
+
+modules:
+
+  # 通信行为可信分析
+  comm_risk:
+    mode: mock
+    interface: comm_risk_evidence
+    command: ["python3", "mock_modules/comm_risk_mock.py"]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+    # 资源限制：当前以超时与输出上限表达；未引入容器或 cgroup 级限制
+    resource_limits:
+      max_stdout_bytes: 65536
+      timeout_sec: 10
+
+  # DDS 身份与资源访问安全分析
+  identity_trust:
+    mode: mock
+    interface: identity_trust_assessment
+    command: ["python3", "mock_modules/identity_trust_mock.py"]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+    resource_limits:
+      max_stdout_bytes: 65536
+      timeout_sec: 10
+
+  # 任务感知风险推理
+  task_risk:
+    mode: mock
+    interface: task_risk_decision
+    command: ["python3", "mock_modules/task_risk_mock.py"]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+    resource_limits:
+      max_stdout_bytes: 65536
+      timeout_sec: 10
