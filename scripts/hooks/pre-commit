@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+# 防止把"仅限本地"的文件提交进版本库。
+#
+# 背景：.gitignore 对 `git add -f` 无效，因此必须有独立守卫。
+# 本钩子检查暂存区，任何命中即拒绝提交。
+set -eu
+
+LOCAL_ONLY="gitlog.md"
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR || true)
+for f in $staged; do
+  case "$f" in
+    "$LOCAL_ONLY"|*/"$LOCAL_ONLY")
+      echo "ERROR(pre-commit): 拒绝提交仅限本地的文件: $f" >&2
+      echo "  该文件包含提交者姓名与邮箱等个人信息，不得进入版本库或公开材料。" >&2
+      echo "  如确需移除: git restore --staged \"$f\"" >&2
+      exit 1
+      ;;
+  esac
+done
+exit 0

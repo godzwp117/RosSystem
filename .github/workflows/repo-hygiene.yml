@@ -1,0 +1,73 @@
+# 仓库卫生检查：确保"仅限本地"的文件没有进入版本库。
+#
+# 为什么需要它：.gitignore 对 `git add -f` 无效，而本地 pre-commit/pre-push 钩子
+# 不随仓库分发（每个开发者需各自安装）。因此 CI 必须有一道独立检查，
+# 否则"某人用 -f 强制加入"会静默进入公开仓库。
+#
+# 本工作流只读仓库内容，不做构建、不跑 ROS 测试，权限最小化。
+name: repo-hygiene
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  no-local-only-files:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: 检查被跟踪文件是否包含仅限本地的归档文件
+        run: |
+          set -euo pipefail
+          FAIL=0
+
+          echo "--- 检查 1: 根目录 gitlog.md 不得被跟踪 ---"
+          if git ls-files --error-unmatch gitlog.md >/dev/null 2>&1; then
+            echo "::error::仓库跟踪了 gitlog.md。该文件含提交者姓名与邮箱，仅限本地留存，不得上传。"
+            FAIL=1
+          else
+            echo "OK: gitlog.md 未被跟踪"
+          fi
+
+          echo "--- 检查 2: 仓库任意位置都不得出现 gitlog.md ---"
+          if git ls-files | grep -qx 'gitlog.md'; then
+            echo "::error::索引中存在 gitlog.md"
+            FAIL=1
+          else
+            echo "OK: 索引中不存在 gitlog.md"
+          fi
+
+          echo "--- 检查 3: 最近提交树中不得包含 gitlog.md ---"
+          if git log --all --pretty=format: --name-only --diff-filter=A \
+               | grep -qx 'gitlog.md'; then
+            echo "::error::历史提交中曾加入过 gitlog.md，需要从版本库移除。"
+            FAIL=1
+          else
+            echo "OK: 历史中从未加入 gitlog.md"
+          fi
+
+          echo "--- 检查 4: 必须存在忽略规则与守卫 ---"
+          if grep -q '^/gitlog.md$' .gitignore; then
+            echo "OK: .gitignore 含 /gitlog.md 规则"
+          else
+            echo "::error::.gitignore 缺少 /gitlog.md 规则"
+            FAIL=1
+          fi
+          for hook in scripts/hooks/pre-commit scripts/hooks/pre-push; do
+            if [ -f "$hook" ]; then
+              echo "OK: 存在 $hook"
+            else
+              echo "::error::缺少防误提交守卫 $hook"
+              FAIL=1
+            fi
+          done
+
+          exit $FAIL
