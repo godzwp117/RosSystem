@@ -17,6 +17,18 @@ set -o pipefail
 
 RG_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RG_WS_HOST="$(cd "${RG_SCRIPT_DIR}/.." && pwd)"
+
+# 成员档位解析（一成员一容器一开发 Domain）。显式指定的 RG_CONTAINER /
+# ROS_DOMAIN_ID 优先级最高；与成员档位冲突时 member_env.sh 会直接失败，
+# 避免"以为在自己的环境里"却实际用了别人的容器或通信域。
+RG_CONTAINER_EXPLICIT=""
+[ -n "${RG_CONTAINER:-}" ] && RG_CONTAINER_EXPLICIT=1
+RG_DOMAIN_EXPLICIT=""
+[ -n "${ROS_DOMAIN_ID:-}" ] && RG_DOMAIN_EXPLICIT=1
+# shellcheck source=member_env.sh
+source "${RG_SCRIPT_DIR}/member_env.sh"
+rg_apply_member_profile || { echo "ERROR: 成员环境配置冲突" >&2; return 2 2>/dev/null || exit 2; }
+
 RG_CONTAINER="${RG_CONTAINER:-rg_jazzy}"
 RG_IMAGE="${RG_IMAGE:-ros:jazzy}"
 RG_CONTAINER_WS="${RG_CONTAINER_WS:-/ws}"
@@ -59,13 +71,28 @@ rg_ros() {
       )
       ;;
     container)
-      docker exec "${RG_CONTAINER}" bash -lc "
-        set -o pipefail
-        cd ${RG_CONTAINER_WS} || exit 3
-        source /opt/ros/jazzy/setup.bash
-        if [ -f install/setup.bash ]; then source install/setup.bash; fi
-        ${command_string}
-      "
+      # 显式把本次生效的 Domain 传给容器进程。
+      # 原因：容器创建时固化的环境变量不会随宿主机后来修改而更新；显式传入
+      # 才能保证"测试进程实际用的 Domain"与"记录下来的值"一致（GAP-06）。
+      local _rg_domain
+      _rg_domain="$(rg_effective_domain "${RG_CONTAINER}")"
+      if [ -n "${_rg_domain}" ]; then
+        docker exec -e "ROS_DOMAIN_ID=${_rg_domain}" "${RG_CONTAINER}" bash -lc "
+          set -o pipefail
+          cd ${RG_CONTAINER_WS} || exit 3
+          source /opt/ros/jazzy/setup.bash
+          if [ -f install/setup.bash ]; then source install/setup.bash; fi
+          ${command_string}
+        "
+      else
+        docker exec "${RG_CONTAINER}" bash -lc "
+          set -o pipefail
+          cd ${RG_CONTAINER_WS} || exit 3
+          source /opt/ros/jazzy/setup.bash
+          if [ -f install/setup.bash ]; then source install/setup.bash; fi
+          ${command_string}
+        "
+      fi
       ;;
     *)
       echo "ERROR: no ROS environment available." >&2
