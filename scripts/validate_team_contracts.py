@@ -110,11 +110,37 @@ def non_finite_constant(name: str):
     raise ValueError('非有限数值字面量不是合法 JSON: {0}'.format(name))
 
 
+def reject_duplicate_keys(pairs):
+    """object_pairs_hook：拒绝重复的 JSON 键。
+
+    为什么必须显式拒绝：Python 的 `json.loads` 对重复键**静默取最后一个值**
+    （实测 `{"a":1,"a":2}` -> `{"a": 2}`）。这会产生一个危险的可解析性缺口 ——
+    攻击者或上游缺陷可以先用一个合法值通过人工阅读，再让解析器取到另一个值。
+    JSON Schema 无法发现这一点，因为到达校验器时重复键已经消失。
+    因此在**解析阶段**拒绝，而不是校验阶段。
+    """
+    seen = {}
+    for key, value in pairs:
+        if key in seen:
+            raise ValueError('重复的 JSON 键不是协议允许的输入: {0!r}'.format(key))
+        seen[key] = value
+    return seen
+
+
+def load_json_strict_text(text: str, source: str = '<text>'):
+    """从字符串严格解析 JSON：拒绝重复键与非有限数值字面量。"""
+    try:
+        return json.loads(text, parse_constant=non_finite_constant,
+                          object_pairs_hook=reject_duplicate_keys)
+    except ValueError as exc:
+        raise ValueError('{0}: {1}'.format(source, exc)) from exc
+
+
 def load_json_strict(path: str):
-    """解析 JSON 并拒绝非有限数值字面量。"""
+    """解析 JSON 并拒绝重复键与非有限数值字面量。"""
     with open(path, 'r', encoding='utf-8') as handle:
         text = handle.read()
-    return json.loads(text, parse_constant=non_finite_constant)
+    return load_json_strict_text(text, path)
 
 
 def load_schema(name_or_path: str):
