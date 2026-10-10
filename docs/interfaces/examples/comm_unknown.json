@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0.0-proposed",
+  "run_id": "run-f0c-0001", "request_id": "req-f0c-0001", "event_id": "evt-comm-0003",
+  "producer": { "name": "comm_risk_mock", "module_version": "0.1.0", "source": "MOCK" },
+  "observed_at": "2026-10-10T12:00:05Z", "status": "UNKNOWN",
+  "reason": "观察窗口内样本不足，无法判定是否异常（不等于正常）",
+  "communication": { "resource": "/rg/guarded_navigate", "resource_type": "Action", "operation": "UNKNOWN" },
+  "window": { "start": "2026-10-10T12:00:00Z", "end": "2026-10-10T12:00:05Z", "duration_ms": 5000 },
+  "request_count": 0,
+  "anomaly_category": "UNKNOWN", "risk_level": "UNKNOWN",
+  "basis": ["样本数为 0，未建立基线"],
+  "evidence_refs": [{ "ref": "N/A (mock)", "kind": "MOCK", "note": "证据不足" }]
+}

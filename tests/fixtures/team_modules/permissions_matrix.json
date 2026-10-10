@@ -1,0 +1,16 @@
+{
+  "$comment": "测试替身使用的本地权限矩阵。这是测试夹具，不是真实 SROS 2 权限策略，也不代表任何 DDS 认证结果。",
+  "matrix_version": "test-fixture-1",
+  "subjects": {
+    "planner_node": {
+      "allowed": [
+        { "resource": "/rg/guarded_navigate", "operations": ["SERVICE_REQUEST", "GOAL_SEND"] }
+      ]
+    },
+    "observer_node": {
+      "allowed": [
+        { "resource": "/rg/nav_execute", "operations": ["SUBSCRIBE"] }
+      ]
+    }
+  }
+}
