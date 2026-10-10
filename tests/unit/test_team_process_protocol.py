@@ -346,3 +346,114 @@ def test_format_checker_still_enforced_after_d1_changes():
     """D1 的改动不得削弱阶段 C 的格式校验能力。"""
     ok, detail = vtc.self_check_format_checker()
     assert ok, detail
+
+
+# ================================================================ H1 输出资源限额
+# 这些用例的核心要求：**确认故障确实发生**，并确认拒绝原因对应实际故障。
+# 不接受"反正最终 BLOCK 了，所以通过"—— 那种断言无法区分"限流生效"与
+# "因为别的原因失败"。因此每条都断言具体的 reason_code。
+
+def test_h1_flood_stdout_is_bounded_and_terminated(tmp_path):
+    """H1 持续洪泛 stdout：必须在读取过程中终止，而不是读完再报错。"""
+    config = write_config(tmp_path, allow_faults=True, timeouts={'comm_risk': 30})
+    control = proceed_control()
+    control['fault'] = {'comm_risk': 'flood_stdout'}
+    code, result, _err = run_adapter(tmp_path, envelope(control), config, timeout=300)
+    assert code == EXIT_BLOCK
+    assert result['reason_code'] == 'ADAPTER_MODULE_STDOUT_TOO_LARGE', \
+        '必须是"输出超限"，不能是其它失败原因：{0}'.format(result['reason_code'])
+    module = [m for m in result['modules'] if m['module'] == 'comm_risk'][0]
+    assert module['cleanup'] not in ('not_needed',), '超限后必须终止本次调用'
+    assert 'unreaped' not in module['cleanup'], '子进程必须被回收'
+
+
+def test_h1_flood_stdout_does_not_inflate_adapter_memory(tmp_path):
+    """H1 洪泛输出不得让适配层无界缓冲（用自报峰值内存作为证据）。"""
+    config = write_config(tmp_path, allow_faults=True, timeouts={'comm_risk': 30})
+
+    code_ok, result_ok, _ = run_adapter(tmp_path, envelope(proceed_control()), config)
+    assert code_ok == EXIT_READY
+    baseline_kb = result_ok['adapter_peak_rss_kb']
+
+    control = proceed_control()
+    control['fault'] = {'comm_risk': 'flood_stdout'}
+    code, result, _err = run_adapter(tmp_path, envelope(control), config, timeout=300)
+    assert code == EXIT_BLOCK
+    assert result['reason_code'] == 'ADAPTER_MODULE_STDOUT_TOO_LARGE'
+
+    # 洪泛目标是 64 MiB；若发生无界缓冲，峰值会增长数十 MB。
+    # 这里给出宽松但有意义的上界：增长不得超过 32 MiB。
+    growth_kb = result['adapter_peak_rss_kb'] - baseline_kb
+    assert growth_kb < 32 * 1024, \
+        '适配层峰值内存增长 {0} KiB，疑似发生了无界缓冲'.format(growth_kb)
+
+
+def test_h1_flood_stderr_is_drained_but_not_retained(tmp_path):
+    """H1 stderr 洪泛：必须持续排空（避免子进程阻塞），但不无界保留。"""
+    config = write_config(tmp_path, allow_faults=True, timeouts={'comm_risk': 30})
+    control = proceed_control()
+    control['fault'] = {'comm_risk': 'flood_stderr'}
+    code, result, _err = run_adapter(tmp_path, envelope(control), config, timeout=300)
+    assert code == EXIT_BLOCK
+    module = [m for m in result['modules'] if m['module'] == 'comm_risk'][0]
+    # 子进程能写完并正常退出（说明 stderr 被排空，没有把它堵死）
+    assert module['exit_code'] == 0, 'stderr 未被排空会把子进程堵死'
+    # 但保留量受上限约束
+    assert module['stderr_bytes_kept'] <= 16384, \
+        'stderr 保留量超出上限: {0}'.format(module['stderr_bytes_kept'])
+
+
+def test_h1_flood_both_streams(tmp_path):
+    """H1 stdout 与 stderr 同时大量输出。"""
+    config = write_config(tmp_path, allow_faults=True, timeouts={'comm_risk': 30})
+    control = proceed_control()
+    control['fault'] = {'comm_risk': 'flood_both'}
+    code, result, _err = run_adapter(tmp_path, envelope(control), config, timeout=300)
+    assert code == EXIT_BLOCK
+    assert result['reason_code'] == 'ADAPTER_MODULE_STDOUT_TOO_LARGE'
+
+
+def test_h1_next_call_succeeds_after_limit_exceeded(tmp_path):
+    """H1 超限后，下一次正常调用仍必须成功（无状态污染）。"""
+    config = write_config(tmp_path, allow_faults=True, timeouts={'comm_risk': 30})
+    control = proceed_control()
+    control['fault'] = {'comm_risk': 'flood_stdout'}
+    code_bad, _r, _e = run_adapter(tmp_path, envelope(control), config, timeout=300)
+    assert code_bad == EXIT_BLOCK
+    code_ok, result_ok, _err = run_adapter(tmp_path, envelope(proceed_control()), config)
+    assert code_ok == EXIT_READY, '超限后再次正常调用应成功'
+    assert result_ok['decision'] == 'READY_FOR_GATEWAY_SUBMISSION'
+
+
+def test_h1_input_larger_than_limit_is_rejected(tmp_path):
+    """H1 输入信封超过上限 → 拒绝，且不把输入交给模块。"""
+    config = write_config(tmp_path)
+    document = envelope(proceed_control())
+    document['observations'][0]['detail']['padding'] = 'y' * (1024 * 1024 + 1024)
+    code, result, _err = run_adapter(tmp_path, document, config)
+    assert code == EXIT_BLOCK
+    assert result['reason_code'] in ('ADAPTER_INPUT_TOO_LARGE',
+                                     'ADAPTER_MODULE_EXIT_NONZERO')
+
+
+def test_h1_no_non_zombie_descendants_after_flood(tmp_path):
+    """H1 洪泛超限后不得残留本实例的非僵尸进程。"""
+    config = write_config(tmp_path, allow_faults=True, timeouts={'comm_risk': 30})
+    control = proceed_control()
+    control['fault'] = {'comm_risk': 'flood_stdout'}
+    code, result, _err = run_adapter(tmp_path, envelope(control), config, timeout=300)
+    assert code == EXIT_BLOCK
+    module = [m for m in result['modules'] if m['module'] == 'comm_risk'][0]
+    assert module['pgid'], '应记录进程组'
+    # 以进程组为单位复查：该组内不应再有存活（非僵尸）进程
+    listing = subprocess.run(['ps', '-eo', 'pgid=,stat=,cmd='],
+                             capture_output=True, text=True).stdout
+    alive = []
+    for line in listing.splitlines():
+        parts = line.split(None, 2)
+        if len(parts) < 2:
+            continue
+        pgid, state = parts[0], parts[1]
+        if pgid == str(module['pgid']) and not state.startswith('Z'):
+            alive.append(line.strip())
+    assert not alive, '洪泛超限后仍有存活进程: {0}'.format(alive)

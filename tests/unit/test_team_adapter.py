@@ -454,9 +454,17 @@ def test_adapter_log_is_separate_from_stdout(tmp_path):
     lines = [json.loads(line) for line in
              log_path.read_text(encoding='utf-8').splitlines() if line.strip()]
     assert lines, '应至少有一条调用记录'
-    entry = lines[-1]
+    # H2 之后每次成功调用会追加一条审计确认记录（audit_confirm）。
+    # 这里要断言的是**主记录**（含 modules 的那条），不是确认记录。
+    main_records = [item for item in lines if 'modules' in item]
+    assert main_records, '应至少有一条含 modules 的主调用记录'
+    entry = main_records[-1]
     assert entry['decision'] == result['decision']
     assert entry['reason_code'] == result['reason_code']
+    # 审计确认记录必须存在，且与主记录结论一致（证明本次调用确已入账）
+    confirm = [item for item in lines if item.get('audit_confirm')]
+    assert confirm, '成功调用应留下审计确认记录'
+    assert confirm[-1]['decision'] == result['decision']
     for module in entry['modules']:
         for field in ('invocation_id', 'module', 'command', 'timeout_sec',
                       'pid', 'exit_code', 'duration_ms', 'status', 'schema_ok'):
@@ -475,3 +483,191 @@ def test_adapter_error_codes_do_not_collide_with_business_reason_codes():
         '适配层错误码与业务原因码重叠: {0}'.format(adapter_codes & business)
     for code in adapter_codes:
         assert code.startswith('ADAPTER_')
+
+
+# ================================================================ H2 审计失败关闭
+# 要求：审计记录写入失败时，**不得**继续返回可进入后续提交流程的结论。
+# 注意运行用户：容器内以 root 运行会绕过权限位，因此这里使用 root 也无法写入
+# 的目标（/dev/full 的 ENOSPC、只读伪文件系统、路径是目录、父路径是普通文件）。
+
+def test_h2_audit_write_failure_never_returns_ready(tmp_path):
+    """H2 四种审计写入故障都不得产生 READY_FOR_GATEWAY_SUBMISSION。"""
+    config = write_config(tmp_path)
+    blocker = tmp_path / 'afile'
+    blocker.write_text('x', encoding='utf-8')
+    cases = {
+        '路径是目录': str(tmp_path),
+        '父路径是普通文件': str(blocker / 'sub' / 'log.jsonl'),
+        'ENOSPC(/dev/full)': '/dev/full',
+        '只读伪文件系统': '/proc/1/nonexistent_dir/log.jsonl',
+    }
+    for label, log_path in cases.items():
+        document = envelope(proceed_control())
+        input_path = tmp_path / 'envelope.json'
+        input_path.write_text(json.dumps(document, ensure_ascii=False), encoding='utf-8')
+        proc = subprocess.run(
+            [sys.executable, ADAPTER, '--input', str(input_path), '--config', config,
+             '--log', log_path, '--workdir', ROOT],
+            capture_output=True, text=True, timeout=120, cwd=ROOT)
+        result = json.loads(proc.stdout)
+        assert result['decision'] == 'ADAPTER_BLOCK', \
+            '{0}: 审计失败却返回了 {1}'.format(label, result['decision'])
+        assert result['reason_code'] == 'ADAPTER_AUDIT_WRITE_FAILED', \
+            '{0}: 拒绝原因应为审计失败，实际 {1}'.format(label, result['reason_code'])
+        assert result['audit_written'] is False, label
+        assert proc.returncode == EXIT_BLOCK, label
+
+
+def test_h2_audit_failure_reason_is_distinct_from_other_layers():
+    """H2 适配层审计失败必须与其它失败层级使用不同的原因码。"""
+    import team_demo
+
+    audit_code = team_demo.REASON_AUDIT_WRITE_FAILED
+    others = {team_demo.REASON_CONSISTENCY_REQUEST_ID,
+              team_demo.REASON_SCHEMA_INVALID,
+              team_demo.REASON_NOT_PROCEED,
+              team_demo.REASON_TIMEOUT,
+              team_demo.REASON_EXIT_NONZERO}
+    assert audit_code not in others
+    assert audit_code.startswith('ADAPTER_')
+    # 不得与 Gateway 的业务原因码混用
+    import rg_policy.reason_codes as rc
+    assert audit_code not in set(rc.DECISION_REASON_CODES)
+
+
+def test_h2_successful_audit_is_recorded_and_flagged(tmp_path):
+    """H2 对照：审计写入成功时必须留下记录并标记 audit_written。"""
+    config = write_config(tmp_path)
+    log_path = tmp_path / 'adapter.jsonl'
+    code, result, _err = run_adapter(tmp_path, envelope(proceed_control()), config)
+    assert code == EXIT_READY
+    assert result['audit_written'] is True
+    records = [json.loads(line) for line in
+               log_path.read_text(encoding='utf-8').splitlines() if line.strip()]
+    assert any(r.get('audit_confirm') for r in records), '应有审计确认记录'
+
+
+# ================================================================ H3 配置加固
+@pytest.mark.parametrize('field,value,label', [
+    ('timeout_sec', True, 'timeout 为布尔'),
+    ('timeout_sec', False, 'timeout 为布尔 False'),
+    ('max_stdout_bytes', True, 'stdout 上限为布尔'),
+])
+def test_h3_boolean_config_values_are_rejected(tmp_path, field, value, label):
+    """H3 布尔值必须被拒绝（Python 中 True == 1，会被静默当成数值）。"""
+    import yaml
+    config = write_config(tmp_path)
+    document = yaml.safe_load(open(config, encoding='utf-8'))
+    document['modules']['comm_risk'][field] = value
+    path = tmp_path / 'bool.yaml'
+    path.write_text(yaml.safe_dump(document, allow_unicode=True), encoding='utf-8')
+    code, result, _err = run_adapter(tmp_path, envelope(proceed_control()), str(path))
+    assert code == 4
+    assert result['reason_code'] == 'ADAPTER_CONFIG_INVALID'
+
+
+def test_h3_non_finite_timeout_is_rejected(tmp_path):
+    """H3 NaN / Infinity 超时必须被拒绝（它们会让超时逻辑失效）。"""
+    import yaml
+    for literal in ('nan', 'inf', '-inf'):
+        config = write_config(tmp_path)
+        document = yaml.safe_load(open(config, encoding='utf-8'))
+        document['modules']['comm_risk']['timeout_sec'] = literal
+        path = tmp_path / ('nonfinite_' + literal.replace('-', 'neg') + '.yaml')
+        path.write_text(yaml.safe_dump(document, allow_unicode=True), encoding='utf-8')
+        code, result, _err = run_adapter(tmp_path, envelope(proceed_control()), str(path))
+        assert code == 4, literal
+        assert result['reason_code'] == 'ADAPTER_CONFIG_INVALID', literal
+
+
+def test_h3_out_of_range_timeout_is_rejected(tmp_path):
+    """H3 超出合理上限的超时必须被拒绝。"""
+    import yaml
+    for value in (0, -1, 99999):
+        config = write_config(tmp_path)
+        document = yaml.safe_load(open(config, encoding='utf-8'))
+        document['modules']['comm_risk']['timeout_sec'] = value
+        path = tmp_path / 'range{0}.yaml'.format(value)
+        path.write_text(yaml.safe_dump(document, allow_unicode=True), encoding='utf-8')
+        code, result, _err = run_adapter(tmp_path, envelope(proceed_control()), str(path))
+        assert code == 4, value
+        assert result['reason_code'] == 'ADAPTER_CONFIG_INVALID', value
+
+
+def test_h3_interface_mismatch_is_rejected(tmp_path):
+    """H3 位置与接口错配必须被拒绝（否则会把一种证据当成另一种使用）。"""
+    import yaml
+    config = write_config(tmp_path)
+    document = yaml.safe_load(open(config, encoding='utf-8'))
+    document['modules']['comm_risk']['interface'] = 'identity_trust_assessment'
+    path = tmp_path / 'mismatch.yaml'
+    path.write_text(yaml.safe_dump(document, allow_unicode=True), encoding='utf-8')
+    code, result, _err = run_adapter(tmp_path, envelope(proceed_control()), str(path))
+    assert code == 4
+    assert result['reason_code'] == 'ADAPTER_CONFIG_INVALID'
+
+
+def test_h3_invalid_mode_is_rejected(tmp_path):
+    """H3 非法 mode 必须被拒绝。"""
+    import yaml
+    config = write_config(tmp_path)
+    document = yaml.safe_load(open(config, encoding='utf-8'))
+    document['modules']['comm_risk']['mode'] = 'shell'
+    path = tmp_path / 'mode.yaml'
+    path.write_text(yaml.safe_dump(document, allow_unicode=True), encoding='utf-8')
+    code, result, _err = run_adapter(tmp_path, envelope(proceed_control()), str(path))
+    assert code == 4
+    assert result['reason_code'] == 'ADAPTER_CONFIG_INVALID'
+
+
+def test_h3_string_fault_flag_is_rejected(tmp_path):
+    """H3 allow_fault_injection 必须是布尔：字符串 'false' 会被当成真值。"""
+    import yaml
+    config = write_config(tmp_path)
+    document = yaml.safe_load(open(config, encoding='utf-8'))
+    document['modules']['comm_risk']['allow_fault_injection'] = 'false'
+    path = tmp_path / 'faultflag.yaml'
+    path.write_text(yaml.safe_dump(document, allow_unicode=True), encoding='utf-8')
+    code, result, _err = run_adapter(tmp_path, envelope(proceed_control()), str(path))
+    assert code == 4
+    assert result['reason_code'] == 'ADAPTER_CONFIG_INVALID'
+
+
+def test_h3_string_command_is_rejected(tmp_path):
+    """H3 command 必须是参数数组，字符串形式会被 Shell 解释。"""
+    import yaml
+    config = write_config(tmp_path)
+    document = yaml.safe_load(open(config, encoding='utf-8'))
+    document['modules']['comm_risk']['command'] = 'python3 mock.py; rm -rf /'
+    path = tmp_path / 'cmd.yaml'
+    path.write_text(yaml.safe_dump(document, allow_unicode=True), encoding='utf-8')
+    code, result, _err = run_adapter(tmp_path, envelope(proceed_control()), str(path))
+    assert code == 4
+    assert result['reason_code'] == 'ADAPTER_CONFIG_INVALID'
+
+
+def test_h3_relative_workdir_is_rejected(tmp_path):
+    """H3 workdir 必须是存在的绝对路径（只能来自受信任本地参数）。"""
+    config = write_config(tmp_path)
+    input_path = tmp_path / 'envelope.json'
+    input_path.write_text(json.dumps(envelope(proceed_control())), encoding='utf-8')
+    proc = subprocess.run(
+        [sys.executable, ADAPTER, '--input', str(input_path), '--config', config,
+         '--log', str(tmp_path / 'l.jsonl'), '--workdir', 'relative/path'],
+        capture_output=True, text=True, timeout=60, cwd=ROOT)
+    result = json.loads(proc.stdout)
+    assert proc.returncode == 4
+    assert result['reason_code'] == 'ADAPTER_CONFIG_INVALID'
+
+
+def test_h3_input_cannot_supply_workdir_or_command(tmp_path):
+    """H3 业务输入无法提供 workdir 或命令（只来自受信任配置）。"""
+    config = write_config(tmp_path)
+    document = envelope(proceed_control())
+    document['observations'][0]['detail']['workdir'] = '/tmp'
+    document['observations'][0]['detail']['command'] = ['python3', '-c', 'print(1)']
+    code, result, _err = run_adapter(tmp_path, document, config)
+    assert code == EXIT_READY
+    for module in result['modules']:
+        assert module['command'] == ['python3',
+                                     'mock_modules/{0}_mock.py'.format(module['module'])]
