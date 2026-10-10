@@ -27,6 +27,11 @@ adapter:
   # 适配层调用记录（JSONL）。与模块 stdout 严格分离，便于事后复核。
   log_path: logs/team_adapter.jsonl
 
+  # 在线模式下启动的 Planner（参数数组）。仅在显式 --online 时使用。
+  # 只复用已有的 planner_node，不新建任何下游执行通道。
+  # 候选操作入口固定为 /rg/guarded_navigate（由 Planner 自身保证）。
+  planner_command: ["ros2", "run", "rg_demo_nodes", "planner_node"]
+
 modules:
 
   # 通信行为可信分析

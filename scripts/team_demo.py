@@ -103,6 +103,24 @@ MODULE_ORDER = ('comm_risk', 'identity_trust', 'task_risk')
 
 GUARDED_ACTION = '/rg/guarded_navigate'
 
+# ---------------------------------------------------------------- 在线模式
+# 只有显式 --online 才会启动 Planner。默认保持 D1 的纯离线判定行为。
+ONLINE_PLANNER_NOT_STARTED = 'PLANNER_NOT_STARTED'
+ONLINE_NO_ACTION_SERVER = 'PLANNER_NO_ACTION_SERVER'
+ONLINE_GOAL_NOT_ACCEPTED = 'PLANNER_GOAL_NOT_ACCEPTED'
+ONLINE_GOAL_ACCEPTANCE_TIMEOUT = 'PLANNER_GOAL_ACCEPTANCE_TIMEOUT'
+ONLINE_RESULT_TIMEOUT = 'PLANNER_RESULT_TIMEOUT'
+ONLINE_RESULT_RECEIVED = 'PLANNER_RESULT_RECEIVED'
+ONLINE_SPAWN_FAILED = 'PLANNER_SPAWN_FAILED'
+
+PLANNER_OUTCOME_MAP = {
+    'NO_ACTION_SERVER': ONLINE_NO_ACTION_SERVER,
+    'GOAL_REJECTED': ONLINE_GOAL_NOT_ACCEPTED,
+    'GOAL_ACCEPTANCE_TIMEOUT': ONLINE_GOAL_ACCEPTANCE_TIMEOUT,
+    'RESULT_TIMEOUT': ONLINE_RESULT_TIMEOUT,
+    'RESULT': ONLINE_RESULT_RECEIVED,
+}
+
 DEFAULT_STDOUT_LIMIT = 65536
 DEFAULT_STDERR_LIMIT = 16384
 DEFAULT_TIMEOUT = 10.0
@@ -581,6 +599,112 @@ def terminate_process_group(proc, record: dict) -> str:
 
 
 # ---------------------------------------------------------------- 一致性
+def build_planner_argv(planner_command, envelope: dict) -> list:
+    """从**同一份已校验的内存对象**构造 Planner 参数。
+
+    安全要点
+    --------
+    * 只做字段映射，不重定义业务语义：
+      candidate_action.task_id / request_id / target.{frame_id,x,y,z}
+      对应 PatrolNavigate.Goal 的 task_id / request_id / target(PoseStamped)。
+    * 参数来自已经通过 Schema 校验与一致性校验的 `envelope` 对象本身，
+      **不重新读取输入文件** —— 否则文件可能在"校验通过"与"提交"之间被改写
+      （TOCTOU），出现"校验的是 A、提交的是 B"。
+    * 不使用任何可被外部伪造的 READY 令牌：推进资格由本进程内的判定结果决定。
+    * z 缺失时保持 Planner 自身的默认值语义（不虚构位置）。
+    """
+    action = envelope.get('candidate_action') or {}
+    target = action.get('target') or {}
+    argv = list(planner_command) + [
+        '--ros-args',
+        '-p', 'task_id:={0}'.format(action.get('task_id')),
+        '-p', 'request_id:={0}'.format(envelope.get('request_id')),
+        '-p', 'frame_id:={0}'.format(target.get('frame_id')),
+        '-p', 'target_x:={0}'.format(float(target.get('x', 0.0))),
+        '-p', 'target_y:={0}'.format(float(target.get('y', 0.0))),
+    ]
+    if 'z' in target and target.get('z') is not None:
+        argv += ['-p', 'target_z:={0}'.format(float(target['z']))]
+    return argv
+
+
+def submit_online(planner_command, envelope: dict, planner_timeout: float,
+                  online_log: dict) -> dict:
+    """启动已有 Planner，解析其真实返回。
+
+    本函数**不判断** Gateway 是否允许：Planner 进程返回码为 0 并不代表 Gateway ALLOW。
+    最终判定必须结合 Gateway 的 DecisionEvent（由验收脚本读取审计日志核对）。
+    这里只如实记录 Planner 的 outcome / status_code / success。
+    """
+    argv = build_planner_argv(planner_command, envelope)
+    online_log['planner_command'] = argv
+    online_log['planner_timeout_sec'] = planner_timeout
+
+    started = time.monotonic()
+    try:
+        proc = subprocess.Popen(argv, cwd=online_log.get('workdir', REPO_ROOT),
+                                shell=False, stdin=subprocess.DEVNULL,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                start_new_session=True)
+    except FileNotFoundError as exc:
+        online_log['outcome'] = ONLINE_PLANNER_NOT_STARTED
+        online_log['detail'] = 'Planner 可执行文件不存在: {0}'.format(exc)
+        return online_log
+    except OSError as exc:
+        online_log['outcome'] = ONLINE_SPAWN_FAILED
+        online_log['detail'] = 'Planner 无法启动: {0}'.format(exc)
+        return online_log
+
+    online_log['planner_pid'] = proc.pid
+    try:
+        online_log['planner_pgid'] = os.getpgid(proc.pid)
+    except OSError:
+        online_log['planner_pgid'] = None
+
+    record = {'pid': proc.pid, 'pgid': online_log.get('planner_pgid')}
+    out, err, exceeded = read_bounded(proc, b'', planner_timeout,
+                                      256 * 1024, DEFAULT_STDERR_LIMIT)
+    online_log['duration_ms'] = int((time.monotonic() - started) * 1000)
+    online_log['stderr_tail'] = err.decode('utf-8', 'replace')[-800:]
+
+    if exceeded == 'TIMEOUT':
+        online_log['cleanup'] = terminate_process_group(proc, record)
+        online_log['outcome'] = ONLINE_RESULT_TIMEOUT
+        online_log['detail'] = (
+            'Planner 在 {0}s 内未给出终态。**该请求可能已经到达 Gateway，'
+            '甚至已到达下游执行端**；不自动重试、不新建 request_id、'
+            '不记为 Gateway BLOCK。请依据 Gateway 审计记录核对。'.format(planner_timeout))
+        return online_log
+
+    try:
+        proc.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        online_log['cleanup'] = terminate_process_group(proc, record)
+    online_log['planner_exit_code'] = proc.returncode
+
+    payload = None
+    for line in out.decode('utf-8', 'replace').splitlines():
+        if line.startswith('PLANNER_RESULT '):
+            try:
+                payload = json.loads(line[len('PLANNER_RESULT '):])
+            except ValueError:
+                payload = None
+    if payload is None:
+        online_log['outcome'] = ONLINE_RESULT_TIMEOUT
+        online_log['detail'] = 'Planner 未输出可解析的 PLANNER_RESULT'
+        return online_log
+
+    online_log['planner_result'] = payload
+    outcome = str(payload.get('outcome', 'UNKNOWN'))
+    online_log['outcome'] = PLANNER_OUTCOME_MAP.get(outcome, 'PLANNER_' + outcome)
+    online_log['detail'] = str(payload.get('detail', ''))
+    # 原样保留业务字段，不做任何"等价改写"
+    for field in ('status_code', 'success', 'goal_id', 'goal_status', 'accepted'):
+        if field in payload:
+            online_log[field] = payload[field]
+    return online_log
+
+
 def check_consistency(envelope: dict, outputs: dict) -> None:
     """跨模块关联检查（阶段 C 的语义规则在运行时的落实）。"""
     expected_request = envelope.get('request_id')
@@ -638,7 +762,8 @@ def check_action_boundary(envelope: dict) -> None:
 
 
 # ---------------------------------------------------------------- 主流程
-def run(envelope_text: str, config_path: str, log_path: str, workdir: str) -> dict:
+def run(envelope_text: str, config_path: str, log_path: str, workdir: str,
+        online: dict = None) -> dict:
     invocation_id = uuid.uuid4().hex[:12]
     result = {
         'adapter_version': ADAPTER_VERSION,
@@ -739,6 +864,34 @@ def run(envelope_text: str, config_path: str, log_path: str, workdir: str) -> di
         'run_id': result.get('run_id'),
         'request_id': result.get('request_id'),
     })
+
+    # ---------------------------------------------------------- 在线提交
+    # 顺序不可颠倒：只有适配判定为 READY **且**审计已成功落库之后，
+    # 才允许把候选请求交给 Planner。审计失败路径在上方已 return，不会到达这里。
+    online = online or {}
+    result['online'] = {'enabled': bool(online.get('enabled'))}
+    if not online.get('enabled'):
+        return result
+
+    if result['decision'] != 'READY_FOR_GATEWAY_SUBMISSION':
+        result['online'].update({
+            'submitted': False,
+            'outcome': 'NOT_SUBMITTED_ADAPTER_BLOCK',
+            'detail': '适配层未通过推进条件，因此不启动 Planner、不发送任何 Goal',
+        })
+        append_log(log_path, {'invocation_id': invocation_id,
+                              'online': result['online']})
+        return result
+
+    # envelope 是上面已通过 Schema 与一致性校验的**同一个内存对象**，
+    # 不从文件重读，避免 TOCTOU。
+    online_log = {'enabled': True, 'submitted': True, 'workdir': workdir,
+                  'run_id': envelope.get('run_id'),
+                  'request_id': envelope.get('request_id')}
+    submit_online(list(online.get('planner_command') or []), envelope,
+                  float(online.get('planner_timeout_sec', 30.0)), online_log)
+    result['online'] = online_log
+    append_log(log_path, {'invocation_id': invocation_id, 'online': online_log})
     return result
 
 
@@ -780,6 +933,12 @@ def main(argv=None) -> int:
         help='适配层调用记录（JSONL，与模块 stdout 分离）')
     parser.add_argument('--workdir', default=REPO_ROOT,
                         help='模块进程的工作目录')
+    parser.add_argument('--online', action='store_true',
+                        help='在线模式：适配判定为 READY 且审计落库后，'
+                             '启动已有 Planner 提交到 /rg/guarded_navigate。'
+                             '默认关闭，保持纯离线判定。')
+    parser.add_argument('--planner-timeout', type=float, default=30.0,
+                        help='在线提交的独立超时（与模块超时不是同一概念）')
     args = parser.parse_args(argv)
 
     # workdir 只能来自受信任的本地命令行参数，且必须是绝对路径下真实存在的目录。
@@ -806,8 +965,29 @@ def main(argv=None) -> int:
                              ensure_ascii=False))
             return EXIT_INPUT_INVALID
 
+    online = {'enabled': False}
+    if args.online:
+        try:
+            _cfg = load_config(args.config)
+        except AdapterBlock as block:
+            print(json.dumps({'decision': 'ADAPTER_BLOCK',
+                              'reason_code': block.reason_code,
+                              'detail': block.detail}, ensure_ascii=False))
+            return EXIT_CONFIG_INVALID
+        planner_command = (_cfg.get('adapter') or {}).get('planner_command')
+        if not isinstance(planner_command, list) or not planner_command or \
+                not all(isinstance(part, str) and part for part in planner_command):
+            log_line('在线模式需要 adapter.planner_command（非空字符串数组）')
+            print(json.dumps({'decision': 'ADAPTER_BLOCK',
+                              'reason_code': REASON_CONFIG_INVALID,
+                              'detail': '在线模式需要 adapter.planner_command，'
+                                        '且必须是参数数组'}, ensure_ascii=False))
+            return EXIT_CONFIG_INVALID
+        online = {'enabled': True, 'planner_command': planner_command,
+                  'planner_timeout_sec': args.planner_timeout}
+
     try:
-        result = run(envelope_text, args.config, args.log, args.workdir)
+        result = run(envelope_text, args.config, args.log, args.workdir, online)
     except AdapterBlock as block:
         result = {'adapter_version': ADAPTER_VERSION, 'decision': 'ADAPTER_BLOCK',
                   'reason_code': block.reason_code, 'detail': block.detail,

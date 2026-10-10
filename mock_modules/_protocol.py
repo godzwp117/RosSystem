@@ -112,9 +112,20 @@ def control_for(envelope, module: str) -> dict:
     if isinstance(specific, dict):
         control.update(specific)
 
-    fault = raw.get('fault')
-    if isinstance(fault, dict):
-        fault = fault.get(module)
+    # fault 的优先级：模块专属 > 顶层按模块字典 > 顶层标量。
+    # 早期版本在 update(specific) 之后又执行 `control['fault'] = raw.get('fault')`，
+    # 当只有模块专属 fault 时会把已设好的值**覆盖成 None**，
+    # 使故障注入静默失效 —— 而失效方向是"失败开放"：
+    # 模块表现正常、适配层给出 READY、请求照常进入 Gateway。
+    # 对安全测试脚手架而言这是最危险的失效模式，必须显式保证不被覆盖。
+    fault = None
+    top_fault = raw.get('fault')
+    if isinstance(top_fault, str):
+        fault = top_fault
+    elif isinstance(top_fault, dict):
+        fault = top_fault.get(module)
+    if isinstance(specific, dict) and 'fault' in specific:
+        fault = specific['fault']
     control['fault'] = fault
 
     return control
