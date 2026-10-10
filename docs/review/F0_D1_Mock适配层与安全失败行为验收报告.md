@@ -351,3 +351,47 @@ ADAPTER_CLEANUP_FAILED                          TASK_ID / ACTION / EVENT_ID
 2. F0-T01/T02/T03/T14/T15 与 M1/M2 完整回归**未执行**，属 D2/E；
 3. 公共契约仍为 `PROPOSED_V1`，**未冻结**；
 4. 模块可执行文件的信任边界依赖本地受控配置，未做签名校验。
+
+
+---
+
+## 附录：第二批工作包对 D1 的加固（G1-R，后续轮次追加）
+
+本报告 §5~§10 记录的是 D1 首次验收结果。第二批工作包对 D1 做了三项**安全加固**，
+三项均为**先经真实故障注入复现**的真实缺陷（不是理论风险）：
+
+| 项 | 复现 | 修复 |
+| --- | --- | --- |
+| **H1 输出资源限额** | `communicate()` 先读完再检查长度，`max_stdout_bytes` 不约束运行期缓冲。同一 64 MiB 洪泛输入：修复前峰值 **139 MB**，修复后 **27 MB** | 新增 `read_bounded()`：selector 边读边计数，stdout 超限立即终止本进程组；stderr 继续排空但只保留前 N 字节 |
+| **H2 审计失败仍推进** | `append_log()` 失败只写 stderr，此前得到的 READY 不受影响 | 审计写入成为**推进的前置条件**，失败降级为 `ADAPTER_AUDIT_WRITE_FAILED`；实测四种写入故障（含 `/dev/full` 的 ENOSPC）全部阻断 |
+| **H3 配置弱校验** | 布尔 `timeout`（Python 中 `True == 1`）、`NaN`/`Infinity`、接口错配、字符串故障开关等均被静默接受 | 明确拒绝并报 `ADAPTER_CONFIG_INVALID`；实测 11 类非法配置全部被拒 |
+
+### 新增原因码（D1 报告 §4 列表的补充）
+
+```text
+ADAPTER_AUDIT_WRITE_FAILED   适配层审计写入失败（不得推进）
+ADAPTER_DEPENDENCY_MISSING   缺少 jsonschema>=4.0（Draft 2020-12 必需）
+ADAPTER_INPUT_TOO_LARGE      输入信封超过上限
+```
+
+### 依赖供给缺陷（第二批发现并修复）
+
+`jsonschema >= 4.0` 是契约校验的必需依赖，但 `ros:jazzy` 基础镜像不带它。
+此前它只存在于长期使用的容器里（早先手工安装过一次），导致**全新成员容器根本无法
+运行适配层**，且报错是无法定位的 `TypeError: 'NoneType' object is not callable`。
+
+已修复：`validate_team_contracts.py` 新增 `require_jsonschema()`，`team_demo.py` 新增依赖
+预检并返回 `ADAPTER_DEPENDENCY_MISSING` + 可执行安装命令；
+`container_up.sh` 新增 `rg_ensure_validation_dep()`，在新建与复用两条路径上幂等保障该依赖。
+
+### 加固后的回归
+
+| 项目 | D1 首次验收 | 加固后 |
+| --- | --- | --- |
+| D1 专项测试 | 58 | **79**（+21 项 H1~H3 故障回归） |
+| 全量单元测试 | 208 | **287** |
+| D1 独立复核 | 43 | **59**（+16 项加固检查） |
+| 契约校验 / 四包构建 | PASS | PASS（未削弱） |
+
+**G1-R（加固验收）：PASS**。详见
+[`F0_D2_真实Action联调与GAP05验收报告.md`](F0_D2_真实Action联调与GAP05验收报告.md) 第 1 节。
