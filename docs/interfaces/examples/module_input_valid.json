@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0.0-proposed",
+  "run_id": "run-f0c-0001",
+  "request_id": "req-f0c-0001",
+  "created_at": "2026-10-10T12:00:00Z",
+  "candidate_action": {
+    "action_resource": "/rg/guarded_navigate",
+    "operation": "NAVIGATE",
+    "task_id": "patrol_a_001",
+    "target": { "frame_id": "map", "x": 1.5, "y": 1.5, "z": 0.0 }
+  },
+  "task_context": {},
+  "observations": [
+    { "source": "/rg/guarded_navigate", "kind": "MOCK",
+      "observed_at": "2026-10-10T12:00:00Z", "detail": { "note": "F0 联调用模拟观察，非真实运行数据" } }
+  ],
+  "evidence_refs": [
+    { "ref": "docs/interfaces/examples/module_input_valid.json", "kind": "MOCK",
+      "note": "契约样例，不代表任何真实安全结论" }
+  ]
+}

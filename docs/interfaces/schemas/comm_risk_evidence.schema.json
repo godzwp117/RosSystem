@@ -1,0 +1,216 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/godzwp117/RosSystem/docs/interfaces/schemas/comm_risk_evidence.schema.json",
+  "title": "CommRiskEvidence",
+  "description": "ROS 2 通信行为可信分析模块的输出证据。表达“某通信资源在观察窗口内的行为是否异常”。本接口只描述通信行为分析结论，不表达任何身份认证或最终授权结果。证据引用的 kind 必须标注来源可信级别（MOCK 不得冒充真实实验）。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "request_id",
+    "event_id",
+    "producer",
+    "observed_at",
+    "status",
+    "reason",
+    "evidence_refs",
+    "communication",
+    "window",
+    "request_count",
+    "anomaly_category",
+    "risk_level",
+    "basis"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": ["1.0.0-proposed"],
+      "description": "接口契约版本。首版仅接受 1.0.0-proposed；不兼容版本必须被拒绝，不得静默猜测字段含义。"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "一次运行实例的标识，用于把多个模块的输出关联到同一次实验。可由调用方自报，不参与安全决策。"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "业务请求关联标识，与 PatrolNavigate.Goal.request_id 对应。仅用于业务串联，**不代表通信主体的安全身份**。"
+    },
+    "event_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "本次输出事件的唯一标识，用于审计追溯与去重。"
+    },
+    "producer": {
+      "$ref": "#/$defs/producer"
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "本结论生成时间，RFC 3339（含时区）。"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["NORMAL", "SUSPICIOUS", "UNKNOWN", "ERROR"],
+      "description": "通信行为判断结果。**UNKNOWN 表示证据不足，不得当作 NORMAL 处理**；ERROR 表示模块自身执行失败。两者的默认处置都是不得推动执行。"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "description": "人类可读的判断理由，必须与 status 一致。"
+    },
+    "evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": { "$ref": "#/$defs/evidenceRef" },
+      "description": "证据引用。至少一条，必须能关联到实际样本或日志；模拟数据必须显式标注 kind=MOCK。"
+    },
+    "extensions": {
+      "type": "object",
+      "description": "预留扩展位。首版采用严格字段校验，未来新增字段只能放入本对象，不得直接加到顶层。",
+      "additionalProperties": true
+    },
+    "communication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resource", "resource_type"],
+      "description": "被观察的通信资源。",
+      "properties": {
+        "resource": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "description": "ROS 2 资源名，例如 /rg/guarded_navigate 或 /rg/nav_execute/_action/status。"
+        },
+        "resource_type": {
+          "type": "string",
+          "enum": ["Topic", "Service", "Action"],
+          "description": "资源类型。"
+        },
+        "operation": {
+          "type": "string",
+          "enum": ["PUBLISH", "SUBSCRIBE", "SERVICE_REQUEST", "SERVICE_REPLY", "GOAL_SEND", "GOAL_ACCEPT", "CANCEL", "UNKNOWN"],
+          "description": "观察到的操作方向；无法判定时为 UNKNOWN。"
+        }
+      }
+    },
+    "window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end", "duration_ms"],
+      "description": "通信观察窗口。",
+      "properties": {
+        "start": { "type": "string", "format": "date-time" },
+        "end": { "type": "string", "format": "date-time" },
+        "duration_ms": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 86400000,
+          "description": "窗口长度（毫秒），上界 24 小时以避免明显失真的输入通过。"
+        }
+      }
+    },
+    "request_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100000000,
+      "description": "窗口内观察到的请求数量。"
+    },
+    "frequency_hz": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1000000,
+      "description": "等价频率指标（Hz）。可选；缺失表示未计算，不得用 0 冒充“无频率”。"
+    },
+    "anomaly_category": {
+      "type": "string",
+      "enum": [
+        "NONE",
+        "REQUEST_RATE_ANOMALY",
+        "DUPLICATE_CALL_PATTERN",
+        "TIMING_DEVIATION",
+        "UNEXPECTED_RESOURCE_ACCESS",
+        "NODE_RELATION_ANOMALY",
+        "UNKNOWN"
+      ],
+      "description": "异常类别。NONE 表示未发现异常；UNKNOWN 表示无法归类（≠ 无异常）。"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": ["NONE", "LOW", "MEDIUM", "HIGH", "UNKNOWN"],
+      "description": "行为风险等级。UNKNOWN 表示无法评估；不得自动降级为 NONE。"
+    },
+    "basis": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": { "type": "string", "minLength": 1, "maxLength": 256 },
+      "description": "可解释依据（例如“窗口内请求数 120 超过基线 10 的 12 倍”）。"
+    }
+  },
+  "$defs": {
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "source"],
+      "description": "输出声明者信息。**不是安全认证凭据**：producer 字段无法证明该来源已通过 DDS 认证，也不能作为身份判断依据。",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "声明者名称（模块名或节点名）。属自报信息。"
+        },
+        "module_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "模块实现版本。与 schema_version（数据契约版本）无关，两者必须分别记录。"
+        },
+        "source": {
+          "type": "string",
+          "enum": ["MOCK", "EXTERNAL", "UNKNOWN"],
+          "description": "输出提供方类型：MOCK=模拟实现（仅用于联调，不构成任何安全保证）；EXTERNAL=真实模块；UNKNOWN=未知。"
+        }
+      }
+    },
+    "evidenceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "kind"],
+      "description": "证据引用及其可信级别。",
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "description": "证据定位（相对路径、日志行标识或样本标识）。必须能实际关联到对象。"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "MOCK",
+            "RUNTIME_LOG",
+            "PERMISSION_FILE_ANALYSIS",
+            "CONTROLLED_SECURITY_EXPERIMENT",
+            "UNIT_TEST",
+            "UNKNOWN"
+          ],
+          "description": "证据来源可信级别。MOCK=模拟数据；RUNTIME_LOG=运行日志观察；PERMISSION_FILE_ANALYSIS=权限配置推导；CONTROLLED_SECURITY_EXPERIMENT=受控安全实验；UNIT_TEST=单元测试断言；UNKNOWN=无法归类。"
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "可选补充说明。"
+        }
+      }
+    }
+  }
+}
