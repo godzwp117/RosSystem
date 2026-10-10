@@ -376,9 +376,16 @@ def run_action_scenario(case: Case, *, target, expect_decision, expect_reason,
 
     online = result.get('online') or {}
     case.check('已实际提交到 Planner', online.get('submitted') is True, online.get('outcome'))
-    case.check('Planner 通过 /rg/guarded_navigate 出口',
-               '/rg/guarded_navigate' in ' '.join(online.get('planner_command') or [])
-               or True, 'egress 由 Planner 固定')
+    # 该断言原先写作 `... or True`，恒真，等于没检查。现改为检查真实内容：
+    # 适配层构造的 Planner 命令行必须通过 ros2 run 启动 planner_node，
+    # 而 planner_node 的出口固定为 /rg/guarded_navigate（由其源码常量保证）。
+    planner_cmd = ' '.join(online.get('planner_command') or [])
+    case.check('在线提交使用已有 Planner 入口（不新建下游通道）',
+               'rg_demo_nodes' in planner_cmd and 'planner_node' in planner_cmd,
+               planner_cmd or '(命令为空)')
+    case.check('候选操作入口为 /rg/guarded_navigate（未指向执行端）',
+               '/rg/nav_execute' not in planner_cmd,
+               planner_cmd or '(命令为空)')
 
     payload = online.get('planner_result') or {}
     case.check('Planner 返回终态 RESULT', payload.get('outcome') == 'RESULT',
@@ -543,12 +550,26 @@ def scenario_online_negative(case: Case, case_id: str, *, run_id: str, domain: s
     return instance
 
 
-def scenario_t09_t11(case: Case, *, run_id: str, domain: str):
-    """T09~T11：三个替身独立替换后，仍能触发真实链路。"""
-    label = 't09_t11'
-    instance = Instance(case.dir, run_id, domain, label)
+def scenario_replacement(case: Case, module: str, *, run_id: str, domain: str):
+    """T09/T10/T11：**只替换一个**模块，其余两个保持 Mock。
+
+    三项必须各自独立验证。此前的实现用"三个替身同时替换"一次覆盖 T09/T10/T11，
+    无法证明"只换人员一不需要改人员二、三"，因此不满足验收粒度要求。
+    """
+    port = {'comm_risk': 'T09', 'identity_trust': 'T10', 'task_risk': 'T11'}[module]
+    instance = Instance(case.dir, run_id, domain, port.lower())
     config = write_config(os.path.join(case.dir, 'team_modules.yaml'),
-                          doubles=True, planner=True)
+                          doubles=False, planner=True)
+    # 只把目标模块换成替身；其余保持 mock
+    import yaml as _yaml
+    document = _yaml.safe_load(open(config, encoding='utf-8'))
+    document['modules'][module]['mode'] = 'double'
+    document['modules'][module]['command'] = [
+        'python3', 'tests/fixtures/team_modules/{0}_double.py'.format(module)]
+    mixed = os.path.join(case.dir, 'team_modules_mixed.yaml')
+    with open(mixed, 'w', encoding='utf-8') as handle:
+        _yaml.safe_dump(document, handle, allow_unicode=True)
+
     ok, detail = instance.start()
     case.check('栈启动', ok, detail)
     if not ok:
@@ -560,67 +581,192 @@ def scenario_t09_t11(case: Case, *, run_id: str, domain: str):
 
     request_id = 'req-{0}'.format(uuid.uuid4().hex[:12])
     detail_map = {
+        'f0_mock': {
+            'comm_risk': {'scenario': 'normal'},
+            'identity_trust': {'scenario': 'authorized'},
+            'task_risk': {'scenario': 'allow'},
+        },
         'comm': {'request_count': 2, 'baseline_count': 3},
         'identity': {'subject': 'planner_node', 'resource': '/rg/guarded_navigate',
                      'operation': 'SERVICE_REQUEST'},
     }
-    document = envelope_for(INTERIOR_TARGET, request_id=request_id, run_id=run_id,
-                            observations_detail=detail_map)
+    envelope_doc = envelope_for(INTERIOR_TARGET, request_id=request_id, run_id=run_id,
+                               observations_detail=detail_map)
     goals_before = count_lines(instance.navsim_path)
-    code, result, _o, _e = run_adapter(config, document, case.dir, online=True,
+
+    code, result, _o, _e = run_adapter(mixed, envelope_doc, case.dir, online=True,
                                        planner_timeout=45.0)
     case.evidence['request_id'] = request_id
-    case.check('三个替身均被实际加载',
-               all('tests/fixtures/team_modules' in ' '.join(m.get('command', []))
-                   for m in result.get('modules', [])),
-               [m.get('command') for m in result.get('modules', [])])
-    case.check('替身链路判定为可推进',
-               result.get('decision') == 'READY_FOR_GATEWAY_SUBMISSION',
+    case.evidence['replaced_module'] = module
+    case.evidence['adapter_decision'] = result.get('decision')
+
+    records = {m['module']: m for m in result.get('modules', [])}
+    case.check('三个模块都被真实调用', len(records) == 3,
+               sorted(records))
+    # 真实 command / mode 证据：证明"只有目标模块被替换"
+    replaced_cmd = ' '.join(records.get(module, {}).get('command', []))
+    case.check('目标模块 {0} 实际加载替身'.format(module),
+               'tests/fixtures/team_modules' in replaced_cmd and
+               '{0}_double.py'.format(module) in replaced_cmd,
+               replaced_cmd)
+    case.check('目标模块 mode 为 double', records.get(module, {}).get('mode') == 'double',
+               records.get(module, {}).get('mode'))
+    others = {k: v for k, v in records.items() if k != module}
+    case.check('其余模块仍为 Mock（未被连带替换）',
+               all('mock_modules' in ' '.join(v.get('command', [])) for v in others.values())
+               and all(v.get('mode') == 'mock' for v in others.values()),
+               {k: (v.get('mode'), v.get('command')) for k, v in others.items()})
+    case.check('三个模块输出均通过公共 Schema',
+               all(m.get('schema_ok') for m in result.get('modules', [])),
+               [m.get('schema_ok') for m in result.get('modules', [])])
+    case.check('替换后仍可推进', result.get('decision') == 'READY_FOR_GATEWAY_SUBMISSION',
                result.get('reason_code'))
+    online = result.get('online') or {}
+    case.check('已实际提交 Planner', online.get('submitted') is True, online.get('outcome'))
+    case.check('Planner 返回终态', (online.get('planner_result') or {}).get('outcome') == 'RESULT',
+               (online.get('planner_result') or {}).get('outcome'))
+
+    time.sleep(1.0)
     audit = read_jsonl(instance.audit_path)
     decisions = decisions_for(audit, request_id)
-    case.check('替身链路到达真实 Gateway 并获 ALLOW',
-               len(decisions) >= 1 and decisions[-1].get('decision') == 'ALLOW',
-               'decisions={0}'.format([d.get('decision') for d in decisions]))
+    case.check('Gateway 有该 request_id 的 DecisionEvent', len(decisions) >= 1,
+               'decisions={0}'.format(len(decisions)))
+    if decisions:
+        case.evidence['gateway_decision'] = decisions[-1].get('decision')
+        case.check('Gateway 判定 ALLOW', decisions[-1].get('decision') == 'ALLOW',
+                   decisions[-1].get('decision'))
     goals_after = count_lines(instance.navsim_path)
-    case.check('替身链路下游 Goal 增量为 1', goals_after - goals_before == 1,
+    case.evidence['navsim_goal_delta'] = goals_after - goals_before
+    case.check('NavigationSim Goal 增量为 1', goals_after - goals_before == 1,
                'delta={0}'.format(goals_after - goals_before))
     return instance
 
 
 # ---------------------------------------------------------------- T14
-def scenario_t14(case: Case, run_id: str, base_dir: str):
-    """两个独立开发实例（独立容器 + 独立工作区 + 独立 Domain）互不影响。
+def _normalise(path: str) -> str:
+    """规范化路径，用于归属校验。
 
-    刻意不使用同一容器里的两个进程冒充两个实例。
-    若无法建立独立容器/工作区，明确记为 BLOCKED 而不是通过。
+    不能只用字符串前缀判断：`/tmp/run1` 与 `/tmp/run10` 前缀相同但归属不同，
+    符号链接与相对路径也会造成误判。因此比较规范化后的真实路径。
+    """
+    return os.path.realpath(os.path.abspath(path))
+
+
+def _container_identity(name: str) -> dict:
+    """取容器的 ID 与挂载源，用于"删除前先证明确实是本轮创建的"。
+
+    返回空字典表示容器不存在。
+    """
+    probe = subprocess.run(
+        ['docker', 'inspect', '-f', '{{.Id}}|{{range .Mounts}}{{.Source}}{{end}}', name],
+        capture_output=True, text=True, timeout=120)
+    if probe.returncode != 0:
+        return {}
+    raw = probe.stdout.strip()
+    if '|' not in raw:
+        return {}
+    cid, source = raw.split('|', 1)
+    return {'id': cid.strip(), 'mount_source': source.strip()}
+
+
+def _record_run_id_map(case: Case, mapping: dict) -> None:
+    case.evidence['container_run_id_map'] = mapping
+
+
+def _instance_evidence(instance: Instance, request_id: str, label: str) -> dict:
+    """读取某实例的**真实**审计与下游日志，返回结构化证据。
+
+    缺文件、格式错误、请求未关联都必须能被上层断言捕获为 FAIL ——
+    不使用任何 `or True` 之类的兜底，也不推测固定路径。
+    """
+    evidence = {
+        'label': label,
+        'request_id': request_id,
+        'audit_path': os.path.relpath(instance.audit_path, ROOT),
+        'navsim_path': os.path.relpath(instance.navsim_path, ROOT),
+        'audit_exists': os.path.isfile(instance.audit_path),
+        'navsim_exists': os.path.isfile(instance.navsim_path),
+        'decision_count': 0,
+        'decision': None,
+        'reason_code': None,
+        'goal_count': 0,
+        'audit_parse_errors': 0,
+    }
+    if evidence['audit_exists']:
+        records = read_jsonl(instance.audit_path)
+        # read_jsonl 会静默跳过坏行；这里单独统计，坏行必须能被发现
+        with open(instance.audit_path, 'r', encoding='utf-8', errors='ignore') as handle:
+            raw_lines = [ln for ln in handle.read().splitlines() if ln.strip()]
+        evidence['audit_parse_errors'] = max(0, len(raw_lines) - len(records))
+        decisions = decisions_for(records, request_id)
+        evidence['decision_count'] = len(decisions)
+        if decisions:
+            evidence['decision'] = decisions[-1].get('decision')
+            evidence['reason_code'] = decisions[-1].get('reason_code')
+        evidence['all_request_ids'] = sorted(
+            {r.get('request_id') for r in records if r.get('request_id')})
+    if evidence['navsim_exists']:
+        goals = read_jsonl(instance.navsim_path)
+        evidence['goal_count'] = len(navsim_goals_for(goals, request_id))
+        evidence['all_goal_request_ids'] = sorted(
+            {g.get('request_id') for g in goals if g.get('request_id')})
+    return evidence
+
+
+def _send_legal_action(instance: Instance, case: Case, config: str, run_id: str,
+                       tag: str) -> str:
+    """向一个实例发送一次合法候选请求，返回其 request_id。"""
+    request_id = 'req-{0}'.format(uuid.uuid4().hex[:12])
+    code, result, _o, _e = run_adapter(
+        config, envelope_for(INTERIOR_TARGET, request_id=request_id, run_id=run_id),
+        os.path.join(case.dir, tag), online=True, planner_timeout=45.0,
+        log_name='{0}_adapter.jsonl'.format(tag))
+    case.evidence.setdefault('requests', {})[tag] = {
+        'request_id': request_id,
+        'exit_code': code,
+        'decision': result.get('decision'),
+        'online_outcome': (result.get('online') or {}).get('outcome'),
+    }
+    return request_id
+
+
+def scenario_t14(case: Case, run_id: str, base_dir: str):
+    """T14：两个**真实独立**开发实例并发运行且互不串扰。
+
+    与首版的区别
+    ------------
+    * 首版存在 `os.path.isfile(...) or True` —— 恒真断言，无论文件是否存在都通过。
+      本版改为读取真实审计/下游日志并逐项断言缺失即 FAIL。
+    * 首版是"先后各跑一次"，不是并发。本版让两个栈**同时处于就绪状态**期间
+      各自发送请求，再验证日志互不串扰。
+    * 首版未验证 request_id 是否跨越实例出现。本版做双向交叉检查。
+    * 容器名与本轮 run_id 关联，删除前校验容器 ID 与**规范化后的**挂载源。
     """
     import shutil
     import tempfile
 
-    tmp = tempfile.mkdtemp(prefix='t14_')
-    # 容器名必须与 member_env.sh 的成员档位一致（RG_MEMBER=1 -> rg_member1）。
-    # 早期版本自己另起了 rg_handoff_a/b 的名字，但只传 RG_MEMBER，
-    # 结果实际创建的是 rg_member1/2，后续 docker exec 找不到容器，
-    # 且 finally 里删除的也是不存在的名字 —— 造成容器泄漏。
+    tmp = tempfile.mkdtemp(prefix='t14_{0}_'.format(run_id[:12]))
+    short = run_id.replace('_', '')[:10].lower()
     members = [
-        {'member': '1', 'container': 'rg_member1', 'domain': '51',
+        {'tag': 'a', 'container': 'rg_ho_{0}_a'.format(short), 'domain': '51',
          'ws': os.path.join(tmp, 'ws_a')},
-        {'member': '2', 'container': 'rg_member2', 'domain': '52',
+        {'tag': 'b', 'container': 'rg_ho_{0}_b'.format(short), 'domain': '52',
          'ws': os.path.join(tmp, 'ws_b')},
     ]
     created = []
-    try:
-        if shutil.which('docker') is None:
-            case.check('T14 需要 docker 命令（必须在宿主机运行）', False,
-                       'BLOCKED: 当前环境没有 docker，T14 应在宿主机执行')
-            return [], 'BLOCKED'
+    instances = {}
 
+    if shutil.which('docker') is None:
+        case.check('T14 需要 docker（必须在宿主机运行）', False,
+                   'BLOCKED: 当前环境没有 docker，T14 应在宿主机执行')
+        return None
+
+    try:
         for item in members:
             os.makedirs(item['ws'], exist_ok=True)
-            # 复制完整工作区（含 install/，使实例可直接运行）
             for name in os.listdir(ROOT):
-                if name in ('.git', 'logs', 'tests', 'gitlog.md'):
+                if name in ('.git', 'logs', 'tests', 'gitignore', 'gitlog.md',
+                            'build', 'install', 'log'):
                     continue
                 src = os.path.join(ROOT, name)
                 dst = os.path.join(item['ws'], name)
@@ -636,78 +782,212 @@ def scenario_t14(case: Case, run_id: str, base_dir: str):
                     shutil.copytree(src, os.path.join(item['ws'], 'tests', name),
                                     symlinks=True,
                                     ignore=shutil.ignore_patterns('__pycache__'))
-            # 只给 RG_MEMBER：它会同时决定容器名与开发 Domain。
-            # 同时再显式指定 RG_CONTAINER 会被 member_env.sh 判为配置冲突而拒绝
-            # （该保护本身是正确的：避免"以为在自己的环境里"却用了别人的容器）。
-            env = dict(os.environ, RG_MEMBER=item['member'])
-            env.pop('RG_CONTAINER', None)
-            env.pop('ROS_DOMAIN_ID', None)
-            env.pop('RG_DOMAIN_ID', None)
-            proc = subprocess.run(['bash', os.path.join(item['ws'], 'scripts',
-                                                        'container_up.sh')],
-                                  cwd=item['ws'], env=env, capture_output=True,
-                                  text=True, timeout=900)
+            # 显式容器名 + 显式 Domain（不使用 RG_MEMBER，以免与其派生名冲突）；
+            # 这符合 member_env.sh 的规则：显式值优先，且不与成员档位混用。
+            env = dict(os.environ)
+            env.pop('RG_MEMBER', None)
+            env['RG_CONTAINER'] = item['container']
+            env['ROS_DOMAIN_ID'] = item['domain']
+            proc = subprocess.run(
+                ['bash', os.path.join(item['ws'], 'scripts', 'container_up.sh')],
+                cwd=item['ws'], env=env, capture_output=True, text=True, timeout=1800)
             item['container_exit'] = proc.returncode
-            item['container_detail'] = (proc.stdout + proc.stderr)[-300:]
             created.append(item)
-            case.check('实例 {0} 容器就绪（Domain {1}）'.format(item['member'], item['domain']),
-                       proc.returncode == 0, item['container_detail'][-160:])
+            case.check('实例 {0} 容器就绪（Domain {1}）'.format(item['tag'], item['domain']),
+                       proc.returncode == 0, (proc.stdout + proc.stderr)[-200:])
 
-        if not all(i['container_exit'] == 0 for i in created):
-            return created, 'BLOCKED'
+        _record_run_id_map(case, {i['container']: run_id for i in created})
+        if not all(i.get('container_exit') == 0 for i in created):
+            return None
 
-        # 每个实例在自己的容器/工作区里跑一次合法 Action
-        results = {}
+        # 构建每个实例自己的配置与栈
+        for item in created:
+            inner_dir = os.path.join(item['ws'], 't14_evidence')
+            os.makedirs(inner_dir, exist_ok=True)
+            write_config(os.path.join(inner_dir, 'team_modules.yaml'), planner=True)
+            # 适配层在容器内运行，因此必须使用**容器内路径**（/ws/...），
+            # 而不是宿主机路径。早期版本直接传宿主路径，容器内找不到文件。
+            item['config'] = '/ws/t14_evidence/team_modules.yaml'
+
+            # 真实构建：工作区副本刻意不携带 build/install，
+            # 因此每个成员容器都要自己构建 —— 这也正是新成员的真实路径。
+            build = subprocess.run(
+                ['docker', 'exec', item['container'], 'bash', '-lc',
+                 'cd /ws && source /opt/ros/jazzy/setup.bash && '
+                 'colcon build --event-handlers console_direct+ 2>&1 | tail -3'],
+                capture_output=True, text=True, timeout=2400)
+            case.check('实例 {0} 在容器内完成四包构建'.format(item['tag']),
+                       build.returncode == 0 and 'packages finished' in build.stdout,
+                       (build.stdout or build.stderr)[-160:])
+
+        procs = {}
         for item in created:
             inner = ("cd /ws && source /opt/ros/jazzy/setup.bash && "
                      "source install/setup.bash && "
-                     "python3 tests/integration/team_handoff_check.py "
-                     "--scenario T02 --run-id {0} --domain {1}").format(
-                         '{0}_m{1}'.format(run_id, item['member']), item['domain'])
-            proc = subprocess.run(['docker', 'exec', item['container'], 'bash', '-lc', inner],
-                                  capture_output=True, text=True, timeout=1200)
-            results[item['member']] = proc
-            case.check('实例 {0} 独立完成合法 Action（Gateway ALLOW）'.format(item['member']),
-                       proc.returncode == 0,
-                       (proc.stdout[-200:] + proc.stderr[-200:]))
+                     "ros2 launch rg_demo_nodes stack.launch.py "
+                     "policy_path:=/ws/config/task_policy.yaml "
+                     "audit_log_path:=/ws/t14_evidence/audit.jsonl "
+                     "navsim_record_path:=/ws/t14_evidence/navsim.jsonl")
+            log = open(os.path.join(case.dir, 'stack_{0}.log'.format(item['tag'])), 'wb')
+            procs[item['tag']] = {
+                'proc': subprocess.Popen(
+                    ['docker', 'exec', item['container'], 'bash', '-lc', inner],
+                    stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL),
+                'handle': log, 'item': item,
+            }
 
-        # 隔离性：A 的请求不得出现在 B 的审计里
-        for item in created:
-            other = 'b' if item['member'] == '1' else 'a'
-            item_audit = os.path.join(item['ws'], 'logs', 'audit.jsonl')
-            case.check('实例 {0} 日志文件独立存在'.format(item['member']),
-                       os.path.isfile(item_audit) or True, item_audit)
+        # 两个栈**同时**就绪（这是并发隔离验证的前提）
+        for tag, entry in procs.items():
+            deadline = time.time() + 150
+            ready = False
+            path = os.path.join(case.dir, 'stack_{0}.log'.format(tag))
+            while time.time() < deadline:
+                if entry['proc'].poll() is not None:
+                    break
+                text = open(path, 'r', encoding='utf-8', errors='replace').read()
+                if 'NAVSIM_READY' in text and 'GATEWAY_READY' in text:
+                    ready = True
+                    break
+                time.sleep(0.5)
+            detail = path
+            if not ready:
+                # 失败时给出日志尾部，避免只报"未就绪"而无法定位
+                tail = open(path, 'r', encoding='utf-8', errors='replace').read()[-200:]
+                detail = '{0} :: {1}'.format(path, tail.replace(chr(10), ' | '))
+            case.check('实例 {0} 栈就绪'.format(tag), ready, detail)
 
-        # 关闭 A，B 仍可继续执行
+        # 并发期间各发一次合法请求
+        rid_a = _send_legal_action_host(created[0], case, run_id, 'a')
+        rid_b = _send_legal_action_host(created[1], case, run_id, 'b')
+
+        # 双向交叉检查：A 的 request_id 不得出现在 B 的日志，反之亦然
+        for item, mine, theirs in ((created[0], rid_a, rid_b),
+                                   (created[1], rid_b, rid_a)):
+            audit_local = os.path.join(item['ws'], 't14_evidence', 'audit.jsonl')
+            navsim_local = os.path.join(item['ws'], 't14_evidence', 'navsim.jsonl')
+            record = {
+                'container': item['container'],
+                'audit_exists': os.path.isfile(audit_local),
+                'navsim_exists': os.path.isfile(navsim_local),
+                'own_request_id': mine,
+                'other_request_id': theirs,
+            }
+            case.check('实例 {0} 的 Gateway 审计文件真实存在'.format(item['tag']),
+                       record['audit_exists'], audit_local)
+            case.check('实例 {0} 的 NavigationSim 日志真实存在'.format(item['tag']),
+                       record['navsim_exists'], navsim_local)
+            if record['audit_exists']:
+                records = read_jsonl(audit_local)
+                own = decisions_for(records, mine)
+                foreign = decisions_for(records, theirs)
+                record['own_decision_count'] = len(own)
+                record['foreign_decision_count'] = len(foreign)
+                record['own_decision'] = own[-1].get('decision') if own else None
+                case.check('实例 {0} 有本实例 request_id 的 DecisionEvent'.format(item['tag']),
+                           len(own) >= 1, 'own={0}'.format(len(own)))
+                case.check('实例 {0} 不含另一实例的 DecisionEvent（无串扰）'.format(item['tag']),
+                           len(foreign) == 0, 'foreign={0}'.format(len(foreign)))
+                if own:
+                    case.check('实例 {0} Gateway 判定 ALLOW'.format(item['tag']),
+                               own[-1].get('decision') == 'ALLOW',
+                               own[-1].get('decision'))
+            if record['navsim_exists']:
+                goals = read_jsonl(navsim_local)
+                own_goals = navsim_goals_for(goals, mine)
+                foreign_goals = navsim_goals_for(goals, theirs)
+                record['own_goal_count'] = len(own_goals)
+                record['foreign_goal_count'] = len(foreign_goals)
+                case.check('实例 {0} 下游收到本实例 Goal'.format(item['tag']),
+                           len(own_goals) == 1, 'own_goals={0}'.format(len(own_goals)))
+                case.check('实例 {0} 下游不含另一实例 Goal（无串扰）'.format(item['tag']),
+                           len(foreign_goals) == 0,
+                           'foreign_goals={0}'.format(len(foreign_goals)))
+            case.evidence.setdefault('isolation', {})[item['tag']] = record
+
+        # 关闭实例 A（先校验容器归属），B 必须仍能完成**新的** Action
         victim = created[0]
-        subprocess.run(['docker', 'stop', victim['container']], capture_output=True,
-                       timeout=300)
-        survivor = created[1]
-        inner = ("cd /ws && source /opt/ros/jazzy/setup.bash && "
-                 "source install/setup.bash && "
-                 "python3 tests/integration/team_handoff_check.py --scenario T02 "
-                 "--run-id {0}_after --domain {1}").format(run_id, survivor['domain'])
-        proc = subprocess.run(['docker', 'exec', survivor['container'], 'bash', '-lc', inner],
-                              capture_output=True, text=True, timeout=1200)
-        case.check('关闭实例 A 后实例 B 仍能正常执行', proc.returncode == 0,
-                   (proc.stdout[-200:] + proc.stderr[-200:]))
-        return created, 'PASS'
+        identity = _container_identity(victim['container'])
+        belongs = (identity.get('mount_source') and
+                   _normalise(identity['mount_source']) == _normalise(victim['ws']))
+        case.check('实例 A 容器归属校验通过（挂载源规范化后匹配）', bool(belongs),
+                   'identity={0} expected={1}'.format(identity, victim['ws']))
+        if belongs:
+            subprocess.run(['docker', 'stop', victim['container']],
+                           capture_output=True, timeout=300)
+            case.check('实例 A 已停止', True, victim['container'])
+        else:
+            case.check('实例 A 未通过归属校验，拒绝停止', False,
+                       '为避免误停他人容器，已跳过 docker stop')
+
+        # B 的新请求：用**不同**的 request_id，证明 B 仍在正常工作
+        rid_b2 = _send_legal_action_host(created[1], case, run_id, 'b_after')
+        case.check('关闭 A 后 B 完成新的真实 Action（request_id 不同）',
+                   rid_b2 != rid_b, '{0} vs {1}'.format(rid_b2, rid_b))
+        navsim_local = os.path.join(created[1]['ws'], 't14_evidence', 'navsim.jsonl')
+        if os.path.isfile(navsim_local):
+            goals = read_jsonl(navsim_local)
+            case.check('B 的新请求在下游产生 Goal', len(navsim_goals_for(goals, rid_b2)) == 1,
+                       'goals={0}'.format(len(navsim_goals_for(goals, rid_b2))))
+            case.check('B 的下游仍不含 A 的 request_id',
+                       len(navsim_goals_for(goals, rid_a)) == 0,
+                       'A goals={0}'.format(len(navsim_goals_for(goals, rid_a))))
+        return created
     finally:
+        for entry in procs.values() if 'procs' in dir() else []:
+            try:
+                entry['handle'].close()
+            except Exception:  # noqa: BLE001
+                pass
         for item in created:
-            # 删除前核对挂载源确实是本次的临时工作区，
-            # 避免同名容器属于他人时被误删。
-            probe = subprocess.run(
-                ['docker', 'inspect', '-f',
-                 '{{range .Mounts}}{{.Source}}{{end}}', item['container']],
-                capture_output=True, text=True, timeout=120)
-            source = probe.stdout.strip()
-            if probe.returncode == 0 and source.startswith(tmp):
+            identity = _container_identity(item['container'])
+            source = identity.get('mount_source', '')
+            # 删除前双重校验：容器存在，且挂载源规范化后确实指向本轮的临时目录
+            if identity and source and _normalise(source).startswith(_normalise(tmp)):
                 subprocess.run(['docker', 'rm', '-f', item['container']],
                                capture_output=True, timeout=300)
-            elif probe.returncode == 0:
-                print('  [warn] 跳过删除 {0}：挂载源 {1} 不属于本次临时目录'.format(
+            elif identity:
+                print('  [warn] 跳过删除 {0}：挂载源 {1} 不属于本轮临时目录'.format(
                     item['container'], source))
         shutil.rmtree(tmp, ignore_errors=True)
+
+
+def _send_legal_action_host(item: dict, case: Case, run_id: str, tag: str) -> str:
+    """在成员容器内通过适配层发送一次合法候选请求，返回 request_id。"""
+    request_id = 'req-{0}'.format(uuid.uuid4().hex[:12])
+    envelope_doc = envelope_for(INTERIOR_TARGET, request_id=request_id, run_id=run_id)
+    inner_dir = os.path.join(item['ws'], 't14_evidence')
+    os.makedirs(inner_dir, exist_ok=True)
+    env_path = os.path.join(inner_dir, 'envelope_{0}.json'.format(tag))
+    with open(env_path, 'w', encoding='utf-8') as handle:
+        json.dump(envelope_doc, handle, ensure_ascii=False)
+    # 适配层在容器内运行：--input / --config / --log 都必须用**容器内路径**。
+    # 早期版本传了宿主机路径，容器内找不到文件，表现为 ADAPTER_INPUT_INVALID。
+    inner = ("cd /ws && source /opt/ros/jazzy/setup.bash && source install/setup.bash && "
+             "python3 scripts/team_demo.py --input /ws/t14_evidence/envelope_{0}.json "
+             "--config {1} --online --planner-timeout 45 "
+             "--log /ws/t14_evidence/adapter_{0}.jsonl 2>&1").format(
+                 tag, item['config'])
+    proc = subprocess.run(['docker', 'exec', item['container'], 'bash', '-lc', inner],
+                          capture_output=True, text=True, timeout=900)
+    result = {}
+    try:
+        start = proc.stdout.index('{')
+        result = json.loads(proc.stdout[start:])
+    except (ValueError, IndexError):
+        result = {'decision': 'UNPARSEABLE', 'raw': proc.stdout[-300:]}
+    case.evidence.setdefault('requests', {})[tag] = {
+        'request_id': request_id,
+        'decision': result.get('decision'),
+        'reason_code': result.get('reason_code'),
+        'online_outcome': (result.get('online') or {}).get('outcome'),
+        'exit_code': proc.returncode,
+    }
+    case.check('实例 {0} 请求经适配层推进'.format(tag),
+               result.get('decision') == 'READY_FOR_GATEWAY_SUBMISSION',
+               'decision={0} reason={1}'.format(result.get('decision'),
+                                                result.get('reason_code')))
+    return request_id
+
 
 
 # ---------------------------------------------------------------- T15
@@ -809,13 +1089,13 @@ def run_one(case_id: str, run_id: str, base_dir: str, domain: str):
             instance = {'T01': scenario_t01, 'T02': scenario_t02,
                         'T03': scenario_t03}[case_id](case, run_id, domain)
         elif case_id in ('T09', 'T10', 'T11'):
-            instance = scenario_t09_t11(case, run_id=run_id, domain=domain)
+            # 三项必须各自独立：只替换对应模块，其余保持 Mock。
+            # 早期实现用"三替身同时替换"一次覆盖三项，无法证明逐模块可替换。
+            module = {'T09': 'comm_risk', 'T10': 'identity_trust',
+                      'T11': 'task_risk'}[case_id]
+            instance = scenario_replacement(case, module, run_id=run_id, domain=domain)
         elif case_id == 'T14':
-            _created, verdict = scenario_t14(case, run_id, base_dir)
-            if verdict == 'BLOCKED':
-                for check in case.checks:
-                    if check['result'] == FAIL:
-                        check['result'] = BLOCKED
+            scenario_t14(case, run_id, base_dir)
             case.finalize()
             return case, None
         elif case_id == 'T15':
@@ -851,8 +1131,9 @@ def main(argv=None) -> int:
     os.makedirs(base_dir, exist_ok=True)
 
     if args.scenario == 'all':
-        selected = ['T01', 'T02', 'T03', 'T04', 'T05', 'T06', 'T07', 'T08',
-                    'T09', 'T12', 'T13', 'T14', 'T15']
+        # 完整覆盖 T01~T15。早期列表遗漏 T10、T11，却仍把整套显示为"all"，
+        # 属于会掩盖未执行项的报告缺陷。
+        selected = list(SCENARIO_TABLE)
     else:
         selected = [args.scenario]
 
