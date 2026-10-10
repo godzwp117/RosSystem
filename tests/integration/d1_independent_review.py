@@ -282,6 +282,89 @@ def main() -> int:
                PASS if c != 0 and status and status[0] == 'SUSPICIOUS' else FAIL,
                'count=100/baseline=3 -> {0}'.format(status))
 
+    # ---------------------------------------------------------- 复核五（H1~H3）
+    print('\n=== 复核五：D1 安全加固（H1 输出限额 / H2 审计失败关闭 / H3 配置）===')
+    with tempfile.TemporaryDirectory(prefix='h_review_') as htmp:
+        hcfg = make_config(htmp, faults=True, timeouts={'comm_risk': 30},
+                           name='h_faults')
+
+        # H1：必须断言**具体原因码**，不接受"反正 BLOCK 了"
+        growth = None
+        c0, r0, _ = call(htmp, envelope(proceed()), hcfg)
+        base_rss = r0.get('adapter_peak_rss_kb')
+        for fault, label in (('flood_stdout', 'H1 stdout 洪泛'),
+                             ('flood_both', 'H1 stdout+stderr 同时洪泛')):
+            ctrl = proceed()
+            ctrl['fault'] = {'comm_risk': fault}
+            c2, r2, _ = call(htmp, envelope(ctrl), hcfg, timeout=300)
+            reason = r2.get('reason_code')
+            ok = (c2 != 0 and reason == 'ADAPTER_MODULE_STDOUT_TOO_LARGE')
+            record('harden', label, PASS if ok else FAIL,
+                   'exit={0} reason={1}'.format(c2, reason))
+            if fault == 'flood_stdout' and base_rss:
+                growth = r2.get('adapter_peak_rss_kb', 0) - base_rss
+
+        ctrl = proceed()
+        ctrl['fault'] = {'comm_risk': 'flood_stderr'}
+        c3, r3, _ = call(htmp, envelope(ctrl), hcfg, timeout=300)
+        mod = [m for m in r3.get('modules', []) if m['module'] == 'comm_risk']
+        kept = mod[0].get('stderr_bytes_kept') if mod else None
+        exited = mod[0].get('exit_code') if mod else None
+        record('harden', 'H1 stderr 排空但保留有界',
+               PASS if exited == 0 and kept is not None and kept <= 16384 else FAIL,
+               'exit_code={0} stderr_kept={1}'.format(exited, kept))
+        record('harden', 'H1 适配层峰值内存有界',
+               PASS if growth is not None and growth < 32 * 1024 else FAIL,
+               '峰值增长={0} KiB'.format(growth))
+
+        # H2：审计写入失败不得返回 READY
+        hcfg2 = make_config(htmp, name='h_audit')
+        blocker = os.path.join(htmp, 'afile')
+        open(blocker, 'w').write('x')
+        audit_cases = {'路径是目录': htmp,
+                       '父路径是普通文件': os.path.join(blocker, 'sub', 'log.jsonl'),
+                       'ENOSPC(/dev/full)': '/dev/full',
+                       '只读伪文件系统': '/proc/1/nonexistent_dir/log.jsonl'}
+        for label, logp in audit_cases.items():
+            path = os.path.join(htmp, 'e.json')
+            with open(path, 'w', encoding='utf-8') as handle:
+                json.dump(envelope(proceed()), handle, ensure_ascii=False)
+            proc = sh([sys.executable, ADAPTER, '--input', path, '--config', hcfg2,
+                       '--log', logp, '--workdir', ROOT], timeout=120)
+            try:
+                res = json.loads(proc.stdout)
+            except ValueError:
+                res = {}
+            ok = (proc.returncode != 0
+                  and res.get('reason_code') == 'ADAPTER_AUDIT_WRITE_FAILED'
+                  and res.get('audit_written') is False)
+            record('harden', 'H2 审计失败关闭: ' + label, PASS if ok else FAIL,
+                   'exit={0} reason={1}'.format(proc.returncode, res.get('reason_code')))
+
+        # H3：配置加固（抽关键几项，必须报 CONFIG_INVALID）
+        import yaml as _yaml
+        h3_cases = {
+            'timeout 为布尔': ('timeout_sec', True),
+            'timeout=0': ('timeout_sec', 0),
+            'timeout 超上限': ('timeout_sec', 99999),
+            'stdout 上限为布尔': ('max_stdout_bytes', True),
+            'interface 错配': ('interface', 'identity_trust_assessment'),
+            'mode 非法': ('mode', 'shell'),
+            '故障开关为字符串': ('allow_fault_injection', 'false'),
+            'command 为字符串': ('command', 'python3 x.py'),
+        }
+        for label, (field, value) in h3_cases.items():
+            base_cfg = make_config(htmp, name='h3_base')
+            doc = _yaml.safe_load(open(base_cfg, encoding='utf-8'))
+            doc['modules']['comm_risk'][field] = value
+            target = os.path.join(htmp, 'h3_' + str(abs(hash(label)) % 10000) + '.yaml')
+            with open(target, 'w', encoding='utf-8') as handle:
+                _yaml.safe_dump(doc, handle, allow_unicode=True)
+            c4, r4, _ = call(htmp, envelope(proceed()), target)
+            ok = c4 == 4 and r4.get('reason_code') == 'ADAPTER_CONFIG_INVALID'
+            record('harden', 'H3 ' + label, PASS if ok else FAIL,
+                   'exit={0} reason={1}'.format(c4, r4.get('reason_code')))
+
     # ---------------------------------------------------------- 复核四
     print('\n=== 复核四：与原有安全边界一致 ===')
     frozen = ['src/rg_interfaces/action/PatrolNavigate.action',

@@ -599,12 +599,23 @@ def scenario_t14(case: Case, run_id: str, base_dir: str):
     import tempfile
 
     tmp = tempfile.mkdtemp(prefix='t14_')
+    # 容器名必须与 member_env.sh 的成员档位一致（RG_MEMBER=1 -> rg_member1）。
+    # 早期版本自己另起了 rg_handoff_a/b 的名字，但只传 RG_MEMBER，
+    # 结果实际创建的是 rg_member1/2，后续 docker exec 找不到容器，
+    # 且 finally 里删除的也是不存在的名字 —— 造成容器泄漏。
     members = [
-        {'member': '1', 'container': 'rg_handoff_a', 'domain': '51', 'ws': os.path.join(tmp, 'ws_a')},
-        {'member': '2', 'container': 'rg_handoff_b', 'domain': '52', 'ws': os.path.join(tmp, 'ws_b')},
+        {'member': '1', 'container': 'rg_member1', 'domain': '51',
+         'ws': os.path.join(tmp, 'ws_a')},
+        {'member': '2', 'container': 'rg_member2', 'domain': '52',
+         'ws': os.path.join(tmp, 'ws_b')},
     ]
     created = []
     try:
+        if shutil.which('docker') is None:
+            case.check('T14 需要 docker 命令（必须在宿主机运行）', False,
+                       'BLOCKED: 当前环境没有 docker，T14 应在宿主机执行')
+            return [], 'BLOCKED'
+
         for item in members:
             os.makedirs(item['ws'], exist_ok=True)
             # 复制完整工作区（含 install/，使实例可直接运行）
@@ -625,9 +636,13 @@ def scenario_t14(case: Case, run_id: str, base_dir: str):
                     shutil.copytree(src, os.path.join(item['ws'], 'tests', name),
                                     symlinks=True,
                                     ignore=shutil.ignore_patterns('__pycache__'))
-            env = dict(os.environ, RG_MEMBER=item['member'],
-                       RG_CONTAINER=item['container'],
-                       RG_DOMAIN_ID=item['domain'])
+            # 只给 RG_MEMBER：它会同时决定容器名与开发 Domain。
+            # 同时再显式指定 RG_CONTAINER 会被 member_env.sh 判为配置冲突而拒绝
+            # （该保护本身是正确的：避免"以为在自己的环境里"却用了别人的容器）。
+            env = dict(os.environ, RG_MEMBER=item['member'])
+            env.pop('RG_CONTAINER', None)
+            env.pop('ROS_DOMAIN_ID', None)
+            env.pop('RG_DOMAIN_ID', None)
             proc = subprocess.run(['bash', os.path.join(item['ws'], 'scripts',
                                                         'container_up.sh')],
                                   cwd=item['ws'], env=env, capture_output=True,
@@ -679,8 +694,19 @@ def scenario_t14(case: Case, run_id: str, base_dir: str):
         return created, 'PASS'
     finally:
         for item in created:
-            subprocess.run(['docker', 'rm', '-f', item['container']],
-                           capture_output=True, timeout=300)
+            # 删除前核对挂载源确实是本次的临时工作区，
+            # 避免同名容器属于他人时被误删。
+            probe = subprocess.run(
+                ['docker', 'inspect', '-f',
+                 '{{range .Mounts}}{{.Source}}{{end}}', item['container']],
+                capture_output=True, text=True, timeout=120)
+            source = probe.stdout.strip()
+            if probe.returncode == 0 and source.startswith(tmp):
+                subprocess.run(['docker', 'rm', '-f', item['container']],
+                               capture_output=True, timeout=300)
+            elif probe.returncode == 0:
+                print('  [warn] 跳过删除 {0}：挂载源 {1} 不属于本次临时目录'.format(
+                    item['container'], source))
         shutil.rmtree(tmp, ignore_errors=True)
 
 
