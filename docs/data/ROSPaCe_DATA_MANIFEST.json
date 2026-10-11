@@ -1,0 +1,437 @@
+{
+  "generated_at": "2026-10-11T15:11:35Z",
+  "repo_commit": "ebfe263530d10a746c172367f9d96d2f9dc5d7d4",
+  "data_root": "data/ROSPaCe_reduced",
+  "chunk_rows": 200000,
+  "files": [
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_0.csv",
+      "size_bytes": 957575156,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_1.csv",
+      "size_bytes": 957574646,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_10.csv",
+      "size_bytes": 957574618,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_11.csv",
+      "size_bytes": 957575136,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_12.csv",
+      "size_bytes": 957575096,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_13.csv",
+      "size_bytes": 957574594,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_14.csv",
+      "size_bytes": 957574698,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_2.csv",
+      "size_bytes": 957575185,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_3.csv",
+      "size_bytes": 957574641,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_4.csv",
+      "size_bytes": 957575190,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_5.csv",
+      "size_bytes": 957574493,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_6.csv",
+      "size_bytes": 957574933,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_7.csv",
+      "size_bytes": 957574960,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_8.csv",
+      "size_bytes": 957575125,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_9.csv",
+      "size_bytes": 957574791,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_0.csv",
+      "size_bytes": 1001817163,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_1.csv",
+      "size_bytes": 1001816902,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_2.csv",
+      "size_bytes": 1001816617,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_3.csv",
+      "size_bytes": 1001816547,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_4.csv",
+      "size_bytes": 1001816688,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_5.csv",
+      "size_bytes": 1001817032,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_6.csv",
+      "size_bytes": 1001816537,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_7.csv",
+      "size_bytes": 1001817013,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_8.csv",
+      "size_bytes": 1001816737,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_9.csv",
+      "size_bytes": 1001816552,
+      "format": "csv",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/feature_list.xlsx",
+      "size_bytes": 29271,
+      "format": "xlsx",
+      "compressed": false
+    },
+    {
+      "path": "data/ROSPaCe_reduced/windows_0.jsonl",
+      "size_bytes": 14423224,
+      "format": "jsonl",
+      "compressed": false,
+      "sha256": null
+    }
+  ],
+  "notes": [],
+  "statistics_status": "FULL",
+  "full_dataset_rows": 30247050,
+  "label_counts": {
+    "observe": 6645324,
+    "nmap discovery": 500000,
+    "ros2 reconnaissance": 401494,
+    "ros2 reflection": 3753,
+    "metasploit SYN flood": 14696890,
+    "ros2 node crashing": 5743,
+    "nmap SYN flood": 7993846
+  },
+  "monitor_counts": {
+    "Tshark": 451,
+    "OS Monitor": 25,
+    "ROS Monitor Node": 5,
+    "(空)": 1
+  },
+  "header_structure": {
+    "main": {
+      "with_header": [
+        "rospace_reduced_0.csv"
+      ],
+      "without_header": [
+        "rospace_reduced_1.csv",
+        "rospace_reduced_10.csv",
+        "rospace_reduced_11.csv",
+        "rospace_reduced_12.csv",
+        "rospace_reduced_13.csv",
+        "rospace_reduced_14.csv",
+        "rospace_reduced_2.csv",
+        "rospace_reduced_3.csv",
+        "rospace_reduced_4.csv",
+        "rospace_reduced_5.csv",
+        "rospace_reduced_6.csv",
+        "rospace_reduced_7.csv",
+        "rospace_reduced_8.csv",
+        "rospace_reduced_9.csv"
+      ]
+    },
+    "noperiodicity": {
+      "with_header": [
+        "rospace_reduced_noperiodicity_0.csv"
+      ],
+      "without_header": [
+        "rospace_reduced_noperiodicity_1.csv",
+        "rospace_reduced_noperiodicity_2.csv",
+        "rospace_reduced_noperiodicity_3.csv",
+        "rospace_reduced_noperiodicity_4.csv",
+        "rospace_reduced_noperiodicity_5.csv",
+        "rospace_reduced_noperiodicity_6.csv",
+        "rospace_reduced_noperiodicity_7.csv",
+        "rospace_reduced_noperiodicity_8.csv",
+        "rospace_reduced_noperiodicity_9.csv"
+      ]
+    }
+  },
+  "columns": {
+    "main": [
+      "timestamp",
+      "layers.sll.sll.pkttype",
+      "layers.sll.sll.hatype",
+      "layers.sll.sll.unused",
+      "layers.ip.ip.version",
+      "layers.ip.ip.dsfield_tree.ip.dsfield.ecn",
+      "layers.ip.ip.flags",
+      "layers.ip.ip.flags_tree.ip.flags.rb",
+      "layers.ip.ip.flags_tree.ip.flags.df",
+      "layers.ip.ip.checksum",
+      "layers.ip.ip.checksum.status",
+      "layers.tcp.tcp.stream",
+      "layers.tcp.tcp.ack",
+      "layers.tcp.tcp.flags_tree.tcp.flags.ack",
+      "layers.tcp.tcp.flags_tree.tcp.flags.syn",
+      "layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.message",
+      "layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.severity",
+      "layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.group",
+      "layers.tcp.tcp.window_size_value",
+      "layers.tcp.tcp.window_size",
+      "layers.tcp.tcp.options",
+      "layers.tcp.tcp.options_tree.tcp.options.nop",
+      "layers.tcp.tcp.options_tree.tcp.options.nop_tree.tcp.option_kind",
+      "layers.tcp.tcp.analysis.tcp.analysis.acks_frame",
+      "layers.tcp.tcp.analysis.tcp.analysis.initial_rtt",
+      "layers.tcp.tcp.payload",
+      "layers.ssl.ssl.record.ssl.record.content_type",
+      "layers._ws.short",
+      "layers.ipv6.ip.version",
+      "layers.ipv6.ipv6.tclass_tree.ipv6.tclass.ecn",
+      "layers.icmpv6.icmpv6.type",
+      "Net_Sent",
+      "pgpgin",
+      "pgactivate",
+      "Disk_Read",
+      "pgfault",
+      "Net_Received",
+      "MemFree",
+      "Inactive",
+      "pgdeactivate",
+      "Tcp_Close",
+      "pgfree",
+      "nr_active_file",
+      "Cached",
+      "nr_inactive_file",
+      "Disk_Write",
+      "pgpgout",
+      "Tcp_Syn",
+      "Buffers",
+      "Tcp_TimeWait",
+      "Tcp_Listen",
+      "Tcp_Established",
+      "Active",
+      "pgalloc_dma",
+      "pgmajfault",
+      "SwapFree",
+      "src_topic",
+      "subscribers_count",
+      "publishers_count",
+      "msg_type",
+      "msg_data",
+      "attack"
+    ],
+    "noperiodicity": [
+      "timestamp",
+      "layers.sll.sll.pkttype",
+      "layers.sll.sll.hatype",
+      "layers.sll.sll.unused",
+      "layers.ip.ip.version",
+      "layers.ip.ip.dsfield_tree.ip.dsfield.ecn",
+      "layers.ip.ip.flags",
+      "layers.ip.ip.flags_tree.ip.flags.rb",
+      "layers.ip.ip.flags_tree.ip.flags.df",
+      "layers.ip.ip.checksum",
+      "layers.ip.ip.checksum.status",
+      "layers.tcp.tcp.stream",
+      "layers.tcp.tcp.ack",
+      "layers.tcp.tcp.flags_tree.tcp.flags.ack",
+      "layers.tcp.tcp.flags_tree.tcp.flags.syn",
+      "layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.message",
+      "layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.severity",
+      "layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.group",
+      "layers.tcp.tcp.window_size_value",
+      "layers.tcp.tcp.window_size",
+      "layers.tcp.tcp.options",
+      "layers.tcp.tcp.options_tree.tcp.options.nop",
+      "layers.tcp.tcp.options_tree.tcp.options.nop_tree.tcp.option_kind",
+      "layers.tcp.tcp.analysis.tcp.analysis.acks_frame",
+      "layers.tcp.tcp.analysis.tcp.analysis.initial_rtt",
+      "layers.tcp.tcp.payload",
+      "layers.ssl.ssl.record.ssl.record.content_type",
+      "layers._ws.short",
+      "layers.ipv6.ip.version",
+      "layers.ipv6.ipv6.tclass_tree.ipv6.tclass.ecn",
+      "layers.icmpv6.icmpv6.type",
+      "Net_Sent",
+      "pgpgin",
+      "pgactivate",
+      "Disk_Read",
+      "pgfault",
+      "Net_Received",
+      "MemFree",
+      "Inactive",
+      "pgdeactivate",
+      "Tcp_Close",
+      "pgfree",
+      "nr_active_file",
+      "Cached",
+      "nr_inactive_file",
+      "Disk_Write",
+      "pgpgout",
+      "Tcp_Syn",
+      "Buffers",
+      "Tcp_TimeWait",
+      "Tcp_Listen",
+      "Tcp_Established",
+      "Active",
+      "pgalloc_dma",
+      "pgmajfault",
+      "SwapFree",
+      "src_topic",
+      "subscribers_count",
+      "publishers_count",
+      "msg_type",
+      "msg_data",
+      "attack"
+    ],
+    "only_main": [],
+    "only_noperiodicity": []
+  },
+  "per_file_rows": [
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_0.csv",
+      "rows": 1746677,
+      "seconds": 29.9
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_1.csv",
+      "rows": 1686466,
+      "seconds": 26.8
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_10.csv",
+      "rows": 2027335,
+      "seconds": 33.8
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_11.csv",
+      "rows": 2027924,
+      "seconds": 33.5
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_12.csv",
+      "rows": 2030551,
+      "seconds": 34.3
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_13.csv",
+      "rows": 1693336,
+      "seconds": 29.3
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_14.csv",
+      "rows": 1675090,
+      "seconds": 30.2
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_2.csv",
+      "rows": 1637701,
+      "seconds": 29.3
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_3.csv",
+      "rows": 2120220,
+      "seconds": 33.0
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_4.csv",
+      "rows": 2582213,
+      "seconds": 35.1
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_5.csv",
+      "rows": 2507228,
+      "seconds": 35.6
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_6.csv",
+      "rows": 2441101,
+      "seconds": 34.1
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_7.csv",
+      "rows": 2016532,
+      "seconds": 34.3
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_8.csv",
+      "rows": 2022003,
+      "seconds": 33.2
+    },
+    {
+      "path": "data/ROSPaCe_reduced/ROSPaCe_reduced/rospace_reduced_9.csv",
+      "rows": 2032673,
+      "seconds": 34.5
+    }
+  ]
+}

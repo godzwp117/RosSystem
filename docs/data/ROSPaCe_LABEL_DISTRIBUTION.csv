@@ -1,0 +1,8 @@
+dataset,raw_label,count,ratio,binary_mapping,status
+ROSPaCe_reduced,metasploit SYN flood,14696890,0.485895,UNKNOWN(见审计报告),FULL
+ROSPaCe_reduced,nmap SYN flood,7993846,0.264285,UNKNOWN(见审计报告),FULL
+ROSPaCe_reduced,observe,6645324,0.219702,UNKNOWN(见审计报告),FULL
+ROSPaCe_reduced,nmap discovery,500000,0.016531,UNKNOWN(见审计报告),FULL
+ROSPaCe_reduced,ros2 reconnaissance,401494,0.013274,UNKNOWN(见审计报告),FULL
+ROSPaCe_reduced,ros2 node crashing,5743,0.000190,UNKNOWN(见审计报告),FULL
+ROSPaCe_reduced,ros2 reflection,3753,0.000124,UNKNOWN(见审计报告),FULL

@@ -1,0 +1,62 @@
+feature,layer,meaning,unit,jazzy_mechanism,status,tested,note
+timestamp,Tshark,数据包时间戳,秒(绝对时间),node.get_clock().now() / 消息 header.stamp,B,no,需要独立时间基准；ROSPaCe 为抓包时间，Jazzy 为节点时钟，语义不完全等价
+layers.sll.sll.pkttype,Tshark,Linux cooked capture 包类型,枚举,无（需 PCAP 抓包）,C,no,需链路层抓包；rclpy 不暴露
+layers.sll.sll.hatype,Tshark,ARPHRD 硬件类型,枚举,无（需 PCAP 抓包）,C,no,同上
+layers.sll.sll.unused,Tshark,SLL 保留字段,无,无（需 PCAP 抓包）,C,no,非数值列，已排除
+layers.ip.ip.version,Tshark,IP 版本,枚举,无（需 PCAP 抓包）,C,no,
+layers.ip.ip.dsfield_tree.ip.dsfield.ecn,Tshark,ECN 拥塞标记,枚举,无（需 PCAP 抓包）,C,no,
+layers.ip.ip.flags,Tshark,IP 分片标志,位掩码,无（需 PCAP 抓包）,C,no,非数值列，已排除
+layers.ip.ip.flags_tree.ip.flags.rb,Tshark,保留位,bool,无（需 PCAP 抓包）,C,no,
+layers.ip.ip.flags_tree.ip.flags.df,Tshark,Don't Fragment,bool,无（需 PCAP 抓包）,C,no,
+layers.ip.ip.checksum,Tshark,IP 头校验和,无符号整数,无（需 PCAP 抓包）,C,no,非数值列，已排除
+layers.ip.ip.checksum.status,Tshark,校验和校验状态,枚举,无（需 PCAP 抓包）,C,no,
+layers.tcp.tcp.stream,Tshark,TCP 流索引,整数,无（需 PCAP 重组）,C,no,需 tshark 流跟踪
+layers.tcp.tcp.ack,Tshark,ACK 号,整数,无（需 PCAP 抓包）,C,no,
+layers.tcp.tcp.flags_tree.tcp.flags.ack,Tshark,ACK 标志,bool,无（需 PCAP 抓包）,C,no,
+layers.tcp.tcp.flags_tree.tcp.flags.syn,Tshark,SYN 标志,bool,无（需 PCAP 抓包）,C,no,SYN flood 检测的关键特征，但需抓包
+layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.message,Tshark,Wireshark 专家告警文本,字符串,无,C,no,非数值列，已排除
+layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.severity,Tshark,专家告警严重度,枚举,无（需 PCAP 抓包）,C,no,
+layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.group,Tshark,专家告警分组,枚举,无（需 PCAP 抓包）,C,no,
+layers.tcp.tcp.window_size_value,Tshark,TCP 窗口大小,字节,无（需 PCAP 抓包）,C,no,
+layers.tcp.tcp.window_size,Tshark,TCP 计算窗口,字节,无（需 PCAP 抓包）,C,no,
+layers.tcp.tcp.options,Tshark,TCP 选项,字符串,无（需 PCAP 抓包）,C,no,非数值列，已排除
+layers.tcp.tcp.options_tree.tcp.options.nop,Tshark,NOP 选项,bool,无（需 PCAP 抓包）,C,no,
+layers.tcp.tcp.options_tree.tcp.options.nop_tree.tcp.option_kind,Tshark,选项类型,枚举,无（需 PCAP 抓包）,C,no,
+layers.tcp.tcp.analysis.tcp.analysis.acks_frame,Tshark,被确认帧号,整数,无（需 PCAP 抓包）,C,no,
+layers.tcp.tcp.analysis.tcp.analysis.initial_rtt,Tshark,初始 RTT,秒,无（需 PCAP 抓包）,C,no,
+layers.tcp.tcp.payload,Tshark,TCP 载荷,十六进制串,无（需 PCAP 抓包）,C,no,非数值列，已排除
+layers.ssl.ssl.record.ssl.record.content_type,Tshark,TLS 记录类型,枚举,无（需 PCAP 抓包）,C,no,
+layers._ws.short,Tshark,Wireshark 短摘要,字符串,无,C,no,非数值列，已排除
+layers.ipv6.ip.version,Tshark,IPv6 版本,枚举,无（需 PCAP 抓包）,C,no,
+layers.ipv6.ipv6.tclass_tree.ipv6.tclass.ecn,Tshark,IPv6 ECN,枚举,无（需 PCAP 抓包）,C,no,
+layers.icmpv6.icmpv6.type,Tshark,ICMPv6 类型,枚举,无（需 PCAP 抓包）,C,no,非数值列，已排除
+Net_Sent,OS Monitor,自上次观测以来网络发送字节数,字节,/proc/net/dev 的 tx_bytes；psutil.net_io_counters(),B,no,"可采集但需新增采集器；语义为**接口累计字节**，与 ROSPaCe 的""观测窗口增量""窗口口径不同，需自行差分并固定窗口"
+Net_Received,OS Monitor,自上次观测以来网络接收字节数,字节,/proc/net/dev 的 rx_bytes,B,no,同上
+pgpgin,OS Monitor,页入次数（自启动）,次,/proc/vmstat 的 pgpgin,B,no,可读，但需与 ROS 消息窗口对齐
+pgactivate,OS Monitor,页激活次数,次,/proc/vmstat,B,no,
+pgdeactivate,OS Monitor,页去激活次数,次,/proc/vmstat,B,no,
+pgfault,OS Monitor,次缺页次数,次,/proc/vmstat,B,no,
+pgmajfault,OS Monitor,主缺页次数,次,/proc/vmstat,B,no,
+pgfree,OS Monitor,页释放次数,次,/proc/vmstat,B,no,
+pgpgout,OS Monitor,页出次数,次,/proc/vmstat,B,no,
+pgalloc_dma,OS Monitor,DMA 区页分配次数,次,/proc/vmstat,B,no,
+Disk_Read,OS Monitor,磁盘读操作数,次,/proc/diskstats,B,no,
+Disk_Write,OS Monitor,磁盘写操作数,次,/proc/diskstats,B,no,
+MemFree,OS Monitor,空闲内存,KB,/proc/meminfo MemFree,B,yes,已实测可读（见审计报告）
+Cached,OS Monitor,页缓存,KB,/proc/meminfo Cached,B,yes,已实测可读
+Buffers,OS Monitor,文件缓冲,KB,/proc/meminfo Buffers,B,yes,已实测可读
+SwapFree,OS Monitor,空闲交换,KB,/proc/meminfo SwapFree,B,yes,已实测可读
+Active,OS Monitor,活跃页缓存,KB,/proc/meminfo Active,B,yes,已实测可读
+Inactive,OS Monitor,非活跃页缓存,KB,/proc/meminfo Inactive,B,yes,已实测可读
+nr_active_file,OS Monitor,活跃文件数,个,/proc/vmstat nr_active_file,B,no,
+nr_inactive_file,OS Monitor,非活跃文件数,个,/proc/vmstat nr_inactive_file,B,no,
+Tcp_Close,OS Monitor,CLOSE 状态 TCP 套接字,个,/proc/net/tcp 状态统计,B,no,需自行解析 /proc/net/tcp 并映射状态码
+Tcp_Syn,OS Monitor,SYN 状态 TCP 套接字,个,/proc/net/tcp,B,no,SYN flood 的强指示特征；可采集但需新增采集器
+Tcp_TimeWait,OS Monitor,TIME_WAIT 套接字,个,/proc/net/tcp,B,no,
+Tcp_Listen,OS Monitor,LISTEN 套接字,个,/proc/net/tcp,B,no,
+Tcp_Established,OS Monitor,ESTABLISHED 套接字,个,/proc/net/tcp,B,no,
+src_topic,ROS Monitor Node,消息的源节点,节点名,rclpy: get_publishers_info_by_topic() 返回 node_name,A,yes,**已实测**：get_publishers_info_by_topic() 返回真实 PublisherInfo（含 node_name/topic_type）。注意：Action 资源需查询其 _action/* 子话题，裸名查询返回 0
+subscribers_count,ROS Monitor Node,某话题的订阅者数量,个,rclpy: get_subscriptions_info_by_topic(),A,yes,**已实测**：API 返回真实 SubscriptionInfo 列表。同样受 Action 子话题命名影响
+publishers_count,ROS Monitor Node,某话题的发布者数量,个,rclpy: get_publishers_info_by_topic(),A,yes,**已实测**：API 返回真实 PublisherInfo 列表
+msg_type,ROS Monitor Node,ROS2 消息类型,类型名,rclpy: get_topic_names_and_types(),A,yes,"**已实测**：返回 (topic, [type]) 对，如 /rosout -> rcl_interfaces/msg/Log"
+msg_data,ROS Monitor Node,ROS2 消息头部,字符串,需订阅话题并反序列化消息,B,no,rclpy 可订阅并读取，但需要为每个话题建立订阅与窗口聚合，尚未形成完整链路
