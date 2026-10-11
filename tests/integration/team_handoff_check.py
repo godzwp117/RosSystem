@@ -652,25 +652,215 @@ def _normalise(path: str) -> str:
     return os.path.realpath(os.path.abspath(path))
 
 
-def _container_identity(name: str) -> dict:
-    """取容器的 ID 与挂载源，用于"删除前先证明确实是本轮创建的"。
+def _is_within(path: str, parent: str) -> bool:
+    """安全的父子路径关系判断。
 
-    返回空字典表示容器不存在。
+    **不能**使用 `normalise(path).startswith(normalise(parent))`：
+    那会把 `/tmp/run10` 误判为 `/tmp/run1` 的子路径。
+    这里用 `os.path.commonpath` 做真正的路径分量比较，并处理：
+      * 符号链接与相对路径（先 realpath 规范化）；
+      * 前缀相似的兄弟目录（commonpath 返回共同父目录时不视为子路径）；
+      * 路径本身等于 parent 的情况（视为"位于其下"，但调用方通常另作要求）。
     """
-    probe = subprocess.run(
-        ['docker', 'inspect', '-f', '{{.Id}}|{{range .Mounts}}{{.Source}}{{end}}', name],
-        capture_output=True, text=True, timeout=120)
+    try:
+        left = _normalise(path)
+        right = _normalise(parent)
+    except (OSError, ValueError):
+        return False
+    if not left or not right:
+        return False
+    try:
+        common = os.path.commonpath([left, right])
+    except ValueError:
+        # 不同驱动器或无法比较（例如跨盘符）
+        return False
+    return common == right
+
+
+def _docker_inspect(name: str) -> dict:
+    """读取容器的身份与挂载信息。返回空字典表示容器不存在或不可读。
+
+    一次 inspect 取回：完整 ID、Running 状态、工作目录、
+    以及挂载点的 Source/Destination 对应关系。
+    """
+    fmt = ('{{.Id}}|{{.State.Running}}|{{.Config.WorkingDir}}|'
+           '{{range .Mounts}}{{.Source}}=>{{.Destination}};{{end}}')
+    probe = subprocess.run(['docker', 'inspect', '-f', fmt, name],
+                           capture_output=True, text=True, timeout=120)
     if probe.returncode != 0:
         return {}
     raw = probe.stdout.strip()
-    if '|' not in raw:
+    parts = raw.split('|', 3)
+    if len(parts) < 4:
         return {}
-    cid, source = raw.split('|', 1)
-    return {'id': cid.strip(), 'mount_source': source.strip()}
+    mounts = []
+    for entry in parts[3].split(';'):
+        entry = entry.strip()
+        if '=>' in entry:
+            src, dst = entry.split('=>', 1)
+            mounts.append({'source': src.strip(), 'destination': dst.strip()})
+    return {
+        'id': parts[0].strip(),
+        'running': parts[1].strip().lower() == 'true',
+        'workdir': parts[2].strip(),
+        'mounts': mounts,
+    }
+
+
+def _container_mount_for(info: dict, destination: str):
+    for mount in info.get('mounts') or []:
+        if mount['destination'] == destination:
+            return mount['source']
+    return None
+
+
+def _docker_stop_verified(name: str, expected_id: str, expected_source: str,
+                          expected_destination: str) -> tuple:
+    """停止容器，并以**实际证据**判定是否真的停止成功。
+
+    返回 (ok, detail)。只有在下列条件全部成立时才 ok=True：
+      1. 停止前 Docker ID 与创建时记录一致；
+      2. 停止前挂载 Source/Destination 与预期精确一致；
+      3. `docker stop` 退出码为 0 且 stderr 为空；
+      4. 停止后 `docker inspect` 的 Running 为 false；
+      5. 停止后 Docker ID 仍是同一个容器。
+
+    早期实现直接写 `case.check('实例 A 已停止', True, ...)` —— 固定 True，
+    无论 stop 是否成功都通过。本函数取代该写法。
+    """
+    if not expected_id:
+        return False, '缺少创建时记录的 Docker ID，拒绝停止'
+    before = _docker_inspect(name)
+    if not before:
+        return False, '停止前无法读取容器 {0}（不存在或不可读）'.format(name)
+    if before['id'] != expected_id:
+        return False, ('停止前容器 ID 不一致：记录={0} 实际={1}；'
+                       '该容器可能已被他人重建，拒绝停止').format(
+                           expected_id[:12], before['id'][:12])
+    actual_source = _container_mount_for(before, expected_destination)
+    if actual_source is None:
+        return False, '停止前未找到目标挂载点 {0}'.format(expected_destination)
+    if _normalise(actual_source) != _normalise(expected_source):
+        return False, ('停止前挂载源不一致：期望={0} 实际={1}').format(
+            _normalise(expected_source), _normalise(actual_source))
+
+    proc = subprocess.run(['docker', 'stop', name], capture_output=True,
+                          text=True, timeout=300)
+    if proc.returncode != 0:
+        return False, 'docker stop 退出码={0} stderr={1}'.format(
+            proc.returncode, (proc.stderr or '').strip()[:160])
+
+    after = _docker_inspect(name)
+    if not after:
+        return False, '停止后无法读取容器状态，不能确认是否真的停止'
+    if after['id'] != expected_id:
+        return False, '停止后容器 ID 变化：记录={0} 实际={1}'.format(
+            expected_id[:12], after['id'][:12])
+    if after['running']:
+        return False, 'docker stop 返回 0，但容器实际仍处于 Running 状态'
+    return True, 'stopped id={0} running=False'.format(after['id'][:12])
+
+
+def _docker_remove_verified(name: str, expected_id: str, expected_source: str,
+                            expected_destination: str, owned_root: str) -> tuple:
+    """删除容器，删除前逐项验证归属。返回 (ok, detail)。
+
+    删除前必须同时满足：
+      1. 容器存在且 Docker ID 与创建时记录一致；
+      2. 挂载 Source/Destination 与预期精确一致；
+      3. 挂载源位于**本轮创建的临时目录之下**（安全的父子关系判断，
+         能区分 /tmp/run1 与 /tmp/run10）。
+    任一不满足即**不执行 docker rm**。
+    """
+    info = _docker_inspect(name)
+    if not expected_id:
+        # 两种情况必须区分（否则会产生误报）：
+        #   (a) 容器根本不存在（例如创建阶段就失败）—— 没有任何资源需要清理，
+        #       这是正常的 no-op，不应报 FAIL；
+        #   (b) 容器存在，但没有创建时记录的 ID —— 无法证明归属，必须拒绝删除。
+        if not info:
+            return True, 'container absent, nothing to remove'
+        return False, '容器存在但缺少创建时记录的 Docker ID，拒绝删除'
+    if not info:
+        return False, '容器 {0} 不存在或不可读，未执行删除'.format(name)
+    if info['id'] != expected_id:
+        return False, 'Docker ID 不一致：记录={0} 实际={1}；拒绝删除'.format(
+            expected_id[:12], info['id'][:12])
+    actual_source = _container_mount_for(info, expected_destination)
+    if actual_source is None:
+        return False, '未找到目标挂载点 {0}；拒绝删除'.format(expected_destination)
+    if _normalise(actual_source) != _normalise(expected_source):
+        return False, '挂载源与预期不一致：期望={0} 实际={1}；拒绝删除'.format(
+            _normalise(expected_source), _normalise(actual_source))
+    if not _is_within(actual_source, owned_root):
+        return False, ('挂载源 {0} 不在本轮临时目录 {1} 之下；'
+                       '拒绝删除（可能属于他人）').format(
+                           _normalise(actual_source), _normalise(owned_root))
+
+    proc = subprocess.run(['docker', 'rm', '-f', name], capture_output=True,
+                          text=True, timeout=300)
+    if proc.returncode != 0:
+        return False, 'docker rm 退出码={0} stderr={1}'.format(
+            proc.returncode, (proc.stderr or '').strip()[:160])
+    if _docker_inspect(name):
+        return False, 'docker rm 返回 0，但容器仍可被 inspect 到'
+    return True, 'removed id={0}'.format(expected_id[:12])
 
 
 def _record_run_id_map(case: Case, mapping: dict) -> None:
     case.evidence['container_run_id_map'] = mapping
+
+
+def _strict_jsonl(path: str) -> dict:
+    """严格读取 JSONL，逐行记录任何异常（含行号）。
+
+    与 `read_jsonl()` 的区别：后者为兼容既有调用而**静默跳过**坏行；
+    本函数不丢弃任何错误，返回可直接参与断言的诊断。
+
+    检查项：
+      * 文件不存在 / 不可读；
+      * **非法 UTF-8** —— 逐行按严格 UTF-8 解码，不使用 errors='ignore'，
+        否则损坏的字节会被静默吞掉；
+      * 非法 JSON —— 记录行号；
+      * JSON 类型错误 —— 顶层不是对象。
+    """
+    report = {'exists': os.path.isfile(path), 'records': [], 'errors': [],
+              'total_lines': 0, 'bad_lines': []}
+    if not report['exists']:
+        report['errors'].append({'line': 0, 'kind': 'missing_file', 'detail': path})
+        return report
+    try:
+        with open(path, 'rb') as handle:
+            raw = handle.read()
+    except OSError as exc:
+        report['errors'].append({'line': 0, 'kind': 'unreadable', 'detail': str(exc)})
+        return report
+
+    for lineno, blob in enumerate(raw.split(b'\n'), start=1):
+        if not blob.strip():
+            continue
+        report['total_lines'] += 1
+        try:
+            text = blob.decode('utf-8')          # 严格解码：非法字节会抛错
+        except UnicodeDecodeError as exc:
+            report['errors'].append({'line': lineno, 'kind': 'invalid_utf8',
+                                     'detail': str(exc)})
+            report['bad_lines'].append(lineno)
+            continue
+        try:
+            record = json.loads(text)
+        except ValueError as exc:
+            report['errors'].append({'line': lineno, 'kind': 'invalid_json',
+                                     'detail': str(exc)[:120]})
+            report['bad_lines'].append(lineno)
+            continue
+        if not isinstance(record, dict):
+            report['errors'].append({'line': lineno, 'kind': 'invalid_type',
+                                     'detail': 'top-level {0}'.format(type(record).__name__)})
+            report['bad_lines'].append(lineno)
+            continue
+        report['records'].append(record)
+    return report
 
 
 def _instance_evidence(instance: Instance, request_id: str, label: str) -> dict:
@@ -678,38 +868,39 @@ def _instance_evidence(instance: Instance, request_id: str, label: str) -> dict:
 
     缺文件、格式错误、请求未关联都必须能被上层断言捕获为 FAIL ——
     不使用任何 `or True` 之类的兜底，也不推测固定路径。
+    审计部分走 `_strict_jsonl()`，坏行会带行号进入 `audit_errors`。
     """
+    audit = _strict_jsonl(instance.audit_path)
+    navsim = _strict_jsonl(instance.navsim_path)
+
     evidence = {
         'label': label,
         'request_id': request_id,
         'audit_path': os.path.relpath(instance.audit_path, ROOT),
         'navsim_path': os.path.relpath(instance.navsim_path, ROOT),
-        'audit_exists': os.path.isfile(instance.audit_path),
-        'navsim_exists': os.path.isfile(instance.navsim_path),
+        'audit_exists': audit['exists'],
+        'navsim_exists': navsim['exists'],
         'decision_count': 0,
         'decision': None,
         'reason_code': None,
         'goal_count': 0,
-        'audit_parse_errors': 0,
+        # 坏行数量：必须参与最终 PASS/FAIL 判定，不能只放进 evidence
+        'audit_parse_errors': len(audit['errors']),
+        'audit_errors': audit['errors'][:8],
+        'audit_bad_lines': audit['bad_lines'][:20],
+        'audit_total_lines': audit['total_lines'],
     }
-    if evidence['audit_exists']:
-        records = read_jsonl(instance.audit_path)
-        # read_jsonl 会静默跳过坏行；这里单独统计，坏行必须能被发现
-        with open(instance.audit_path, 'r', encoding='utf-8', errors='ignore') as handle:
-            raw_lines = [ln for ln in handle.read().splitlines() if ln.strip()]
-        evidence['audit_parse_errors'] = max(0, len(raw_lines) - len(records))
-        decisions = decisions_for(records, request_id)
-        evidence['decision_count'] = len(decisions)
-        if decisions:
-            evidence['decision'] = decisions[-1].get('decision')
-            evidence['reason_code'] = decisions[-1].get('reason_code')
-        evidence['all_request_ids'] = sorted(
-            {r.get('request_id') for r in records if r.get('request_id')})
-    if evidence['navsim_exists']:
-        goals = read_jsonl(instance.navsim_path)
-        evidence['goal_count'] = len(navsim_goals_for(goals, request_id))
-        evidence['all_goal_request_ids'] = sorted(
-            {g.get('request_id') for g in goals if g.get('request_id')})
+    decisions = decisions_for(audit['records'], request_id)
+    evidence['decision_count'] = len(decisions)
+    if decisions:
+        evidence['decision'] = decisions[-1].get('decision')
+        evidence['reason_code'] = decisions[-1].get('reason_code')
+    evidence['all_request_ids'] = sorted(
+        {r.get('request_id') for r in audit['records'] if r.get('request_id')})
+
+    evidence['goal_count'] = len(navsim_goals_for(navsim['records'], request_id))
+    evidence['all_goal_request_ids'] = sorted(
+        {g.get('request_id') for g in navsim['records'] if g.get('request_id')})
     return evidence
 
 
@@ -788,6 +979,16 @@ def scenario_t14(case: Case, run_id: str, base_dir: str):
             env.pop('RG_MEMBER', None)
             env['RG_CONTAINER'] = item['container']
             env['ROS_DOMAIN_ID'] = item['domain']
+            # 创建前先检查同名容器是否已存在：存在则**不接管**（可能是他人环境）
+            pre = _docker_inspect(item['container'])
+            case.check('实例 {0} 创建前无同名容器'.format(item['tag']), not pre,
+                       ('已存在容器 id={0}，本轮不接管、不复用、不停止、不删除；'
+                        '请改用其他容器名').format(pre.get('id', '')[:12]) if pre else '无冲突')
+            if pre:
+                item['container_exit'] = -1
+                created.append(item)
+                continue
+
             proc = subprocess.run(
                 ['bash', os.path.join(item['ws'], 'scripts', 'container_up.sh')],
                 cwd=item['ws'], env=env, capture_output=True, text=True, timeout=1800)
@@ -795,6 +996,15 @@ def scenario_t14(case: Case, run_id: str, base_dir: str):
             created.append(item)
             case.check('实例 {0} 容器就绪（Domain {1}）'.format(item['tag'], item['domain']),
                        proc.returncode == 0, (proc.stdout + proc.stderr)[-200:])
+            # 记录完整 Docker ID 与挂载信息，供停止/删除时逐一比对
+            info = _docker_inspect(item['container'])
+            item['container_id'] = info.get('id', '')
+            item['mount_source'] = _container_mount_for(info, '/ws')
+            item['mount_destination'] = '/ws'
+            case.check('实例 {0} 记录到完整 Docker ID'.format(item['tag']),
+                       bool(item.get('container_id')),
+                       'id={0} source={1}'.format(
+                           (item.get('container_id') or '')[:12], item.get('mount_source')))
 
         _record_run_id_map(case, {i['container']: run_id for i in created})
         if not all(i.get('container_exit') == 0 for i in created):
@@ -876,48 +1086,53 @@ def scenario_t14(case: Case, run_id: str, base_dir: str):
                        record['audit_exists'], audit_local)
             case.check('实例 {0} 的 NavigationSim 日志真实存在'.format(item['tag']),
                        record['navsim_exists'], navsim_local)
-            if record['audit_exists']:
-                records = read_jsonl(audit_local)
-                own = decisions_for(records, mine)
-                foreign = decisions_for(records, theirs)
-                record['own_decision_count'] = len(own)
-                record['foreign_decision_count'] = len(foreign)
-                record['own_decision'] = own[-1].get('decision') if own else None
-                case.check('实例 {0} 有本实例 request_id 的 DecisionEvent'.format(item['tag']),
-                           len(own) >= 1, 'own={0}'.format(len(own)))
-                case.check('实例 {0} 不含另一实例的 DecisionEvent（无串扰）'.format(item['tag']),
-                           len(foreign) == 0, 'foreign={0}'.format(len(foreign)))
-                if own:
-                    case.check('实例 {0} Gateway 判定 ALLOW'.format(item['tag']),
-                               own[-1].get('decision') == 'ALLOW',
-                               own[-1].get('decision'))
-            if record['navsim_exists']:
-                goals = read_jsonl(navsim_local)
-                own_goals = navsim_goals_for(goals, mine)
-                foreign_goals = navsim_goals_for(goals, theirs)
-                record['own_goal_count'] = len(own_goals)
-                record['foreign_goal_count'] = len(foreign_goals)
-                case.check('实例 {0} 下游收到本实例 Goal'.format(item['tag']),
-                           len(own_goals) == 1, 'own_goals={0}'.format(len(own_goals)))
-                case.check('实例 {0} 下游不含另一实例 Goal（无串扰）'.format(item['tag']),
-                           len(foreign_goals) == 0,
-                           'foreign_goals={0}'.format(len(foreign_goals)))
+            # 走与断言同一套严格读取逻辑（_instance_evidence -> _strict_jsonl），
+            # 避免"evidence 里统计了坏行、但判定用的是另一套宽松解析"的口径分裂。
+            audit_path = os.path.join(item['ws'], 't14_evidence', 'audit.jsonl')
+            navsim_path = os.path.join(item['ws'], 't14_evidence', 'navsim.jsonl')
+            shadow = Instance.__new__(Instance)
+            shadow.audit_path = audit_path
+            shadow.navsim_path = navsim_path
+            evidence = _instance_evidence(shadow, mine, item['tag'])
+            record.update({k: evidence[k] for k in (
+                'audit_exists', 'navsim_exists', 'decision_count', 'decision',
+                'reason_code', 'goal_count', 'audit_parse_errors',
+                'audit_bad_lines', 'audit_total_lines')})
+
+            case.check('实例 {0} 的 Gateway 审计文件真实存在'.format(item['tag']),
+                       evidence['audit_exists'], audit_path)
+            # P1-1 核心：坏行数必须真正参与 PASS/FAIL
+            case.check('实例 {0} 审计 JSONL 无坏行（audit_parse_errors=0）'.format(item['tag']),
+                       evidence['audit_parse_errors'] == 0,
+                       'errors={0} bad_lines={1} detail={2}'.format(
+                           evidence['audit_parse_errors'], evidence['audit_bad_lines'],
+                           evidence['audit_errors'][:3]))
+            case.check('实例 {0} 有本实例 request_id 的 DecisionEvent'.format(item['tag']),
+                       evidence['decision_count'] >= 1,
+                       'count={0}'.format(evidence['decision_count']))
+            case.check('实例 {0} 不含另一实例的 request_id（无串扰）'.format(item['tag']),
+                       theirs not in evidence['all_request_ids'],
+                       'all={0}'.format(evidence['all_request_ids'][:6]))
+            if evidence['decision_count']:
+                case.check('实例 {0} Gateway 判定 ALLOW'.format(item['tag']),
+                           evidence['decision'] == 'ALLOW', evidence['decision'])
+            case.check('实例 {0} 下游收到本实例 Goal'.format(item['tag']),
+                       evidence['goal_count'] == 1,
+                       'goals={0}'.format(evidence['goal_count']))
+            case.check('实例 {0} 下游不含另一实例 Goal（无串扰）'.format(item['tag']),
+                       theirs not in evidence['all_goal_request_ids'],
+                       'all={0}'.format(evidence['all_goal_request_ids'][:6]))
             case.evidence.setdefault('isolation', {})[item['tag']] = record
 
         # 关闭实例 A（先校验容器归属），B 必须仍能完成**新的** Action
         victim = created[0]
-        identity = _container_identity(victim['container'])
-        belongs = (identity.get('mount_source') and
-                   _normalise(identity['mount_source']) == _normalise(victim['ws']))
-        case.check('实例 A 容器归属校验通过（挂载源规范化后匹配）', bool(belongs),
-                   'identity={0} expected={1}'.format(identity, victim['ws']))
-        if belongs:
-            subprocess.run(['docker', 'stop', victim['container']],
-                           capture_output=True, timeout=300)
-            case.check('实例 A 已停止', True, victim['container'])
-        else:
-            case.check('实例 A 未通过归属校验，拒绝停止', False,
-                       '为避免误停他人容器，已跳过 docker stop')
+        stopped, stop_detail = _docker_stop_verified(
+            victim['container'], victim.get('container_id', ''),
+            victim.get('mount_source', ''), victim.get('mount_destination', '/ws'))
+        # 注意：这里以**实际证据**判定，不再使用固定 True。
+        case.check('实例 A 已停止（经退出码 / Running 状态 / 容器 ID 三重校验）',
+                   stopped, stop_detail)
+        case.evidence['stop_verification'] = {'ok': stopped, 'detail': stop_detail}
 
         # B 的新请求：用**不同**的 request_id，证明 B 仍在正常工作
         rid_b2 = _send_legal_action_host(created[1], case, run_id, 'b_after')
@@ -938,17 +1153,38 @@ def scenario_t14(case: Case, run_id: str, base_dir: str):
                 entry['handle'].close()
             except Exception:  # noqa: BLE001
                 pass
+        leftovers = []
         for item in created:
-            identity = _container_identity(item['container'])
-            source = identity.get('mount_source', '')
-            # 删除前双重校验：容器存在，且挂载源规范化后确实指向本轮的临时目录
-            if identity and source and _normalise(source).startswith(_normalise(tmp)):
-                subprocess.run(['docker', 'rm', '-f', item['container']],
-                               capture_output=True, timeout=300)
-            elif identity:
-                print('  [warn] 跳过删除 {0}：挂载源 {1} 不属于本轮临时目录'.format(
-                    item['container'], source))
-        shutil.rmtree(tmp, ignore_errors=True)
+            ok, detail = _docker_remove_verified(
+                item['container'], item.get('container_id', ''),
+                item.get('mount_source', ''), item.get('mount_destination', '/ws'), tmp)
+            item['remove_detail'] = detail
+            if not ok:
+                leftovers.append((item['container'], item.get('container_id', ''), detail))
+        case.evidence['container_cleanup'] = {
+            'removed': [i['container'] for i in created
+                        if i.get('remove_detail', '').startswith('removed')],
+            'failed': [{'container': c, 'id': cid[:12], 'detail': d}
+                       for c, cid, d in leftovers],
+        }
+        if leftovers:
+            # 清理失败时**不删除**临时工作区：容器可能仍在挂载它，
+            # 日志与容器身份也要保留供后续诊断。不使用 ignore_errors 掩盖。
+            print('  [error] 以下容器未能安全删除，已保留其临时工作区与身份信息：')
+            for name, cid, detail in leftovers:
+                print('    container={0} id={1} reason={2}'.format(name, cid[:12], detail))
+            print('    workspace 保留在: {0}'.format(tmp))
+            case.check('容器清理未留下无法删除的资源', False,
+                       '未能删除: {0}'.format([c for c, _i, _d in leftovers]))
+            case.finalize()
+            return created
+        # 只有在所有容器都已确认删除后才移除临时目录；
+        # 仍不使用 ignore_errors，避免掩盖影响后续诊断的错误。
+        try:
+            shutil.rmtree(tmp)
+        except OSError as exc:
+            print('  [warn] 临时工作区删除失败（已如实记录）: {0}'.format(exc))
+            case.check('临时工作区已清理', False, str(exc))
 
 
 def _send_legal_action_host(item: dict, case: Case, run_id: str, tag: str) -> str:
