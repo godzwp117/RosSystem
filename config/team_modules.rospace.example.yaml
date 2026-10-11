@@ -1,0 +1,50 @@
+# F0 模块适配层配置示例：只替换 comm_risk 为 ROSPaCe 离线检测模型。
+#
+# 安全要点（与 team_modules.example.yaml 相同）
+# --------------------------------------------
+# * 模块命令只能来自本文件；适配层绝不从业务输入读取命令。
+# * `command` 必须是参数数组；适配层内部始终 shell=False。
+# * `allow_fault_injection` 必须为 false。
+# * 本配置不提供任何指向 /rg/nav_execute 的入口。
+#
+# 本配置与默认配置的唯一差别
+# --------------------------
+# 只有 comm_risk 由 mock 改为 external，identity_trust 与 task_risk 保持 mock。
+# 这用于验证"逐模块替换"：替换一个模块不需要改动其他两个，也不需要改动
+# SecurityGateway 或 Action 契约。
+#
+# 重要限制
+# --------
+# 该模块输出的是**公开数据集离线模型的推理结果**，不是 ROS 2 实时网络监测。
+# 模型 61 个输入特征中 Jazzy 可直接获取的仅 4 个，详见
+# docs/data/ROSPaCe_JAZZY_FEATURE_FEASIBILITY.csv。
+# 运行前需保证 `command` 指向的 Python 能 import joblib 与 scikit-learn
+# （建议使用隔离研究环境 .research-venv，不要污染 ROS 2 容器）。
+
+adapter:
+  log_path: logs/team_adapter_rospace.jsonl
+  planner_command: ["ros2", "run", "rg_demo_nodes", "planner_node"]
+
+modules:
+
+  comm_risk:
+    mode: external
+    interface: comm_risk_evidence
+    # 用隔离研究环境的 Python 运行，避免向 ROS 2 容器安装 ML 依赖
+    command: [".research-venv/bin/python", "modules/rospace_comm/f0_adapter.py"]
+    timeout_sec: 20
+    max_stdout_bytes: 65536
+
+  identity_trust:
+    mode: mock
+    interface: identity_trust_assessment
+    command: ["python3", "mock_modules/identity_trust_mock.py"]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+
+  task_risk:
+    mode: mock
+    interface: task_risk_decision
+    command: ["python3", "mock_modules/task_risk_mock.py"]
+    timeout_sec: 10
+    max_stdout_bytes: 65536

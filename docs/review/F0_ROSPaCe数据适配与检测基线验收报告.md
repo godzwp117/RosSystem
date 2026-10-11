@@ -96,8 +96,40 @@
 | 项 | 结果 |
 | --- | --- |
 | 独立离线推理入口 | `modules/rospace_comm/predict.py`，**已实测 4 条路径** |
-| 公共 Schema 映射 | **PARTIAL/BLOCKED** —— 见下 |
-| `team_demo.py` 加载 | **未执行**（见下） |
+| 公共 Schema 映射 | **PARTIAL** —— 输出通过 `CommRiskEvidence` Draft 2020-12 校验；但 `request_count` 只能由运行侧提供 |
+| **`team_demo.py` 加载** | **已实测通过**（见下） |
+
+### F0 集成实测（`config/team_modules.rospace.example.yaml`）
+
+| 用例 | 命令要点 | 结果 |
+| --- | --- | --- |
+| F0-01 正常加载 | `team_demo.py --config config/team_modules.rospace.example.yaml` | **exit 0**，`decision=READY_FOR_GATEWAY_SUBMISSION`，`reason=ADAPTER_OK` |
+| F0-02 缺 ROSPaCe 特征 | 同上，信封无 `rospace_comm.features` | **exit 10**，`ADAPTER_MODULE_EXIT_NONZERO`（**失败关闭**） |
+| F0-03 缺 `request_count` | 同上，信封无 `f0_runtime.request_count` | **exit 10**（映射阻断，**不伪造**） |
+
+F0-01 的模块状态（证明"只替换一个模块"）：
+
+| 模块 | mode | schema_ok |
+| --- | --- | --- |
+| `comm_risk` | **external**（ROSPaCe 模型） | True |
+| `identity_trust` | **mock**（未改动） | True |
+| `task_risk` | **mock**（未改动） | True |
+
+`online.enabled=False`：本轮为**离线**集成，未启动 Planner，未触发 Gateway。
+**因此未核对 Gateway 审计与 NavigationSim Goal** —— 也不应声称核对过。
+
+### Schema 适配中遇到的枚举约束（未修改 Schema）
+
+输出初版有三处不符合既有枚举，全部**改模块而不是改 Schema**：
+
+| 字段 | 初版取值 | Schema 允许 | 处理 |
+| --- | --- | --- | --- |
+| `producer.source` | `OFFLINE_DATASET_MODEL` | `MOCK`/`EXTERNAL`/`UNKNOWN` | 改 `EXTERNAL`，离线限定写入 note/extensions |
+| `evidence_refs[].kind` | `OFFLINE_DATASET_FEATURE` | 六类既有枚举 | 如实取 `UNKNOWN`（公开数据集离线推理不属于任一类） |
+| `communication.resource_type` | `ROS2_ACTION` | `Topic`/`Service`/`Action` | 改 `Action` |
+
+另需补 `window.duration_ms`（点观测取 0）。这也说明
+**适配层的输入校验是有效的**：它先后拒绝了枚举非法的输入信封。
 
 **F2 实测**：
 - 真实 CSV 行推理 → exit 0，输出 `prediction_label`、模型 SHA-256、证据引用
@@ -152,8 +184,8 @@
 | **MODEL_BASELINE** | **PASS** | 主数据集真实训练与评测成功，指标与混淆矩阵完整可复现 |
 | **COMPARISON** | **PARTIAL** | 双版本各自独立训练评测已完成，但两版本**无法建立相同实验划分**，直接数值比较结论强度受限 |
 | **JAZZY_FEATURE_AUDIT** | **PASS** | 61 个模型输入特征 100% 覆盖并四级分类；A 类 4 项均有实测证据 |
-| **COMM_INTERFACE** | **BLOCKED** | 缺 Action 资源名、`request_id`、真实请求计数等业务字段，无法映射为完整 `CommRiskEvidence`；不填虚构默认值 |
-| **F0_INTEGRATION** | **BLOCKED** | 未通过 `team_demo.py` 实测加载与 Gateway 联调 |
+| **COMM_INTERFACE** | **PARTIAL** | 输出已通过 `CommRiskEvidence` Draft 2020-12 校验；`communication.resource`/`window`/`anomaly_category`/`risk_level`/`basis` 均可真实产生。但 **`request_count` 无法由 ROSPaCe 产生**，只能由运行侧提供；缺失时模块拒绝产出（exit 4）。**不填虚构默认值** |
+| **F0_INTEGRATION** | **PARTIAL** | `team_demo.py` 已**实际加载**外部模块并返回 `ADAPTER_OK`，其他两模块保持 mock，Schema 校验通过，缺特征/缺 `request_count` 均失败关闭。但本轮为**离线**集成（`online.enabled=False`），**未做 Gateway 审计与 NavigationSim Goal 核对** |
 | **RUNTIME_MONITOR** | **NOT_READY** | 模型依赖 57 个 B/C 类特征，**不具备 Jazzy 实时特征获取能力**；仅为公开 CSV 离线分类 |
 
 > **离线检测是本轮明确目标；在线监测必须有实际 Jazzy 采集证据才能宣布完成。**
