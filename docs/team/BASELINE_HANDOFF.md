@@ -1,5 +1,27 @@
 # RosSystem 团队研发基线（`baseline`）
 
+> **统一约定（全团队一致）**
+>
+> ```bash
+> git clone https://github.com/godzwp117/RosSystem.git
+> cd RosSystem
+> git fetch origin
+> git switch baseline
+> git pull --ff-only origin baseline
+> git rev-parse HEAD          # 记录你这次开发所基于的完整 SHA
+> ```
+>
+> 成员分支：`feature/member1-comm`、`feature/member2-identity`、
+> `feature/member3-taskrisk`、`feature/member4-integration`。
+>
+> **Pull Request 的 `base` 一律选 `baseline`。**
+> **不要**把研究模块提交到 `main`；当前也不把 `baseline` 合并至 `main`。
+>
+> **关于固定 SHA**：文档中出现的历史 SHA（如 `b031d4ba…`）是
+> **历史教学参考提交**，不是当前分支 HEAD。开发时请以上面
+> `git rev-parse HEAD` 得到的**当次实际 SHA** 为准并记录下来。
+
+
 > 本分支是 **RosSystem 团队的公共研发基线**：一个可构建、可运行、可交接的稳定起点。
 >
 > **它不是最终竞赛发布分支，也不代表三个研究算法已经完成。**

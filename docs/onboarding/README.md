@@ -1,5 +1,27 @@
 # RosSystem F0 新成员接入指南
 
+> **统一约定（全团队一致）**
+>
+> ```bash
+> git clone https://github.com/godzwp117/RosSystem.git
+> cd RosSystem
+> git fetch origin
+> git switch baseline
+> git pull --ff-only origin baseline
+> git rev-parse HEAD          # 记录你这次开发所基于的完整 SHA
+> ```
+>
+> 成员分支：`feature/member1-comm`、`feature/member2-identity`、
+> `feature/member3-taskrisk`、`feature/member4-integration`。
+>
+> **Pull Request 的 `base` 一律选 `baseline`。**
+> **不要**把研究模块提交到 `main`；当前也不把 `baseline` 合并至 `main`。
+>
+> **关于固定 SHA**：文档中出现的历史 SHA（如 `b031d4ba…`）是
+> **历史教学参考提交**，不是当前分支 HEAD。开发时请以上面
+> `git rev-parse HEAD` 得到的**当次实际 SHA** 为准并记录下来。
+
+
 > 面向**第一次接触本项目**的开发者。按本文顺序执行即可从零跑通，
 > 不需要先做复杂排障。所有命令都在本仓库的实际代码上验证过。
 
@@ -344,7 +366,7 @@ git commit -m "<type>(f0): <说明>"
 git push -u origin feature/<你的主题>
 ```
 
-然后在 GitHub 上开 PR，`base` 选 `main`。
+然后在 GitHub 上开 PR，**`base` 选 `baseline`**（不是 `main`）。
 
 **本项目约定**：
 
@@ -352,7 +374,17 @@ git push -u origin feature/<你的主题>
 - 不改 `src/rg_interfaces/action/PatrolNavigate.action`（冻结契约）；
 - 不改 `src/rg_policy/rg_policy/reason_codes.py` 中八个业务原因码的含义；
 - 不改 Gateway 核心准入逻辑；
-- 本地归档文件 `gitlog.md` **不得上传**（已在 `.gitignore` 中，且没有 pre-commit 守卫）。
+- 本地归档文件 `gitlog.md` **不得上传**（已在 `.gitignore` 中）。
+
+> **关于本地守卫**：仓库**已提供**本地 Git 守卫脚本——
+> `scripts/hooks/pre-commit`、`scripts/hooks/pre-push`，
+> 用 `scripts/install_git_hooks.sh` 安装。
+> 但请注意三点：
+> 1. 它们**需要每位开发者单独安装**，不会随 clone 自动生效；
+> 2. 它们**无法取代仓库端 CI**（`.gitignore` 对 `git add -f` 无效）；
+> 3. 现有 CI 只做**仓库卫生与轻量结构检查**——
+>    不执行 ROS 2 构建、SROS 2 Enforce 实验或 F0-T01~T15 回归。
+>    因此**不得**声称仅靠 CI 已完成全部 ROS 2 安全验证。
 
 ---
 
