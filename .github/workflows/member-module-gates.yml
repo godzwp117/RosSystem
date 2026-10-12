@@ -1,0 +1,171 @@
+# 成员模块 PR 的轻量与安全检查。
+#
+# 与 repo-hygiene.yml 的分工
+# --------------------------
+#   repo-hygiene.yml        : 仅限本地的归档文件（如 gitlog.md）不得进入版本库
+#   本工作流                 : Schema / 语法 / 模板 / 敏感材料 / 大文件 / 密钥
+#
+# 能力边界（不得夸大）
+# --------------------
+# * 本工作流**不执行** ROS 2 构建、SROS 2 Enforce 实验或 F0-T01~T15 回归。
+#   那些属于成员四在受控 Jazzy 环境中的验收。
+# * 因此**不得**声称"仅靠仓库 CI 已完成全部 ROS 2 安全验证"。
+# * `.gitignore` 不是服务器端安全审查（对 `git add -f` 无效）；
+#   本地 Git Hooks 也不会自动安装到成员机器。CI 必须独立阻断明显危险的提交。
+#
+# 安全
+# ----
+# * 权限最小化：只读仓库内容。
+# * 不执行来自 PR 的业务输入所指定的命令。
+# * 不访问宿主 Docker，不改任何 DDS 权限，不跑真实攻击脚本。
+name: member-module-gates
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lightweight-gates:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 安装轻量依赖
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet --disable-pip-version-check \
+            'jsonschema>=4.0' pyyaml
+
+      - name: 检查 1 —— 四份公共 Schema 自身合法且样例可通过校验
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, pathlib, sys
+          from jsonschema import Draft202012Validator
+          schemas = sorted(pathlib.Path('docs/interfaces/schemas').glob('*.schema.json'))
+          if not schemas:
+              sys.exit('未找到任何公共 Schema')
+          for path in schemas:
+              schema = json.loads(path.read_text(encoding='utf-8'))
+              Draft202012Validator.check_schema(schema)
+              print('OK  schema 合法:', path.name)
+          # 样例（若存在）
+          sample_dir = pathlib.Path('docs/interfaces/examples')
+          if sample_dir.is_dir():
+              by_name = {p.stem: p for p in schemas}
+              checked = 0
+              for sample in sorted(sample_dir.glob('*.json')):
+                  for stem, spath in by_name.items():
+                      if sample.name.startswith(stem.split('.')[0]):
+                          schema = json.loads(spath.read_text(encoding='utf-8'))
+                          Draft202012Validator(schema).validate(
+                              json.loads(sample.read_text(encoding='utf-8')))
+                          checked += 1
+                          break
+              print('OK  样例校验通过:', checked)
+          PY
+
+      - name: 检查 2 —— Python 基础语法
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import ast, pathlib, sys
+          bad = []
+          for path in pathlib.Path('.').rglob('*.py'):
+              parts = set(path.parts)
+              if parts & {'build', 'install', 'log', 'logs', '.git',
+                          'tests/evidence', '.research-venv'}:
+                  continue
+              if 'site-packages' in path.parts:
+                  continue
+              try:
+                  ast.parse(path.read_text(encoding='utf-8', errors='replace'))
+              except SyntaxError as exc:
+                  bad.append('{0}: {1}'.format(path, exc))
+          if bad:
+              sys.exit('语法错误:\n' + '\n'.join(bad))
+          print('OK  全部 Python 文件语法通过')
+          PY
+
+      - name: 检查 3 —— 成员模块模板与验收工具自测
+        run: |
+          set -euo pipefail
+          python3 templates/member_module/test_module.py
+          python3 scripts/check_member_module.py --help >/dev/null
+          python3 scripts/init_member_module.py --help >/dev/null
+          echo "OK  模板与验收工具自测通过"
+
+      - name: 检查 4 —— PR 模板存在且含安全清单
+        run: |
+          set -euo pipefail
+          F=.github/PULL_REQUEST_TEMPLATE.md
+          test -f "$F" || { echo "::error::缺少 $F"; exit 1; }
+          for key in 'baseline 来源 SHA' '算法真实性' '安全边界' '合入门槛'; do
+            grep -q "$key" "$F" || { echo "::error::PR 模板缺少: $key"; exit 1; }
+          done
+          echo "OK  PR 模板完整"
+
+      - name: 检查 5 —— 敏感材料与大文件
+        run: |
+          set -euo pipefail
+          FAIL=0
+
+          echo "--- 密钥材料（keystore 与 enclaves 之外不得出现） ---"
+          while IFS= read -r f; do
+            case "$f" in
+              security/keystore/*|security/enclaves/*) continue ;;
+            esac
+            case "$f" in
+              *certifi*|*site-packages*) continue ;;
+            esac
+            echo "::error::发现密钥类文件: $f"
+            FAIL=1
+          done < <(git ls-files | grep -Ei '\.(pem|key|p12|pfx|crt|csr|der|srl)$' || true)
+
+          echo "--- 原始数据集 / 模型缓存 / 训练产物 ---"
+          for pattern in '^data/' '^training_runs/' '^models/' '\.joblib$' '\.tar\.gz$'; do
+            hits=$(git ls-files | grep -E "$pattern" || true)
+            if [ -n "$hits" ]; then
+              echo "::error::不得入库（匹配 $pattern）:"; echo "$hits"
+              FAIL=1
+            fi
+          done
+
+          echo "--- 仅限本地的个人归档 ---"
+          git ls-files | grep -qx 'gitlog.md' && { echo "::error::gitlog.md 被跟踪"; FAIL=1; }
+
+          echo "--- 大文件（>5MB） ---"
+          while read -r size path; do
+            case "$path" in
+              *.docx) continue ;;   # V3 Word 属允许清单
+            esac
+            if [ "$size" -gt 5242880 ]; then
+              echo "::error::过大文件: $path ($size bytes)"
+              FAIL=1
+            fi
+          done < <(git ls-tree -r -l HEAD | awk '{print $4, $5}')
+
+          echo "--- 凭据泄露风险 ---"
+          while IFS= read -r f; do
+            case "$f" in
+              *.docx|*.png|*.jpg|*.pcap) continue ;;
+            esac
+            if grep -nEI '(AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{20,}|BEGIN [A-Z ]*PRIVATE KEY)' "$f" 2>/dev/null; then
+              echo "::error::疑似凭据泄露: $f"
+              FAIL=1
+            fi
+          done < <(git ls-files | grep -Ev '^(tests/evidence|\.research-venv)/' || true)
+
+          exit $FAIL
