@@ -48,34 +48,15 @@ jobs:
           python3 -m pip install --quiet --disable-pip-version-check \
             'jsonschema>=4.0' pyyaml
 
-      - name: 检查 1 —— 四份公共 Schema 自身合法且样例可通过校验
+      - name: 检查 1 —— Schema 与样例覆盖（真实校验，不用文件名前缀匹配）
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          import json, pathlib, sys
-          from jsonschema import Draft202012Validator
-          schemas = sorted(pathlib.Path('docs/interfaces/schemas').glob('*.schema.json'))
-          if not schemas:
-              sys.exit('未找到任何公共 Schema')
-          for path in schemas:
-              schema = json.loads(path.read_text(encoding='utf-8'))
-              Draft202012Validator.check_schema(schema)
-              print('OK  schema 合法:', path.name)
-          # 样例（若存在）
-          sample_dir = pathlib.Path('docs/interfaces/examples')
-          if sample_dir.is_dir():
-              by_name = {p.stem: p for p in schemas}
-              checked = 0
-              for sample in sorted(sample_dir.glob('*.json')):
-                  for stem, spath in by_name.items():
-                      if sample.name.startswith(stem.split('.')[0]):
-                          schema = json.loads(spath.read_text(encoding='utf-8'))
-                          Draft202012Validator(schema).validate(
-                              json.loads(sample.read_text(encoding='utf-8')))
-                          checked += 1
-                          break
-              print('OK  样例校验通过:', checked)
-          PY
+          # 复用仓库既有的契约校验器；它内部有**显式**的 Schema->样例映射
+          # （valid_map）与非法样例 manifest，而不是模糊的文件名前缀匹配。
+          python3 scripts/validate_team_contracts.py --all --quiet
+          # 再补上校验器自身没有的**覆盖断言**：每份 Schema 至少有一个真正
+          # 参与校验的合法样例；checked_count=0 必须失败。
+          python3 scripts/check_schema_coverage.py
 
       - name: 检查 2 —— Python 基础语法
         run: |
