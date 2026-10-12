@@ -35,3 +35,34 @@ security/keystore/
 
 # Local-only full Git history archive
 /gitlog.md
+
+# =============================================================================
+# 本地大体积产物与研究用环境：一律不入库
+# =============================================================================
+#
+# 背景：本基线供团队成员并行研发使用。任何人只要下载公开数据集或在本机训练模型，
+# 工作区就会出现数十 GB 的内容；若不在此处排除，一次 `git add -A` 就可能把
+# 22 GB 的 ROSPaCe 数据或模型缓存推上远端。
+#
+# 迁移自 feature/rospace-dataset-adapter 分支的同名规则，使团队基线默认安全。
+/data/**
+/data/**/*.tar.gz
+/data/**/*.zip
+/data/**/*.xlsx
+/data/**/*.bag
+/data/**/*.mcap
+/data/**/*.db3
+/data/**/*.pcap
+/data/**/*.pcapng
+/data/**/*.jsonl
+
+# 训练产物与模型二进制
+/training_runs/
+/models/
+
+# 隔离研究用虚拟环境（含 pip 自带的公开 CA 证书包，避免触发密钥材料守卫）
+/.research-venv
+
+# 第三方网页抓取物与竞赛证据包（体积大且属第三方版权内容）
+/verify/
+/verify_huawei_5th_cyber/
