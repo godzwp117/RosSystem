@@ -1,0 +1,50 @@
+feature,in_raw_non_label,layer,meaning,unit,jazzy_mechanism,status,tested,usable_in_current_model,note
+layers.sll.sll.pkttype,yes,Tshark,Linux cooked capture 包类型,枚举,无（需 PCAP 抓包）,C,no,no,需链路层抓包；rclpy 不暴露
+layers.sll.sll.hatype,yes,Tshark,ARPHRD 硬件类型,枚举,无（需 PCAP 抓包）,C,no,no,同上
+layers.ip.ip.version,yes,Tshark,IP 版本,枚举,无（需 PCAP 抓包）,C,no,no,
+layers.ip.ip.dsfield_tree.ip.dsfield.ecn,yes,Tshark,ECN 拥塞标记,枚举,无（需 PCAP 抓包）,C,no,no,
+layers.ip.ip.flags_tree.ip.flags.rb,yes,Tshark,保留位,bool,无（需 PCAP 抓包）,C,no,no,
+layers.ip.ip.flags_tree.ip.flags.df,yes,Tshark,Don't Fragment,bool,无（需 PCAP 抓包）,C,no,no,
+layers.ip.ip.checksum.status,yes,Tshark,校验和校验状态,枚举,无（需 PCAP 抓包）,C,no,no,
+layers.tcp.tcp.stream,yes,Tshark,TCP 流索引,整数,无（需 PCAP 重组）,C,no,no,需 tshark 流跟踪
+layers.tcp.tcp.ack,yes,Tshark,ACK 号,整数,无（需 PCAP 抓包）,C,no,no,
+layers.tcp.tcp.flags_tree.tcp.flags.ack,yes,Tshark,ACK 标志,bool,无（需 PCAP 抓包）,C,no,no,
+layers.tcp.tcp.flags_tree.tcp.flags.syn,yes,Tshark,SYN 标志,bool,无（需 PCAP 抓包）,C,no,no,SYN flood 检测的关键特征，但需抓包
+layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.severity,yes,Tshark,专家告警严重度,枚举,无（需 PCAP 抓包）,C,no,no,
+layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.group,yes,Tshark,专家告警分组,枚举,无（需 PCAP 抓包）,C,no,no,
+layers.tcp.tcp.window_size_value,yes,Tshark,TCP 窗口大小,字节,无（需 PCAP 抓包）,C,no,no,
+layers.tcp.tcp.window_size,yes,Tshark,TCP 计算窗口,字节,无（需 PCAP 抓包）,C,no,no,
+layers.tcp.tcp.options_tree.tcp.options.nop,yes,Tshark,NOP 选项,bool,无（需 PCAP 抓包）,C,no,no,
+layers.tcp.tcp.options_tree.tcp.options.nop_tree.tcp.option_kind,yes,Tshark,选项类型,枚举,无（需 PCAP 抓包）,C,no,no,
+layers.tcp.tcp.analysis.tcp.analysis.acks_frame,yes,Tshark,被确认帧号,整数,无（需 PCAP 抓包）,C,no,no,
+layers.tcp.tcp.analysis.tcp.analysis.initial_rtt,yes,Tshark,初始 RTT,秒,无（需 PCAP 抓包）,C,no,no,
+layers.ssl.ssl.record.ssl.record.content_type,yes,Tshark,TLS 记录类型,枚举,无（需 PCAP 抓包）,C,no,no,
+layers.ipv6.ip.version,yes,Tshark,IPv6 版本,枚举,无（需 PCAP 抓包）,C,no,no,
+layers.ipv6.ipv6.tclass_tree.ipv6.tclass.ecn,yes,Tshark,IPv6 ECN,枚举,无（需 PCAP 抓包）,C,no,no,
+Net_Sent,yes,OS Monitor,自上次观测以来网络发送字节数,字节,/proc/net/dev 的 tx_bytes；psutil.net_io_counters(),B,no,no,"可采集但需新增采集器；语义为**接口累计字节**，与 ROSPaCe 的""观测窗口增量""窗口口径不同，需自行差分并固定窗口"
+pgpgin,yes,OS Monitor,页入次数（自启动）,次,/proc/vmstat 的 pgpgin,B,no,no,可读，但需与 ROS 消息窗口对齐
+pgactivate,yes,OS Monitor,页激活次数,次,/proc/vmstat,B,no,no,
+Disk_Read,yes,OS Monitor,磁盘读操作数,次,/proc/diskstats,B,no,no,
+pgfault,yes,OS Monitor,次缺页次数,次,/proc/vmstat,B,no,no,
+Net_Received,yes,OS Monitor,自上次观测以来网络接收字节数,字节,/proc/net/dev 的 rx_bytes,B,no,no,同上
+MemFree,yes,OS Monitor,空闲内存,KB,/proc/meminfo MemFree,B,yes,no,已实测可读（见审计报告）
+Inactive,yes,OS Monitor,非活跃页缓存,KB,/proc/meminfo Inactive,B,yes,no,已实测可读
+pgdeactivate,yes,OS Monitor,页去激活次数,次,/proc/vmstat,B,no,no,
+Tcp_Close,yes,OS Monitor,CLOSE 状态 TCP 套接字,个,/proc/net/tcp 状态统计,B,no,no,需自行解析 /proc/net/tcp 并映射状态码
+pgfree,yes,OS Monitor,页释放次数,次,/proc/vmstat,B,no,no,
+nr_active_file,yes,OS Monitor,活跃文件数,个,/proc/vmstat nr_active_file,B,no,no,
+Cached,yes,OS Monitor,页缓存,KB,/proc/meminfo Cached,B,yes,no,已实测可读
+nr_inactive_file,yes,OS Monitor,非活跃文件数,个,/proc/vmstat nr_inactive_file,B,no,no,
+Disk_Write,yes,OS Monitor,磁盘写操作数,次,/proc/diskstats,B,no,no,
+pgpgout,yes,OS Monitor,页出次数,次,/proc/vmstat,B,no,no,
+Tcp_Syn,yes,OS Monitor,SYN 状态 TCP 套接字,个,/proc/net/tcp,B,no,no,SYN flood 的强指示特征；可采集但需新增采集器
+Buffers,yes,OS Monitor,文件缓冲,KB,/proc/meminfo Buffers,B,yes,no,已实测可读
+Tcp_TimeWait,yes,OS Monitor,TIME_WAIT 套接字,个,/proc/net/tcp,B,no,no,
+Tcp_Listen,yes,OS Monitor,LISTEN 套接字,个,/proc/net/tcp,B,no,no,
+Tcp_Established,yes,OS Monitor,ESTABLISHED 套接字,个,/proc/net/tcp,B,no,no,
+Active,yes,OS Monitor,活跃页缓存,KB,/proc/meminfo Active,B,yes,no,已实测可读
+pgalloc_dma,yes,OS Monitor,DMA 区页分配次数,次,/proc/vmstat,B,no,no,
+pgmajfault,yes,OS Monitor,主缺页次数,次,/proc/vmstat,B,no,no,
+SwapFree,yes,OS Monitor,空闲交换,KB,/proc/meminfo SwapFree,B,yes,no,已实测可读
+subscribers_count,yes,ROS Monitor Node,某话题的订阅者数量,个,rclpy: get_subscriptions_info_by_topic(),A,yes,yes,**已实测**：API 返回真实 SubscriptionInfo 列表。同样受 Action 子话题命名影响
+publishers_count,yes,ROS Monitor Node,某话题的发布者数量,个,rclpy: get_publishers_info_by_topic(),A,yes,yes,**已实测**：API 返回真实 PublisherInfo 列表

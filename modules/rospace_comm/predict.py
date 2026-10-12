@@ -49,6 +49,10 @@ def sha256_of(path: str) -> str:
     return digest.hexdigest()
 
 
+class ModelArtifactError(Exception):
+    """模型产物无法加载（损坏 / 格式不符 / 版本不兼容）。"""
+
+
 class ModelBundle:
     """加载一次训练产物：模型、scaler、特征配置。"""
 
@@ -67,10 +71,21 @@ class ModelBundle:
             import joblib
         except ImportError:
             raise SystemExit('ERROR: 需要 joblib（在隔离研究环境中安装 scikit-learn）')
-        with open(config_path, encoding='utf-8') as handle:
-            self.config = json.load(handle)
-        self.model = joblib.load(model_path)
-        self.scaler = joblib.load(scaler_path)
+        try:
+            with open(config_path, encoding='utf-8') as handle:
+                self.config = json.load(handle)
+        except (OSError, ValueError) as exc:
+            raise ModelArtifactError('feature_config.json 无法解析: {0}'.format(exc))
+        try:
+            self.model = joblib.load(model_path)
+            self.scaler = joblib.load(scaler_path)
+        except Exception as exc:              # noqa: BLE001
+            # joblib 可能抛出反序列化层的任意异常；这里统一转成可识别的
+            # 产物错误，让调用方 fail-closed，而不是让 traceback 穿透。
+            raise ModelArtifactError('模型产物损坏或无法反序列化: {0}: {1}'.format(
+                type(exc).__name__, exc))
+        if not hasattr(self.model, 'predict'):
+            raise ModelArtifactError('加载到的对象没有 predict 方法，不是有效模型')
         self.feature_names = list(self.config['feature_names'])
         # 训练时已明确排除的列（文本列、时间戳等）。来自原始 CSV 的输入
         # 天然带有这些列，属于**已知的非特征列**，应当容忍；

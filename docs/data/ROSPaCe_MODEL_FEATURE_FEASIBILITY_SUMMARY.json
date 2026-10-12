@@ -1,0 +1,27 @@
+{
+  "RAW_NON_LABEL_FIELDS": 61,
+  "TRAINED_MODEL_FEATURES": 49,
+  "DIRECTLY_AVAILABLE_MODEL_FEATURES": 2,
+  "INSTRUMENTATION_REQUIRED_MODEL_FEATURES": 25,
+  "UNAVAILABLE_MODEL_FEATURES": 22,
+  "UNKNOWN_MODEL_FEATURES": 0,
+  "A_tested_in_jazzy": 2,
+  "raw_fields_not_used_by_model": [
+    "layers._ws.short",
+    "layers.icmpv6.icmpv6.type",
+    "layers.ip.ip.checksum",
+    "layers.ip.ip.flags",
+    "layers.sll.sll.unused",
+    "layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.message",
+    "layers.tcp.tcp.options",
+    "layers.tcp.tcp.payload",
+    "msg_data",
+    "msg_type",
+    "src_topic",
+    "timestamp"
+  ],
+  "model_features_absent_from_old_matrix": [],
+  "online_ready": false,
+  "RUNTIME_MONITOR": "NOT_READY",
+  "note": "口径说明：RAW_NON_LABEL_FIELDS 是数据集原始字段数；TRAINED_MODEL_FEATURES 是**实际模型输入**数（从 feature_config.json 读取）。只有后者才能用于判断当前模型的在线特征覆盖能力。仅在原始字段中可见但未参与训练的特征（如 src_topic、msg_type）**不得**计入模型在线覆盖。"
+}

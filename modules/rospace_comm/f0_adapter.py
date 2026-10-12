@@ -214,7 +214,7 @@ def main() -> int:
 
     # ---- 真实加载模型并推理 ----
     try:
-        from predict import ModelBundle
+        from predict import ModelArtifactError, ModelBundle
     except ImportError as exc:
         print('ERROR: 无法导入推理模块: {0}'.format(exc), file=sys.stderr)
         return EXIT_MODEL_ERROR
@@ -234,8 +234,18 @@ def main() -> int:
               file=sys.stderr)
     try:
         bundle = ModelBundle(run_dir)
+    except ModelArtifactError as exc:         # 损坏 / 格式不符 / 版本不兼容
+        print(json.dumps({'status': 'ERROR', 'reason': 'MODEL_ARTIFACT_INVALID',
+                          'detail': str(exc)}, ensure_ascii=False), file=sys.stderr)
+        return EXIT_MODEL_ERROR
     except SystemExit as exc:                 # 缺模型 / 缺 joblib
         print('ERROR: 模型加载失败: {0}'.format(exc), file=sys.stderr)
+        return EXIT_MODEL_ERROR
+    except Exception as exc:                  # noqa: BLE001
+        # 兜底：任何其它加载期异常都不得被解释为正常通信
+        print(json.dumps({'status': 'ERROR', 'reason': 'MODEL_LOAD_FAILED',
+                          'detail': '{0}: {1}'.format(type(exc).__name__, exc)},
+                         ensure_ascii=False), file=sys.stderr)
         return EXIT_MODEL_ERROR
 
     ok, detail, values = bundle.validate_row(dict(features))
