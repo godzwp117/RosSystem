@@ -1,0 +1,12 @@
+{
+  "normal": {
+    "true_label": "observe",
+    "model_prediction": 0,
+    "attack_probability": 0.001019
+  },
+  "attack": {
+    "true_label": "nmap discovery",
+    "model_prediction": 1,
+    "attack_probability": 1.0
+  }
+}

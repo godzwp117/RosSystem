@@ -54,8 +54,35 @@ EXIT_INPUT_ERROR = 2
 EXIT_MODEL_ERROR = 3
 EXIT_MAPPING_BLOCKED = 4       # 字段语义不足，拒绝产出完整证据
 
-RISK_BY_PREDICTION = {0: 'NONE', 1: 'HIGH'}
-CATEGORY_BY_PREDICTION = {0: 'NONE', 1: 'NETWORK_TRAFFIC_ANOMALY'}
+#: Schema 允许的 anomaly_category 枚举（不得新增取值）。
+#:   ['NONE','REQUEST_RATE_ANOMALY','DUPLICATE_CALL_PATTERN','TIMING_DEVIATION',
+#:    'UNEXPECTED_RESOURCE_ACCESS','NODE_RELATION_ANOMALY','UNKNOWN']
+#:
+#: 本模型是**二分类**（observe vs 其余 6 类合并），无法把预测对应到
+#: 上述任一具体类别。因此攻击预测一律记 `UNKNOWN` ——
+#: 含义是"**检出异常但无法精确归类**"，**不是**"通信正常"。
+CATEGORY_BY_PREDICTION = {0: 'NONE', 1: 'UNKNOWN'}
+
+#: 风险等级按**预测置信度**分档，而不是把所有攻击一律宣称为 HIGH。
+#: 依据：SGDClassifier(log_loss) 提供 predict_proba；阈值为固定规则，
+#: 记录在 basis 中。缺少概率时记 UNKNOWN，不猜测。
+RISK_THRESHOLDS = ((0.95, 'HIGH'), (0.80, 'MEDIUM'), (0.50, 'LOW'))
+
+
+def risk_from_probability(prediction: int, probability):
+    """把 (预测, 概率) 映射为 Schema 允许的 risk_level。
+
+    返回 (risk_level, 依据文本)。概率不可得时返回 UNKNOWN。
+    """
+    if prediction == 0:
+        return 'NONE', '模型判定为正常'
+    if probability is None:
+        return 'UNKNOWN', '模型判定为异常，但未提供置信度，无法分档'
+    for threshold, level in RISK_THRESHOLDS:
+        if probability >= threshold:
+            return level, '模型判定为异常且 attack_probability={0:.4f} >= {1}'.format(
+                probability, threshold)
+    return 'LOW', '模型判定为异常但置信度低于最小阈值 0.50'
 
 
 def read_stdin_json():
@@ -108,7 +135,50 @@ def extract_runtime_count(envelope):
     return None
 
 
+def resolve_model_dir(cli_value):
+    """确定并校验模型目录。返回 (绝对路径 或 None, 说明)。
+
+    可信来源只有命令行参数（由受信任配置文件的 command 数组提供）。
+    额外做两道约束：
+      * 目录必须位于本仓库的 training_runs/ 之下 —— 拒绝任意绝对路径；
+      * 目录必须真实存在且含完整产物。
+    """
+    repo_root = os.path.dirname(os.path.dirname(MODULE_DIR))
+    trusted_root = os.path.join(repo_root, 'training_runs')
+    candidate = cli_value or os.path.join(trusted_root, 'rospace_reduced')
+    if not os.path.isabs(candidate):
+        candidate = os.path.join(repo_root, candidate)
+    real = os.path.realpath(candidate)
+    if not _is_within(real, trusted_root):
+        return None, ('模型目录 {0} 不在受信任根 {1} 之下，拒绝加载。'
+                      '业务输入无法切换模型。').format(real, trusted_root)
+    if not os.path.isdir(real):
+        return None, '模型目录不存在: {0}'.format(real)
+    missing = [n for n in ('feature_config.json', 'model.joblib', 'scaler.joblib')
+               if not os.path.isfile(os.path.join(real, n))]
+    if missing:
+        return None, '模型目录缺少产物 {0}'.format(missing)
+    return real, 'trusted-root={0}'.format(trusted_root)
+
+
+def _is_within(path, parent):
+    try:
+        left, right = os.path.realpath(path), os.path.realpath(parent)
+    except (OSError, ValueError):
+        return False
+    try:
+        return os.path.commonpath([left, right]) == right
+    except ValueError:
+        return False
+
+
 def main() -> int:
+    global args
+    import argparse
+    parser = argparse.ArgumentParser(description='ROSPaCe 检测模型 F0 外部模块')
+    parser.add_argument('--model-run-dir', default=None,
+                        help='模型目录（只能由受信任配置的 command 数组传入）')
+    args = parser.parse_args()
     envelope = read_stdin_json()
 
     run_id = envelope.get('run_id') or ''
@@ -149,8 +219,19 @@ def main() -> int:
         print('ERROR: 无法导入推理模块: {0}'.format(exc), file=sys.stderr)
         return EXIT_MODEL_ERROR
 
-    run_dir = block.get('model_run_dir') or os.path.join(
-        os.path.dirname(os.path.dirname(MODULE_DIR)), 'training_runs', 'rospace_reduced')
+    # **模型目录只来自受信任的命令行参数**（由受信任的本地配置文件经
+    # command 参数数组传入），绝不从业务输入读取。
+    # joblib 是可反序列化执行内容，允许业务数据指定路径等于给出远程代码执行面。
+    run_dir, provenance = resolve_model_dir(args.model_run_dir)
+    if run_dir is None:
+        print(json.dumps({'status': 'ERROR', 'reason': 'MODEL_DIR_UNTRUSTED',
+                          'detail': provenance}, ensure_ascii=False), file=sys.stderr)
+        return EXIT_MODEL_ERROR
+    if block.get('model_run_dir'):
+        # 记录"输入试图切换模型"这一事实，但**不采纳**
+        print('[warn] 信封提供了 model_run_dir={0!r}，已忽略；'
+              '模型目录只能来自受信任的命令行参数。'.format(block['model_run_dir']),
+              file=sys.stderr)
     try:
         bundle = ModelBundle(run_dir)
     except SystemExit as exc:                 # 缺模型 / 缺 joblib
@@ -166,6 +247,7 @@ def main() -> int:
     preds, probas = bundle.predict([values])
     prediction = int(preds[0])
     probability = round(float(probas[0]), 6) if probas is not None else None
+    risk_level, risk_basis = risk_from_probability(prediction, probability)
 
     evidence = {
         'schema_version': SCHEMA_VERSION,
@@ -175,8 +257,10 @@ def main() -> int:
         'producer': dict(PRODUCER),
         'observed_at': created_at,
         'status': 'SUSPICIOUS' if prediction == 1 else 'NORMAL',
-        'reason': ('模型判定为通信流量异常' if prediction == 1
-                   else '模型未在流量特征上发现异常'),
+        'reason': ('离线模型在通信流量特征上检出异常；'
+                   '二分类无法对应到具体异常类别，故 anomaly_category=UNKNOWN'
+                   '（表示无法精确归类，不表示通信正常）' if prediction == 1
+                   else '离线模型未在流量特征上发现异常'),
         # Schema 的 evidence_refs[].kind 枚举里没有"公开数据集离线推理"这一类。
         # 逐一排除：不是 RUNTIME_LOG（不是我们的运行日志）、
         # 不是 PERMISSION_FILE_ANALYSIS、不是 UNIT_TEST；
@@ -206,11 +290,13 @@ def main() -> int:
         # 由**运行侧**提供，非模型产生、非默认值
         'request_count': request_count,
         'anomaly_category': CATEGORY_BY_PREDICTION[prediction],
-        'risk_level': RISK_BY_PREDICTION[prediction],
+        'risk_level': risk_level,
         'basis': [
             'ROSPaCe reduced 离线训练模型（SGDClassifier log_loss）',
             'model_sha256={0}'.format(bundle.model_sha256[:16]),
             'feature_config_sha256={0}'.format(bundle.config_sha256[:16]),
+            'risk_level 依据: {0}'.format(risk_basis),
+            '模型目录来源: {0}（业务输入不可指定）'.format(provenance),
         ],
         'extensions': {
             'rospace_comm': {
@@ -223,7 +309,11 @@ def main() -> int:
                     '本模型 61 个输入特征中 A 类（Jazzy 可直接获取）仅 4 个，'
                     '其余 57 个为 B/C 类，当前不具备在线采集链路。'
                     '详见 docs/data/ROSPaCe_JAZZY_FEATURE_FEASIBILITY.csv'),
+                'risk_level_basis': risk_basis,
+                'model_dir_provenance': provenance,
                 'request_count_provenance': 'provided_by_envelope_f0_runtime',
+                'anomaly_category_note': ('二分类模型无法对应到具体异常类别，'
+                                          'UNKNOWN 表示无法精确归类，不表示正常'),
                 'dataset_source': ('ROSPaCe Intrusion Detection Dataset for a ROS2-Based '
                                    'Cyber-Physical System (reduced)'),
             },

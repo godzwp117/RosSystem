@@ -30,8 +30,12 @@ modules:
   comm_risk:
     mode: external
     interface: comm_risk_evidence
-    # 用隔离研究环境的 Python 运行，避免向 ROS 2 容器安装 ML 依赖
-    command: [".research-venv/bin/python", "modules/rospace_comm/f0_adapter.py"]
+    # 用隔离研究环境的 Python 运行，避免向 ROS 2 容器安装 ML 依赖。
+    # **模型目录只能通过这里的命令行参数传入**（受信任的本地配置）。
+    # joblib 属可反序列化执行内容，因此适配器拒绝从业务输入读取模型路径；
+    # 若信封提供了 model_run_dir，会被忽略并打印警告。
+    command: [".research-venv/bin/python", "modules/rospace_comm/f0_adapter.py",
+              "--model-run-dir", "training_runs/rospace_reduced"]
     timeout_sec: 20
     max_stdout_bytes: 65536
 
