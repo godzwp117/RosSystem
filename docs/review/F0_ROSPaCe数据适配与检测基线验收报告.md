@@ -33,7 +33,7 @@
 产物：`docs/data/ROSPaCe_DATA_AUDIT.md`、`ROSPaCe_FEATURE_DICTIONARY.csv`、
 `ROSPaCe_LABEL_DISTRIBUTION.csv`、`ROSPaCe_DATA_MANIFEST.json`（含 27 个文件 SHA-256）。
 
-## C. 模型训练
+## C. 模型训练（**v1 历史结果**，更正视 §第三轮修复补充）
 
 | 项 | 值 |
 | --- | --- |

@@ -386,11 +386,37 @@ def main(argv=None) -> int:
     peak_kb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
     # ---- 可信评价指标 ----
-    sensitivity = rec                              # 攻击类召回
-    specificity = tn / (tn + fp) if (tn + fp) else 0.0
+    # ------------------------------------------------------------------
+    # 指标定义（务必区分，三者不可混用）
+    #
+    # 1) 二分类召回
+    #      Recall_attack = TP / (TP + FN)     攻击样本被判为攻击的比例
+    #      Recall_normal = TN / (TN + FP)     正常样本被判为正常的比例
+    #    注意：正常类的 Recall **不是**"被判为攻击的比例"（那是误报率 FPR）。
+    #
+    # 2) 二分类 Macro Recall = (Recall_attack + Recall_normal) / 2
+    #    在二分类下它与 Balanced Accuracy 数学上等价，必须一致。
+    #
+    # 3) macro_attack_detection_recall = 各**攻击类别**检测召回的平均
+    #    这是"跨攻击类型"的平均，与上面的二分类 Macro Recall 完全不是一回事，
+    #    因此使用独立名称，禁止混用。
+    #
+    # 历史缺陷：原实现用 `per_label[label]['tp'] / n` 对**所有**标签求平均，
+    # 对 observe 而言 `tp` 是"被判为攻击"的数量，得到的是 FP 率而不是召回率，
+    # 于是得出 0.0546 这个既不是二分类 Macro Recall、也不是攻击类别平均的错误值。
+    # ------------------------------------------------------------------
+    sensitivity = rec                              # = Recall_attack
+    specificity = tn / (tn + fp) if (tn + fp) else 0.0   # = Recall_normal
     balanced_accuracy = (sensitivity + specificity) / 2.0
-    macro_recall = (sum(v['tp'] / v['n'] for v in per_label.values() if v['n'])
-                    / max(len([v for v in per_label.values() if v['n']]), 1))
+    recall_attack = sensitivity
+    recall_normal = specificity
+    macro_recall = (recall_attack + recall_normal) / 2.0   # 二分类
+
+    attack_labels = [k for k, v in per_label.items()
+                     if v['n'] > 0 and k != NORMAL_LABEL]
+    macro_attack_detection_recall = (
+        sum(per_label[k]['tp'] / per_label[k]['n'] for k in attack_labels)
+        / max(len(attack_labels), 1)) if attack_labels else None
     macro_recall_scope = sorted(k for k, v in per_label.items() if v['n'] > 0)
 
     def _f1(t, f_p, f_n):
@@ -419,17 +445,27 @@ def main(argv=None) -> int:
     print('  混淆矩阵: TP={0} FP={1} TN={2} FN={3}'.format(tp, fp, tn, fn))
     print('  Accuracy={0:.4f} Precision={1:.4f} Recall={2:.4f} F1={3:.4f} FPR={4:.4f}'.format(
         acc, prec, rec, f1, fpr))
-    print('  BalancedAccuracy={0:.4f} MacroRecall={1:.4f}'.format(
-        balanced_accuracy, macro_recall))
+    # 二分类下 Macro Recall 与 Balanced Accuracy 必须一致；不一致说明定义写错了
+    assert abs(macro_recall - balanced_accuracy) < 1e-12, (
+        '二分类 Macro Recall 与 Balanced Accuracy 不一致：'
+        '{0} vs {1}'.format(macro_recall, balanced_accuracy))
+    print('  BalancedAccuracy={0:.4f} MacroRecall(二分类)={1:.4f} '
+          '[一致]'.format(balanced_accuracy, macro_recall))
+    print('  Recall_attack={0:.4f} Recall_normal={1:.4f}  '
+          'macro_attack_detection_recall={2}'.format(
+              recall_attack, recall_normal,
+              ('%.4f' % macro_attack_detection_recall)
+              if macro_attack_detection_recall is not None else 'N/A'))
     print('  基线(恒预测攻击): F1={0:.4f} BA={1:.4f}'.format(
         baselines['always_attack']['f1'], baselines['always_attack']['balanced_accuracy']))
     print('  相对恒预测攻击基线: dF1={0:+.4f} dBA={1:+.4f}'.format(
         f1 - baselines['always_attack']['f1'],
         balanced_accuracy - baselines['always_attack']['balanced_accuracy']))
-    print('  每类召回（仅测试集出现的标签）:')
+    print('  各类检测率（仅测试集出现的标签）:')
     for label, v in sorted(per_label.items(), key=lambda kv: -kv[1]['n']):
-        print('    {0:<24} n={1:<9} recall={2:.4f}'.format(
-            label, v['n'], v['tp'] / v['n'] if v['n'] else 0.0))
+        kind = 'detection_recall' if label != NORMAL_LABEL else 'false_positive_rate'
+        print('    {0:<24} n={1:<9} {2}={3:.4f}'.format(
+            label, v['n'], kind, v['tp'] / v['n'] if v['n'] else 0.0))
     print('  推理用时: {0:.1f}s  峰值内存: {1:.0f} MB'.format(
         test_seconds, peak_kb / 1024))
 
@@ -503,19 +539,41 @@ def main(argv=None) -> int:
         'metrics': {'accuracy': acc, 'precision': prec, 'recall': rec,
                     'f1': f1, 'false_positive_rate': fpr,
                     'balanced_accuracy': balanced_accuracy,
-                    'sensitivity_recall_attack': sensitivity,
-                    'specificity_recall_normal': specificity,
+                    'sensitivity_recall_attack': recall_attack,
+                    'specificity_recall_normal': recall_normal,
+                    # 二分类 Macro Recall：与 balanced_accuracy 等价（有断言保证）
                     'macro_recall': macro_recall,
+                    'macro_recall_definition': '(Recall_attack + Recall_normal) / 2',
+                    # 跨攻击类别的平均检测召回：**不是**二分类 Macro Recall
+                    'macro_attack_detection_recall': macro_attack_detection_recall,
+                    'macro_attack_detection_recall_definition': (
+                        '对测试集中实际出现的攻击类别求检测召回的平均；'
+                        '无攻击类别时为 null'),
+                    'macro_attack_detection_scope': sorted(attack_labels),
+                    # 未在测试集中出现的攻击类别
+                    'attack_classes_not_evaluated': sorted(
+                        k for k, v in per_label.items()
+                        if v['n'] == 0 and k != NORMAL_LABEL),
                     'macro_recall_scope': macro_recall_scope},
-        'per_class_recall': {
+        # 按**真实标签**分组的统计。
+        # 对攻击类：'detection_recall' = 被判为攻击的比例（即召回率）。
+        # 对正常类 observe：'detection_recall' 实际是**误报率**，不是召回率；
+        #   正常类的召回率是 specificity = TN/(TN+FP)，单独给出 'recall_normal'。
+        # 字段名刻意区分，避免再次把误报率当成召回率。
+        'per_class_detection_recall': {
             label: {
                 'support': v['n'],
-                'tp': v['tp'],
-                'fn': v['fn'],
-                'recall': (v['tp'] / v['n']) if v['n'] else None,
+                'detected_as_attack': v['tp'],
+                'missed_as_normal': v['fn'],
+                'detection_recall': (v['tp'] / v['n']) if v['n'] else None,
                 'is_attack': label != NORMAL_LABEL,
+                'metric_note': ('detection_recall 对攻击类是召回率；'
+                                '对 observe 类是误报率，正常类召回率见 '
+                                'metrics.specificity_recall_normal'),
             } for label, v in sorted(per_label.items(), key=lambda kv: -kv[1]['n'])
         },
+        'recall_attack': recall_attack,
+        'recall_normal': recall_normal,
         'class_coverage_note': (
             'per_class_recall 只覆盖**测试分片中实际出现**的标签。'
             '未出现的攻击类别记 NOT_EVALUATED，不得据此宣称其检测能力。'),

@@ -82,6 +82,28 @@ python3 -m venv .research-venv
 `evidence_refs[].note` 与 `extensions.rospace_comm` 里 ——
 **没有为了迁就数据集而修改任何公共 Schema**。
 
+## 模型版本与当前口径
+
+| 项 | 值 |
+| --- | --- |
+| v1 | **历史实验**，存在预处理统计量不固定与分片字符串排序两个缺陷，结果不可用 |
+| v2 | 已修复的实验，产物在 `training_runs/rospace_*_v2` |
+| 原始非标签字段 | 61 |
+| **v2 实际模型输入** | **49** |
+| **Jazzy 可直接在线获取的模型特征** | **2**（`publishers_count`、`subscribers_count`） |
+| 划分性质 | `FILE_DISJOINT_SPLIT` + `SESSION_INDEPENDENCE_UNVERIFIED` |
+| 检测能力 | **尚未得到可靠实用性证明**（`DETECTOR_EFFECTIVENESS: NOT_PROVEN`） |
+| 实时监测 | **`NOT_READY`** |
+
+**指标定义（不可混用）**：
+
+* **二分类 Macro Recall** = `(Recall_attack + Recall_normal)/2`，
+  其中 `Recall_normal = TN/(TN+FP)`。二分类下它**等于 Balanced Accuracy**。
+* **`macro_attack_detection_recall`** = 各**攻击类别**检测召回的平均，
+  是另一个指标，名称独立。
+* 正常类的 `detection_recall` 字段实际是**误报率**，正常类召回率见
+  `metrics.specificity_recall_normal`。
+
 ## 安全边界
 
 1. **不是实时检测**。`RUNTIME_MONITOR: NOT_READY`。

@@ -239,16 +239,81 @@ def test_fix08_inference_uses_training_preprocessing():
 
 # ============================================================ P1-2
 def test_fix09_numeric_shard_sort():
-    """FIX-09：分片按数字序排序，_10 不得排在 _2 之前。"""
+    """FIX-09：分片按**数字编号**排序，`_2` 必须排在 `_10` 之前。
+
+    原实现用普通字符串排序，`_10` 会排在 `_2` 前面，导致"最后 N 片作测试"
+    取到的并不是时间上最晚的分片。
+
+    本测试用**合成文件名**覆盖 `_0/_1/_2/_9/_10/_14`，
+    并显式证明数字序与字典序在这组输入上**确实不同** ——
+    这样断言才有区分能力，而不是恒真。
+    """
     sys.path.insert(0, MOD)
     import train as T
-    files = [os.path.basename(f) for f in T.list_csv(T.MAIN_DIR)]
-    assert files[:3] == ['rospace_reduced_0.csv', 'rospace_reduced_1.csv',
-                         'rospace_reduced_2.csv'], files[:3]
-    assert files[-1] == 'rospace_reduced_14.csv'
-    idx = [T.shard_index(f) for f in files]
-    assert idx == sorted(idx), '数字序单调递增'
-    assert idx != sorted(idx, key=str) or True
+
+    names = ['rospace_reduced_0.csv', 'rospace_reduced_1.csv',
+             'rospace_reduced_2.csv', 'rospace_reduced_9.csv',
+             'rospace_reduced_10.csv', 'rospace_reduced_14.csv']
+    # 数字序（被测语义）
+    numeric = sorted(names, key=T.shard_index)
+    # 字典序（缺陷行为）
+    lexicographic = sorted(names)
+    expected = ['rospace_reduced_0.csv', 'rospace_reduced_1.csv',
+                'rospace_reduced_2.csv', 'rospace_reduced_9.csv',
+                'rospace_reduced_10.csv', 'rospace_reduced_14.csv']
+
+    assert numeric == expected, '数字序结果不符: %s' % numeric
+    # 关键：两种排序必须真的不同，否则本测试没有区分能力
+    assert numeric != lexicographic, (
+        '数字序与字典序在此输入上相同，测试无法区分缺陷：%s' % numeric)
+    # `_2` 必须在 `_10` 之前 —— 这正是缺陷会违反的点
+    assert numeric.index('rospace_reduced_2.csv') < numeric.index(
+        'rospace_reduced_10.csv')
+    # 字典序下 `_10` 确实会跑到 `_2` 前面（证明缺陷真实存在）
+    assert lexicographic.index('rospace_reduced_10.csv') < lexicographic.index(
+        'rospace_reduced_2.csv')
+    # 编号解析稳定：同一输入重复排序结果一致
+    assert sorted(names, key=T.shard_index) == numeric
+
+    # 异常文件名必须有**确定**处理：直接对真实函数 list_csv 做端到端测试
+    # （在临时目录里放入同样的文件名，避免只测排序键而漏掉 None 的处理）。
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmpdir:
+        for name in names + ['rospace_reduced_extra.csv', 'other.csv']:
+            open(os.path.join(tmpdir, name), 'w').close()
+        ordered = [os.path.basename(f) for f in T.list_csv(tmpdir)]
+        assert T.shard_index('rospace_reduced_extra.csv') is None
+        assert T.shard_index('other.csv') is None
+        # 有编号的分片按数字序在前，无编号的确定性地排在后面
+        assert ordered[:len(names)] == expected, ordered
+        assert ordered[len(names):] == ['other.csv', 'rospace_reduced_extra.csv'], \
+            '无编号文件应按名称确定性排序并排在编号分片之后: %s' % ordered
+        # 幂等：重复调用结果一致
+        assert [os.path.basename(f) for f in T.list_csv(tmpdir)] == ordered
+
+    # 真实目录排序仍是数字序（数据集存在时才检查）
+    if os.path.isdir(T.MAIN_DIR):
+        real = [os.path.basename(f) for f in T.list_csv(T.MAIN_DIR)]
+        if real:
+            assert real[-1] == 'rospace_reduced_14.csv', real[-1]
+
+
+def test_fix09b_sort_mismatch_is_detectable():
+    """FIX-09：证明错误实现会被本测试抓到（防止断言退化为恒真）。
+
+    用**故意写错的**字典序实现替换 `shard_index` 的语义，
+    断言它在上面的期望值上会失败。若这里失败，说明原测试没有区分能力。
+    """
+    names = ['rospace_reduced_0.csv', 'rospace_reduced_1.csv',
+             'rospace_reduced_2.csv', 'rospace_reduced_9.csv',
+             'rospace_reduced_10.csv', 'rospace_reduced_14.csv']
+    expected = ['rospace_reduced_0.csv', 'rospace_reduced_1.csv',
+                'rospace_reduced_2.csv', 'rospace_reduced_9.csv',
+                'rospace_reduced_10.csv', 'rospace_reduced_14.csv']
+    broken = sorted(names)                      # 缺陷实现
+    assert broken != expected, '若两者相同则本测试无意义'
+    assert broken.index('rospace_reduced_10.csv') < broken.index(
+        'rospace_reduced_2.csv')
 
 
 @needs_v2
@@ -325,3 +390,91 @@ def test_mandatory_coverage_is_not_silently_skipped():
     assert 'RUNTIME_MONITOR' in text
     if missing:
         pytest.skip('强制项因缺少 v2 模型未运行: %s（不是 PASS）' % missing)
+
+
+# ============================================================ A1 指标定义
+def _load_derive():
+    """直接导入被测函数的实现（不是另写一套参考实现）。"""
+    sys.path.insert(0, MOD)
+    import recompute_metrics as R
+    return R
+
+
+def test_macro_recall_matches_hand_computed_confusion_matrix():
+    """A1：用**人工算出的**期望值校验指标实现（独立验证，非自我比较）。
+
+    构造一个四类情形齐全的混淆矩阵：
+      * 正常预测正确      -> TN
+      * 正常误报          -> FP
+      * 攻击检出          -> TP
+      * 攻击漏报          -> FN
+    取 TP=6, FP=2, TN=8, FN=4，手工算出期望值后再与代码结果比较。
+    """
+    R = _load_derive()
+    TP, FP, TN, FN = 6, 2, 8, 4
+
+    # ---- 手工计算（与本文件之外的任何实现无关）----
+    exp_recall_attack = TP / (TP + FN)                 # 6/10 = 0.6
+    exp_recall_normal = TN / (TN + FP)                 # 8/10 = 0.8
+    exp_macro_recall = (exp_recall_attack + exp_recall_normal) / 2   # 0.7
+    exp_balanced = (exp_recall_attack + exp_recall_normal) / 2       # 0.7
+    exp_precision = TP / (TP + FP)                     # 6/8 = 0.75
+    exp_f1 = 2 * exp_precision * exp_recall_attack / (exp_precision + exp_recall_attack)
+    exp_acc = (TP + TN) / (TP + FP + TN + FN)          # 14/20 = 0.7
+    exp_fpr = FP / (FP + TN)                           # 2/10 = 0.2
+
+    got = R.derive(TP, FP, TN, FN)
+    assert got['recall'] == pytest.approx(exp_recall_attack)
+    assert got['specificity_recall_normal'] == pytest.approx(exp_recall_normal)
+    assert got['macro_recall'] == pytest.approx(exp_macro_recall)
+    assert got['balanced_accuracy'] == pytest.approx(exp_balanced)
+    assert got['precision'] == pytest.approx(exp_precision)
+    assert got['f1'] == pytest.approx(exp_f1)
+    assert got['accuracy'] == pytest.approx(exp_acc)
+    assert got['false_positive_rate'] == pytest.approx(exp_fpr)
+    # 二分类下 Macro Recall 必须等于 Balanced Accuracy
+    assert got['macro_recall'] == pytest.approx(got['balanced_accuracy'])
+
+
+def test_macro_recall_would_catch_the_original_bug():
+    """A1 负向对照：原错误实现会给出与正确值不同的结果。
+
+    原实现把 observe 的"被判为攻击比例"（= 误报率）当成正常类召回率，
+    即 macro = (Recall_attack + FPR) / 2。对 TP=6,FP=2,TN=8,FN=4：
+      错误值 = (0.6 + 0.2)/2 = 0.4
+      正确值 = (0.6 + 0.8)/2 = 0.7
+    若两者相等，说明本用例无法区分缺陷。
+    """
+    TP, FP, TN, FN = 6, 2, 8, 4
+    wrong = (TP / (TP + FN) + FP / (FP + TN)) / 2
+    right = (TP / (TP + FN) + TN / (TN + FP)) / 2
+    assert wrong == pytest.approx(0.4)
+    assert right == pytest.approx(0.7)
+    assert wrong != right, '本用例必须能区分错误实现'
+
+
+@needs_v2
+def test_recorded_macro_recall_equals_balanced_accuracy():
+    """A1：落盘指标中二分类 macro_recall 必须等于 balanced_accuracy。"""
+    m = json.load(open(os.path.join(RUN_V2, 'metrics.json'), encoding='utf-8'))
+    mt = m['metrics']
+    assert mt['macro_recall'] == pytest.approx(mt['balanced_accuracy'], abs=1e-12)
+    assert mt['macro_recall'] == pytest.approx(0.5544, abs=1e-3), \
+        'reduced v2 的二分类 Macro Recall 应为约 0.5544，不再是 0.0546'
+    # 旧值必须留档而不是被抹掉
+    assert m.get('metrics_legacy', {}).get('macro_recall') == pytest.approx(
+        0.0546, abs=1e-3)
+    # 跨攻击类别的平均是**另一个**指标，且名称不同
+    assert 'macro_attack_detection_recall' in mt
+    assert mt['macro_attack_detection_recall'] != pytest.approx(mt['macro_recall'])
+
+
+def test_confusion_matrix_unchanged_by_recompute():
+    """A1：重算只改派生指标，**不修改**混淆矩阵。"""
+    if not os.path.isfile(os.path.join(RUN_V2, 'metrics.json')):
+        pytest.skip('需要 v2 指标')
+    m = json.load(open(os.path.join(RUN_V2, 'metrics.json'), encoding='utf-8'))
+    assert m['metrics_recomputed']['confusion_matrix_unchanged'] is True
+    assert set(m['confusion_matrix']) == {'tp', 'fp', 'tn', 'fn'}
+    for v in m['confusion_matrix'].values():
+        assert isinstance(v, int) and v >= 0
