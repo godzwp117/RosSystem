@@ -86,3 +86,4 @@ security/keystore/
 # =============================================================================
 /verify/
 /verify_huawei_5th_cyber/
+/.research-venv

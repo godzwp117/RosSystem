@@ -35,7 +35,7 @@ modules:
     # joblib 属可反序列化执行内容，因此适配器拒绝从业务输入读取模型路径；
     # 若信封提供了 model_run_dir，会被忽略并打印警告。
     command: [".research-venv/bin/python", "modules/rospace_comm/f0_adapter.py",
-              "--model-run-dir", "training_runs/rospace_reduced"]
+              "--model-run-dir", "training_runs/rospace_reduced_v2"]
     timeout_sec: 20
     max_stdout_bytes: 65536
 
