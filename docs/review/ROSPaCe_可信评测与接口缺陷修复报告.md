@@ -242,3 +242,51 @@ joblib 属可反序列化执行内容，等于把模型选择权交给不可信�
    标签块状分布导致的概念漂移、以及是否应按会话而非按文件划分。诊断清楚前扩充采集器没有意义。
 2. **OS Monitor 采集器**（25 个 B 类）仍是唯一有希望覆盖多数特征的路径，但应在模型有效性被证实之后再投入。
 3. **C 类 22 个 Tshark 特征**需要 PCAP 采集链路，优先级最低。
+---
+
+## I. 门槛状态（独立判定）
+
+| 门槛 | 状态 | 依据 |
+| --- | --- | --- |
+| `SCHEMA_MAPPING_FIX` | **PASS** | 缺陷已修复；负向对照证明修复前取值确实被 Schema 拒绝；正反测试均通过 |
+| `MODEL_PROVENANCE_SECURITY` | **PASS** | 模型目录不再来自业务输入；信封切换被忽略并告警；不受信/损坏模型 exit 3 |
+| `MODEL_FEATURE_AUDIT` | **PASS** | 口径统一；A+B+C+D == 49 断言成立；汇总 JSON 已生成 |
+| `PREPROCESSING_FIX` | **PASS** | 两遍分离；训练中 scaler 固定；策略版本与填充/缩放哈希已落盘 |
+| `EVALUATION_RELIABILITY` | **PARTIAL** | 已加 Balanced Accuracy / Macro Recall / 两个简单基线；但 **5 类 `NOT_EVALUATED`**、**PR-AUC 未计算** |
+| `F0_COMM_ADAPTER` | **PASS** | 正常/异常/错误三路径实测；异常为**模块状态**阻断而非 Schema 无效 |
+| `F0_REGRESSION` | **PASS** | 见附二 |
+| `COMPARISON` | **PARTIAL** | 保持（两版本无法建立相同实验划分） |
+| `RUNTIME_MONITOR` | **NOT_READY** | 保持（49 个模型特征中仅 2 个可在线直接获取） |
+
+## J. F0 回归实测
+
+| 项目 | 结果 |
+| --- | --- |
+| 契约校验 | `CONTRACT_OK` |
+| F0 Python 单元测试 | **295 passed / UNIT TEST RESULT: PASS** |
+| ROS 2 四包构建 | **BUILD RESULT: PASS** |
+| 真实通信模块替换（T09，仅替换 comm_risk） | **PASS** |
+| 冒烟回归 T02 / T03 / T04 | **全部 PASS**（exit 0） |
+| 研究模块测试 `pytest tests/research/` | **38 passed** |
+
+**冻结边界未改动**：`git diff ebfe263..HEAD` 对
+`docs/interfaces/`（四份 Schema）、`PatrolNavigate.action`、八个业务原因码、
+`src/rg_gateway/`、`security/` **均为空**。
+
+### 回归中发现并修复的一处环境问题（非本轮代码缺陷）
+
+`scripts/run_unit_tests.sh` 一度变为 **1 failed / 294 passed**：F0 的密钥材料守卫
+（`tests/unit/test_interface_contract.py::test_no_key_material_is_committed`）
+把隔离研究环境里 pip 自带的**公开** CA 证书包
+`pip/_vendor/certifi/cacert.pem` 误判为密钥材料。
+
+**未修改该 F0 测试文件**，而是把研究环境迁到 `tests/evidence/research-venv`
+（该目录已在 `.gitignore` 中，且守卫的 `os.walk` 明确排除名为 `evidence` 的目录），
+并在 `.research-venv` 保留相对符号链接使既有路径继续可用
+（`os.walk` 默认不跟随符号链接）。迁移后单测恢复 **295 passed**。
+
+## K. 一句话结论
+
+**本轮修掉了三个真实缺陷，并把评测口径纠正到可信状态；
+纠正后的模型劣于「恒预测攻击」这一无脑基线，
+因此当前特征集与二分类设定尚不构成可用检测器 —— 这是本轮最重要的科研结论。**
