@@ -59,6 +59,9 @@ NAVSIM_PKG, NAVSIM_EXE = 'rg_demo_nodes', 'navigation_sim'
 OPERATOR_PKG, OPERATOR_EXE = 'rg_demo_nodes', 'operator_node'
 PLANNER_PKG, PLANNER_EXE = 'rg_demo_nodes', 'planner_node'
 
+#: 本脚手架测试运行身份的固定前缀，便于人工区分"测试节点"与"成员真实系统"。
+RUN_ID_PREFIX = 'scenario_runner'
+
 #: Substrings identifying node processes belonging to this workspace.
 NODE_MARKERS = (
     os.path.join('install', 'rg_gateway', 'lib'),
@@ -66,6 +69,80 @@ NODE_MARKERS = (
     'rg_gateway/lib/rg_gateway/security_gateway',
     'rg_demo_nodes/lib/rg_demo_nodes/',
 )
+
+
+# ---------------------------------------------------------------------------
+# 运行身份与进程归属登记（P0-1）
+#
+# 为什么需要"可证明的归属"
+# ------------------------
+# 早期实现的清理条件是"进程带任意非空 RG_TEST_RUN_ID"或"与我在同一会话"。
+# 两者都不足以证明该进程属于**本次运行**：
+#   * 任意非空标记：另一轮测试（甚至另一个成员用同一变量名）都会被误杀；
+#   * 同一会话：同一容器里并发运行的另一个测试实例也可能共享会话；
+#   * 仅凭 PID：PID 会被操作系统复用，旧 PID 记录可能指向无关的新进程。
+# 因此归属判定改为**双条件同时成立**：
+#   (1) 进程环境中的 run_id 与本轮 run_id **精确相等**；
+#   (2) 该进程的 (pid, starttime) 出现在**本轮亲自启动并登记过**的集合中。
+# 只在 (1)(2) 都满足时才终止；其余一律只报告。
+# ---------------------------------------------------------------------------
+
+def _new_run_identity() -> str:
+    """生成本轮唯一运行身份。
+
+    组成：前缀 + 本进程 PID + 本进程启动时刻 + 随机后缀。
+    * 同轮内所有节点共用同一个值（模块级只计算一次）；
+    * 两次独立运行必然不同（随机后缀 + PID + 时刻）；
+    * 不因场景切换而变化（不依赖 scenario 名）；
+    * 不受 PID 复用影响（配合 starttime 双重校验）。
+    """
+    import uuid
+    explicit = os.environ.get('RG_TEST_RUN_ID', '').strip()
+    if explicit:
+        return explicit
+    return '{0}-{1}-{2}'.format(RUN_ID_PREFIX, os.getpid(), uuid.uuid4().hex[:12])
+
+
+#: 本轮唯一运行身份。模块加载时确定一次，之后不再变化。
+RUN_IDENTITY: str = _new_run_identity()
+
+#: 本轮**亲自启动**的进程登记表：(pid, starttime) -> run_id
+_OWNED_PROCESSES: Dict[tuple, str] = {}
+
+
+def _proc_starttime(pid: int):
+    """读取 /proc/<pid>/stat 的 starttime（字段 22）。
+
+    starttime 自系统启动起计，同一 PID 被复用时会不同，因此
+    (pid, starttime) 组合可以区分"同一个 PID 的两个不同进程"。
+    """
+    stat = _proc_field(pid, 'stat')
+    if not stat:
+        return None
+    try:
+        # comm 字段可能含空格与括号，因此从最后一个 ')' 之后开始切分
+        rest = stat.rsplit(')', 1)[1].split()
+        return int(rest[19])          # 字段 22 -> rest 下标 19
+    except (IndexError, ValueError):
+        return None
+
+
+def register_owned_process(pid: int, run_id: str = None) -> None:
+    """登记一个由本轮启动的进程。只有登记过的进程才可能被清理。"""
+    _OWNED_PROCESSES[(int(pid), _proc_starttime(int(pid)))] = run_id or RUN_IDENTITY
+
+
+def is_owned_by_this_run(pid: int, run_id: str, starttime) -> tuple:
+    """判断进程是否**可证明**属于本轮运行。返回 (ok, 原因)。"""
+    if not run_id:
+        return False, '进程无 RG_TEST_RUN_ID 标记（可能是成员自己启动的栈）'
+    if run_id != RUN_IDENTITY:
+        return False, 'run_id 属于其他运行实例（{0!r}）'.format(run_id)
+    if starttime is None:
+        return False, '无法读取 starttime，不能排除 PID 复用'
+    if (int(pid), int(starttime)) not in _OWNED_PROCESSES:
+        return False, '该 (pid, starttime) 未在本轮登记（PID 可能已被复用）'
+    return True, 'run_id 精确匹配且 (pid, starttime) 已登记'
 
 
 # ---------------------------------------------------------------------------
@@ -98,10 +175,38 @@ def read_text(path: str) -> str:
         return handle.read()
 
 
-def find_node_pids() -> List[int]:
-    """PIDs of node processes belonging to this workspace (never our own)."""
-    found: List[int] = []
+def _proc_field(pid: int, field: str) -> str:
+    try:
+        with open('/proc/{0}/{1}'.format(pid, field), 'r', encoding='utf-8',
+                  errors='replace') as handle:
+            return handle.read().strip()
+    except (OSError, PermissionError):
+        return ''
+
+
+def _proc_environ(pid: int) -> Dict[str, str]:
+    environ = {}
+    try:
+        with open('/proc/{0}/environ'.format(pid), 'rb') as handle:
+            raw = handle.read().decode('utf-8', errors='replace')
+    except (OSError, PermissionError):
+        return environ
+    for item in raw.split('\x00'):
+        if '=' in item:
+            key, value = item.split('=', 1)
+            environ[key] = value
+    return environ
+
+
+def find_node_processes() -> List[Dict[str, Any]]:
+    """本工作区的节点进程，附带**归属信息**（域、会话、进程组、是否本会话）。
+
+    归属信息是安全清理的前提：没有它就无法区分"我上一轮遗留的节点"和
+    "同一容器里另一个成员正在运行的节点"。
+    """
+    found: List[Dict[str, Any]] = []
     self_pid = os.getpid()
+    self_sid = os.getsid(0)
     for entry in os.listdir('/proc'):
         if not entry.isdigit():
             continue
@@ -113,26 +218,88 @@ def find_node_pids() -> List[int]:
                 cmdline = handle.read().decode('utf-8', errors='replace').replace('\x00', ' ')
         except (OSError, PermissionError):
             continue
-        if any(marker in cmdline for marker in NODE_MARKERS):
-            found.append(pid)
+        if not any(marker in cmdline for marker in NODE_MARKERS):
+            continue
+        environ = _proc_environ(pid)
+        stat = _proc_field(pid, 'stat')
+        # stat 的字段 5 是 session，6 是 tty；comm 可能含空格，故从右往左取
+        sid = None
+        try:
+            parts = stat.rsplit(')', 1)[1].split()
+            sid = int(parts[3])
+        except (IndexError, ValueError):
+            sid = None
+        found.append({
+            'pid': pid,
+            'domain': environ.get('ROS_DOMAIN_ID', ''),
+            'sid': sid,
+            'own_session': (sid == self_sid),
+            'run_id': environ.get('RG_TEST_RUN_ID', ''),
+            'starttime': _proc_starttime(pid),
+            'cmdline': cmdline[:160],
+        })
     return found
 
 
+def find_node_pids() -> List[int]:
+    """兼容旧调用点：仅返回 PID 列表。"""
+    return [item['pid'] for item in find_node_processes()]
+
+
 def reap_stragglers(quiet: bool = False) -> List[int]:
-    """Force-kill leftover nodes from a previous run. Returns the PIDs reaped."""
+    """清理**可证明属于本轮运行**的遗留节点。
+
+    归属判定（P0-1 收紧）
+    --------------------
+    只有在下列条件**同时成立**时才终止进程：
+
+      1. 进程环境中的 `RG_TEST_RUN_ID` 与本轮 `RUN_IDENTITY` **精确相等**；
+      2. 该进程的 `(pid, starttime)` 出现在本轮**亲自启动并登记**的集合中。
+
+    单独满足任何一条都不足以授权终止：
+      * 仅"带非空标记" —— 另一轮测试也会带标记，会被误杀；
+      * 仅"同一会话"   —— 同容器并发的另一实例可能共享会话；
+      * 仅"PID 相同"   —— PID 会被复用，可能指向无关的新进程。
+
+    其余情况（其他 run_id、无标记、其他 Domain、无法确认归属）一律**只报告不终止**。
+    历史轮次的残留节点同样不自动清理 —— 它们无法被本轮证明归属；
+    若确实影响当前测试，应安全失败并给出可操作诊断（或改用独立测试容器）。
+
+    不接受任何"无条件放宽清理权限"的环境变量开关。
+    """
     reaped: List[int] = []
-    for attempt_signal in (signal.SIGKILL,):
-        pids = find_node_pids()
-        for pid in pids:
+    foreign: List[Dict[str, Any]] = []
+
+    for item in find_node_processes():
+        pid = item['pid']
+        owned, reason = is_owned_by_this_run(pid, item.get('run_id'),
+                                             item.get('starttime'))
+        if owned:
             try:
-                os.kill(pid, attempt_signal)
+                os.kill(pid, signal.SIGKILL)
                 reaped.append(pid)
-            except OSError:
-                pass
-        if pids:
-            time.sleep(0.5)
-    if reaped and not quiet:
-        print('[preflight] reaped leftover node process(es): {0}'.format(reaped))
+            except OSError as exc:
+                item['kill_error'] = str(exc)
+        else:
+            item['skip_reason'] = reason
+            foreign.append(item)
+
+    if reaped:
+        time.sleep(0.5)
+    if not quiet:
+        if reaped:
+            print('[preflight] reaped node(s) proven owned by this run: {0}'.format(reaped))
+        if foreign:
+            print('[preflight] {0} 个节点进程**未被清理**（无法证明属于本轮运行）:'.format(
+                len(foreign)))
+            for item in foreign[:6]:
+                print('    pid={0} run_id={1!r} domain={2!r} starttime={3} :: {4}'.format(
+                    item['pid'], item.get('run_id'), item.get('domain'),
+                    item.get('starttime'), item.get('skip_reason')))
+            print('    这些进程可能是其他成员正在运行的系统，或历史轮次的残留。')
+            print('    本轮不会终止它们。若它们影响当前测试，请：')
+            print('      1) 确认其归属后手动处理；或')
+            print('      2) 在独立测试容器中重跑，避免与遗留节点共享容器。')
     return reaped
 
 
@@ -179,6 +346,11 @@ class NodeProcess:
 
         env = dict(os.environ)
         env['PYTHONUNBUFFERED'] = '1'
+        # 测试专属标记：本脚手架启动的节点一定带这个变量。
+        # 成员自己用 start_system.sh 启动的栈**不带**该变量，因此永远不会被
+        # 测试脚手架的遗留清理碰到 —— 这是"只清理自己的进程"的可判定依据。
+        # 本轮所有节点共用同一个运行身份（模块级只确定一次，不随场景变化）
+        env['RG_TEST_RUN_ID'] = RUN_IDENTITY
         os.makedirs(os.path.dirname(log_path), exist_ok=True)
         self._log_handle = open(log_path, 'wb')
         self.log_path = log_path
@@ -194,6 +366,9 @@ class NodeProcess:
             cwd=ROOT,
             env=env,
         )
+        # 关键：把本轮亲自启动的进程登记进归属表。
+        # 只有登记过的 (pid, starttime) 才可能在后续被清理。
+        register_owned_process(self.proc.pid)
         self._command_record = {
             'scenario': scenario,
             'step': label,
@@ -201,6 +376,8 @@ class NodeProcess:
             'argv': argv,
             'cwd': ROOT,
             'pid': self.proc.pid,
+            'starttime': _proc_starttime(self.proc.pid),
+            'run_id': RUN_IDENTITY,
             'started_at': self._started_at,
             'log_path': log_path,
             'exit_code': None,
