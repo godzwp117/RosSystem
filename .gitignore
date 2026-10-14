@@ -66,3 +66,6 @@ security/keystore/
 # 第三方网页抓取物与竞赛证据包（体积大且属第三方版权内容）
 /verify/
 /verify_huawei_5th_cyber/
+
+# Generated trusted commands contain local interpreter/model paths.
+/config/team_modules*.local.yaml

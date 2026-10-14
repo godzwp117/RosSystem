@@ -1,0 +1,20 @@
+name: Member 1 offline communication prototype
+on:
+  pull_request:
+    branches: [baseline]
+    paths: ['modules/my_comm/**', '.github/workflows/member1-comm.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  protocol-and-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r modules/my_comm/requirements.txt
+      - run: python scripts/validate_team_contracts.py --all
+      - run: python -m pytest modules/my_comm/test_module.py modules/my_comm/test_integration.py tests/unit/test_team_contracts.py -q
+      # L1/unit only. No public data/model download, ROS actions or L2/L3 claims.
