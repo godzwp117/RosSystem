@@ -1,5 +1,5 @@
 {
-  "baseline_sha": "3ce820258c69b89e2ad9291e16c44dc7d2b99150",
+  "baseline_sha": "85691f34e262ec0aea23b1be20fe157bc87d9c93",
   "module": "identity_trust",
   "config": "config/team_modules.member2.real.yaml",
   "module_command": [
@@ -54,7 +54,7 @@
       "returncode": 0,
       "elapsed_sec": 0.049,
       "stdout_bytes": 1347,
-      "pgid": 363567,
+      "pgid": 375307,
       "exceeded": null,
       "stderr_head": "[identity_trust] 证据不足或不可核验，失败关闭：no trusted experiment run pinned by process configuration\n"
     },
@@ -118,7 +118,7 @@
       "id": "ID-03",
       "check": "event_id 存在且含 request_id",
       "status": "PASS",
-      "detail": "'evt-identity-req-accept-001-b8ec5f2259bb4b3ca0898597'",
+      "detail": "'evt-identity-req-accept-001-8ce9712e7c3a42ac8aaadb68'",
       "mandatory": true
     },
     {
@@ -519,8 +519,8 @@
   "algorithm_evidence": "NOT_READY",
   "runtime_integration": "BLOCKED",
   "meets_pr_gate": true,
-  "started_at": "2026-10-15T13:27:08Z",
-  "run_id": "member2-real-conditions",
+  "started_at": "2026-10-15T14:01:48Z",
+  "run_id": "final",
   "module_command_as_configured": [
     "python3",
     "identity_trust/assessor.py"
@@ -758,5 +758,5 @@
     "NOT_RUN": 1,
     "BLOCKED": 1
   },
-  "log_dir": "logs/member_acceptance/member2-real-conditions"
+  "log_dir": "../../../../tmp/final_identity_trust/final"
 }

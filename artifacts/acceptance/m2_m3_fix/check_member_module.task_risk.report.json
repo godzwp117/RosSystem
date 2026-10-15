@@ -1,5 +1,5 @@
 {
-  "baseline_sha": "3ce820258c69b89e2ad9291e16c44dc7d2b99150",
+  "baseline_sha": "85691f34e262ec0aea23b1be20fe157bc87d9c93",
   "module": "task_risk",
   "config": "config/team_modules.member3.real.yaml",
   "module_command": [
@@ -52,9 +52,9 @@
       "detail": "rc=0 elapsed=0.06s exceeded=None",
       "mandatory": true,
       "returncode": 0,
-      "elapsed_sec": 0.057,
+      "elapsed_sec": 0.056,
       "stdout_bytes": 1756,
-      "pgid": 363428,
+      "pgid": 375357,
       "exceeded": null,
       "stderr_head": "[member3] status=ALLOW_RECOMMENDED\n"
     },
@@ -118,7 +118,7 @@
       "id": "ID-03",
       "check": "event_id 存在且含 request_id",
       "status": "PASS",
-      "detail": "'m3-req-accept-001-8a8c32ab76944c8391b4c19e665d1c69'",
+      "detail": "'m3-req-accept-001-20af8628b8cf4aa5a3eea0513e6310d2'",
       "mandatory": true
     },
     {
@@ -486,8 +486,8 @@
   "algorithm_evidence": "NOT_READY",
   "runtime_integration": "BLOCKED",
   "meets_pr_gate": true,
-  "started_at": "2026-10-15T13:27:05Z",
-  "run_id": "member3-real-conditions",
+  "started_at": "2026-10-15T14:01:49Z",
+  "run_id": "final",
   "module_command_as_configured": [
     "python3",
     "modules/member3_taskrisk/module.py"
@@ -683,5 +683,5 @@
     "NOT_RUN": 1,
     "BLOCKED": 1
   },
-  "log_dir": "logs/member_acceptance/member3-real-conditions"
+  "log_dir": "../../../../tmp/final_task_risk/final"
 }
