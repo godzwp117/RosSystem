@@ -28,9 +28,12 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
+import tempfile
 import time
+from pathlib import Path
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(REPO, 'scripts'))
@@ -113,6 +116,413 @@ def load_yaml(path: str) -> dict:
         return yaml.safe_load(handle) or {}
 
 
+# ---------------------------------------------------------------------------
+# 真实模块场景（L2 入口）：受信任本地 fixture + 受信任配置中的命令档案
+# ---------------------------------------------------------------------------
+# 为什么需要它
+# ------------
+# `detail.f0_mock.scenario` 是**参考 Mock 的控制开关**。真实规则模块
+# （如 modules/member3_taskrisk/module.py）不解析该开关，而是依据候选 Action、
+# Task ID、坐标系、目标位置、TaskPolicy 与可选可信历史审计计算真实建议。
+# 因此用 Mock 开关无法触发真实模块的四种状态，旧脚本只能得到 3 个 FAIL。
+#
+# 安全约束
+# --------
+# * 场景定义只来自 `--real-fixture` 指定的**受信任本地文件**；
+# * 可执行命令只能来自 `--config` 的 `real_command_profiles`，业务 JSON 不得
+#   指定命令、策略文件或可执行文件（`_reject_command_injection` 强制）；
+# * 期望状态写在 fixture 中并被**真实输出状态**核对：只匹配期望标签不算通过；
+# * fixture 只是本地测试输入，不是网关策略，也不改变 Gateway 规则顺序。
+REAL_FIXTURE_SCHEMA_VERSION = '1.0.0'
+#: fixture 场景名只允许安全标识符（用于构造检查项 ID，避免注入）。
+SAFE_SCENARIO_NAME = re.compile(r'^[A-Za-z0-9][A-Za-z0-9_-]{0,47}$')
+#: 业务 JSON 中绝不能出现的「本地执行控制」字段名（大小写不敏感）。
+FORBIDDEN_PATCH_KEYS = ('command', 'executable', 'exec', 'argv', 'shell',
+                        'cwd', 'workdir', 'policy', 'policy_path',
+                        'audit_log', 'env', 'environment', 'pythonpath',
+                        'module_path', 'script')
+
+
+class FixtureError(ValueError):
+    """fixture 本身不合法：验收器必须失败关闭，而不是继续跑场景。"""
+
+
+def _reject_command_injection(patch: dict, where: str) -> None:
+    """禁止业务输入携带任何本地执行控制字段（只允许数据字段）。"""
+    stack = [patch]
+    while stack:
+        node = stack.pop()
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if str(key).strip().lower() in FORBIDDEN_PATCH_KEYS:
+                    raise FixtureError(
+                        '{0} 不得通过业务输入指定本地执行控制字段 {1!r}；'
+                        '命令与策略路径只能来自受信任配置'.format(where, key))
+                stack.append(value)
+        elif isinstance(node, list):
+            stack.extend(node)
+
+
+def _bounded_repo_path(raw, where: str) -> str:
+    """把 fixture 中的相对路径解析到仓库内，拒绝越界与绝对路径。"""
+    if not isinstance(raw, str) or not raw.strip():
+        raise FixtureError('{0} 必须是仓库内相对路径'.format(where))
+    candidate = os.path.realpath(os.path.join(REPO, raw))
+    root = os.path.realpath(REPO)
+    if candidate != root and not candidate.startswith(root + os.sep):
+        raise FixtureError('{0} 越出仓库范围: {1!r}'.format(where, raw))
+    return candidate
+
+
+def _string_args(raw, where: str) -> list:
+    if not isinstance(raw, list) or not raw or not all(
+            isinstance(part, str) and part for part in raw):
+        raise FixtureError('{0} 必须是非空字符串数组'.format(where))
+    return list(raw)
+
+
+#: 交付配置里常见的 Python 解释器写法。它们是否可用取决于 PATH：
+#: 成员交付配置写 `python3`，而真实模块需要 jsonschema>=4（Draft 2020-12）。
+#: 若验收器自己跑在满足依赖的解释器里，却用 PATH 上的另一个 python3 调模块，
+#: 就会得到「模块不可运行」的假失败。只统一解释器，不改参数、不加权限。
+PYTHON_ALIASES = ('python', 'python3', 'python3.10', 'python3.11', 'python3.12',
+                  'python3.13')
+
+
+def resolve_interpreter(command: list) -> list:
+    """把命令首部的裸 `python3` 映射到**当前**解释器（同一验收进程）。
+
+    仅改写第一个元素且仅当它是裸 python 别名；不改任何后续参数，
+    因此不会放松 module_input Schema、候选入口或输出上限的检查。
+    """
+    if command and command[0] in PYTHON_ALIASES:
+        return [sys.executable] + list(command[1:])
+    return list(command)
+
+
+def resolve_profile_command(base_command: list, config: dict, profile) -> list:
+    """从**受信任配置**中解析场景命令档案。
+
+    支持两种档案形式（都只存在于 `--config` 指向的本地文件里）：
+      * 字符串：`real_command_profiles.<name>` 必须是非空字符串数组；
+      * 映射：可给出 `command`（完整替换）或 `args`（追加到模块命令之后）。
+
+    fixture 只能引用档案**名字**，不能提供命令本身。
+    """
+    if profile is None:
+        return list(base_command)          # 基础命令原样返回
+    if not isinstance(profile, str) or not profile.strip():
+        raise FixtureError('scenario.command_profile 必须是非空字符串')
+    profiles = (config or {}).get('real_command_profiles') or {}
+    if not isinstance(profiles, dict):
+        raise FixtureError('配置 real_command_profiles 必须是映射')
+    if profile not in profiles:
+        raise FixtureError(
+            '配置 real_command_profiles 中不存在档案 {0!r}（可用: {1}）'.format(
+                profile, sorted(profiles)))
+    entry = profiles[profile]
+    where = 'real_command_profiles.{0}'.format(profile)
+    if isinstance(entry, list):
+        return _string_args(entry, where)
+    if isinstance(entry, dict):
+        if 'command' in entry:
+            # 命令整体来自受信任配置，与业务输入无关
+            return resolve_interpreter(
+                _string_args(entry['command'], where + '.command'))
+        if 'args' in entry:
+            return resolve_interpreter(
+                list(base_command) + _string_args(entry['args'], where + '.args'))
+    raise FixtureError(
+        '{0} 必须是字符串数组，或含 command/args 的映射'.format(where))
+
+
+def parse_real_fixture(path: str, module: str, config: dict) -> dict:
+    """读取并校验真实场景 fixture，返回 {'scenarios': [...], ...}。
+
+    任何结构问题都抛 FixtureError（调用方失败关闭，不得继续判定通过）。
+    """
+    document = load_yaml(path)
+    if not isinstance(document, dict):
+        raise FixtureError('fixture 根节点必须是映射')
+    if document.get('schema_version') != REAL_FIXTURE_SCHEMA_VERSION:
+        raise FixtureError('fixture schema_version 必须是 {0!r}'.format(
+            REAL_FIXTURE_SCHEMA_VERSION))
+    real = document.get('real_scenarios')
+    if not isinstance(real, dict):
+        raise FixtureError('fixture 缺少 real_scenarios 段')
+    rows = real.get(module)
+    if not isinstance(rows, list) or not rows:
+        raise FixtureError('fixture 缺少模块 {0} 的场景列表'.format(module))
+    spec = MODULE_SPEC[module]
+    base_command = (config.get('modules') or {}).get(module, {}).get('command')
+    if not isinstance(base_command, list) or not base_command:
+        raise FixtureError('配置缺少模块 {0} 的命令数组'.format(module))
+
+    scenarios, seen = [], set()
+    for index, row in enumerate(rows):
+        where = 'real_scenarios.{0}[{1}]'.format(module, index)
+        if not isinstance(row, dict):
+            raise FixtureError('{0} 必须是映射'.format(where))
+        name = row.get('name')
+        if not isinstance(name, str) or not SAFE_SCENARIO_NAME.fullmatch(name):
+            raise FixtureError('{0}.name 非法: {1!r}'.format(where, name))
+        if name in seen:
+            raise FixtureError('{0}.name 重复: {1}'.format(where, name))
+        seen.add(name)
+        expected_state = row.get('expected_state')
+        legal = {spec[1]} | set(spec[2])
+        if expected_state not in legal:
+            raise FixtureError(
+                '{0}.expected_state {1!r} 不在该模块合法枚举 {2}'.format(
+                    where, expected_state, sorted(legal)))
+        expected_class = row.get('expected_class')
+        if expected_class not in ('PROCEED', 'LEGAL_BLOCK'):
+            raise FixtureError('{0}.expected_class 非法: {1!r}'.format(
+                where, expected_class))
+        # 期望分类必须与期望状态自洽（不能声明 PROCEED 却期望阻断状态）
+        if classify(expected_state, spec[1]) != expected_class:
+            raise FixtureError(
+                '{0}: expected_state {1!r} 与 expected_class {2!r} 不自洽'.format(
+                    where, expected_state, expected_class))
+        patch = row.get('envelope_patch') or {}
+        if not isinstance(patch, dict):
+            raise FixtureError('{0}.envelope_patch 必须是映射'.format(where))
+        _reject_command_injection(patch, where + '.envelope_patch')
+        request_id = row.get('request_id') or 'req-real-{0}'.format(name)
+        if not isinstance(request_id, str) or not request_id.strip():
+            raise FixtureError('{0}.request_id 非法'.format(where))
+        policy = row.get('policy')
+        policy_path = _bounded_repo_path(policy, where + '.policy') if policy else None
+        expect = row.get('expect') or {}
+        if not isinstance(expect, dict):
+            raise FixtureError('{0}.expect 必须是映射'.format(where))
+        allowed_states = expect.get('allowed_states')
+        if allowed_states is not None:
+            if (not isinstance(allowed_states, list) or not allowed_states
+                    or any(s not in legal for s in allowed_states)):
+                raise FixtureError(
+                    '{0}.expect.allowed_states 必须是该模块合法状态的非空子集'.format(
+                        where))
+            if expected_state not in allowed_states:
+                raise FixtureError(
+                    '{0}.expect.allowed_states 必须包含 expected_state {1!r}'.format(
+                        where, expected_state))
+        scenarios.append({
+            'name': name,
+            'description': row.get('description') or '',
+            'expected_state': expected_state,
+            'expected_class': expected_class,
+            'request_id': request_id,
+            'policy': policy_path,
+            'policy_ref': policy,
+            'trigger': row.get('trigger') or '',
+            'command': resolve_profile_command(base_command, config,
+                                               row.get('command_profile')),
+            'command_profile': row.get('command_profile'),
+            'patch': patch,
+            'expect': {
+                'reason_code': expect.get('reason_code'),
+                'policy_version': expect.get('policy_version'),
+                'contains': expect.get('contains'),
+            },
+        })
+    return {'fixture': rel(path), 'module': module, 'scenarios': scenarios}
+
+
+def deep_patch(target: dict, patch: dict) -> dict:
+    """把 fixture 的数据字段合并进信封（只合并数据，命令类字段已被拒绝）。"""
+    for key, value in patch.items():
+        if isinstance(value, dict) and isinstance(target.get(key), dict):
+            deep_patch(target[key], value)
+        else:
+            target[key] = value
+    return target
+
+
+def invoke_real_scenario(module: str, scenario: dict, timeout: float,
+                         max_bytes: int) -> dict:
+    """用真实条件调用模块一次，返回可追溯的行记录。"""
+    env = build_envelope(scenario['request_id'])
+    deep_patch(env, scenario['patch'])
+    # 命令整体来自受信任配置档案；业务 JSON 从不参与命令构造
+    command = list(scenario['command'])
+    result = invoke(command, env, timeout, max_bytes)
+    row = {
+        'scenario': scenario['name'],
+        'description': scenario['description'],
+        'trigger': scenario['trigger'],
+        'expected_state': scenario['expected_state'],
+        'expected_class': scenario['expected_class'],
+        'expected_reason_code': scenario['expect']['reason_code'],
+        'expect_contains': scenario['expect'].get('contains') or [],
+        'expect_allowed_states': scenario['expect'].get('allowed_states') or [],
+        'command_profile': scenario['command_profile'],
+        'command': command,
+        'policy_ref': scenario['policy_ref'],
+        'returncode': result['returncode'],
+        'structured': False, 'schema_ok': None, 'actual_state': None,
+        'actual_class': None, 'ids_ok': False, 'traceability_ok': False,
+        'actual_reason_code': None, 'policy_version': None,
+        'exceeded': result['exceeded'],
+        'stderr_head': (result['stderr'] or '')[:200],
+        'stdout_bytes': result['stdout_bytes'],
+    }
+    if result['exceeded'] or not result['stdout'].strip():
+        row['detail'] = 'exceeded={0} stdout={1}B'.format(
+            result['exceeded'], result['stdout_bytes'])
+        return row, env, None
+    try:
+        payload = json.loads(result['stdout'])
+    except ValueError as exc:
+        row['detail'] = '非法 JSON: {0}'.format(exc)
+        return row, env, None
+    row['structured'] = True
+    row['actual_state'] = payload.get('status')
+    row['ids_ok'] = (payload.get('run_id') == env['run_id']
+                     and payload.get('request_id') == env['request_id'])
+    extensions = payload.get('extensions') or {}
+    member = extensions.get('member3') or extensions.get('member2') or {}
+    row['actual_reason_code'] = (
+        member.get('reason_code')
+        or (payload.get('authorization') or {}).get('denial_layer')
+        or payload.get('reason_code'))
+    row['policy_version'] = (payload.get('policy_ref') or {}).get('policy_version')
+    ok, serr = validate(payload, os.path.join(SCHEMA_DIR, MODULE_SPEC[module][0]))
+    row['schema_ok'] = ok
+    if ok:
+        row['actual_class'] = classify(row['actual_state'], MODULE_SPEC[module][1])
+    else:
+        row['detail'] = serr
+    return row, env, payload
+
+
+def _policy_argument(command: list):
+    """从受信任配置解析出的命令中取出 `--policy` 实参（只读，用于追溯）。"""
+    for index, part in enumerate(command):
+        if part == '--policy' and index + 1 < len(command):
+            return command[index + 1]
+        if part.startswith('--policy='):
+            return part.split('=', 1)[1]
+    return None
+
+
+def _yaml_task_policy_parses(path):
+    """TaskPolicy（YAML）能否被权威解析器接受。"""
+    sys.path.insert(0, os.path.join(REPO, 'src', 'rg_policy'))
+    from rg_policy.task_policy import parse_task_policy
+    import yaml as _yaml
+    parse_task_policy(_yaml.safe_load(path.read_text(encoding='utf-8')), str(path))
+
+
+def _sros2_policy_parses(path):
+    """SROS2 权限策略（XML）能否被 XML 解析器接受且根为 <policy>。"""
+    import xml.etree.ElementTree as ET
+    root = ET.fromstring(path.read_bytes())
+    if root.tag.rsplit('}', 1)[-1] != 'policy':
+        raise ValueError('not a SROS2 policy root: {0}'.format(root.tag))
+
+
+def policy_file_state(declared):
+    """独立判定配置指向的策略文件的**真实状态**（不依赖模块自报）。
+
+    返回 'VALID' / 'ABSENT' / 'CORRUPT' / 'UNKNOWN'。
+    这是验收器的地面真值：模块输出必须与之自洽，否则说明期望标签与
+    真实条件不符（例如策略其实可解析，却期望 UNKNOWN）。
+
+    按扩展名选择解析器，因此对两种既有策略格式都成立：
+      * `.yaml`/`.yml` -> Gateway 的 TaskPolicy（rg_policy 权威解析器）
+      * `.xml`         -> SROS2 权限策略（与 M2 读取的是同一种文件）
+    两种解析器都失败才算 CORRUPT，避免把「另一种格式」误判成损坏。
+    """
+    if not declared:
+        return 'UNKNOWN'
+    path = Path(declared) if os.path.isabs(declared) else Path(REPO) / declared
+    if not path.is_file():
+        return 'ABSENT'
+    parsers = ([_sros2_policy_parses] if path.suffix.lower() == '.xml'
+               else [_yaml_task_policy_parses])
+    try:
+        for parser in parsers:
+            parser(path)
+        return 'VALID'
+    except Exception:                          # noqa: BLE001
+        return 'CORRUPT'
+
+
+def verify_traceability(row: dict, payload, command: list) -> str:
+    """核对「场景输入 / 受信任配置 / 期望状态 / 实际输出」四者可追溯。
+
+    追溯落在**模块真实读取的那个策略路径**上，而不是 fixture 自己声明的期望，
+    并且与验收器独立测得的策略文件真实状态交叉核对。返回失败原因（'' 表示满足）。
+    """
+    declared = _policy_argument(command)
+    state = policy_file_state(declared)
+    row['policy_ref'] = declared
+    row['policy_file_state'] = state
+    fail = _traceability_failure(row, payload, declared, state)
+    if not fail:
+        fail = _contains_failure(row, payload)
+    row['traceability_ok'] = not fail
+    return fail
+
+
+def _contains_failure(row: dict, payload) -> str:
+    """fixture 声明的必需内容必须确实出现在输出中（防「只对标签」）。"""
+    needles = row.get('expect_contains') or []
+    if not needles:
+        return ''
+    blob = json.dumps(payload, ensure_ascii=False)
+    for needle in needles:
+        if needle not in blob:
+            return '输出缺少 fixture 要求的内容 {0!r}'.format(needle)
+    return ''
+
+
+def _traceability_failure(row: dict, payload, declared, state) -> str:
+    if payload is None:
+        return '模块未产出结构化输出，无法追溯策略'
+    refs = [str(r.get('ref', '')) for r in (payload.get('evidence_refs') or [])
+            if isinstance(r, dict)]
+    if not refs:
+        return '输出没有任何证据引用，无法追溯依据'
+    actual = row.get('actual_state')
+    if state == 'VALID':
+        # 策略可用 -> 输出必须回引该策略（路径引用或策略版本）
+        expected = declared[-512:]      # 模块实现按 512 字符截断记录
+        cited = any(expected == ref or expected.endswith(ref)
+                    or ref.endswith(expected) for ref in refs)
+        if not (cited or row.get('policy_version')):
+            return '策略可解析但输出未回引 {0!r}；引用={1}'.format(
+                declared, refs[:4])
+    # 状态集合无法由策略文件状态单独推出（例如 M2 在策略可解析时仍可能因
+    # 资源不匹配而给出 UNKNOWN），因此改由 fixture 的 expect.allowed_states
+    # 显式声明，并与**实际状态**核对。
+    allowed = row.get('expect_allowed_states') or []
+    if allowed and actual not in allowed:
+        return '策略文件真实状态 {0}，实际状态 {1!r} 不在允许集合 {2}'.format(
+            state, actual, sorted(allowed))
+    return ''
+
+
+def _pin_real_command(temp_dir: str, config: dict, module: str,
+                      command: list) -> tuple:
+    """把某个真实场景命令写进一份**临时受信任配置**，供 F0 适配层使用。
+
+    只改目标模块的 command，其他模块保持 fixture 配置中的原样（通常仍是
+    Mock），因此不会新建任何下游执行通道，也不会触及正式 Gateway 策略。
+    """
+    import copy
+    import yaml
+    pinned = copy.deepcopy(config)
+    pinned.setdefault('modules', {}).setdefault(module, {})['command'] = \
+        resolve_interpreter(command)
+    cfg_path = os.path.join(temp_dir, 'modules-{0}.yaml'.format(module))
+    log_path = os.path.join(temp_dir, 'adapter-{0}.jsonl'.format(module))
+    with open(cfg_path, 'w', encoding='utf-8') as handle:
+        yaml.safe_dump(pinned, handle, allow_unicode=True)
+    return cfg_path, log_path
+
+
 def build_envelope(request_id: str = 'req-accept-001') -> dict:
     """构造一个最小合法的 ModuleInputEnvelope（受控 fixture）。
 
@@ -179,8 +589,12 @@ class Report:
         return out
 
     def mandatory_failures(self):
+        # `gate=False` 的记录是**如实保留但不计入门槛**的适用性说明
+        # （例如把 mock 场景开关套用到不解析该开关的真实模块）。它不是
+        # 「删除失败检查」：记录、状态与原因都仍然完整出现在报告里。
         return [c for c in self.data['checks']
-                if c['mandatory'] and c['status'] != 'PASS']
+                if c['mandatory'] and c.get('gate', True)
+                and c['status'] != 'PASS']
 
 
 def validate(payload: dict, schema_path: str):
@@ -272,6 +686,9 @@ def main(argv=None) -> int:
     parser.add_argument('--module', required=True, choices=sorted(MODULE_SPEC))
     parser.add_argument('--config', required=True)
     parser.add_argument('--run-id', default=None)
+    parser.add_argument('--real-fixture', default=None,
+                        help='真实模块场景 fixture（受信任本地文件）；'
+                             '给出后额外执行由真实条件触发的状态矩阵')
     parser.add_argument('--out-dir', default=os.path.join(REPO, 'logs',
                                                           'member_acceptance'))
     args = parser.parse_args(argv)
@@ -299,8 +716,14 @@ def main(argv=None) -> int:
     if not entry:
         return finalize(report, args.out_dir)
 
-    command = entry.get('command')
+    # 统一解释器：配置里的裸 `python3` 映射到当前验收进程的解释器，
+    # 避免「模块依赖其实已满足、却因为 PATH 上是另一个 python3 而假失败」。
+    # 只改解释器，不改任何参数与检查门槛。
+    raw_command = entry.get('command')
+    command = (resolve_interpreter(raw_command)
+               if isinstance(raw_command, list) and raw_command else raw_command)
     report.data['module_command'] = command
+    report.data['module_command_as_configured'] = raw_command
     if isinstance(command, list) and command:
         report.data['executable'] = command[0]
     report.add('CFG-03', 'command 是参数数组（非字符串）',
@@ -437,23 +860,36 @@ def main(argv=None) -> int:
             row['detail'] = serr
         state_rows.append(row)
 
+    # 给出 `--real-fixture` 时，被测对象是**不解析 f0_mock 开关的真实模块**：
+    # mock 场景开关对它不适用。这些记录如实保留（含 FAIL 与原因）但不计入
+    # 门槛，门槛改由真实条件状态矩阵（REAL-STATE-*）承担。未给出
+    # `--real-fixture` 时行为与修复前完全一致，mock 模式仍是强制项。
+    mock_gate = not args.real_fixture
     for row in state_rows:
         cid = 'STATE-{0}'.format(row['scenario'].upper())
         passed = (row['structured'] and row['schema_ok'] is True
                   and row['ids_ok']
                   and row['actual_state'] == row['expected_state']
                   and row['actual_class'] == row['expected_class'])
+        detail = 'rc={0} state={1} schema_ok={2} class={3} ids_ok={4}'.format(
+            row['returncode'], row['actual_state'], row['schema_ok'],
+            row['actual_class'], row['ids_ok'])
+        if not mock_gate:
+            detail += ('；fixture 的 f0_mock 场景开关对真实模块不适用，'
+                       '该状态由 REAL-STATE-{0} 以真实条件校验').format(
+                           row['scenario'].upper())
         report.add(
             cid, '{0} 场景真实运行 -> {1}（{2}）'.format(
                 row['scenario'], row['expected_state'], row['expected_class']),
-            'PASS' if passed else 'FAIL',
-            'rc={0} state={1} schema_ok={2} class={3} ids_ok={4}'.format(
-                row['returncode'], row['actual_state'], row['schema_ok'],
-                row['actual_class'], row['ids_ok']),
+            'PASS' if passed else 'FAIL', detail,
+            mandatory=False if not mock_gate else True,
             extra={'scenario': row['scenario'],
                    'schema_valid': row['schema_ok'],
                    'security_class': row['actual_class'],
-                   'returncode': row['returncode']})
+                   'returncode': row['returncode'],
+                   'gate': mock_gate,
+                   'applicability': ('MOCK_SCENARIO_SWITCH_APPLIES' if mock_gate
+                                     else 'NOT_APPLICABLE_REAL_MODULE')})
 
     report.data['state_matrix'] = state_rows
     proceed_rows = [r for r in state_rows if r['expected_class'] == 'PROCEED']
@@ -495,6 +931,184 @@ def main(argv=None) -> int:
         except Exception as exc:               # noqa: BLE001
             report.add(cid, '适配层对 {0} 阻断'.format(row['expected_state']),
                        'BLOCKED', str(exc)[:200])
+
+    # ---------------- 3b) 真实模块场景（L2）：真实条件触发四状态 ----------------
+    # 与上面的 Mock 矩阵并存且互不影响：Mock 矩阵验证协议与 mock 契约，
+    # 这里验证**真实规则模块**能由真实条件产生四状态，并被真实状态核对。
+    real_block_rows = []
+    real_proceed_rows = []
+    if args.real_fixture:
+        report.data['real_fixture'] = rel(args.real_fixture)
+        try:
+            fixture = parse_real_fixture(args.real_fixture, module, config)
+        except FixtureError as exc:
+            report.add('REAL-01', '真实场景 fixture 合法', 'FAIL', str(exc))
+            fixture = None
+        else:
+            report.add('REAL-01', '真实场景 fixture 合法（受信任本地文件）',
+                       'PASS',
+                       '{0}；{1} 个场景'.format(rel(args.real_fixture),
+                                             len(fixture['scenarios'])))
+            report.add('REAL-02',
+                       '业务输入不得指定命令/策略/可执行文件',
+                       'PASS',
+                       'fixture 只引用配置档案名；envelope_patch 中 '
+                       'command/exec/policy/env 等字段被拒绝')
+        if fixture:
+            rows = []
+            for scenario in fixture['scenarios']:
+                row, env, payload = invoke_real_scenario(
+                    module, scenario, timeout, max_bytes)
+                extra_fail = verify_traceability(row, payload, row['command'])
+                reason_expect = scenario['expect'].get('reason_code')
+                if reason_expect and row['actual_reason_code'] != reason_expect:
+                    extra_fail = (extra_fail + ' | ' if extra_fail else '') + (
+                        'reason_code {0!r} != 期望 {1!r}'.format(
+                            row['actual_reason_code'], reason_expect))
+                passed = (
+                    row['structured'] and row['schema_ok'] is True
+                    and row['ids_ok'] and row['traceability_ok']
+                    and row['actual_state'] == row['expected_state']
+                    and row['actual_class'] == row['expected_class']
+                    and not extra_fail)
+                row['passed'] = passed
+                row['expected_class_ok'] = (
+                    row['actual_class'] == row['expected_class'])
+                row['expectation_failure'] = extra_fail
+                cid = 'REAL-STATE-{0}'.format(scenario['name'].upper())
+                detail = ('rc={0} policy={1} actual={2} expected={3} '
+                          'schema_ok={4} class={5} ids_ok={6} '
+                          'traceability_ok={7} reason_code={8}').format(
+                    row['returncode'], row['policy_ref'],
+                    row['actual_state'], row['expected_state'],
+                    row['schema_ok'], row['actual_class'], row['ids_ok'],
+                    row['traceability_ok'], row['actual_reason_code'])
+                if extra_fail:
+                    detail += ' | ' + extra_fail
+                report.add(
+                    cid,
+                    '真实条件 {0}（{1}）-> {2}'.format(
+                        scenario['name'], scenario['trigger'] or '真实策略条件',
+                        row['expected_state']),
+                    'PASS' if passed else 'FAIL', detail,
+                    extra={'scenario': row['scenario'],
+                           'trigger': row['trigger'],
+                           'expected_state': row['expected_state'],
+                           'actual_state': row['actual_state'],
+                           'expected_class': row['expected_class'],
+                           'security_class': row['actual_class'],
+                           'schema_valid': row['schema_ok'],
+                           'reason_code': row['actual_reason_code'],
+                           'traceable_command': row['command'],
+                           'policy_ref': row['policy_ref'],
+                           'returncode': row['returncode']})
+                rows.append((scenario, row, env))
+                if row['expected_class'] == 'LEGAL_BLOCK':
+                    real_block_rows.append((scenario, row, env))
+                else:
+                    real_proceed_rows.append((scenario, row, env))
+
+            report.data['real_state_matrix'] = [
+                {k: v for k, v in row.items() if k != 'command'} |
+                {'command': row['command']}
+                for _s, row, _e in rows]
+            report.add(
+                'REAL-STATE-SUMMARY',
+                '真实条件状态矩阵完整执行（共 {0} 种）'.format(
+                    len(fixture['scenarios'])),
+                'PASS' if len(rows) == len(fixture['scenarios'])
+                and all(r['passed'] for _s, r, _e in rows) else 'FAIL',
+                'PROCEED={0} LEGAL_BLOCK={1}；均由真实模块输出决定'.format(
+                    len(real_proceed_rows), len(real_block_rows)))
+            report.add(
+                'REAL-STATE-SCHEMA',
+                '真实条件输出符合原有 Schema（含阻断状态）',
+                'PASS' if rows and all(
+                    r['schema_ok'] is True for _s, r, _e in rows) else 'FAIL',
+                '阻断状态也必须结构合法；Schema 非法单独判负')
+
+            # ---- F0 对真实阻断状态的处置 ----
+            adapter = os.path.join(REPO, 'scripts', 'team_demo.py')
+            with tempfile.TemporaryDirectory(prefix='rg_real_fixture_') as temp:
+                for scenario, row, env in real_block_rows:
+                    cid = 'REAL-ADP-{0}'.format(scenario['name'].upper())
+                    if not os.path.isfile(adapter):
+                        report.add(cid, 'F0 对真实 {0} 阻断'.format(
+                            row['expected_state']), 'BLOCKED',
+                            'scripts/team_demo.py 不存在')
+                        continue
+                    cfg_path, log_path = _pin_real_command(
+                        temp, config, module, row['command'])
+                    try:
+                        proc = subprocess.run(
+                            [sys.executable, adapter, '--input', '-',
+                             '--config', cfg_path, '--log', log_path],
+                            input=json.dumps(env), capture_output=True,
+                            text=True, timeout=max(timeout, 60), cwd=REPO,
+                            shell=False)
+                        decision = reason = None
+                        if proc.stdout.strip().startswith('{'):
+                            doc = json.loads(proc.stdout)
+                            decision = doc.get('decision')
+                            reason = doc.get('reason_code')
+                        blocked = (decision == 'ADAPTER_BLOCK'
+                                   and proc.returncode != 0)
+                        report.add(
+                            cid,
+                            'F0 对真实 {0}（{1}）返回 ADAPTER_BLOCK'.format(
+                                row['expected_state'], scenario['name']),
+                            'PASS' if blocked else 'FAIL',
+                            'rc={0} decision={1} reason={2}'.format(
+                                proc.returncode, decision, reason),
+                            extra={'returncode': proc.returncode,
+                                   'decision': decision,
+                                   'reason_code': reason,
+                                   'actual_state': row['actual_state']})
+                    except Exception as exc:               # noqa: BLE001
+                        report.add(cid, 'F0 对真实 {0} 阻断'.format(
+                            row['expected_state']), 'BLOCKED', str(exc)[:200])
+
+                # ---- 合法条件只产生 READY_FOR_GATEWAY_SUBMISSION ----
+                for scenario, row, env in real_proceed_rows:
+                    cid = 'REAL-ADP-{0}'.format(scenario['name'].upper())
+                    if not os.path.isfile(adapter):
+                        report.add(cid, '合法真实条件 -> 仅 READY_FOR_GATEWAY_SUBMISSION',
+                                   'BLOCKED', 'scripts/team_demo.py 不存在')
+                        continue
+                    cfg_path, log_path = _pin_real_command(
+                        temp, config, module, row['command'])
+                    try:
+                        proc = subprocess.run(
+                            [sys.executable, adapter, '--input', '-',
+                             '--config', cfg_path, '--log', log_path],
+                            input=json.dumps(env), capture_output=True,
+                            text=True, timeout=max(timeout, 60), cwd=REPO,
+                            shell=False)
+                        doc = (json.loads(proc.stdout)
+                               if proc.stdout.strip().startswith('{') else {})
+                        decision = doc.get('decision')
+                        # READY 只代表可以提交给 Gateway，绝不是 ALLOW，
+                        # 更不是 NavigationSim 执行成功。
+                        ready_only = (
+                            decision == 'READY_FOR_GATEWAY_SUBMISSION'
+                            and doc.get('gateway_decision') is None
+                            and doc.get('navsim_goal_id') is None)
+                        report.add(
+                            cid,
+                            '合法真实条件只产生 READY_FOR_GATEWAY_SUBMISSION'
+                            '（仍需 Gateway 判定）',
+                            'PASS' if ready_only else 'FAIL',
+                            'rc={0} decision={1} reason={2}'
+                            ' gateway_decision={3}'.format(
+                                proc.returncode, decision,
+                                doc.get('reason_code'),
+                                doc.get('gateway_decision')),
+                            extra={'returncode': proc.returncode,
+                                   'decision': decision,
+                                   'actual_state': row['actual_state']})
+                    except Exception as exc:               # noqa: BLE001
+                        report.add(cid, '合法真实条件 -> 仅 READY', 'BLOCKED',
+                                   str(exc)[:200])
 
     # ---------------- 4) 失败关闭路径 ----------------
     bad_cases = [
