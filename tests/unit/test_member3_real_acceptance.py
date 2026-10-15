@@ -508,3 +508,43 @@ def test_real_module_does_not_read_f0_mock_switch():
             timeout=120)
         results.append(json.loads(proc.stdout)['status'])
     assert results == ['ALLOW_RECOMMENDED'] * 4
+
+
+# ---------------------------------------------------------------------------
+# 解释器统一（兼容性修复的直接覆盖）
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize('alias', ['python', 'python3', 'python3.10',
+                                   'python3.11', 'python3.12', 'python3.13'])
+def test_bare_python_alias_maps_to_current_interpreter(alias):
+    """裸 python 别名必须映射到当前验收进程的解释器。
+
+    交付配置写 `python3`，而真实模块需要 jsonschema>=4；若验收器自身跑在
+    满足依赖的解释器里、却用 PATH 上另一个 python3 调模块，会得到
+    「模块不可运行」的假失败。只改解释器，不改任何参数。
+    """
+    resolved = cmm.resolve_interpreter([alias, 'modules/x.py', '--policy', 'p.yaml'])
+    assert resolved[0] == sys.executable
+    assert resolved[1:] == ['modules/x.py', '--policy', 'p.yaml']
+
+
+def test_non_python_command_is_not_rewritten():
+    """非 python 命令必须原样保留（不越权改写受信任配置）。"""
+    original = ['/usr/bin/env', 'ros2', 'run', 'rg_demo_nodes', 'planner_node']
+    assert cmm.resolve_interpreter(original) == original
+
+
+def test_absolute_python_path_is_not_rewritten():
+    """显式绝对路径解释器视为运维有意选择，不覆盖。"""
+    original = ['/opt/venv/bin/python3', 'module.py']
+    assert cmm.resolve_interpreter(original) == original
+
+
+def test_profile_args_keep_module_and_append_only():
+    """args 档案只能追加到模块命令之后，不能替换模块本身。"""
+    config = {'real_command_profiles': {'p': {'args': ['--policy', 'x.yaml']}}}
+    composed = cmm.resolve_profile_command(
+        ['python3', 'modules/member3_taskrisk/module.py'], config, 'p')
+    assert composed[0] == sys.executable
+    assert composed[1] == 'modules/member3_taskrisk/module.py'
+    assert composed[2:] == ['--policy', 'x.yaml']
