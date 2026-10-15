@@ -209,6 +209,8 @@ comm_risk(MOCK) + identity_trust(EXTERNAL) + task_risk(EXTERNAL)
 >   "尤其是 S3/S4 是否返回 `DENIED`"一问的准确答案是：**证据层为 `DENIED`（拒绝资源=
 >   `/rg/nav_execute`，已保留），评估层为 `UNKNOWN`** —— 因为当前候选入口是
 >   `/rg/guarded_navigate`，历史拒绝不得跨资源搬运。这是**收紧**而非放松。
+> - **对 P1-1 影响面的补充限定**（不修改原文结论）：原文「`DENIED` 永不产生」在交付版上**成立且可复现** —— `envelope_check` 强制候选资源为 `/rg/guarded_navigate`，而 DENIED 场景（S3/S4）的资源是 `/rg/nav_execute`，且交付版只在 `AUTHORIZED` 分支做资源比较，因此 `assessment()` 的顶层 `status` 无法取到 `DENIED`。
+>   由此，ANSI 缺陷在交付版上的**实际后果是原生拒绝证据被丢弃并失败关闭为 `UNKNOWN`**（安全方向），而不是产生错误的 `DENIED`。修复后资源一致时证据层可正常得到 `DENIED`。
 > - 原文结论不因该更新而修改；本节仅记录后继版本的实际结果。
 
 **该分支正在修复的内容与本报告独立定位的缺陷高度重合**，构成互相印证：
