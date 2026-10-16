@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0-proposed",
+  "run_id": "run-f0c-0001", "request_id": "req-f0c-0001", "event_id": "evt-id-0002",
+  "producer": { "name": "identity_trust_mock", "module_version": "0.1.0", "source": "MOCK" },
+  "observed_at": "2026-10-10T12:00:05Z", "status": "DENIED",
+  "reason": "访问控制层拒绝：目标资源不在该身份的允许规则内",
+  "subject": { "observed_name": "planner_node", "declared_enclave": "/planner" },
+  "requested_resource": { "resource": "/rg/nav_execute", "operation": "SERVICE_REQUEST" },
+  "authorization": { "result_status": "DENIED", "denial_layer": "DDS_ACCESS_CONTROL",
+    "denial_detail": "权限规则未命中，端点创建失败" },
+  "identity_evidence": { "kind": "DDS_ACCESS_CONTROL_LOG",
+    "detail": "运行日志中出现原生访问控制拒绝记录" },
+  "access_control_evidence": { "kind": "NATIVE_ACCESS_CONTROL_LOG",
+    "detail": "拒绝发生在端点创建阶段，非客户端超时" },
+  "policy_ref": { "permissions_ref": "security/policies/minimal_permissions.xml", "policy_version": "m2" },
+  "evidence_refs": [{ "ref": "tests/evidence (M2 对照实验)", "kind": "CONTROLLED_SECURITY_EXPERIMENT",
+    "note": "受控实验支持的拒绝归因" }]
+}

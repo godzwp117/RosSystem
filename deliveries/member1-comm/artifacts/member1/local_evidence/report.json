@@ -1,0 +1,77 @@
+{
+  "baseline_sha": "a4c597161d254192b662ee7b8f4d17f76a89cc16",
+  "research_reference_sha": "470cd4b3be8d3fa4aa2ad9690b1976aacaab93ce",
+  "contract": "PROPOSED_V1",
+  "implementation_type": "EXPERIMENTAL_OFFLINE_PROTOTYPE",
+  "controlled_protocol": [
+    {
+      "case": "normal",
+      "status": "NORMAL",
+      "returncode": 0,
+      "schema": "PASS",
+      "test_layer": "L1_CONTROLLED_MODEL_PROTOCOL",
+      "source_kind": "MOCK",
+      "actual_adapter": {
+        "decision": "READY_FOR_GATEWAY_SUBMISSION",
+        "reason_code": "ADAPTER_OK",
+        "returncode": 0,
+        "online": false
+      }
+    },
+    {
+      "case": "suspicious",
+      "status": "SUSPICIOUS",
+      "returncode": 0,
+      "schema": "PASS",
+      "test_layer": "L1_CONTROLLED_MODEL_PROTOCOL",
+      "source_kind": "MOCK",
+      "actual_adapter": {
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+        "returncode": 10,
+        "online": false
+      }
+    },
+    {
+      "case": "unknown",
+      "status": "UNKNOWN",
+      "returncode": 0,
+      "schema": "PASS",
+      "test_layer": "L1_CONTROLLED_MODEL_PROTOCOL",
+      "source_kind": "MOCK",
+      "actual_adapter": {
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+        "returncode": 10,
+        "online": false
+      }
+    },
+    {
+      "case": "error",
+      "status": "ERROR",
+      "returncode": 0,
+      "schema": "PASS",
+      "test_layer": "L1_CONTROLLED_MODEL_PROTOCOL",
+      "source_kind": "MOCK",
+      "actual_adapter": {
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+        "returncode": 10,
+        "online": false
+      }
+    }
+  ],
+  "baseline_L1_checker": {
+    "status": "FAIL",
+    "returncode": 1,
+    "cause": "baseline fixtures supply no real features/runtime metadata; module refuses invented mapping"
+  },
+  "old_model_reproduction": "BLOCKED_NO_OLD_MODEL_ARTIFACT",
+  "RUNTIME_MONITOR": "NOT_READY",
+  "scope": "This runner performs controlled L1 only; it does not assess other experiment layers",
+  "other_evidence": {
+    "real_data": "artifacts/member1/offline_experiments/",
+    "live_ros_controlled_protocol": "artifacts/member1/ros_controlled_protocol/"
+  },
+  "pr_gate": "NOT_MET; draft only, no merge request until unresolved layers reviewed"
+}
