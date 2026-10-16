@@ -22,7 +22,7 @@
 |---|---|---|
 | Git 状态核对 | 全部 SHA 与任务书预期一致；工作区干净 | **VERIFIED** |
 | PR #6 / #7 状态 | 两条 PR 均 **open**，**目标分支均为 `main`**（非任务书假设的 baseline） | **VERIFIED** |
-| 演示候选分支 | 标签 `demo-2026-10-19-rc-preflight-20261016`（`f786c6c`） | **VERIFIED** |
+| 演示候选分支 | 标签 `demo-2026-10-19-rc-preflight-20261016` | **VERIFIED** |
 | 验收器缺陷一（LIM-01 恒 PASS） | 已修复 + 反例测试（可证伪） | **FIXED + VERIFIED** |
 | 验收器缺陷二（REAL-STATE 未校验退出码） | 已修复 + 反例测试 | **FIXED + VERIFIED** |
 | ROS 2 Jazzy 环境 | 已恢复并验证（4 包构建、Action 类型正确） | **VERIFIED** |
@@ -47,7 +47,7 @@
 | `origin/chore/member-deliveries` | `3ce820258c69b89e2ad9291e16c44dc7d2b99150` | ✅ 一致 |
 | `origin/main` | `838f66f41821edf0421612a205d162ae8e9eb955` | — |
 | `origin/fix/m2-m3-acceptance` | 见 §12 权威 SHA（本报告所在分支，**其 SHA 随本报告提交而变**；以 `origin/demo/2026-10-19-rc` 的 SHA 为权威引用） | 本轮前进 4 个提交 |
-| `origin/demo/2026-10-19-rc` | 标签 `demo-2026-10-19-rc-preflight-20261016` = `f786c6c5461da39df680535b390cd42184bcf0a9` | **本轮新建** |
+| `origin/demo/2026-10-19-rc` | 标签 `demo-2026-10-19-rc-preflight-20261016`（SHA 用 `git rev-parse` 取得） | **本轮新建** |
 
 **关于 SHA 自引用（如何取得权威版本）**
 
@@ -55,14 +55,22 @@
 `demo/2026-10-19-rc` 也会随并入而前进。为避免正文出现失效 SHA，本轮改为发布
 **不可变的注解标签**作为权威引用：
 
-| 标签 | 指向 | 用途 |
-|---|---|---|
-| `demo-2026-10-19-rc-preflight-20261016` | demo 快照 `f786c6c5461da39df680535b390cd42184bcf0a9` | **权威**：本轮演示候选与全部证据 |
-| `fix-m2-m3-acceptance-20261016` | fix 快照 `1ab07b8ec45b3f45dc3a0307e5bd8dd6e26b1b36` | 整改成果与收尾报告 |
+| 标签 | 内容 |
+|---|---|
+| `demo-2026-10-19-rc-preflight-20261016` | **权威引用**：本轮演示候选 + 全部 preflight 证据 + 本报告 |
+| `fix-m2-m3-acceptance-20261016` | 整改成果与收尾报告（与上者同内容） |
 
-取得方式：`git fetch origin --tags` 后 `git describe --tags <sha>` 或直接
-`git rev-parse demo-2026-10-19-rc-preflight-20261016^{commit}`。
-**标签不变**，因此长期可复现；分支名会前进，不要用分支名当版本号。
+**取得权威 SHA（推荐做法，不依赖正文）**：
+
+```bash
+git fetch origin --tags
+git rev-parse demo-2026-10-19-rc-preflight-20261016^{commit}
+git log --oneline -1 demo-2026-10-19-rc-preflight-20261016
+```
+
+**为什么正文不写分支 SHA**：`fix/m2-m3-acceptance` 承载本报告且 `demo/2026-10-19-rc`
+会随并入前进，任何写死的分支 SHA 都会在下一次修订后失效。标签是注解对象、
+不由提交内容决定，因此长期可复现。**引用版本请一律使用标签，不要用分支名。**
 
 ### 2.2 分支职责（严格区分，未混用）
 
@@ -491,7 +499,7 @@ M3(EXTERNAL) + M1/M2(MOCK) 同配置下 Gateway/NavigationSim 独立复验：
 
 | 完成判据（A 类） | 实测结果 |
 |---|---|
-| 演示候选分支清晰 | ✅ 标签 `demo-2026-10-19-rc-preflight-20261016`（`f786c6c`，独立 worktree `/home/zhangwei/project/RosSystem-demo-1019`） |
+| 演示候选分支清晰 | ✅ 标签 `demo-2026-10-19-rc-preflight-20261016`；独立 worktree `/home/zhangwei/project/RosSystem-demo-1019` |
 | 必要代码整改完成 | ✅ LIM-01 + REAL-STATE 两处修复，均有反例测试（27 项） |
 | ROS 2 Jazzy 环境可运行 | ✅ 容器复用核验通过、4 包构建、Action 类型正确 |
 | 基础 A/B 演示通过 | ✅ 8 passed / 0 failed（修复后复跑一致） |
