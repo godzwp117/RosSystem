@@ -22,7 +22,7 @@
 |---|---|---|
 | Git 状态核对 | 全部 SHA 与任务书预期一致；工作区干净 | **VERIFIED** |
 | PR #6 / #7 状态 | 两条 PR 均 **open**，**目标分支均为 `main`**（非任务书假设的 baseline） | **VERIFIED** |
-| 演示候选分支 | `demo/2026-10-19-rc` = `4f2c670` | **VERIFIED** |
+| 演示候选分支 | `demo/2026-10-19-rc` = `9ecb353` | **VERIFIED** |
 | 验收器缺陷一（LIM-01 恒 PASS） | 已修复 + 反例测试（可证伪） | **FIXED + VERIFIED** |
 | 验收器缺陷二（REAL-STATE 未校验退出码） | 已修复 + 反例测试 | **FIXED + VERIFIED** |
 | ROS 2 Jazzy 环境 | 已恢复并验证（4 包构建、Action 类型正确） | **VERIFIED** |
@@ -46,8 +46,8 @@
 | `origin/baseline` | `a4c597161d254192b662ee7b8f4d17f76a89cc16` | ✅ 一致，**未被移动** |
 | `origin/chore/member-deliveries` | `3ce820258c69b89e2ad9291e16c44dc7d2b99150` | ✅ 一致 |
 | `origin/main` | `838f66f41821edf0421612a205d162ae8e9eb955` | — |
-| `origin/fix/m2-m3-acceptance` | `fcb274ad5e9ddd074fe770cd4d92905849c8fe02`（修复前 `13098b7a…`） | 本轮**前进 3 个提交** |
-| `origin/demo/2026-10-19-rc` | `4f2c6702019a091ed7881c8a5c833eda6c11d0d7` | **本轮新建** |
+| `origin/fix/m2-m3-acceptance` | `b60bca71a7326983ad14cb37a4a9ec127739e83e`（修复前 `13098b7a…`） | 本轮**前进 3 个提交** |
+| `origin/demo/2026-10-19-rc` | `9ecb3534a8ef02aea1dac18eb218b55d6eaf9a84` | **本轮新建** |
 
 ### 2.2 分支职责（严格区分，未混用）
 
@@ -55,7 +55,7 @@
 |---|---|---|
 | `baseline` | `a4c5971` | 公共基线（本轮未推任何提交） |
 | `chore/member-deliveries` | `3ce8202` | 三成员原始交付归档 |
-| `fix/m2-m3-acceptance` | `fcb274a` | 后续整改成果（M2/M3 修复 + 验收器严谨性修复 + 收尾报告/证据） |
+| `fix/m2-m3-acceptance` | `b60bca7` | 后续整改成果（M2/M3 修复 + 验收器严谨性修复 + 收尾报告/证据） |
 | `demo/2026-10-19-rc` | `4f2c670` | **演示集成候选开发起点**（合并了 fix 分支） |
 
 `demo/2026-10-19-rc` 是**演示候选开发分支**，不是已验收通过的 RC1。
@@ -85,7 +85,7 @@
 | 标题 | `Chore/member deliveries` | `Fix/m2 m3 acceptance` |
 | 状态 | **open**（未合并） | **open**（未合并） |
 | **base 分支** | **`main`**（`838f66f`） | **`main`**（`838f66f`） |
-| head 分支 | `chore/member-deliveries` `3ce8202` | `fix/m2-m3-acceptance` `fcb274a` |
+| head 分支 | `chore/member-deliveries` `3ce8202` | `fix/m2-m3-acceptance` `b60bca7` |
 | commits | 44 | 53 |
 | changed_files | 192 | 272 |
 | ± | +59011 / −497 | +71145 / −497 |
@@ -476,7 +476,7 @@ M3(EXTERNAL) + M1/M2(MOCK) 同配置下 Gateway/NavigationSim 独立复验：
 
 | 完成判据（A 类） | 实测结果 |
 |---|---|
-| 演示候选分支清晰 | ✅ `demo/2026-10-19-rc` = `4f2c6702019a091ed7881c8a5c833eda6c11d0d7`（独立 worktree `/home/zhangwei/project/RosSystem-demo-1019`） |
+| 演示候选分支清晰 | ✅ `demo/2026-10-19-rc` = `9ecb3534a8ef02aea1dac18eb218b55d6eaf9a84`（独立 worktree `/home/zhangwei/project/RosSystem-demo-1019`） |
 | 必要代码整改完成 | ✅ LIM-01 + REAL-STATE 两处修复，均有反例测试（27 项） |
 | ROS 2 Jazzy 环境可运行 | ✅ 容器复用核验通过、4 包构建、Action 类型正确 |
 | 基础 A/B 演示通过 | ✅ 8 passed / 0 failed（修复后复跑一致） |
