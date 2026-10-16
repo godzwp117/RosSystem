@@ -778,36 +778,75 @@ for _name in ('EXIT_INPUT_INVALID', 'EXIT_BLOCK', 'EXIT_CONFIG_INVALID',
     _td_checks[_name] = getattr(_td, _name, None)
 
 
-def _marker_module(tmp_path, marker):
+#: 各模块的「可推进状态」——正向对照替身必须输出它，否则适配层不会放行。
+PROCEED_FOR_CONTROL = {
+    'comm_risk': 'NORMAL',
+    'identity_trust': 'AUTHORIZED',
+    'task_risk': 'ALLOW_RECOMMENDED',
+}
+
+
+def _marker_module(tmp_path, marker, module):
     """写一个**调用标记**测试替身：一旦被调用就创建 marker 文件。
 
     用于证明适配层在拒绝非法输入时**没有**调用任何模块；同时它必须输出
-    符合目标模块 Schema 的合法文档，才能作为「合法输入应当推进」的正向对照。
+    符合**目标模块** Schema 的合法文档，才能作为「合法输入应当推进」的正向对照
+    （不同模块的输出 Schema 与可推进状态不同，因此必须按模块生成）。
     """
-    script = Path(tmp_path) / 'marker_module.py'
+    status = PROCEED_FOR_CONTROL[module]
+    script = Path(tmp_path) / 'marker_module_{0}.py'.format(module)
     script.write_text(
         'import json, sys, pathlib\n'
         'raw = sys.stdin.read()\n'
         'pathlib.Path({marker!r}).write_text("CALLED", encoding="utf-8")\n'
         'env = json.loads(raw)\n'
         'action = env["candidate_action"]\n'
-        'document = {{\n'
+        'target = dict(action["target"])\n'
+        'common = {{\n'
         '    "schema_version": "1.0.0-proposed",\n'
         '    "run_id": env["run_id"], "request_id": env["request_id"],\n'
         '    "event_id": "probe-" + env["request_id"][:80],\n'
         '    "producer": {{"name": "adp01_probe", "source": "MOCK",\n'
         '                  "module_version": "0"}},\n'
         '    "observed_at": "2026-10-16T00:00:00Z",\n'
-        '    "status": "ALLOW_RECOMMENDED",\n'
-        '    "task_id": action["task_id"],\n'
-        '    "candidate_action": {{"action_resource": action["action_resource"],\n'
-        '                         "operation": action["operation"]}},\n'
-        '    "target": dict(action["target"]),\n'
-        '    "risk_level": "NONE", "reason": "adp01 positive control",\n'
-        '    "rule_basis": ["probe"],\n'
+        '    "status": {status!r},\n'
         '    "evidence_refs": [{{"ref": "adp01_probe", "kind": "MOCK"}}],\n'
         '}}\n'
-        'json.dump(document, sys.stdout)\n'.format(marker=str(marker)),
+        'if {module!r} == "task_risk":\n'
+        '    common.update({{\n'
+        '        "task_id": action["task_id"],\n'
+        '        "candidate_action": {{"action_resource": action["action_resource"],\n'
+        '                            "operation": action["operation"]}},\n'
+        '        "target": target,\n'
+        '        "risk_level": "NONE", "reason": "adp01 positive control",\n'
+        '        "rule_basis": ["probe"],\n'
+        '    }})\n'
+        'elif {module!r} == "identity_trust":\n'
+        '    common.update({{\n'
+        '        "reason": "adp01 positive control",\n'
+        '        "subject": {{"observed_name": "adp01_probe"}},\n'
+        '        "requested_resource": {{"resource": action["action_resource"],\n'
+        '                              "operation": "SERVICE_REQUEST"}},\n'
+        '        "authorization": {{"result_status": {status!r},\n'
+        '                          "denial_layer": "NONE"}},\n'
+        '        "identity_evidence": {{"kind": "MOCK"}},\n'
+        '        "access_control_evidence": {{"kind": "NONE"}},\n'
+        '    }})\n'
+        'else:\n'
+        '    common.update({{\n'
+        '        "reason": "adp01 positive control",\n'
+        '        "communication": {{"resource": action["action_resource"],\n'
+        '                          "resource_type": "Action",\n'
+        '                          "operation": "GOAL_SEND"}},\n'
+        '        "window": {{"start": env["created_at"],\n'
+        '                   "end": env["created_at"],\n'
+        '                   "duration_ms": 0}},\n'
+        '        "request_count": 1,\n'
+        '        "anomaly_category": "NONE", "risk_level": "NONE",\n'
+        '        "basis": ["adp01 positive control"],\n'
+        '    }})\n'
+        'json.dump(common, sys.stdout)\n'.format(
+            marker=str(marker), module=module, status=status),
         encoding='utf-8')
     return script
 
@@ -1401,7 +1440,7 @@ def main(argv=None) -> int:
             marker = os.path.join(_tmp, 'MODULE_CALLED.marker')
             probe_cfg = _write_probe_config(
                 _tmp, config, module,
-                [sys.executable, str(_marker_module(_tmp, marker))], 'probe')
+                [sys.executable, str(_marker_module(_tmp, marker, module))], 'probe')
             valid_text = json.dumps(envelope)
             try:
                 proc_ok, ev_ok = run_adapter(adapter, probe_cfg, valid_text,
@@ -1435,7 +1474,7 @@ def main(argv=None) -> int:
                 case_marker = os.path.join(_tmp, 'CALLED-{0}.marker'.format(cid))
                 cfg = _write_probe_config(
                     _tmp, config, module,
-                    [sys.executable, str(_marker_module(_tmp, case_marker))],
+                    [sys.executable, str(_marker_module(_tmp, case_marker, module))],
                     cid)
                 try:
                     proc, ev = run_adapter(adapter, cfg, raw, timeout)
@@ -1527,7 +1566,7 @@ def main(argv=None) -> int:
             n10_marker = os.path.join(_tmp, 'N10.marker')
             cfg_n10 = _write_probe_config(
                 _tmp, config, module,
-                [sys.executable, str(_marker_module(_tmp, n10_marker))], 'n10')
+                [sys.executable, str(_marker_module(_tmp, n10_marker, module))], 'n10')
             try:
                 _, ev_n10 = run_adapter(adapter, cfg_n10, valid_text, timeout)
                 called = os.path.isfile(n10_marker)
