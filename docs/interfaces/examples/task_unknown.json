@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0.0-proposed",
+  "run_id": "run-f0c-0001", "request_id": "req-f0c-0001", "event_id": "evt-task-0003",
+  "producer": { "name": "task_risk_mock", "module_version": "0.1.0", "source": "MOCK" },
+  "observed_at": "2026-10-10T12:00:05Z", "status": "UNKNOWN",
+  "reason": "无可信任务阶段来源，无法判定是否越界（不等于允许）",
+  "task_id": "patrol_a_001",
+  "candidate_action": { "action_resource": "/rg/guarded_navigate", "operation": "NAVIGATE" },
+  "target": { "frame_id": "map", "x": 1.5, "y": 1.5, "z": 0.0 },
+  "risk_level": "UNKNOWN",
+  "rule_basis": ["未取得权威策略版本，无法对照区域约束"],
+  "evidence_refs": [{ "ref": "N/A (mock unknown)", "kind": "MOCK", "note": "证据不足" }]
+}

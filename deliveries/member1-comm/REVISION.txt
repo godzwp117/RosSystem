@@ -1,0 +1,13 @@
+baseline_sha=a4c597161d254192b662ee7b8f4d17f76a89cc16
+head_sha=21f528085ebe6d6a9df9e15c6c82c6465c80c84a
+branch=feature/member1-comm-offline-baseline
+contract_status=PROPOSED_V1
+local_research_delivery=COMPLETE
+acceptance_status=PARTIAL_EXPERIMENTAL_PROTOTYPE
+remote_push=DELEGATED_TO_MEMBER4
+L2_offline_experiment=PASS
+model_performance_gate=FAIL
+L3_live_protocol=PASS_WITH_CONTROLLED_FIXTURES
+L3_effective_detector=NOT_READY
+RUNTIME_MONITOR=NOT_READY
+Jazzy_tests=203_PASSED

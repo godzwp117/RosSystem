@@ -1,0 +1,1416 @@
+diff --git a/config/team_modules.member3.yaml b/config/team_modules.member3.yaml
+new file mode 100644
+index 0000000..8e9e69b
+--- /dev/null
++++ b/config/team_modules.member3.yaml
+@@ -0,0 +1,27 @@
++# Member 3 integration example. Members 1/2 remain explicit MOCKs.
++# Commands are trusted local argv; no business-provided file/command paths.
++adapter:
++  log_path: logs/member3/adapter.jsonl
++  planner_command: [ros2, run, rg_demo_nodes, planner_node]
++modules:
++  comm_risk:
++    mode: mock
++    interface: comm_risk_evidence
++    command: [python3, mock_modules/comm_risk_mock.py]
++    timeout_sec: 10
++    max_stdout_bytes: 65536
++    allow_fault_injection: false
++  identity_trust:
++    mode: mock
++    interface: identity_trust_assessment
++    command: [python3, mock_modules/identity_trust_mock.py]
++    timeout_sec: 10
++    max_stdout_bytes: 65536
++    allow_fault_injection: false
++  task_risk:
++    mode: external
++    interface: task_risk_decision
++    command: [python3, modules/member3_taskrisk/module.py, --policy, config/task_policy.yaml]
++    timeout_sec: 10
++    max_stdout_bytes: 65536
++    allow_fault_injection: false
+diff --git a/docs/member3/IMPLEMENTATION_REPORT.md b/docs/member3/IMPLEMENTATION_REPORT.md
+new file mode 100644
+index 0000000..e194821
+--- /dev/null
++++ b/docs/member3/IMPLEMENTATION_REPORT.md
+@@ -0,0 +1,98 @@
++# 成员 3 实现与验证记录
++
++基线 SHA：`a4c597161d254192b662ee7b8f4d17f76a89cc16`。
++开发分支：`feature/member3-taskrisk`；模块版本 `0.1.0`；契约 `PROPOSED_V1`。
++验证日期：2026-10-13（北京时间）。
++
++## 结论
++
++成员 3 已有可独立运行的任务风险规则原型，覆盖静态任务语义、风险解释、可选历史快照建议、
++四状态及真实适配层接入。当前交付状态 **PARTIAL**，不是全面安全保证，**尚不满足 baseline 合入门槛**。
++两个其他研究模块在接入示例中仍为 Mock；DDS 身份与通信异常检测不属于本次成果。
++
++| 检查 | 实际结果 | 边界 |
++| --- | --- | --- |
++| 新增成员 3 测试 | 95 passed | 含算法、四状态、Schema、进程错误、真实适配层调用；历史日志是 UNIT_TEST 合成证据 |
++| 全仓单元回归 | 428 passed, 3 skipped | 3 个跳过项不是 PASS；没有 ROS 实时链路 |
++| 仓库本地 CI 镜像 | PASS | 契约、样例、语法、模板、文件卫生；不是线上 CI 审批 |
++| 受控策略场景 | 87/87 正确 | 81 组边界网格 + 6 个任务/坐标系/策略异常条件；不是未知攻击泛化指标 |
++| 真条件四状态进程矩阵 | PASS | 合法动作、越界动作、缺失策略、损坏策略，不使用 Mock 场景开关 |
++| 通用 check_member_module | FAIL：33 PASS / 3 FAIL / 1 NOT_RUN / 1 BLOCKED | 3 项失败源于它对真实模块仍注入 Mock 场景开关；合入门槛 False |
++| L3 ROS 2 在线联调 | BLOCKED | 本环境没有 ros2 / Docker；仅验证新增在线脚本会明确退出 3 |
++| 实时监测 | NOT_READY | 快照推理和逐请求规则不等于 Jazzy 在线入侵监测 |
++| 动态任务状态机 | NOT_INTEGRATED | 不依赖 feature/m3-dynamic-policy |
++
++## 新增文件
++
++- modules/member3_taskrisk/module.py：严格 stdin/stdout 协议及真实算法 analyse 入口。
++- modules/member3_taskrisk/risk_model.py：独立条款推理、边界距离、只读策略和可选日志快照。
++- modules/member3_taskrisk/experiments.py：受控数据生成、离线参考比较、简化消融和真条件四状态。
++- modules/member3_taskrisk/online_check.py：待实测的 ROS 2 双侧证据脚本。
++- modules/member3_taskrisk/test_module.py、requirements.txt、example_config.yaml、README.md。
++- config/team_modules.member3.yaml：只替换 task_risk 为 external 的接入示例。
++- tests/unit/test_member3_taskrisk.py：成员 3 独立验证。
++- docs/member3/IMPLEMENTATION_REPORT.md、PR_DRAFT.md：本次报告和待审查 PR 说明。
++
++共享 Gateway、Action、八个原因码、全部 rg_policy 源码、四份公共 Schema、DDS 配置、
++其他成员 Mock、通用验收器、原始 task_policy.yaml 及 CI 工作流均保持字节不变。
++
++## 算法真实性与技术边界
++
++算法不读取 f0_mock.scenario，不使用硬编码预设标签，不调用 policy_engine.evaluate 生成输出。
++任务匹配、坐标系匹配、策略 active 及目标区域包含直接由候选 Action 和实际读取的 TaskPolicy 决定。
++策略文件只读；重复 YAML 键会报错；输入重复 JSON 键、非有限数值、超长数据和非法资源失败关闭。
++
++rule_basis 与 extensions.member3.violations 保留所有已判定违反的条款。
++主要原因遵循策略有效性→请求标识→任务→坐标系→数值→区域的顺序，
++不通过加权平均稀释硬约束。多项违规时，解释可多条，但主要原因仍来自既有词表。
++
++边界距离是可解释风险特征，不能当作攻击概率或碰撞风险预测。
++默认静态模式不假装知道去重与频率状态，而列入 pending_gateway_checks。
++可选历史模式读取本地专用审计日志，按首次到达与已 ALLOW 计数建议；
++不是精确复刻 Gateway 的 monotonic 并发状态，不能成为权威放行依据。
++不会从输入自报身份/phase/epoch/digest 推断授权，不伪造 F0 没有的动态字段。
++
++## 受控实验结果解释
++
++87 个样例由项目真实策略生成，不属于 ROSPaCe 自带标签。
++静态建议与 ROS-free policy_engine.evaluate 的可推进判定一致率为 1.0；
++在该受控集合上，误报率和漏报率均为 0。两者覆盖相同明确静态条款，
++因此这个结果只是实现正确性检查，**不能证明模型超越基线、未知攻击能力或论文创新优越性**。
++几何规则单独使用时会漏掉任务、坐标系和策略有效性问题；简化消融仅用于说明条款覆盖贡献。
++
++历史去重/速率只完成合成 UNIT_TEST；EXECUTION_TIMEOUT 仍为 Gateway 执行层待验证项。
++online_check.py 已安排静态建议与实时 Gateway 去重/速率拒绝的对照，但本环境没有运行它，
++所以当前没有本次新增模块的真实 Gateway DecisionEvent + NavigationSim Goal 双侧证据。
++
++## 可复现命令
++
++仓库根目录，使用仓库外虚拟环境：
++
++```bash
++python3 -m venv ../RosSystem-member3-venv
++source ../RosSystem-member3-venv/bin/activate
++python -m pip install -r modules/member3_taskrisk/requirements.txt
++python -m pytest tests/unit/test_member3_taskrisk.py -q -p no:cacheprovider
++python -m pytest tests/unit -q -p no:cacheprovider
++scripts/run_ci_checks_locally.sh
++python modules/member3_taskrisk/experiments.py --out-dir logs/member3/offline-run1
++python scripts/check_member_module.py --module task_risk \
++  --config config/team_modules.member3.yaml --run-id member3-generic-check
++```
++
++已存在的实验目录不覆盖，重跑请换 offline-run2 等新的目录。
++运行记录位于 logs/member3/offline-run1/report.json 及
++logs/member_acceptance/member3-generic-check/report.json，均不会提交到功能分支。
++开发环境为 Python 3.12，依赖 jsonschema 4.26.0、PyYAML 6.0.3、pytest 9.1.1。
++正式在线环境仍应采用团队约定的 Jazzy 容器；本地 Python 测试不替代容器验证。
++
++## 必须由成员四审查的后续事项
++
++1. 审查真实四状态矩阵，决定如何扩展通用验收器接受真实成员输入/配置，而不是 Mock 开关。
++   不允许仅删除失败项或改期望值使门槛变绿；本实现未自行改验收器。
++2. 在专用 ROS Domain、现有 DDS-Security Enforce 环境跑 online_check.py，保存七类场景真实双侧证据。
++3. 明确 Gateway 会话日志完整性、重启边界、时钟与去重 TTL；历史快照建议不能直接授权。
++4. 单独复现执行超时事件，并与准入 DecisionEvent 区分；不能把执行失败写成未创建 Goal。
++5. 审批 PR 后再合入 baseline，契约维持 PROPOSED_V1，成员 3 无权代签冻结确认。
++
++本次只在本地功能分支交付，未推送远程、未创建 PR、未修改受保护分支。
+diff --git a/docs/member3/PR_DRAFT.md b/docs/member3/PR_DRAFT.md
+new file mode 100644
+index 0000000..2d58c40
+--- /dev/null
++++ b/docs/member3/PR_DRAFT.md
+@@ -0,0 +1,32 @@
++# PR 待审查草案（base: baseline）
++
++建议标题：feat(taskrisk): add member 3 explainable task-policy advisory prototype
++
++| 项 | 内容 |
++| --- | --- |
++| 成员编号 | 成员三 |
++| 模块名称 | task_risk |
++| 功能分支 | feature/member3-taskrisk |
++| baseline 来源 SHA | a4c597161d254192b662ee7b8f4d17f76a89cc16 |
++| 当前 HEAD SHA | 提交/推送时执行 git rev-parse HEAD，填实际完整值 |
++| 使用 Schema | TaskRiskDecision / ModuleInputEnvelope，未改动 |
++| 契约版本 | 1.0.0-proposed，状态 PROPOSED_V1 |
++| 本 PR 类型 | 实验原型：真正由 TaskPolicy 与 Action 算出结果的确定性规则 |
++| 安全证据来源 | 本地真实策略与自建受控样例；历史窗口为合成 UNIT_TEST，不冒充 ROS 日志 |
++| 主要局限 | 缺 L3 真实双侧证据；不覆盖身份认证、在线入侵检测、动态状态机；历史快照非并发权威状态 |
++
++新增独立模块、配置、95 项测试及受控实验脚本。保留所有共享安全核心和其他成员模块。
++ALLOW_RECOMMENDED 只表示建议；UNKNOWN/ERROR/非零退出均失败关闭。
++
++测试：成员 3 95 passed；全仓 428 passed, 3 skipped；本地 CI 镜像 PASS；
++87 个受控静态场景正确；真条件四状态及适配层接入 PASS。
++通用验收器 FAIL（33 PASS、3 FAIL、1 NOT_RUN、1 BLOCKED）：
++STATE-BLOCK、STATE-UNKNOWN、STATE-ERROR 仍靠 Mock 开关构造；真实模块刻意忽略它。
++L3 BLOCKED，实时监测 NOT_READY，整体 PARTIAL，**当前不请求批准合入**。
++
++待成员四处理：接受真实条件矩阵的验收器设计评审及受控 Jazzy 双侧证据补测。
++不能通过让真实模块读取 Mock 开关、削弱门槛、删除负例等办法解决。
++
++安全检查事实：未修改 Gateway、Action、原因码、rg_policy、公共 Schema、DDS 配置，
++未使用业务 JSON 选择命令或文件，未引入执行器直通入口，未上传密钥/原始数据/模型二进制。
++审批人、审批结论、远程 SHA 与 PR 链接均由实际开发者填写，不能由本草案伪造。
+diff --git a/modules/member3_taskrisk/README.md b/modules/member3_taskrisk/README.md
+new file mode 100644
+index 0000000..9695089
+--- /dev/null
++++ b/modules/member3_taskrisk/README.md
+@@ -0,0 +1,137 @@
++# 成员 3：任务感知风险建议模块
++
++开发基线：`a4c597161d254192b662ee7b8f4d17f76a89cc16`，分支 `baseline`。
++模块实现版本：`0.1.0`；公共契约保持 `PROPOSED_V1 / 1.0.0-proposed`。
++
++这是**独立规则算法实验原型**，不是场景开关 Mock，也不是已获认证的授权模块。
++算法读取本地真实 TaskPolicy 和候选 Action，识别合法通信主体也可能提出的任务越权。
++它只产生建议；执行必须经过 `/rg/guarded_navigate`，SecurityGateway 是最终权威准入点。
++
++## 已实现与未实现
++
++| 内容 | 范围 |
++| --- | --- |
++| 任务、坐标系、区域、策略有效性检查 | 独立确定性规则，不调用 Gateway evaluate 来冒充新算法 |
++| 风险因子 | active、task_matches、frame_matches、target_finite、region_inside、边界有符号距离 |
++| 可解释性 | 所有违反条款及原因；主要原因按基线静态判定优先级排列 |
++| 四状态 | 真实合法输入→ALLOW_RECOMMENDED；真实违规→BLOCK_RECOMMENDED；缺策略→UNKNOWN；坏策略→ERROR |
++| 重复与频率 | 可选只读整会话审计快照，仅在来源及启动时间由本地配置明确指定时启用 |
++| 尚未实现 | DDS 身份验证、在线入侵检测、动态任务状态机、物理机器人验证 |
++| 执行超时 | 属 Gateway 执行阶段；不能在执行前捏造 EXECUTION_TIMEOUT 结论 |
++
++边界距离为 `min(x-x_min, x_max-x, y-y_min, y_max-y)`，单位米。负数表示越界，
++非负表示处于闭区间内。距离不超过 0.25 米时提示 LOW，但不会改变准入建议。
++该阈值是可配置工程提示，不是经学习得到的攻击概率，不代表碰撞安全。
++基线是二维区域，因此 z 仅检查数值合法性，不新增高度约束。
++
++## 安装及独立运行
++
++从仓库根目录运行。需要 Python 3.10 以上，算法不依赖 ROS 或训练模型。
++
++```bash
++python3 -m venv ../RosSystem-member3-venv
++source ../RosSystem-member3-venv/bin/activate
++python -m pip install -r modules/member3_taskrisk/requirements.txt
++python modules/member3_taskrisk/module.py < docs/interfaces/examples/module_input_valid.json
++python modules/member3_taskrisk/test_module.py
++python modules/member3_taskrisk/experiments.py --out-dir logs/member3/offline-run1
++```
++
++stdin 只接受一个合法 ModuleInputEnvelope；stdout 只输出一个 TaskRiskDecision；诊断写 stderr。
++非有限数值、重复 JSON 键、畸形信封或非法入口返回退出码 2，不伪造必填字段。
++状态 UNKNOWN/ERROR 的合法 JSON 返回退出码 0，但适配层仍必须阻断。
++
++`policy_ref` 仅填写真实读取的 policy_version。不会从业务输入复制 phase/epoch/digest。
++`extensions.member3.policy_content_sha256` 是本地文件实际字节摘要，不是权威 policy_digest。
++配置文件证据标为 UNKNOWN，并注明它是本地配置来源；不把它错标为 DDS 权限文件。
++实验样例明确是项目自建受控数据，不是 ROSPaCe Action 标签。
++
++## 适配层接入
++
++`config/team_modules.member3.yaml` 只把成员 3 换为 external，成员 1/2 保留 Mock。
++若两位成员已有真实实现，只合并本目录 example_config.yaml 的 task_risk 段。
++不要整体覆盖团队已有本地配置。
++
++```bash
++source ../RosSystem-member3-venv/bin/activate
++python scripts/team_demo.py \
++  --input docs/interfaces/examples/module_input_valid.json \
++  --config config/team_modules.member3.yaml
++```
++
++正常结果是 READY_FOR_GATEWAY_SUBMISSION，**不等于 Gateway ALLOW**，更不等于机器人已执行。
++实验脚本会生成合法、越界、缺策略、坏策略的真实输入输出和适配层记录，保存在 logs/ 下，不入库。
++
++## 通用验收器的已知不兼容
++
++必须如实运行：
++
++```bash
++python scripts/check_member_module.py --module task_risk \
++  --config config/team_modules.member3.yaml --run-id member3-generic-check
++```
++
++当前基线验收器对所有四状态使用同一合法目标和同一策略，只改变
++`observations[].detail.f0_mock.scenario`。真实模块必须忽略这个 Mock 开关，因此
++STATE-BLOCK、STATE-UNKNOWN、STATE-ERROR 会报告 FAIL，不能声称达到 PR 合入门槛。
++某些 ADP-* 项仍会通过，是其他两个 Mock 被同时切换后的阻断，不能据此证明成员 3 四状态。
++本交付未修改或削弱共享验收器。真实四状态验证在新增单测及 experiments.py 中进行，
++需要成员四审查是否把通用验收器扩展为接受成员提供的真实输入/配置矩阵。
++在审查与在线证据完成前，本模块整体合入状态为 PARTIAL。
++
++## 可选历史快照推理
++
++默认不启用历史分析；ALLOW_RECOMMENDED 会明确列出仍待 Gateway 检查的去重、频率及执行事项。
++不要把静态允许建议解读为“已经排除所有历史风险”。
++
++历史模式要求由成员四提供**单一 Gateway 当前会话、启动时为空、未截断的专用审计日志**，
++并明确会话开始时间。路径及时间只能来自受信任本地配置/命令行，不能取自业务 JSON。
++
++```bash
++python modules/member3_taskrisk/module.py --policy config/task_policy.yaml \
++  --audit-log tests/evidence/your-session/gateway_audit.jsonl \
++  --audit-kind RUNTIME_LOG --audit-session-start 2026-10-13T00:00:00Z \
++  < your-envelope.json
++```
++
++此命令中的开始时间必须替换为该 Gateway 的真实启动时间，不能照抄常量。
++日志必须有完整 RosCommEvent/DecisionEvent 对，必须仍在本地配置的 30 秒新鲜度窗口内。
++程序只读文件；不会把建议加入 Gateway 的已准入次数，也不会修改共享策略。
++重复窗口沿用首次到达时间，不因重复包刷新；速率只统计已经 ALLOW 的历史到达。
++日志缺失、陈旧、截断或缺关联对时 UNKNOWN；内容畸形或重复 event_id 时 ERROR。
++
++限制：日志 mtime 不能证明节点活跃或日志完整；路径本身不能证明 DDS 身份。
++wall-clock 快照不等价于 Gateway 的 monotonic 并发 tracker；进程重启、时钟跳变、
++跟踪表容量裁剪和同时到达会导致不一致。history 模式仍是研究建议，不能替代最终准入。
++单位测试中的合成事件一律标 UNIT_TEST，不会当成实际 Gateway 日志。
++
++## ROS 2 在线验收（当前未运行）
++
++新增 online_check.py 只在已构建、已 source、现有 DDS-Security Enforce 环境运行。
++它复用基线按实例拥有的进程组清理，不按名称杀进程，不停其他成员容器。
++必须选一个团队为你保留的独立 ROS Domain；不会为了跑通测试关闭 DDS 安全。
++
++```bash
++# 在成员 3 的团队 Jazzy 容器内运行，使用团队已有权限与 keystore
++cd /ws
++source install/setup.bash
++# 使用容器现有的 jsonschema/PyYAML 或已准备的成员独立环境，不改 DDS 配置
++python3 modules/member3_taskrisk/online_check.py --domain 63
++```
++
++域 63 只是示例，执行前必须确认它属于你的隔离测试环境。
++脚本验证正常、区域越界、任务不匹配、坐标系错误、无效策略、重复请求和频率限制。
++上游阻断的真实请求不应产生 Gateway 记录；为对照会另发**不同 request_id** 的影子控制请求，
++仍走既有 Planner→Gateway，而非执行端。报告分开记录两种阻断层级。
++重复及频率案例可展示静态建议允许但实时 Gateway 拒绝的不一致，并保存双侧真实证据。
++在线脚本目前仅完成语法和无 ROS 环境阻断检查，不能宣称 L3 已通过；整体实时监测仍 NOT_READY。
++
++## 开发与提交
++
++新增文件限于本成员目录、独立配置、成员测试及 docs/member3，未改任何共享安全核心。
++无需 joblib、原始流量、图像数据或密钥。仅 feature 分支走 PR，base 必须是 baseline。
++完整测试命令、当前状态与待成员四确认项见 docs/member3/IMPLEMENTATION_REPORT.md。
++
++环境提醒：baseline 的一个旧单测会遍历源码树内的证书扩展名，未排除 `.research-venv`，
++因而可能把 pip 自带的公开 CA 证书误报为密钥。请把开发虚拟环境放在仓库外，
++如上述同级目录；本交付不删证书、不修改该单测，也不削弱凭据审查。
+diff --git a/modules/member3_taskrisk/example_config.yaml b/modules/member3_taskrisk/example_config.yaml
+new file mode 100644
+index 0000000..c157491
+--- /dev/null
++++ b/modules/member3_taskrisk/example_config.yaml
+@@ -0,0 +1,10 @@
++# Merge ONLY task_risk into your existing trusted local adapter config.
++# Do not replace Members 1/2 with unrelated templates.
++modules:
++  task_risk:
++    mode: external
++    interface: task_risk_decision
++    command: [python3, modules/member3_taskrisk/module.py, --policy, config/task_policy.yaml]
++    timeout_sec: 10
++    max_stdout_bytes: 65536
++    allow_fault_injection: false
+diff --git a/modules/member3_taskrisk/experiments.py b/modules/member3_taskrisk/experiments.py
+new file mode 100644
+index 0000000..eac9e31
+--- /dev/null
++++ b/modules/member3_taskrisk/experiments.py
+@@ -0,0 +1,159 @@
++#!/usr/bin/env python3
++"""Controlled rule evaluation; explicitly NOT a ROS 2 online evidence producer."""
++from __future__ import annotations
++
++import argparse
++import copy
++import json
++import subprocess
++import sys
++import time
++from datetime import datetime, timezone
++from pathlib import Path
++
++import yaml
++
++sys.path.insert(0, str(Path(__file__).resolve().parent))
++import module as m3  # noqa: E402
++from risk_model import Settings  # noqa: E402
++from rg_policy.policy_engine import NavRequest, evaluate  # noqa: E402
++from rg_policy.task_policy import load_task_policy, PolicyError  # noqa: E402
++import team_demo  # noqa: E402
++
++BASELINE_SHA = "a4c597161d254192b662ee7b8f4d17f76a89cc16"
++
++
++def envelope(request_id, x=2.0, y=2.0, task="patrol_a_001", frame="map"):
++    stamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
++    return {"schema_version": "1.0.0-proposed", "run_id": "member3-controlled",
++            "request_id": request_id, "created_at": stamp,
++            "candidate_action": {"action_resource": "/rg/guarded_navigate", "operation": "NAVIGATE",
++                                 "task_id": task, "target": {"frame_id": frame, "x": x, "y": y}},
++            "observations": [{"source": "controlled-action-generator", "kind": "CONTROLLED_SECURITY_EXPERIMENT",
++                              "observed_at": stamp, "detail": {}}],
++            "evidence_refs": [{"ref": "modules/member3_taskrisk/experiments.py",
++                               "kind": "CONTROLLED_SECURITY_EXPERIMENT",
++                               "note": "project-generated action cases, not ROSPaCe labels"}]}
++
++
++def main(argv=None):
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--out-dir", type=Path, default=m3.REPO / "logs/member3/offline")
++    args = parser.parse_args(argv)
++    out = args.out_dir.resolve()
++    if (out / "report.json").exists():
++        parser.error("output already contains report; choose a new directory")
++    out.mkdir(parents=True, exist_ok=True)
++    normal_policy = m3.REPO / "config/task_policy.yaml"
++    policy = load_task_policy(str(normal_policy))
++    inactive = out / "inactive-policy.yaml"
++    inactive_doc = yaml.safe_load(normal_policy.read_text())
++    inactive_doc["active"] = False
++    inactive.write_text(yaml.safe_dump(inactive_doc), encoding="utf-8")
++    broken = out / "broken-policy.yaml"
++    broken.write_text("allowed_region: [", encoding="utf-8")
++    missing = out / "missing-policy.yaml"
++    controlled = []
++    coordinates = [-0.001, 0.0, 0.01, 0.25, 2.0, 3.75, 3.99, 4.0, 4.001]
++    for x in coordinates:
++        for y in coordinates:
++            expected = "ALLOW_IN_POLICY" if 0 <= x <= 4 and 0 <= y <= 4 else "OUT_OF_REGION"
++            controlled.append((envelope("grid-{0}".format(len(controlled)), x, y), normal_policy, expected))
++    controlled += [(envelope("wrong-task", task="other"), normal_policy, "TASK_MISMATCH"),
++                   (envelope("wrong-frame", frame="odom"), normal_policy, "INVALID_TARGET"),
++                   (envelope("multiple", 5, 5, task="other"), normal_policy, "TASK_MISMATCH"),
++                   (envelope("inactive"), inactive, "POLICY_MISSING"),
++                   (envelope("absent"), missing, "POLICY_MISSING"),
++                   (envelope("broken"), broken, "POLICY_MISSING")]
++    rows, durations = [], []
++    for env, path, expected in controlled:
++        started = time.perf_counter()
++        answer = m3.decide(env, Settings(path))
++        durations.append((time.perf_counter()-started)*1000)
++        candidate, target = env["candidate_action"], env["candidate_action"]["target"]
++        try:
++            local_policy = load_task_policy(str(path))
++        except PolicyError:
++            local_policy = None
++        reference = evaluate(NavRequest(env["request_id"], candidate["task_id"],
++                                        target["frame_id"], target["x"], target["y"]), local_policy)
++        reason = answer["extensions"]["member3"]["reason_code"]
++        # Minimal, deliberately weaker ablation: geometry-only advice, no task/frame/policy checks.
++        geometry_allow = 0 <= target["x"] <= 4 and 0 <= target["y"] <= 4
++        rows.append({"request_id": env["request_id"], "input": env, "output": answer,
++                     "expected_reason": expected, "actual_reason": reason,
++                     "static_reference": reference.as_dict(),
++                     "reference_is_live_gateway": False,
++                     "geometry_only_ablation_allow": geometry_allow,
++                     "correct": reason == expected,
++                     "same_static_verdict": (answer["status"] == "ALLOW_RECOMMENDED") == reference.allowed})
++
++    # Four REAL process conditions. Do not change f0_mock.scenario to control Member 3.
++    matrix = [("allow", envelope("process-allow"), normal_policy, "ALLOW_RECOMMENDED"),
++              ("block", envelope("process-block", 5, 5), normal_policy, "BLOCK_RECOMMENDED"),
++              ("unknown", envelope("process-unknown"), missing, "UNKNOWN"),
++              ("error", envelope("process-error"), broken, "ERROR")]
++    process_rows = []
++    config_base = yaml.safe_load((m3.REPO / "config/team_modules.member3.yaml").read_text())
++    for label, env, path, expected in matrix:
++        command = [sys.executable, str(Path(m3.__file__)), "--policy", str(path)]
++        proc = subprocess.run(command, input=json.dumps(env), text=True, capture_output=True,
++                              cwd=m3.REPO, timeout=15, shell=False)
++        answer = json.loads(proc.stdout) if proc.stdout else None
++        config = copy.deepcopy(config_base)
++        for item in config["modules"].values():
++            item["command"][0] = sys.executable
++        config["modules"]["task_risk"]["command"] = command
++        cfg = out / (label+"-adapter.yaml")
++        cfg.write_text(yaml.safe_dump(config), encoding="utf-8")
++        adapter_result = team_demo.run(json.dumps(env), str(cfg), str(out / "adapter.jsonl"), str(m3.REPO))
++        expected_adapter = "READY_FOR_GATEWAY_SUBMISSION" if label == "allow" else "ADAPTER_BLOCK"
++        passed = proc.returncode == 0 and answer is not None and answer["status"] == expected
++        passed = passed and not m3.vtc.validate_document(answer, m3.vtc.load_schema("task_risk_decision"))
++        passed = passed and adapter_result["decision"] == expected_adapter
++        if label != "allow":
++            passed = passed and adapter_result["reason_code"] == "ADAPTER_MODULE_STATUS_NOT_PROCEED"
++        process_rows.append({"case": label, "command": command, "exit_code": proc.returncode,
++                             "stderr": proc.stderr, "stdout_bytes": len(proc.stdout.encode()),
++                             "output": answer, "adapter": adapter_result, "pass": passed})
++        (out / (label+"-input.json")).write_text(json.dumps(env, ensure_ascii=False, indent=2), encoding="utf-8")
++        (out / (label+"-output.json")).write_text(proc.stdout, encoding="utf-8")
++
++    normal_rows = [r for r in rows if r["expected_reason"] == "ALLOW_IN_POLICY"]
++    bad_rows = [r for r in rows if r["expected_reason"] != "ALLOW_IN_POLICY"]
++    actual_allow = lambda r: r["output"]["status"] == "ALLOW_RECOMMENDED"
++    report = {"baseline_sha": BASELINE_SHA, "contract_status": "PROPOSED_V1",
++              "module_version": m3.MODULE_VERSION, "implementation": "deterministic rule prototype",
++              "dataset_source": "controlled cases generated from local TaskPolicy; not captured ROS traffic",
++              "case_count": len(rows), "correct_cases": sum(r["correct"] for r in rows),
++              "static_comparator": "rg_policy.policy_engine.evaluate, NOT a live Gateway",
++              "static_verdict_agreement": sum(r["same_static_verdict"] for r in rows)/len(rows),
++              "false_positive_rate": sum(not actual_allow(r) for r in normal_rows)/len(normal_rows),
++              "false_negative_rate": sum(actual_allow(r) for r in bad_rows)/len(bad_rows),
++              "geometry_only_ablation_false_negative_rate": sum(r["geometry_only_ablation_allow"] for r in bad_rows)/len(bad_rows),
++              "inprocess_latency_ms_median": sorted(durations)[len(durations)//2],
++              "latency_note": "local in-process validation+rule calls, NOT realtime ROS throughput",
++              "four_state_process_checks": process_rows,
++              "L1_REAL_CONDITIONS": "PASS" if all(r["pass"] for r in process_rows) else "FAIL",
++              "L2_CONTROLLED_STATIC": "PASS" if all(r["correct"] for r in rows) else "FAIL",
++              "L3_ROS2_ONLINE": "BLOCKED", "RUNTIME_MONITOR": "NOT_READY",
++              "eight_code_coverage": {"ALLOW_IN_POLICY": "CONTROLLED_STATIC",
++                  "TASK_MISMATCH": "CONTROLLED_STATIC", "INVALID_TARGET": "CONTROLLED_STATIC",
++                  "OUT_OF_REGION": "CONTROLLED_STATIC", "POLICY_MISSING": "CONTROLLED_STATIC",
++                  "DUPLICATE_REQUEST": "UNIT_TEST_HISTORY_ONLY", "RATE_LIMIT": "UNIT_TEST_HISTORY_ONLY",
++                  "EXECUTION_TIMEOUT": "NOT_READY_GATEWAY_EXECUTION_ONLY"},
++              "disagreements_to_investigate_online": [
++                  "static module allows, Gateway blocks duplicate/rate due to its live tracker",
++                  "local policy snapshot differs from Gateway policy during policy reload",
++                  "advisory history unavailable closes upstream while Gateway static rules could allow",
++                  "Gateway allows admission, execution later times out: different layers"],
++              "cases": rows}
++    (out / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
++    print(json.dumps({k: report[k] for k in ("case_count", "correct_cases", "L1_REAL_CONDITIONS",
++                                            "L2_CONTROLLED_STATIC", "L3_ROS2_ONLINE", "RUNTIME_MONITOR")},
++                     ensure_ascii=False, indent=2))
++    return 0 if report["L1_REAL_CONDITIONS"] == report["L2_CONTROLLED_STATIC"] == "PASS" else 1
++
++
++if __name__ == "__main__":
++    sys.exit(main())
+diff --git a/modules/member3_taskrisk/module.py b/modules/member3_taskrisk/module.py
+new file mode 100644
+index 0000000..1b4d51c
+--- /dev/null
++++ b/modules/member3_taskrisk/module.py
+@@ -0,0 +1,118 @@
++#!/usr/bin/env python3
++"""TaskRiskDecision stdin/stdout entry point; advice only, fail closed."""
++from __future__ import annotations
++
++import argparse
++import json
++import math
++import sys
++import time
++import uuid
++from datetime import datetime, timezone
++from pathlib import Path
++
++REPO = Path(__file__).resolve().parents[2]
++for path in (REPO / "scripts", REPO / "src" / "rg_policy", Path(__file__).resolve().parent):
++    sys.path.insert(0, str(path))
++
++import validate_team_contracts as vtc  # noqa: E402
++from risk_model import Settings, infer  # noqa: E402
++
++MODULE_VERSION = "0.1.0"
++MAX_INPUT_BYTES = 1024 * 1024
++
++
++def validate_input(envelope):
++    def finite_tree(value):
++        if isinstance(value, float) and not math.isfinite(value):
++            raise ValueError("non-finite number in input")
++        if isinstance(value, dict):
++            for item in value.values():
++                finite_tree(item)
++        elif isinstance(value, list):
++            for item in value:
++                finite_tree(item)
++    finite_tree(envelope)
++    errors = vtc.validate_document(envelope, vtc.load_schema("module_input"))
++    if errors:
++        raise ValueError("input violates ModuleInputEnvelope: " + errors[0][:200])
++
++
++def analyse(module, envelope, context):
++    """Template-compatible algorithm hook. Configuration is NOT business JSON."""
++    if module != "task_risk":
++        raise ValueError("this implementation only supports task_risk")
++    return infer(envelope, context["settings"], context["now"])
++
++
++def build_output(envelope, state, detail):
++    action = envelope["candidate_action"]
++    document = {
++        "schema_version": vtc.CONTRACT_VERSION,
++        "run_id": envelope["run_id"], "request_id": envelope["request_id"],
++        "event_id": "m3-{0}-{1}".format(envelope["request_id"][:80], uuid.uuid4().hex),
++        "producer": {"name": "member3_taskrisk", "source": "EXTERNAL",
++                     "module_version": MODULE_VERSION},
++        "observed_at": datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
++        "status": state, "task_id": action["task_id"],
++        "candidate_action": {"action_resource": action["action_resource"],
++                             "operation": action["operation"]},
++        "target": dict(action["target"]),
++        **detail,
++    }
++    errors = vtc.validate_document(document, vtc.load_schema("task_risk_decision"))
++    if errors:
++        raise ValueError("internal output contract violation: " + errors[0][:200])
++    return document
++
++
++def decide(envelope, settings, now=None):
++    validate_input(envelope)
++    state, detail = analyse("task_risk", envelope,
++                            {"settings": settings, "now": time.time() if now is None else now})
++    return build_output(envelope, state, detail)
++
++
++def main(argv=None):
++    parser = argparse.ArgumentParser(description="Member 3 task risk advisory rules")
++    parser.add_argument("--module", choices=["task_risk"], default="task_risk")
++    parser.add_argument("--policy", type=Path, default=REPO / "config" / "task_policy.yaml")
++    parser.add_argument("--boundary-margin-m", type=float, default=0.25)
++    parser.add_argument("--audit-log", type=Path)
++    parser.add_argument("--audit-kind", choices=["RUNTIME_LOG", "CONTROLLED_SECURITY_EXPERIMENT",
++                                               "UNIT_TEST", "UNKNOWN"], default="UNKNOWN")
++    parser.add_argument("--audit-session-start", help="operator-set RFC3339 Gateway session start")
++    parser.add_argument("--max-history-age-sec", type=float, default=30.0)
++    parser.add_argument("--duplicate-ttl-sec", type=float, default=600.0)
++    args = parser.parse_args(argv)
++    try:
++        settings = Settings(args.policy, args.boundary_margin_m, args.audit_log, args.audit_kind,
++                            args.audit_session_start, args.max_history_age_sec, args.duplicate_ttl_sec)
++        raw = sys.stdin.buffer.read(MAX_INPUT_BYTES + 1)
++        if len(raw) > MAX_INPUT_BYTES:
++            raise ValueError("stdin exceeds 1 MiB limit")
++        envelope = vtc.load_json_strict_text(raw.decode("utf-8"), "stdin")
++        validate_input(envelope)
++    except (ValueError, TypeError, UnicodeError, RecursionError) as exc:
++        print("[member3] invalid input/config: " + str(exc)[:250], file=sys.stderr)
++        return 2
++    try:
++        state, detail = analyse("task_risk", envelope, {"settings": settings, "now": time.time()})
++        document = build_output(envelope, state, detail)
++    except Exception as exc:
++        print("[member3] internal failure: " + type(exc).__name__, file=sys.stderr)
++        try:
++            document = build_output(envelope, "ERROR", {
++                "reason": "模块内部异常，未能形成任务风险判断",
++                "risk_level": "UNKNOWN", "rule_basis": ["内部异常必须失败关闭"],
++                "evidence_refs": [{"ref": "modules/member3_taskrisk/module.py", "kind": "UNKNOWN",
++                                   "note": "internal failure; no permission inferred"}]})
++        except Exception:
++            return 4
++    print("[member3] status=" + document["status"], file=sys.stderr)
++    print(json.dumps(document, ensure_ascii=False, allow_nan=False, separators=(",", ":")))
++    return 0  # successful protocol execution != allow
++
++
++if __name__ == "__main__":
++    sys.exit(main())
+diff --git a/modules/member3_taskrisk/online_check.py b/modules/member3_taskrisk/online_check.py
+new file mode 100644
+index 0000000..68caa72
+--- /dev/null
++++ b/modules/member3_taskrisk/online_check.py
+@@ -0,0 +1,178 @@
++#!/usr/bin/env python3
++"""L3 harness, only usable inside a built/sourced ROS 2 workspace.
++
++Reuses baseline instance-owned process cleanup. Shadow controls send a DISTINCT
++request through the existing Planner -> guarded Gateway, never to the executor.
++An adapter-blocked request has no Gateway event: absence is not a Gateway BLOCK.
++"""
++from __future__ import annotations
++
++import argparse
++import copy
++import json
++import os
++import shutil
++import subprocess
++import sys
++import uuid
++from pathlib import Path
++
++import yaml
++
++HERE = Path(__file__).resolve().parent
++sys.path.insert(0, str(HERE))
++import module as m3  # noqa: E402
++from experiments import envelope  # noqa: E402
++sys.path.insert(0, str(m3.REPO / "tests/integration"))
++import team_handoff_check as handoff  # noqa: E402
++import team_demo  # noqa: E402
++
++
++def records_for(path, request_id):
++    """Strict parsing: no silent ignore of malformed authoritative evidence."""
++    if not Path(path).is_file():
++        raise RuntimeError("missing required journal: " + str(path))
++    rows = [m3.vtc.load_json_strict_text(line, str(path))
++            for line in Path(path).read_text(encoding="utf-8").splitlines()]
++    return [r for r in rows if r.get("request_id") == request_id]
++
++
++def main(argv=None):
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--out-dir", type=Path, default=m3.REPO / "tests/evidence/member3")
++    parser.add_argument("--domain", type=int, required=True,
++                        help="a domain reserved for your isolated member 3 test instance")
++    args = parser.parse_args(argv)
++    if not 0 <= args.domain <= 232:
++        parser.error("domain must be between 0 and 232")
++    if not shutil.which("ros2"):
++        print(json.dumps({"L3_ROS2_ONLINE": "BLOCKED", "reason": "ros2 unavailable; no evidence fabricated"}))
++        return 3
++    if os.environ.get("ROS_SECURITY_ENABLE", "").lower() != "true" or os.environ.get(
++            "ROS_SECURITY_STRATEGY") != "Enforce":
++        print(json.dumps({"L3_ROS2_ONLINE": "BLOCKED",
++                          "reason": "run in the team's existing DDS-Security Enforce environment"}))
++        return 3  # never disable security to make an online check pass
++    try:
++        import rclpy  # noqa: F401
++        from rg_interfaces.action import PatrolNavigate  # noqa: F401
++    except ImportError:
++        print(json.dumps({"L3_ROS2_ONLINE": "BLOCKED", "reason": "built ROS packages not sourced"}))
++        return 3
++    run_id = "m3-" + uuid.uuid4().hex[:12]
++    base = args.out_dir.resolve() / run_id
++    base.mkdir(parents=True, exist_ok=False)
++    original = yaml.safe_load((m3.REPO / "config/task_policy.yaml").read_text())
++    scenarios = [("normal", envelope(run_id+"-normal"), {}, "ALLOW_IN_POLICY"),
++                 ("region", envelope(run_id+"-region", 5, 5), {}, "OUT_OF_REGION"),
++                 ("task", envelope(run_id+"-task", task="other"), {}, "TASK_MISMATCH"),
++                 ("frame", envelope(run_id+"-frame", frame="odom"), {}, "INVALID_TARGET"),
++                 ("inactive", envelope(run_id+"-inactive"), {"active": False}, "POLICY_MISSING"),
++                 ("duplicate", envelope(run_id+"-duplicate"), {}, "DUPLICATE_REQUEST"),
++                 ("rate", envelope(run_id+"-rate"), {"max_requests_per_minute": 1}, "RATE_LIMIT")]
++    results = []
++    for label, env, changes, expected in scenarios:
++        instance = handoff.Instance(str(base), run_id, str(args.domain), label)
++        policy_path = Path(instance.dir) / "policy.yaml"
++        data = dict(original, **changes)
++        policy_path.write_text(yaml.safe_dump(data), encoding="utf-8")
++        # Instance.start reads this test-harness constant; only this process changes
++        # it. The repository and actual shared config/task_policy.yaml stay intact.
++        handoff.POLICY = str(policy_path)
++        case = {"scenario": label, "expected_gateway_reason": expected, "status": "FAIL"}
++        try:
++            started, detail = instance.start()
++            if not started:
++                raise RuntimeError(detail)
++            ready, detail = instance.wait_ready(timeout=40)
++            if not ready:
++                raise RuntimeError(detail)
++            answer = m3.decide(env, m3.Settings(policy_path))
++            case["module_output"] = answer
++            config = yaml.safe_load((m3.REPO / "config/team_modules.member3.yaml").read_text())
++            for entry in config["modules"].values():
++                entry["command"][0] = sys.executable
++            config["modules"]["task_risk"]["command"] = [
++                sys.executable, str(HERE / "module.py"), "--policy", str(policy_path)]
++            cfg = Path(instance.dir) / "adapter.yaml"
++            cfg.write_text(yaml.safe_dump(config), encoding="utf-8")
++            inherited = os.environ.get("ROS_DOMAIN_ID")
++            os.environ["ROS_DOMAIN_ID"] = str(args.domain)
++            try:
++                if label in {"duplicate", "rate"}:
++                    seed = copy.deepcopy(env)
++                    if label == "rate":
++                        seed["request_id"] += "-seed"
++                    seed_result = team_demo.run(json.dumps(seed), str(cfg), str(Path(instance.dir)/"adapter.jsonl"),
++                                                str(m3.REPO), online={"enabled": True,
++                                                   "planner_command": config["adapter"]["planner_command"],
++                                                   "planner_timeout_sec": 30})
++                    seed_decisions = [r for r in records_for(instance.audit_path, seed["request_id"])
++                                      if r.get("event_type") == "DecisionEvent"]
++                    if len(seed_decisions) != 1 or seed_decisions[0]["decision"] != "ALLOW":
++                        raise RuntimeError("temporal seed did not reach real Gateway ALLOW")
++                    if len(records_for(instance.navsim_path, seed["request_id"])) != 1:
++                        raise RuntimeError("temporal seed has no NavigationSim Goal")
++                    case["seed_adapter"] = seed_result
++                before = len(records_for(instance.navsim_path, env["request_id"]))
++                adapter = team_demo.run(json.dumps(env), str(cfg), str(Path(instance.dir)/"adapter.jsonl"),
++                                        str(m3.REPO), online={"enabled": True,
++                                          "planner_command": config["adapter"]["planner_command"],
++                                          "planner_timeout_sec": 30})
++                case["adapter"] = adapter
++                after = len(records_for(instance.navsim_path, env["request_id"]))
++                if answer["status"] != "ALLOW_RECOMMENDED":
++                    if adapter["decision"] != "ADAPTER_BLOCK" or after != before:
++                        raise RuntimeError("upstream block did not prevent submission")
++                    if records_for(instance.audit_path, env["request_id"]):
++                        raise RuntimeError("adapter-blocked request unexpectedly reached Gateway")
++                    # Separate diagnostic control, always via guarded Gateway.
++                    control = copy.deepcopy(env)
++                    control["request_id"] += "-shadow"
++                    proc = subprocess.run(team_demo.build_planner_argv(
++                        config["adapter"]["planner_command"], control), cwd=m3.REPO,
++                        env=dict(os.environ), capture_output=True, text=True, timeout=30, shell=False)
++                    case["shadow_planner_exit_code"] = proc.returncode
++                    checked_id = control["request_id"]
++                    case["denial_layer"] = "UPSTREAM_ADAPTER; distinct shadow control through Gateway"
++                    goal_delta = len(records_for(instance.navsim_path, checked_id))
++                else:
++                    checked_id = env["request_id"]
++                    goal_delta = after-before
++                    case["denial_layer"] = "GATEWAY" if expected != "ALLOW_IN_POLICY" else "NONE"
++                decisions = [r for r in records_for(instance.audit_path, checked_id)
++                             if r.get("event_type") == "DecisionEvent"]
++                decision = decisions[-1] if decisions else None
++                expected_delta = 1 if expected == "ALLOW_IN_POLICY" else 0
++                if not decision or decision["reason_code"] != expected or goal_delta != expected_delta:
++                    raise RuntimeError("Gateway decision / NavigationSim delta mismatch")
++                case.update(status="PASS", gateway_decision=decision, downstream_goal_delta=goal_delta,
++                            same_verdict=(answer["status"] == "ALLOW_RECOMMENDED") == (
++                                decision["decision"] == "ALLOW"),
++                            evidence_ref={"gateway": instance.audit_path, "navsim": instance.navsim_path})
++            finally:
++                if inherited is None:
++                    os.environ.pop("ROS_DOMAIN_ID", None)
++                else:
++                    os.environ["ROS_DOMAIN_ID"] = inherited
++        except Exception as exc:
++            case["error"] = str(exc)
++        finally:
++            case["cleanup"] = instance.stop()
++            if instance.group_members_alive():
++                case["status"] = "FAIL"
++                case["cleanup_error"] = "instance process group still alive"
++        results.append(case)
++    passed = all(r["status"] == "PASS" for r in results)
++    report = {"L3_ROS2_ONLINE": "PASS" if passed else "FAIL", "run_id": run_id,
++              "RUNTIME_MONITOR": "NOT_READY", "comm_identity_modules": "MOCK",
++              "note": "only Member 3 task-rule integration; not end-to-end intrusion detection",
++              "cases": results}
++    (base / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
++    print(json.dumps({"L3_ROS2_ONLINE": report["L3_ROS2_ONLINE"], "report": str(base/"report.json")},
++                     ensure_ascii=False))
++    return 0 if passed else 1
++
++
++if __name__ == "__main__":
++    sys.exit(main())
+diff --git a/modules/member3_taskrisk/requirements.txt b/modules/member3_taskrisk/requirements.txt
+new file mode 100644
+index 0000000..c4c8f34
+--- /dev/null
++++ b/modules/member3_taskrisk/requirements.txt
+@@ -0,0 +1,3 @@
++PyYAML>=6.0
++jsonschema>=4.0
++pytest>=7.0
+diff --git a/modules/member3_taskrisk/risk_model.py b/modules/member3_taskrisk/risk_model.py
+new file mode 100644
+index 0000000..2c9a5be
+--- /dev/null
++++ b/modules/member3_taskrisk/risk_model.py
+@@ -0,0 +1,286 @@
++"""Independent explainable advisory rules. No ROS and no authorization.
++
++Policies and optional Gateway history are operator-selected local read-only
++paths. Historical inference is a snapshot, not Gateway's concurrent tracker.
++"""
++from __future__ import annotations
++
++import hashlib
++import math
++import os
++from dataclasses import dataclass
++from datetime import datetime
++from pathlib import Path
++
++import yaml
++
++from rg_policy import reason_codes as rc
++from rg_policy.task_policy import PolicyError, PolicySchemaError, parse_task_policy
++from validate_team_contracts import check_rfc3339, load_json_strict_text
++
++MAX_POLICY_BYTES = 65536
++MAX_HISTORY_BYTES = 4 * 1024 * 1024
++MAX_HISTORY_RECORDS = 20000
++EVIDENCE_KINDS = {"RUNTIME_LOG", "CONTROLLED_SECURITY_EXPERIMENT", "UNIT_TEST"}
++
++
++class HistoryUnavailable(ValueError):
++    """Missing, incomplete, stale or temporally inconsistent evidence."""
++
++
++class HistoryInvalid(ValueError):
++    """Evidence exists but its content is malformed."""
++
++
++class UniqueSafeLoader(yaml.SafeLoader):
++    """Reject duplicate YAML keys instead of choosing the last one."""
++
++
++def _unique_mapping(loader, node, deep=False):
++    result = {}
++    for key_node, value_node in node.value:
++        key = loader.construct_object(key_node, deep=deep)
++        if key in result:
++            raise PolicySchemaError("duplicate policy key: {0}".format(key))
++        result[key] = loader.construct_object(value_node, deep=deep)
++    return result
++
++
++UniqueSafeLoader.add_constructor(
++    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _unique_mapping)
++
++
++@dataclass(frozen=True)
++class Settings:
++    policy_path: Path
++    boundary_margin_m: float = 0.25  # distance heuristic, NOT a probability
++    audit_log: Path | None = None
++    audit_kind: str = "UNKNOWN"
++    audit_session_start: str | None = None
++    max_history_age_sec: float = 30.0
++    duplicate_ttl_sec: float = 600.0
++
++    def __post_init__(self):
++        for name in ("boundary_margin_m", "max_history_age_sec", "duplicate_ttl_sec"):
++            value = getattr(self, name)
++            if isinstance(value, bool) or not isinstance(value, (int, float)):
++                raise ValueError("{0} must be finite numeric configuration".format(name))
++            if not math.isfinite(value) or value < 0 or (
++                    name != "boundary_margin_m" and value == 0):
++                raise ValueError("invalid {0}".format(name))
++        if self.audit_log is None and self.audit_session_start is not None:
++            raise ValueError("session start requires --audit-log")
++
++
++def timestamp(value):
++    if not isinstance(value, str) or not check_rfc3339(value):
++        raise HistoryInvalid("invalid timezone-aware timestamp")
++    return datetime.fromisoformat(value.upper().replace("Z", "+00:00")).timestamp()
++
++
++def load_policy(path):
++    """Read bytes once so the recorded hash matches the parsed policy."""
++    try:
++        with Path(path).open("rb") as handle:
++            raw = handle.read(MAX_POLICY_BYTES + 1)
++    except OSError as exc:
++        raise FileNotFoundError("local TaskPolicy unavailable") from exc
++    if len(raw) > MAX_POLICY_BYTES:
++        raise PolicySchemaError("TaskPolicy exceeds byte limit")
++    try:
++        document = yaml.load(raw.decode("utf-8"), Loader=UniqueSafeLoader)
++        policy = parse_task_policy(document, str(path))
++    except (yaml.YAMLError, UnicodeError, ValueError, TypeError, OverflowError,
++            RecursionError) as exc:
++        raise PolicySchemaError("TaskPolicy cannot be validated") from exc
++    if len(policy.policy_version) > 64:
++        raise PolicySchemaError("policy version exceeds output contract limit")
++    return policy, hashlib.sha256(raw).hexdigest()
++
++
++def read_history(settings, now):
++    """Read a bounded whole-session journal from trusted local configuration.
++
++    Operator must select ONE Gateway's dedicated journal, starting empty at
++    audit_session_start. JSON cannot authenticate this precondition. Torn lines,
++    missing pairs and stale files fail closed. mtime does not prove a live node.
++    """
++    if settings.audit_kind not in EVIDENCE_KINDS or not settings.audit_session_start:
++        raise HistoryUnavailable("history provenance/session start not configured")
++    start = timestamp(settings.audit_session_start)
++    if start > now:
++        raise HistoryUnavailable("session start is in the future")
++    try:
++        with Path(settings.audit_log).open("rb") as handle:
++            info = os.fstat(handle.fileno())
++            raw = handle.read(MAX_HISTORY_BYTES + 1)
++    except OSError as exc:
++        raise HistoryUnavailable("configured Gateway journal unavailable") from exc
++    if len(raw) > MAX_HISTORY_BYTES:
++        raise HistoryUnavailable("whole-session journal exceeds bounded capacity")
++    if now - info.st_mtime > settings.max_history_age_sec or info.st_mtime > now + 5:
++        raise HistoryUnavailable("journal snapshot is stale or clock is inconsistent")
++    if raw and not raw.endswith(b"\n"):
++        raise HistoryUnavailable("journal has a torn/in-progress final record")
++    try:
++        lines = raw.decode("utf-8").splitlines()
++        if len(lines) > MAX_HISTORY_RECORDS:
++            raise HistoryUnavailable("journal record limit exceeded")
++        records = [load_json_strict_text(line, "Gateway history") for line in lines]
++    except HistoryUnavailable:
++        raise
++    except (UnicodeError, ValueError, RecursionError) as exc:
++        raise HistoryInvalid("invalid journal JSONL") from exc
++    arrivals, decisions = {}, {}
++    for row in records:
++        if not isinstance(row, dict):
++            raise HistoryInvalid("journal record is not an object")
++        event_type = row.get("event_type")
++        if event_type not in {"RosCommEvent", "DecisionEvent", "ExecutionEvent"}:
++            raise HistoryInvalid("unknown journal event type")
++        if event_type == "ExecutionEvent":
++            continue  # execution is not admission or a rate-budget input
++        event_id = row.get("event_id")
++        if not isinstance(event_id, str) or not event_id.strip():
++            raise HistoryInvalid("missing event_id")
++        if not all(isinstance(row.get(k), str) for k in ("request_id", "task_id")):
++            raise HistoryInvalid("invalid request/task correlation")
++        if event_type == "RosCommEvent":
++            if row.get("resource") != "/rg/guarded_navigate" or event_id in arrivals:
++                raise HistoryInvalid("wrong resource or duplicate arrival event")
++            when = timestamp(row.get("received_at"))
++            arrivals[event_id] = (when, row)
++        else:
++            if event_id in decisions or row.get("decision") not in rc.DECISIONS:
++                raise HistoryInvalid("ambiguous decision event")
++            if row.get("reason_code") not in rc.ACCEPTED_DECISION_REASON_CODES:
++                raise HistoryInvalid("unknown Gateway reason code")
++            when = timestamp(row.get("decision_at"))
++            if (row["decision"] == "ALLOW") != (row["reason_code"] == rc.ALLOW_IN_POLICY):
++                raise HistoryInvalid("inconsistent decision/reason code")
++            decisions[event_id] = (when, row)
++        if when < start or when > now:
++            raise HistoryUnavailable("journal time is outside the configured session")
++    if set(arrivals) != set(decisions):
++        raise HistoryUnavailable("incomplete receipt/decision pairs")
++    first_seen, admitted = {}, []
++    for event_id, (when, row) in sorted(arrivals.items(), key=lambda kv: kv[1][0]):
++        decision_at, decision = decisions[event_id]
++        if (row["request_id"], row["task_id"]) != (decision["request_id"], decision["task_id"]):
++            raise HistoryInvalid("receipt/decision correlation mismatch")
++        if decision_at < when:
++            raise HistoryUnavailable("decision precedes arrival; clock discontinuity")
++        first_seen = {key: t for key, t in first_seen.items()
++                      if t >= when - settings.duplicate_ttl_sec}
++        first_seen.setdefault(row["request_id"], when)
++        if decision["decision"] == "ALLOW":
++            admitted.append(when)  # approximate Gateway monotonic admission by arrival time
++    first_seen = {key: t for key, t in first_seen.items()
++                  if t >= now - settings.duplicate_ttl_sec}
++    return {"first_seen": first_seen,
++            "admitted_in_window": sum(t >= now - 60.0 for t in admitted),
++            "journal_sha256": hashlib.sha256(raw).hexdigest(),
++            "record_count": len(records), "session_start": settings.audit_session_start,
++            "operator_assumption": "dedicated complete current-session journal",
++            "clock_basis": "wall-clock snapshot; not Gateway monotonic tracker"}
++
++
++def reason_item(code, field, text):
++    return {"reason_code": code, "policy_field": field, "explanation": text}
++
++
++def infer(envelope, settings, now):
++    """Compute independent rule advice + signed distance to allowed boundary.
++
++    No call to policy_engine.evaluate (reserved for independent comparison).
++    Retain all violated static clauses; primary reason uses baseline order.
++    """
++    refs = [{"ref": "modules/member3_taskrisk/risk_model.py", "kind": "UNKNOWN",
++             "note": "deterministic advisory implementation; no DDS authentication"}]
++    metadata = {"algorithm": "TASK_CONSTRAINT_RULES_V1", "authority": "ADVISORY_ONLY",
++                "violations": [], "features": {}, "reason_code": None,
++                "pending_gateway_checks": ["DUPLICATE_REQUEST", "RATE_LIMIT",
++                                            "EXECUTION_TIMEOUT", "AUDIT_UNAVAILABLE"],
++                "runtime_monitor": "NOT_READY", "dynamic_state_model": "NOT_INTEGRATED"}
++
++    def result(status, risk, reason, rules):
++        return status, {"risk_level": risk, "reason": reason, "rule_basis": rules,
++                        "evidence_refs": refs, "extensions": {"member3": metadata}}
++
++    try:
++        policy, digest = load_policy(settings.policy_path)
++    except FileNotFoundError:
++        metadata["reason_code"] = rc.POLICY_MISSING
++        return result("UNKNOWN", "UNKNOWN", "POLICY_MISSING: 本地策略不可用，无法形成建议",
++                      ["不存在可读取的本地 TaskPolicy；不得默认允许"])
++    except PolicyError:
++        metadata["reason_code"] = rc.POLICY_MISSING
++        return result("ERROR", "UNKNOWN", "POLICY_MISSING: 本地策略解析或验证失败",
++                      ["TaskPolicy 不可用；模块安全失败关闭"])
++    refs.append({"ref": str(settings.policy_path)[-512:], "kind": "UNKNOWN",
++                 "note": "trusted local configuration selection, not DDS authorization"})
++    metadata["policy_content_sha256"] = digest  # NOT authoritative policy_digest
++    action, target = envelope["candidate_action"], envelope["candidate_action"]["target"]
++    features = metadata["features"]
++    features.update(policy_active=policy.active, task_matches=action["task_id"] == policy.task_id,
++                    frame_matches=target["frame_id"] == policy.coordinate_frame,
++                    target_finite=all(math.isfinite(target.get(k, 0)) for k in ("x", "y", "z")))
++    violations = metadata["violations"]
++    if not policy.active:
++        violations.append(reason_item(rc.POLICY_MISSING, "active", "策略 active=false"))
++    if not envelope["request_id"].strip():
++        violations.append(reason_item(rc.INVALID_TARGET, "request_id", "请求标识为空白"))
++    if not features["task_matches"]:
++        violations.append(reason_item(rc.TASK_MISMATCH, "task_id", "候选任务与策略任务不匹配"))
++    if not features["frame_matches"]:
++        violations.append(reason_item(rc.INVALID_TARGET, "coordinate_frame", "坐标系与策略不匹配"))
++    if not features["target_finite"]:
++        violations.append(reason_item(rc.INVALID_TARGET, "target", "目标数值不是有限数"))
++    if features["frame_matches"] and features["target_finite"]:
++        x, y, r = target["x"], target["y"], policy.region
++        margin = min(x-r.x_min, r.x_max-x, y-r.y_min, r.y_max-y)
++        features.update(region_inside=margin >= 0, signed_boundary_margin_m=margin)
++        if margin < 0:
++            violations.append(reason_item(rc.OUT_OF_REGION, "allowed_region", "目标超出允许区域"))
++    metadata["checked_policy_version"] = policy.policy_version
++    history_issue = None
++    if settings.audit_log is not None and not violations:
++        try:
++            history = read_history(settings, now)
++            metadata["history_snapshot"] = {k: v for k, v in history.items() if k != "first_seen"}
++            refs.append({"ref": str(settings.audit_log)[-512:], "kind": settings.audit_kind,
++                         "note": "read-only session snapshot; not realtime monitoring"})
++            features["duplicate_in_snapshot"] = envelope["request_id"] in history["first_seen"]
++            features["admitted_in_snapshot"] = history["admitted_in_window"]
++            if features["duplicate_in_snapshot"]:
++                violations.append(reason_item(rc.DUPLICATE_REQUEST, "request_tracker",
++                                              "同一业务 request_id 在历史去重窗口内已到达"))
++            if history["admitted_in_window"] >= int(policy.max_requests_per_minute):
++                violations.append(reason_item(rc.RATE_LIMIT, "max_requests_per_minute",
++                                              "历史已准入次数达到滑动 60 秒预算"))
++            metadata["pending_gateway_checks"] = ["CONCURRENT_TRACKER_RECHECK",
++                                                  "EXECUTION_TIMEOUT", "AUDIT_UNAVAILABLE"]
++        except HistoryUnavailable as exc:
++            history_issue = ("UNKNOWN", str(exc))
++        except HistoryInvalid as exc:
++            history_issue = ("ERROR", str(exc))
++    if violations:
++        metadata["reason_code"] = violations[0]["reason_code"]
++        answer = result("BLOCK_RECOMMENDED", "HIGH",
++                        "{0}: {1}".format(metadata["reason_code"], violations[0]["explanation"]),
++                        ["{0}: {1} ({2})".format(v["reason_code"], v["explanation"],
++                                                 v["policy_field"]) for v in violations])
++    elif history_issue:
++        status, text = history_issue
++        metadata["history_error"] = text
++        answer = result(status, "UNKNOWN", "配置的历史证据不可用：" + text,
++                        ["历史推理要求未满足，不推进；最终授权仅属于 Gateway"])
++    else:
++        metadata["reason_code"] = rc.ALLOW_IN_POLICY
++        risk = "LOW" if features["signed_boundary_margin_m"] <= settings.boundary_margin_m else "NONE"
++        answer = result("ALLOW_RECOMMENDED", risk, "ALLOW_IN_POLICY: 已检查条款未发现冲突，仍须 Gateway 准入",
++                        ["任务 ID、坐标系及目标满足本次读取的 TaskPolicy",
++                         "允许区域边界为闭区间；边界接近仅是距离提示，不新增拒绝规则",
++                         "未检查项与并发状态由 Gateway 最终判定；建议不是执行许可"])
++    answer[1]["policy_ref"] = {"policy_version": policy.policy_version}
++    return answer
+diff --git a/modules/member3_taskrisk/test_module.py b/modules/member3_taskrisk/test_module.py
+new file mode 100644
+index 0000000..52beed7
+--- /dev/null
++++ b/modules/member3_taskrisk/test_module.py
+@@ -0,0 +1,10 @@
++#!/usr/bin/env python3
++"""Run the Member 3 real-algorithm tests, not copied placeholder tests."""
++import sys
++from pathlib import Path
++import pytest
++
++if __name__ == "__main__":
++    root = Path(__file__).resolve().parents[2]
++    sys.exit(pytest.main([str(root / "tests/unit/test_member3_taskrisk.py"),
++                         "-q", "-p", "no:cacheprovider"]))
+diff --git a/tests/unit/test_member3_taskrisk.py b/tests/unit/test_member3_taskrisk.py
+new file mode 100644
+index 0000000..5f9dc9b
+--- /dev/null
++++ b/tests/unit/test_member3_taskrisk.py
+@@ -0,0 +1,286 @@
++"""Real Member 3 rule and process tests. Synthetic history is UNIT_TEST only."""
++from __future__ import annotations
++
++import copy
++import importlib.util
++import json
++import os
++import subprocess
++import sys
++from datetime import datetime, timezone
++from pathlib import Path
++
++import pytest
++import yaml
++
++ROOT = Path(__file__).resolve().parents[2]
++MODULE = ROOT / "modules/member3_taskrisk/module.py"
++spec = importlib.util.spec_from_file_location("member3_entry", MODULE)
++m3 = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(m3)
++from risk_model import Settings, timestamp  # noqa: E402
++from rg_policy.events import RosCommEvent, DecisionEvent  # noqa: E402
++from rg_policy.policy_engine import NavRequest, evaluate  # noqa: E402
++from rg_policy.task_policy import load_task_policy  # noqa: E402
++
++NOW = timestamp("2026-10-13T00:00:00Z")
++
++
++def iso(t):
++    return datetime.fromtimestamp(t, timezone.utc).isoformat().replace("+00:00", "Z")
++
++
++def envelope(x=2.0, y=2.0, task="patrol_a_001", frame="map", request="req-member3"):
++    return {"schema_version": "1.0.0-proposed", "run_id": "member3-tests",
++            "request_id": request, "created_at": iso(NOW),
++            "candidate_action": {"action_resource": "/rg/guarded_navigate", "operation": "NAVIGATE",
++                                 "task_id": task, "target": {"frame_id": frame, "x": x, "y": y}},
++            "observations": [{"source": "controlled-task", "kind": "CONTROLLED_SECURITY_EXPERIMENT",
++                              "observed_at": iso(NOW), "detail": {}}],
++            "evidence_refs": [{"ref": "tests/unit/test_member3_taskrisk.py", "kind": "UNIT_TEST"}]}
++
++
++def policy_file(tmp_path, **changes):
++    data = yaml.safe_load((ROOT / "config/task_policy.yaml").read_text())
++    data.update(changes)
++    path = tmp_path / "policy.yaml"
++    path.write_text(yaml.safe_dump(data), encoding="utf-8")
++    return path
++
++
++def advise(env, path=None, **opts):
++    return m3.decide(env, Settings(path or ROOT / "config/task_policy.yaml", **opts), now=NOW)
++
++
++def code(doc):
++    return doc["extensions"]["member3"]["reason_code"]
++
++
++def cli(env=None, *args, raw=None):
++    return subprocess.run([sys.executable, str(MODULE), *map(str, args)],
++                          input=raw if raw is not None else json.dumps(env),
++                          text=True, capture_output=True, timeout=15, cwd=ROOT)
++
++
++@pytest.mark.parametrize("x,y,task,frame,expected", [
++    (2, 2, "patrol_a_001", "map", "ALLOW_IN_POLICY"),
++    (0, 4, "patrol_a_001", "map", "ALLOW_IN_POLICY"),
++    (-0.00001, 2, "patrol_a_001", "map", "OUT_OF_REGION"),
++    (2, 4.00001, "patrol_a_001", "map", "OUT_OF_REGION"),
++    (2, 2, "different-task", "map", "TASK_MISMATCH"),
++    (2, 2, "patrol_a_001", "odom", "INVALID_TARGET"),
++    (9, 9, "different-task", "map", "TASK_MISMATCH"),
++    (9, 9, "different-task", "odom", "TASK_MISMATCH"),
++])
++def test_static_reason_priority(x, y, task, frame, expected):
++    out = advise(envelope(x, y, task, frame))
++    assert code(out) == expected
++    assert out["status"] == ("ALLOW_RECOMMENDED" if expected == "ALLOW_IN_POLICY" else "BLOCK_RECOMMENDED")
++
++
++@pytest.mark.parametrize("x", [-1, 0, 0.01, 0.25, 2, 3.75, 4, 4.01, 9])
++@pytest.mark.parametrize("y", [-1, 0, 2, 4, 4.01])
++def test_independent_static_comparison_grid(x, y):
++    out = advise(envelope(x, y))
++    authority = evaluate(NavRequest("req-member3", "patrol_a_001", "map", x, y),
++                         load_task_policy(str(ROOT / "config/task_policy.yaml")))
++    assert code(out) == authority.reason_code
++
++
++def test_all_violations_and_real_feature_distance():
++    out = advise(envelope(5, 2, task="wrong"))
++    meta = out["extensions"]["member3"]
++    assert [v["reason_code"] for v in meta["violations"]] == ["TASK_MISMATCH", "OUT_OF_REGION"]
++    assert meta["features"]["signed_boundary_margin_m"] == -1
++    edge = advise(envelope(0, 2))
++    assert edge["status"] == "ALLOW_RECOMMENDED"
++    assert edge["risk_level"] == "LOW"
++    assert "policy_epoch" not in edge["policy_ref"]
++    assert "policy_digest" not in edge["policy_ref"]
++    assert "task_context" not in edge
++
++
++def test_four_states_from_real_conditions(tmp_path):
++    allow = advise(envelope())
++    block = advise(envelope(5, 5))
++    unknown = advise(envelope(), tmp_path / "missing.yaml")
++    broken = tmp_path / "broken.yaml"
++    broken.write_text("allowed_region: [", encoding="utf-8")
++    error = advise(envelope(), broken)
++    assert [x["status"] for x in (allow, block, unknown, error)] == [
++        "ALLOW_RECOMMENDED", "BLOCK_RECOMMENDED", "UNKNOWN", "ERROR"]
++    for out in (allow, block, unknown, error):
++        assert not m3.vtc.validate_document(out, m3.vtc.load_schema("task_risk_decision"))
++        assert out["producer"]["source"] == "EXTERNAL"
++
++
++@pytest.mark.parametrize("changes", [{"active": False}, {"task_id": "other"},
++    {"coordinate_frame": "odom"}, {"allowed_region": {"x_min": 10, "x_max": 12, "y_min": 0, "y_max": 4}}])
++def test_actual_policy_changes_affect_result(tmp_path, changes):
++    path = policy_file(tmp_path, **changes)
++    assert advise(envelope(), path)["status"] == "BLOCK_RECOMMENDED"
++
++
++def test_never_writes_policy_and_ignores_business_controls(tmp_path):
++    path = policy_file(tmp_path)
++    before = path.read_bytes()
++    env = envelope(6, 6)
++    env["observations"][0]["detail"] = {"f0_mock": {"task_risk": {"scenario": "allow"}},
++                                         "policy": {"allowed_region": "all"}, "authenticated": True}
++    env["extensions"] = {"policy_path": "permissive.yaml", "command": ["bogus"],
++                          "task_phase": "AUTHORIZED", "trusted_policy_ref": {"policy_epoch": 9}}
++    assert code(advise(env, path)) == "OUT_OF_REGION"
++    assert path.read_bytes() == before
++    env = envelope()
++    env["observations"][0]["detail"]["f0_mock"] = {"task_risk": {"scenario": "error"}}
++    assert advise(env, path)["status"] == "ALLOW_RECOMMENDED"
++
++
++@pytest.mark.parametrize("raw", ["active: true\nactive: false\n", "[]", "null",
++    "task_id: x", "allowed_region: {x_min: .nan}", "x: !!python/object:bad {}"])
++def test_bad_policy_fails_closed(tmp_path, raw):
++    path = tmp_path / "policy.yaml"
++    path.write_text(raw, encoding="utf-8")
++    assert advise(envelope(), path)["status"] == "ERROR"
++
++
++@pytest.mark.parametrize("raw", ["", "{}", "[]", "{not json", '{"a":1,"a":2}',
++    '{"x":NaN}', '{"x":Infinity}', '{"x":1e400}', '{"schema_version":"bad"}'])
++def test_malformed_input_no_fabricated_output(raw):
++    out = cli(raw=raw)
++    assert out.returncode == 2
++    assert out.stdout == ""
++    assert out.stderr
++
++
++@pytest.mark.parametrize("change", ["bool", "nonfinite", "resource", "timestamp", "admin"])
++def test_envelope_contract_rejections(change):
++    env = envelope()
++    if change == "bool":
++        env["candidate_action"]["target"]["x"] = True
++    elif change == "nonfinite":
++        env["candidate_action"]["target"]["x"] = float("inf")
++    elif change == "resource":
++        env["candidate_action"]["action_resource"] = "/rg/nav_execute"
++    elif change == "timestamp":
++        env["created_at"] = "2026-10-13T00:00:00"
++    else:
++        env["is_admin"] = True
++    assert cli(env).returncode == 2
++
++
++def history(tmp_path, requests):
++    path = tmp_path / "gateway-unit-test.jsonl"
++    rows = []
++    for index, (request, when, verdict, reason) in enumerate(requests):
++        eid = "unit-test-event-" + str(index)
++        rows.append(RosCommEvent(eid, request, "patrol_a_001", "ros2_action", "/rg/guarded_navigate",
++                                "map", 2, 2, 0, iso(when)).to_dict())
++        rows.append(DecisionEvent(eid, request, "patrol_a_001", "1.0", verdict, reason,
++                                 "synthetic UNIT_TEST only, not a Gateway run", iso(when)).to_dict())
++    path.write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8")
++    os.utime(path, (NOW, NOW))
++    return path
++
++
++def with_history(env, path, **opts):
++    return advise(env, audit_log=path, audit_kind="UNIT_TEST",
++                  audit_session_start=iso(NOW-1000), **opts)
++
++
++def test_duplicate_and_rate_from_history(tmp_path):
++    path = history(tmp_path, [("req-member3", NOW-1, "ALLOW", "ALLOW_IN_POLICY")])
++    assert code(with_history(envelope(), path)) == "DUPLICATE_REQUEST"
++    path = history(tmp_path, [("old-"+str(i), NOW-10+i, "ALLOW", "ALLOW_IN_POLICY") for i in range(10)])
++    assert code(with_history(envelope(), path)) == "RATE_LIMIT"
++
++
++def test_blocked_requests_do_not_consume_rate_budget(tmp_path):
++    path = history(tmp_path, [("bad-"+str(i), NOW-10+i, "BLOCK", "OUT_OF_REGION") for i in range(10)])
++    assert with_history(envelope(), path)["status"] == "ALLOW_RECOMMENDED"
++
++
++def test_duplicate_window_first_arrival_not_last_and_inclusive(tmp_path):
++    path = history(tmp_path, [("req-member3", NOW-601, "ALLOW", "ALLOW_IN_POLICY"),
++                             ("req-member3", NOW-1, "BLOCK", "DUPLICATE_REQUEST")])
++    assert with_history(envelope(), path)["status"] == "ALLOW_RECOMMENDED"
++    path = history(tmp_path, [("req-member3", NOW-600, "ALLOW", "ALLOW_IN_POLICY")])
++    assert code(with_history(envelope(), path)) == "DUPLICATE_REQUEST"
++
++
++@pytest.mark.parametrize("problem,expected", [("missing", "UNKNOWN"), ("stale", "UNKNOWN"),
++    ("torn", "UNKNOWN"), ("pairs", "UNKNOWN"), ("invalid", "ERROR"),
++    ("future", "UNKNOWN"), ("duplicate", "ERROR"), ("correlation", "ERROR")])
++def test_history_failure_conditions(tmp_path, problem, expected):
++    path = history(tmp_path, [("old", NOW-1, "ALLOW", "ALLOW_IN_POLICY")])
++    rows = path.read_text().splitlines()
++    if problem == "missing":
++        path = tmp_path / "absent.jsonl"
++    elif problem == "stale":
++        os.utime(path, (NOW-100, NOW-100))
++    elif problem == "torn":
++        path.write_text(path.read_text().rstrip("\n"))
++    elif problem == "pairs":
++        path.write_text(rows[0]+"\n")
++    elif problem == "invalid":
++        path.write_text("{bad}\n")
++    elif problem == "future":
++        path = history(tmp_path, [("old", NOW+1, "ALLOW", "ALLOW_IN_POLICY")])
++    elif problem == "duplicate":
++        path.write_text(path.read_text()+rows[1]+"\n")
++    else:
++        changed = json.loads(rows[1]); changed["request_id"] = "wrong"
++        path.write_text(rows[0]+"\n"+json.dumps(changed)+"\n")
++    if problem not in {"stale", "missing"}:
++        os.utime(path, (NOW, NOW))
++    assert with_history(envelope(), path)["status"] == expected
++
++
++def test_local_history_without_provenance_is_unknown(tmp_path):
++    path = history(tmp_path, [])
++    out = advise(envelope(), audit_log=path)
++    assert out["status"] == "UNKNOWN"
++
++
++def test_internal_failure_has_honest_error(monkeypatch, capsys):
++    def boom(*args):
++        raise RuntimeError("unit-test-only")
++    monkeypatch.setattr(m3, "analyse", boom)
++    class Input:
++        import io
++        buffer = io.BytesIO(json.dumps(envelope()).encode())
++    monkeypatch.setattr(sys, "stdin", Input())
++    assert m3.main([]) == 0
++    captured = capsys.readouterr()
++    assert json.loads(captured.out)["status"] == "ERROR"
++    assert "internal failure" in captured.err
++
++
++def test_adapter_uses_real_member3(tmp_path):
++    from team_demo import run
++    normal = envelope()
++    config = yaml.safe_load((ROOT / "config/team_modules.member3.yaml").read_text())
++    for entry in config["modules"].values():
++        entry["command"][0] = sys.executable
++    path = tmp_path / "adapter.yaml"
++    path.write_text(yaml.safe_dump(config), encoding="utf-8")
++    ready = run(json.dumps(normal), str(path), str(tmp_path / "adapter.jsonl"), str(ROOT))
++    assert ready["decision"] == "READY_FOR_GATEWAY_SUBMISSION"
++    blocked = run(json.dumps(envelope(5, 5)), str(path), str(tmp_path / "adapter.jsonl"), str(ROOT))
++    assert blocked["decision"] == "ADAPTER_BLOCK"
++    assert blocked["reason_code"] == "ADAPTER_MODULE_STATUS_NOT_PROCEED"
++    assert "BLOCK_RECOMMENDED" in blocked["detail"]
++    record = next(row for row in ready["modules"] if row["module"] == "task_risk")
++    assert record["status"] == "ALLOW_RECOMMENDED"
++    assert record["schema_ok"] is True
++    assert "modules/member3_taskrisk/module.py" in record["command"]
++
++
++def test_ids_unique_and_output_target_faithful():
++    env = envelope(request="x"*128)
++    env["candidate_action"]["target"]["z"] = 99.0  # baseline 2D region does not constrain z
++    a, b = advise(env), advise(env)
++    assert a["event_id"] != b["event_id"]
++    assert a["request_id"] == env["request_id"]
++    assert a["target"] == env["candidate_action"]["target"]
++    assert a["status"] == "ALLOW_RECOMMENDED"

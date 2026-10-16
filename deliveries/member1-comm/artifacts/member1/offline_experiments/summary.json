@@ -1,0 +1,36 @@
+{
+  "reduced": {
+    "audit_rows": 30247050,
+    "shards": 15,
+    "sample_rows": 150000,
+    "test_rows": 20000,
+    "f1": 0.13119672690078418,
+    "recall": 0.07020360504998906,
+    "balanced_accuracy": 0.5351018025249945,
+    "always_attack_f1": 0.8131620330534374,
+    "validation_gate": "FAIL",
+    "numeric_export_parity": {
+      "status": "PASS",
+      "test_rows": 20000,
+      "max_probability_error": 3.3306690738754696e-16,
+      "classification_mismatches": 0
+    }
+  },
+  "noperiodicity": {
+    "audit_rows": 20851051,
+    "shards": 10,
+    "sample_rows": 100000,
+    "test_rows": 20000,
+    "f1": 0.6346009451879334,
+    "recall": 0.4647732418968752,
+    "balanced_accuracy": 0.7323866209484375,
+    "always_attack_f1": 0.8718729728967481,
+    "validation_gate": "FAIL",
+    "numeric_export_parity": {
+      "status": "PASS",
+      "test_rows": 20000,
+      "max_probability_error": 2.7755575615628914e-16,
+      "classification_mismatches": 0
+    }
+  }
+}
