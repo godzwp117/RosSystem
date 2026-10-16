@@ -508,6 +508,6 @@ PR #6/#7 合流、以及 R-6/R-7 的裁定。
 | SROS 2 Enforce S1–S6 | `…/sros2-enforce/`（18 文件，含 `summary.json`） |
 | F0/M3 链路 | `…/f0-m3-chain/`（`f0_allow.json`、`f0_block.json`、adapter JSONL） |
 | 验收器严谨性反例 | `…/verifier-strictness/`（非零退出模块 + 配置 + 报告） |
-| 证据总清单 | `artifacts/demo-2026-10-19/preflight-20261016/SHA256SUMS.txt` |
+| 证据总清单 | `artifacts/demo-2026-10-19/preflight-20261016/SHA256SUMS.txt`（40 项，`sha256sum -c` 全通过；清单自身不自哈希） |
 | 历史 SROS 2 证据（只读，未改动） | `artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence/20261009T093144Z/` |
 | 本轮 SROS 2 原始证据（工作区） | `tests/evidence/preflight20261016/` |
