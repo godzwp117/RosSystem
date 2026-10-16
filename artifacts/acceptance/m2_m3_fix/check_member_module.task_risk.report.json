@@ -1,5 +1,5 @@
 {
-  "baseline_sha": "85691f34e262ec0aea23b1be20fe157bc87d9c93",
+  "baseline_sha": "3c4cbbeea4640f160b684bc1361d3e3d1e348857",
   "module": "task_risk",
   "config": "config/team_modules.member3.real.yaml",
   "module_command": [
@@ -52,9 +52,9 @@
       "detail": "rc=0 elapsed=0.06s exceeded=None",
       "mandatory": true,
       "returncode": 0,
-      "elapsed_sec": 0.056,
+      "elapsed_sec": 0.058,
       "stdout_bytes": 1756,
-      "pgid": 375357,
+      "pgid": 649189,
       "exceeded": null,
       "stderr_head": "[member3] status=ALLOW_RECOMMENDED\n"
     },
@@ -116,9 +116,16 @@
     },
     {
       "id": "ID-03",
-      "check": "event_id 存在且含 request_id",
+      "check": "event_id 为合法非空唯一标识（不要求包含 request_id）",
       "status": "PASS",
-      "detail": "'m3-req-accept-001-20af8628b8cf4aa5a3eea0513e6310d2'",
+      "detail": "event_id='m3-req-accept-001-c0bb8de523b6424f9ec8060609198baa' len=50",
+      "mandatory": true
+    },
+    {
+      "id": "ID-03B",
+      "check": "event_id 与 request_id 的关联由显式字段承担",
+      "status": "PASS",
+      "detail": "request_id 字段一致性即关联依据；event_id 不承担该编码责任",
       "mandatory": true
     },
     {
@@ -266,7 +273,7 @@
       "id": "REAL-STATE-ALLOW",
       "check": "真实条件 allow（目标 (2.0,2.0) 位于权威策略允许区域 [0,4]x[0,4] 内）-> ALLOW_RECOMMENDED",
       "status": "PASS",
-      "detail": "rc=0 policy=config/task_policy.yaml actual=ALLOW_RECOMMENDED expected=ALLOW_RECOMMENDED schema_ok=True class=PROCEED ids_ok=True traceability_ok=True reason_code=ALLOW_IN_POLICY",
+      "detail": "rc=0 rc_ok=True policy=config/task_policy.yaml actual=ALLOW_RECOMMENDED expected=ALLOW_RECOMMENDED schema_ok=True class=PROCEED ids_ok=True traceability_ok=True reason_code=ALLOW_IN_POLICY",
       "mandatory": true,
       "scenario": "allow",
       "trigger": "目标 (2.0,2.0) 位于权威策略允许区域 [0,4]x[0,4] 内",
@@ -289,7 +296,7 @@
       "id": "REAL-STATE-BLOCK",
       "check": "真实条件 block（目标 (2.0,2.0) 超出允许区域 [0,1]x[0,1]）-> BLOCK_RECOMMENDED",
       "status": "PASS",
-      "detail": "rc=0 policy=config/scenarios/task_policy_tight_region.yaml actual=BLOCK_RECOMMENDED expected=BLOCK_RECOMMENDED schema_ok=True class=LEGAL_BLOCK ids_ok=True traceability_ok=True reason_code=OUT_OF_REGION",
+      "detail": "rc=0 rc_ok=True policy=config/scenarios/task_policy_tight_region.yaml actual=BLOCK_RECOMMENDED expected=BLOCK_RECOMMENDED schema_ok=True class=LEGAL_BLOCK ids_ok=True traceability_ok=True reason_code=OUT_OF_REGION",
       "mandatory": true,
       "scenario": "block",
       "trigger": "目标 (2.0,2.0) 超出允许区域 [0,1]x[0,1]",
@@ -312,7 +319,7 @@
       "id": "REAL-STATE-UNKNOWN",
       "check": "真实条件 unknown（策略文件 config/scenarios/task_policy_absent.yaml 不存在）-> UNKNOWN",
       "status": "PASS",
-      "detail": "rc=0 policy=config/scenarios/task_policy_absent.yaml actual=UNKNOWN expected=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True traceability_ok=True reason_code=POLICY_MISSING",
+      "detail": "rc=0 rc_ok=True policy=config/scenarios/task_policy_absent.yaml actual=UNKNOWN expected=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True traceability_ok=True reason_code=POLICY_MISSING",
       "mandatory": true,
       "scenario": "unknown",
       "trigger": "策略文件 config/scenarios/task_policy_absent.yaml 不存在",
@@ -335,7 +342,7 @@
       "id": "REAL-STATE-ERROR",
       "check": "真实条件 error（策略文件 config/scenarios/task_policy_corrupt.yaml 无法解析）-> ERROR",
       "status": "PASS",
-      "detail": "rc=0 policy=config/scenarios/task_policy_corrupt.yaml actual=ERROR expected=ERROR schema_ok=True class=LEGAL_BLOCK ids_ok=True traceability_ok=True reason_code=POLICY_MISSING",
+      "detail": "rc=0 rc_ok=True policy=config/scenarios/task_policy_corrupt.yaml actual=ERROR expected=ERROR schema_ok=True class=LEGAL_BLOCK ids_ok=True traceability_ok=True reason_code=POLICY_MISSING",
       "mandatory": true,
       "scenario": "error",
       "trigger": "策略文件 config/scenarios/task_policy_corrupt.yaml 无法解析",
@@ -437,19 +444,213 @@
       "returncode": 2
     },
     {
-      "id": "ADP-01",
-      "check": "适配层对畸形信封失败关闭（真正的安全边界）",
+      "id": "ADP-00",
+      "check": "正向对照：合法输入可推进且模块确实被调用",
       "status": "PASS",
-      "detail": "rc=3 stdout 含 ADAPTER_BLOCK=True",
+      "detail": "decision=READY_FOR_GATEWAY_SUBMISSION reason=ADAPTER_OK 模块被调用=True",
       "mandatory": true,
-      "returncode": 3
+      "control": "POSITIVE_CONTROL"
+    },
+    {
+      "id": "ADP-N01",
+      "check": "缺少 observations -> 明确输入拒绝（ADAPTER_INPUT_INVALID）",
+      "status": "PASS",
+      "detail": "decision=ADAPTER_BLOCK reason_code=ADAPTER_INPUT_INVALID rc=3 模块调用=0",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_INPUT_INVALID",
+        "planner_started": false,
+        "modules_invoked": 0,
+        "exit_code": 3,
+        "stderr_head": ""
+      },
+      "module_called": false
+    },
+    {
+      "id": "ADP-N02",
+      "check": "schema_version 非法 -> 明确输入拒绝（ADAPTER_INPUT_INVALID）",
+      "status": "PASS",
+      "detail": "decision=ADAPTER_BLOCK reason_code=ADAPTER_INPUT_INVALID rc=3 模块调用=0",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_INPUT_INVALID",
+        "planner_started": false,
+        "modules_invoked": 0,
+        "exit_code": 3,
+        "stderr_head": ""
+      },
+      "module_called": false
+    },
+    {
+      "id": "ADP-N03",
+      "check": "缺少 candidate_action -> 明确输入拒绝（ADAPTER_INPUT_INVALID）",
+      "status": "PASS",
+      "detail": "decision=ADAPTER_BLOCK reason_code=ADAPTER_INPUT_INVALID rc=3 模块调用=0",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_INPUT_INVALID",
+        "planner_started": false,
+        "modules_invoked": 0,
+        "exit_code": 3,
+        "stderr_head": ""
+      },
+      "module_called": false
+    },
+    {
+      "id": "ADP-N04",
+      "check": "非法 JSON 输入 -> 明确输入拒绝（ADAPTER_INPUT_INVALID）",
+      "status": "PASS",
+      "detail": "decision=ADAPTER_BLOCK reason_code=ADAPTER_INPUT_INVALID rc=3 模块调用=0",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_INPUT_INVALID",
+        "planner_started": false,
+        "modules_invoked": 0,
+        "exit_code": 3,
+        "stderr_head": ""
+      },
+      "module_called": false
+    },
+    {
+      "id": "ADP-N05",
+      "check": "适配器内部异常/模块脚本崩溃 -> 不得记为输入校验 PASS",
+      "status": "PASS",
+      "detail": "reason_code=ADAPTER_MODULE_EXIT_NONZERO rc=10；未被误判为输入拒绝",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_EXIT_NONZERO",
+        "planner_started": false,
+        "modules_invoked": 3,
+        "exit_code": 10,
+        "stderr_head": "[adapter] 模块 comm_risk stderr: [mock] 场景=normal 状态=NORMAL\n[adapter] 模块 identity_trust stderr: [mock] 场景=authorized 状态=AUTHORIZED\n"
+      },
+      "misrecorded_as_input_rejection": false
+    },
+    {
+      "id": "ADP-N06",
+      "check": "适配器依赖缺失（解释器不存在） -> 不得记为输入校验 PASS",
+      "status": "PASS",
+      "detail": "reason_code=ADAPTER_MODULE_MISSING rc=10；未被误判为输入拒绝",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_MISSING",
+        "planner_started": false,
+        "modules_invoked": 3,
+        "exit_code": 10,
+        "stderr_head": "[adapter] 模块 comm_risk stderr: [mock] 场景=normal 状态=NORMAL\n[adapter] 模块 identity_trust stderr: [mock] 场景=authorized 状态=AUTHORIZED\n"
+      },
+      "misrecorded_as_input_rejection": false
+    },
+    {
+      "id": "ADP-N07",
+      "check": "配置文件不存在 -> 不得记为输入校验 PASS",
+      "status": "PASS",
+      "detail": "reason_code=ADAPTER_CONFIG_INVALID rc=4；未被误判为输入拒绝",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_CONFIG_INVALID",
+        "planner_started": false,
+        "modules_invoked": 0,
+        "exit_code": 4,
+        "stderr_head": ""
+      },
+      "misrecorded_as_input_rejection": false
+    },
+    {
+      "id": "ADP-N08",
+      "check": "模块返回非零且输出不是合法 JSON -> 不得记为输入校验 PASS",
+      "status": "PASS",
+      "detail": "reason_code=ADAPTER_MODULE_EXIT_NONZERO rc=10；未被误判为输入拒绝",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_EXIT_NONZERO",
+        "planner_started": false,
+        "modules_invoked": 3,
+        "exit_code": 10,
+        "stderr_head": "[adapter] 模块 comm_risk stderr: [mock] 场景=normal 状态=NORMAL\n[adapter] 模块 identity_trust stderr: [mock] 场景=authorized 状态=AUTHORIZED\n"
+      },
+      "misrecorded_as_input_rejection": false
+    },
+    {
+      "id": "ADP-N09",
+      "check": "原因码必须与真实失败路径一致（不得冒充输入拒绝）",
+      "status": "PASS",
+      "detail": "reason_code=ADAPTER_MODULE_EXIT_NONZERO rc=10",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_EXIT_NONZERO",
+        "planner_started": false,
+        "modules_invoked": 3,
+        "exit_code": 10,
+        "stderr_head": "[adapter] 模块 comm_risk stderr: [mock] 场景=normal 状态=NORMAL\n[adapter] 模块 identity_trust stderr: [mock] 场景=authorized 状态=AUTHORIZED\n"
+      }
+    },
+    {
+      "id": "ADP-N10",
+      "check": "合法输入必须真实调用模块（未调用即 FAIL）",
+      "status": "PASS",
+      "detail": "decision=READY_FOR_GATEWAY_SUBMISSION 模块被调用=True",
+      "mandatory": true,
+      "module_called": true
+    },
+    {
+      "id": "ADP-01",
+      "check": "适配层对畸形信封做明确输入拒绝（真正的安全边界）",
+      "status": "PASS",
+      "detail": "decision=ADAPTER_BLOCK reason_code=ADAPTER_INPUT_INVALID rc=3 模块调用=0",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_INPUT_INVALID",
+        "planner_started": false,
+        "modules_invoked": 0,
+        "exit_code": 3,
+        "stderr_head": ""
+      }
+    },
+    {
+      "id": "ID-05",
+      "check": "event_id 非空、≤128 字符且在同一运行内不重复",
+      "status": "PASS",
+      "detail": "9 次调用 / 9 个不同 event_id / 0 个违规",
+      "mandatory": true,
+      "event_id_audit": {
+        "requests_probed": 9,
+        "distinct_event_ids": 9,
+        "violations": []
+      }
     },
     {
       "id": "LIM-01",
-      "check": "极小超时下不会挂起（超时即阻断）",
+      "check": "极小超时下不会挂起（超时即阻断，且必须真实终止回收）",
       "status": "PASS",
-      "detail": "rc=-15 exceeded=TIMEOUT elapsed=0.01s",
-      "mandatory": true
+      "detail": "超时已触发且进程组被终止回收（rc=-15，terminate=terminated，0.011s <= 0.001s + 3.0s）；rc=-15 exceeded=TIMEOUT elapsed=0.011s terminate=terminated",
+      "mandatory": true,
+      "timeout_verdict": "timeout_terminated",
+      "returncode": -15,
+      "exceeded": "TIMEOUT",
+      "elapsed_sec": 0.0115,
+      "terminate": "terminated",
+      "effective_timeout_sec": 0.001
     },
     {
       "id": "LIM-02",
@@ -486,8 +687,8 @@
   "algorithm_evidence": "NOT_READY",
   "runtime_integration": "BLOCKED",
   "meets_pr_gate": true,
-  "started_at": "2026-10-15T14:01:49Z",
-  "run_id": "final",
+  "started_at": "2026-10-16T14:15:49Z",
+  "run_id": "h4r",
   "module_command_as_configured": [
     "python3",
     "modules/member3_taskrisk/module.py"
@@ -502,7 +703,8 @@
       "schema_ok": true,
       "actual_state": "ALLOW_RECOMMENDED",
       "actual_class": "PROCEED",
-      "ids_ok": true
+      "ids_ok": true,
+      "event_id": "m3-req-state-allow-6511714af9774444b101ad7b3db9d884"
     },
     {
       "scenario": "block",
@@ -513,7 +715,8 @@
       "schema_ok": true,
       "actual_state": "ALLOW_RECOMMENDED",
       "actual_class": "PROCEED",
-      "ids_ok": true
+      "ids_ok": true,
+      "event_id": "m3-req-state-block-771daca39fa542e5a6dbcf4d15edb86b"
     },
     {
       "scenario": "unknown",
@@ -524,7 +727,8 @@
       "schema_ok": true,
       "actual_state": "ALLOW_RECOMMENDED",
       "actual_class": "PROCEED",
-      "ids_ok": true
+      "ids_ok": true,
+      "event_id": "m3-req-state-unknown-15008fe80ba940beaed9c8ed9e9e6104"
     },
     {
       "scenario": "error",
@@ -535,7 +739,8 @@
       "schema_ok": true,
       "actual_state": "ALLOW_RECOMMENDED",
       "actual_class": "PROCEED",
-      "ids_ok": true
+      "ids_ok": true,
+      "event_id": "m3-req-state-error-41893b476f124df7ab0f39db4af2382c"
     }
   ],
   "real_fixture": "config/acceptance/real_scenarios.member3.yaml",
@@ -560,11 +765,13 @@
       "traceability_ok": true,
       "actual_reason_code": "ALLOW_IN_POLICY",
       "policy_version": "1.0",
+      "event_id": "m3-req-real-allow-c8ce66e7cd0a43c381ed6b3b0936a304",
       "exceeded": null,
       "stderr_head": "[member3] status=ALLOW_RECOMMENDED\n",
       "stdout_bytes": 1723,
       "policy_file_state": "VALID",
       "passed": true,
+      "returncode_ok": true,
       "expected_class_ok": true,
       "expectation_failure": "",
       "command": [
@@ -594,11 +801,13 @@
       "traceability_ok": true,
       "actual_reason_code": "OUT_OF_REGION",
       "policy_version": "1.0-acceptance-tight",
+      "event_id": "m3-req-real-block-53831de519a34935b506ea82547a72b4",
       "exceeded": null,
       "stderr_head": "[member3] status=BLOCK_RECOMMENDED\n",
       "stdout_bytes": 1675,
       "policy_file_state": "VALID",
       "passed": true,
+      "returncode_ok": true,
       "expected_class_ok": true,
       "expectation_failure": "",
       "command": [
@@ -628,11 +837,13 @@
       "traceability_ok": true,
       "actual_reason_code": "POLICY_MISSING",
       "policy_version": null,
+      "event_id": "m3-req-real-unknown-cd8a8cacf13c450ea3c4bcdba357f8e5",
       "exceeded": null,
       "stderr_head": "[member3] status=UNKNOWN\n",
       "stdout_bytes": 1117,
       "policy_file_state": "ABSENT",
       "passed": true,
+      "returncode_ok": true,
       "expected_class_ok": true,
       "expectation_failure": "",
       "command": [
@@ -662,11 +873,13 @@
       "traceability_ok": true,
       "actual_reason_code": "POLICY_MISSING",
       "policy_version": null,
+      "event_id": "m3-req-real-error-3d01eb5ed6de4eab993717479fad4153",
       "exceeded": null,
       "stderr_head": "[member3] status=ERROR\n",
       "stdout_bytes": 1090,
       "policy_file_state": "CORRUPT",
       "passed": true,
+      "returncode_ok": true,
       "expected_class_ok": true,
       "expectation_failure": "",
       "command": [
@@ -678,10 +891,10 @@
     }
   ],
   "counts": {
-    "PASS": 45,
+    "PASS": 58,
     "FAIL": 3,
     "NOT_RUN": 1,
     "BLOCKED": 1
   },
-  "log_dir": "../../../../tmp/final_task_risk/final"
+  "log_dir": "../../../../tmp/h4r-task_risk/h4r"
 }
