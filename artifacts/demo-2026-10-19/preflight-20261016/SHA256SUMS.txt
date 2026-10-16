@@ -1,5 +1,15 @@
 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  ./SHA256SUMS.txt
-77ffd92fcf9a476cb5a45e23596f6e925f7e5d5c2505ce3b2c1346f46845226f  ./gateway-ab.sha256
+3cf158d40615beb51515daf776b5533cc0410b28a035f4377e581538855e8e7a  ./f0-m3-chain/adapter_allow.jsonl
+9d89a1b50466a86d3090d3d125339a61a41f557ce3e6a4c9dd97a808a2ace229  ./f0-m3-chain/adapter_block.jsonl
+8331b48d509421185131039300cdf8876987cc724776837cf13eb3ece88db921  ./f0-m3-chain/f0_allow.json
+588617b426b4e68d4004e7180dc5e2335261f3cb8017e0103e2fead16a3ce5ef  ./f0-m3-chain/f0_block.json
+de8b2df201cf5f839b37f104fb7d6c81b9c808a01bec022f6e4a913a39c756ac  ./gateway-ab-postfix/audit.jsonl
+aede5b71b54874f6ac3d20ed2c17ee2f52a58e5aecbd9a72ffc5656899a1d54f  ./gateway-ab-postfix/demo.log
+86decbed366b9541e4e589c8dc21e9281463f52bb6eb92ce28ba9e247009deb6  ./gateway-ab-postfix/gateway.log
+80ada68f65290003a091bd90413ab4dc3fe58bef956bf84db37efc6246b97445  ./gateway-ab-postfix/navsim.log
+e1d0d5be652c1ee889bbe8f284650023f438bcfc8090c239ffd070f5c0c301e9  ./gateway-ab-postfix/navsim_goals.jsonl
+8d2d32912ecfd7437c35b1a93516f4c38028ab9b09a61fc842311a5158995588  ./gateway-ab-postfix/planner_a.log
+37f7428b6f996015aeaca9ed6b798b8985cb8b43edfc81f5b946fdabd2a9ff97  ./gateway-ab-postfix/planner_b.log
 755bf40b7dc129be22e32debc12e14c4658cb1e8324c5edf79bd446d8f6cad83  ./gateway-ab/audit.jsonl
 778ac83c386dcc10f6f21dd83d97522b079635b456d0a564c6474f9e48026530  ./gateway-ab/demo.log
 66e1edf5e3938e43e4ddc80ffefcf18f4c3a0a3cd0fea5f1ba0870c01d0434e8  ./gateway-ab/gateway.log
@@ -8,7 +18,6 @@ e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  ./SHA256SUMS.t
 e65dd0d3a3e29f3e0b933f56cd69c9ae083e00c9b75bb529b74af8d1f9aa9291  ./gateway-ab/operator.log
 8ea4d901558c6f3539511f8eb51d8076554bb605a3330972ee0a20b83e20e360  ./gateway-ab/planner_a.log
 b6152700a11d9c45ab0183837f0b25a31f811cbfd07f387a7465633dfa3ab9c7  ./gateway-ab/planner_b.log
-176e05aff2ade48cc803a994f6ce697fb081156b8bc9730a601eca4617d033af  ./sros2-enforce.sha256
 b233abfdb9d7876802534e7382ad39c0b26f8ce1f50958b38d6388f1156fe1c7  ./sros2-enforce/S1_normal_mode_a_zone/audit.jsonl
 2f26a510c5ed0fb9c9353fcacdbbfb5d4d18548c5bf04c0ce274959a58f7666b  ./sros2-enforce/S1_normal_mode_a_zone/gateway.log
 606323f931e62380b67e5f1c8f96b958d451fb8658cfb7a786206819c78ee8b7  ./sros2-enforce/S1_normal_mode_a_zone/navsim.log
@@ -27,3 +36,6 @@ fc78870d72b26840ee1c6e0bd3bd7e9c2f0f346789991fcb90e76fbe80545e6c  ./sros2-enforc
 6da3178dc2a0edf2d9af04145cd44e3893412e0cb0fd3cbd63e53de9aa14ebd8  ./sros2-enforce/_stack/navsim_goals.jsonl
 61bacaea1d39a4a1dc55309223e4e41d6a7a7986d9ced902dcb5cb83668c6e27  ./sros2-enforce/_stack/operator.log
 5c7762a6df518465e32ae6afb946442008f4893b0242b458fec2af6bbcaaa20a  ./sros2-enforce/summary.json
+287334e6c1b230e2adb52cc4189eb4624afaf05c73951063992558d1a86c34a0  ./verifier-strictness/config_nonzero_exit.yaml
+685ff561e28f39b8d56ed23e9c63b90776d36b16a7dfadd083256eb1c8b5df23  ./verifier-strictness/nonzero_exit_module.py
+c73f389bd82f33670556333cddea70b1d09a34dff58e0ce32ee98800497a8654  ./verifier-strictness/nonzero_exit_report.json
