@@ -362,7 +362,7 @@ def invoke_real_scenario(module: str, scenario: dict, timeout: float,
         'returncode': result['returncode'],
         'structured': False, 'schema_ok': None, 'actual_state': None,
         'actual_class': None, 'ids_ok': False, 'traceability_ok': False,
-        'actual_reason_code': None, 'policy_version': None,
+        'actual_reason_code': None, 'policy_version': None, 'event_id': None,
         'exceeded': result['exceeded'],
         'stderr_head': (result['stderr'] or '')[:200],
         'stdout_bytes': result['stdout_bytes'],
@@ -377,6 +377,7 @@ def invoke_real_scenario(module: str, scenario: dict, timeout: float,
         row['detail'] = '非法 JSON: {0}'.format(exc)
         return row, env, None
     row['structured'] = True
+    row['event_id'] = payload.get('event_id')
     row['actual_state'] = payload.get('status')
     row['ids_ok'] = (payload.get('run_id') == env['run_id']
                      and payload.get('request_id') == env['request_id'])
@@ -753,6 +754,143 @@ def judge_exit_consistency(result: dict) -> tuple:
     return (True, '')
 
 
+# ---------------------------------------------------------------------------
+# ADP-01：适配层**输入校验拒绝**的可证伪验证
+# ---------------------------------------------------------------------------
+# 为什么必须重写
+# ------------
+# 旧实现把「非零退出」也算作「输入校验成功阻断」：
+#     blocked = ('ADAPTER_BLOCK' in proc.stdout
+#                or 'ADAPTER_INPUT_INVALID' in proc.stdout
+#                or proc.returncode != 0)
+# 于是一个因 Python 异常、依赖缺失、配置错误而崩溃的适配器，也会被记为
+# 「输入拒绝 PASS」——这是**验收证明的错误**。
+#
+# 现在必须同时成立：可解析 JSON + 顶层 ADAPTER_BLOCK + 原因码为
+# ADAPTER_INPUT_INVALID + 退出码为协议规定的 EXIT_INPUT_INVALID（3）+
+# 拒绝发生在任何模块调用之前（用调用标记证明）+ 没有 Planner 动作。
+#
+# 常量直接取自适配层模块，避免硬编码漂移（import 时无副作用）。
+_td_checks = {}
+for _name in ('EXIT_INPUT_INVALID', 'EXIT_BLOCK', 'EXIT_CONFIG_INVALID',
+              'EXIT_INTERNAL', 'EXIT_USAGE', 'REASON_INPUT_INVALID',
+              'REASON_OK', 'REASON_DEPENDENCY_MISSING'):
+    _td_checks[_name] = getattr(_td, _name, None)
+
+
+def _marker_module(tmp_path, marker):
+    """写一个**调用标记**测试替身：一旦被调用就创建 marker 文件。
+
+    用于证明适配层在拒绝非法输入时**没有**调用任何模块；同时它必须输出
+    符合目标模块 Schema 的合法文档，才能作为「合法输入应当推进」的正向对照。
+    """
+    script = Path(tmp_path) / 'marker_module.py'
+    script.write_text(
+        'import json, sys, pathlib\n'
+        'raw = sys.stdin.read()\n'
+        'pathlib.Path({marker!r}).write_text("CALLED", encoding="utf-8")\n'
+        'env = json.loads(raw)\n'
+        'action = env["candidate_action"]\n'
+        'document = {{\n'
+        '    "schema_version": "1.0.0-proposed",\n'
+        '    "run_id": env["run_id"], "request_id": env["request_id"],\n'
+        '    "event_id": "probe-" + env["request_id"][:80],\n'
+        '    "producer": {{"name": "adp01_probe", "source": "MOCK",\n'
+        '                  "module_version": "0"}},\n'
+        '    "observed_at": "2026-10-16T00:00:00Z",\n'
+        '    "status": "ALLOW_RECOMMENDED",\n'
+        '    "task_id": action["task_id"],\n'
+        '    "candidate_action": {{"action_resource": action["action_resource"],\n'
+        '                         "operation": action["operation"]}},\n'
+        '    "target": dict(action["target"]),\n'
+        '    "risk_level": "NONE", "reason": "adp01 positive control",\n'
+        '    "rule_basis": ["probe"],\n'
+        '    "evidence_refs": [{{"ref": "adp01_probe", "kind": "MOCK"}}],\n'
+        '}}\n'
+        'json.dump(document, sys.stdout)\n'.format(marker=str(marker)),
+        encoding='utf-8')
+    return script
+
+
+def _write_probe_config(tmp_path, config, module, command, name):
+    """在临时目录生成一份**受信任**配置副本，仅替换目标模块命令。"""
+    import copy
+    import yaml
+    document = copy.deepcopy(config)
+    document.setdefault('modules', {}).setdefault(module, {})
+    document['modules'][module]['command'] = list(command)
+    document.setdefault('adapter', {})
+    document['adapter']['log_path'] = str(Path(tmp_path) / ('adapter-{0}.jsonl'.format(name)))
+    path = Path(tmp_path) / ('config-{0}.yaml'.format(name))
+    path.write_text(yaml.safe_dump(document, allow_unicode=True), encoding='utf-8')
+    return str(path)
+
+
+def _adapter_evidence(proc, planner_flags=()):
+    """从适配层 stdout 提取可核验证据；非 JSON 时如实标记。"""
+    out = (proc.stdout or '').strip()
+    evidence = {'stdout_is_json': False, 'decision': None, 'reason_code': None,
+                'planner_started': False, 'modules_invoked': None,
+                'exit_code': proc.returncode,
+                'stdout_head': out[:200], 'stderr_head': (proc.stderr or '')[:200]}
+    document = None
+    if out.startswith('{'):
+        try:
+            document = json.loads(out)
+        except ValueError:
+            document = None
+    if isinstance(document, dict):
+        evidence['stdout_is_json'] = True
+        evidence['decision'] = document.get('decision')
+        evidence['reason_code'] = document.get('reason_code')
+        modules = document.get('modules')
+        evidence['modules_invoked'] = len(modules) if isinstance(modules, list) else None
+        online = document.get('online') or {}
+        evidence['planner_started'] = bool(online.get('enabled')) or bool(
+            online.get('started'))
+    for flag in planner_flags:
+        if flag:
+            evidence['planner_started'] = True
+    return evidence
+
+
+def run_adapter(adapter, config, stdin_text, timeout):
+    """调用适配层一次，返回 (proc, evidence)。"""
+    proc = subprocess.run(
+        [sys.executable, adapter, '--input', '-', '--config', config],
+        input=stdin_text, capture_output=True, text=True,
+        timeout=max(timeout, 60), cwd=REPO, shell=False)
+    return proc, _adapter_evidence(proc)
+
+
+def judge_clean_input_rejection(evidence) -> tuple:
+    """判定是否构成**明确的输入校验拒绝**，返回 (ok, detail)。
+
+    必须全部成立，缺一不可。特别注意：这里**不再**接受"非零退出"作为充分条件。
+    """
+    problems = []
+    if not evidence['stdout_is_json']:
+        problems.append('stdout 不是可解析 JSON（无法证明是输入校验拒绝）：{0!r}'.format(
+            evidence['stdout_head'][:80]))
+    if evidence['decision'] != 'ADAPTER_BLOCK':
+        problems.append('decision={0!r} 不是 ADAPTER_BLOCK'.format(evidence['decision']))
+    if evidence['reason_code'] != _td_checks['REASON_INPUT_INVALID']:
+        problems.append('reason_code={0!r} 不是 {1!r}'.format(
+            evidence['reason_code'], _td_checks['REASON_INPUT_INVALID']))
+    if evidence.get('exit_code') != _td_checks['EXIT_INPUT_INVALID']:
+        problems.append('returncode={0!r} 不是协议规定的 {1!r}'.format(
+            evidence.get('exit_code'), _td_checks['EXIT_INPUT_INVALID']))
+    if evidence['modules_invoked'] not in (0, None):
+        problems.append('已有 {0} 个模块被调用，拒绝未发生在模块调用之前'.format(
+            evidence['modules_invoked']))
+    if evidence['planner_started']:
+        problems.append('检测到 Planner 已启动')
+    if problems:
+        return False, '；'.join(problems)
+    return True, 'decision=ADAPTER_BLOCK reason_code={0} rc={1} 模块调用=0'.format(
+        evidence['reason_code'], evidence.get('exit_code'))
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description='统一成员模块验收')
     parser.add_argument('--module', required=True, choices=sorted(MODULE_SPEC))
@@ -848,6 +986,10 @@ def main(argv=None) -> int:
     except ValueError as exc:
         report.add('PROTO-06', 'stdout 是合法 JSON', 'FAIL', str(exc))
 
+    # event_id 审计去重台账：同一运行内不得出现重复事件标识
+    # （契约 §7：一次运行多个事件通过不同 event_id 区分；重复输出以 event_id 去重）
+    event_ids = []
+
     if payload is not None:
         report.add('ID-01', 'run_id 与输入一致',
                    'PASS' if payload.get('run_id') == envelope['run_id'] else 'FAIL',
@@ -855,10 +997,25 @@ def main(argv=None) -> int:
         report.add('ID-02', 'request_id 与输入一致',
                    'PASS' if payload.get('request_id') == envelope['request_id']
                    else 'FAIL', '{0!r}'.format(payload.get('request_id')))
-        report.add('ID-03', 'event_id 存在且含 request_id',
-                   'PASS' if payload.get('event_id') and
-                   envelope['request_id'] in str(payload.get('event_id')) else 'FAIL',
-                   '{0!r}'.format(payload.get('event_id')))
+        # ID-03 修正（契约对齐）
+        # `docs/interfaces/CONTRACT_VERSION.md` §7 与三份 Schema 的定义是：
+        #   event_id   = 本次输出事件唯一标识，用于**审计追溯与去重**（1..128 字符）
+        #   request_id = 业务请求关联标识
+        # 跨层关联由**显式** run_id/request_id 字段承担，**不是**把 request_id
+        # 塞进 event_id。旧规则要求「event_id 含完整 request_id」与 Schema 的
+        # 128 字符上限在 request_id > 80 时数学上无法同时成立，属于验收器缺陷。
+        event_id = payload.get('event_id')
+        report.add('ID-03', 'event_id 为合法非空唯一标识（不要求包含 request_id）',
+                   'PASS' if isinstance(event_id, str) and 0 < len(event_id) <= 128
+                   and event_id.strip() else 'FAIL',
+                   'event_id={0!r} len={1}'.format(
+                       event_id, len(event_id) if isinstance(event_id, str) else None))
+        report.add('ID-03B', 'event_id 与 request_id 的关联由显式字段承担',
+                   'PASS' if payload.get('request_id') == envelope['request_id']
+                   else 'FAIL',
+                   'request_id 字段一致性即关联依据；event_id 不承担该编码责任')
+        if isinstance(payload.get('event_id'), str):
+            event_ids.append((payload.get('event_id'), 'primary'))
         report.add('ID-04', 'schema_version 合法',
                    'PASS' if payload.get('schema_version') == '1.0.0-proposed'
                    else 'FAIL', '{0!r}'.format(payload.get('schema_version')))
@@ -922,6 +1079,7 @@ def main(argv=None) -> int:
             state_rows.append(row)
             continue
         row['actual_state'] = payload.get('status')
+        row['event_id'] = payload.get('event_id')
         row['ids_ok'] = (payload.get('run_id') == env['run_id']
                          and payload.get('request_id') == env['request_id'])
         ok, serr = validate(payload, os.path.join(SCHEMA_DIR, schema_file))
@@ -963,6 +1121,9 @@ def main(argv=None) -> int:
                    'applicability': ('MOCK_SCENARIO_SWITCH_APPLIES' if mock_gate
                                      else 'NOT_APPLICABLE_REAL_MODULE')})
 
+    for row in state_rows:
+        if row.get('event_id'):
+            event_ids.append((row['event_id'], 'state:' + str(row.get('scenario'))))
     report.data['state_matrix'] = state_rows
     proceed_rows = [r for r in state_rows if r['expected_class'] == 'PROCEED']
     block_rows = [r for r in state_rows if r['expected_class'] == 'LEGAL_BLOCK']
@@ -1094,6 +1255,10 @@ def main(argv=None) -> int:
                 {k: v for k, v in row.items() if k != 'command'} |
                 {'command': row['command']}
                 for _s, row, _e in rows]
+            for row in (real_block_rows + real_proceed_rows):
+                _r = row[1]
+                if _r.get('event_id'):
+                    event_ids.append((_r['event_id'], 'real:' + str(_r.get('scenario'))))
             report.add(
                 'REAL-STATE-SUMMARY',
                 '真实条件状态矩阵完整执行（共 {0} 种）'.format(
@@ -1224,30 +1389,194 @@ def main(argv=None) -> int:
                        r['returncode'])),
                    mandatory=False, extra={'returncode': r['returncode']})
 
-    # ---- 强制项：真正的安全边界在适配层 ----
+    # ---- 强制项：真正的安全边界在适配层（ADP-01，已加固） ----
     adapter = os.path.join(REPO, 'scripts', 'team_demo.py')
-    if os.path.isfile(adapter):
-        try:
-            proc = subprocess.run(
-                [sys.executable, adapter, '--input', '-',
-                 '--config', args.config],
-                input=json.dumps({k: v for k, v in envelope.items()
-                                  if k != 'observations'}),
-                capture_output=True, text=True, timeout=max(timeout, 60),
-                cwd=REPO, shell=False)
-            blocked = ('ADAPTER_BLOCK' in proc.stdout
-                       or 'ADAPTER_INPUT_INVALID' in proc.stdout
-                       or proc.returncode != 0)
-            report.add('ADP-01', '适配层对畸形信封失败关闭（真正的安全边界）',
-                       'PASS' if blocked else 'FAIL',
-                       'rc={0} stdout 含 ADAPTER_BLOCK={1}'.format(
-                           proc.returncode, 'ADAPTER_BLOCK' in proc.stdout),
-                       extra={'returncode': proc.returncode})
-        except Exception as exc:               # noqa: BLE001
-            report.add('ADP-01', '适配层对畸形信封失败关闭', 'BLOCKED', str(exc)[:200])
-    else:
-        report.add('ADP-01', '适配层对畸形信封失败关闭', 'BLOCKED',
+    if not os.path.isfile(adapter):
+        report.add('ADP-01', '适配层对畸形信封做明确输入拒绝', 'BLOCKED',
                    'scripts/team_demo.py 不存在')
+    else:
+        import tempfile as _tempfile
+        with _tempfile.TemporaryDirectory(prefix='rg_adp01_') as _tmp:
+            # 正向对照：必须存在，否则"全部判为阻断"也能骗过本项
+            marker = os.path.join(_tmp, 'MODULE_CALLED.marker')
+            probe_cfg = _write_probe_config(
+                _tmp, config, module,
+                [sys.executable, str(_marker_module(_tmp, marker))], 'probe')
+            valid_text = json.dumps(envelope)
+            try:
+                proc_ok, ev_ok = run_adapter(adapter, probe_cfg, valid_text,
+                                             timeout)
+                positive_ok = (ev_ok['decision'] == 'READY_FOR_GATEWAY_SUBMISSION'
+                               and os.path.isfile(marker))
+                positive_detail = (
+                    'decision={0} reason={1} 模块被调用={2}'.format(
+                        ev_ok['decision'], ev_ok['reason_code'],
+                        os.path.isfile(marker)))
+            except Exception as exc:               # noqa: BLE001
+                positive_ok, positive_detail = False, str(exc)[:200]
+            report.add('ADP-00', '正向对照：合法输入可推进且模块确实被调用',
+                       'PASS' if positive_ok else 'FAIL', positive_detail,
+                       extra={'control': 'POSITIVE_CONTROL'})
+
+            # 四项**明确输入拒绝**：必须给出 ADAPTER_INPUT_INVALID + rc=3，
+            # 且不得调用任何模块。
+            envelope_no_obs = {k: v for k, v in envelope.items()
+                               if k != 'observations'}
+            envelope_no_action = {k: v for k, v in envelope.items()
+                                  if k != 'candidate_action'}
+            clean_cases = [
+                ('ADP-N01', '缺少 observations', json.dumps(envelope_no_obs)),
+                ('ADP-N02', 'schema_version 非法', json.dumps(
+                    dict(envelope, schema_version='9.9.9'))),
+                ('ADP-N03', '缺少 candidate_action', json.dumps(envelope_no_action)),
+                ('ADP-N04', '非法 JSON 输入', '{not json'),
+            ]
+            for cid, name, raw in clean_cases:
+                case_marker = os.path.join(_tmp, 'CALLED-{0}.marker'.format(cid))
+                cfg = _write_probe_config(
+                    _tmp, config, module,
+                    [sys.executable, str(_marker_module(_tmp, case_marker))],
+                    cid)
+                try:
+                    proc, ev = run_adapter(adapter, cfg, raw, timeout)
+                except Exception as exc:           # noqa: BLE001
+                    report.add(cid, '{0} -> 明确输入拒绝'.format(name), 'BLOCKED',
+                               str(exc)[:200])
+                    continue
+                ok, detail = judge_clean_input_rejection(ev)
+                if os.path.isfile(case_marker):
+                    ok = False
+                    detail += '；非法输入却实际调用了模块（调用标记存在）'
+                report.add(cid, '{0} -> 明确输入拒绝（ADAPTER_INPUT_INVALID）'.format(name),
+                           'PASS' if ok else 'FAIL', detail,
+                           extra={'adapter_evidence': {
+                               k: v for k, v in ev.items() if k != 'stdout_head'},
+                               'module_called': os.path.isfile(case_marker)})
+
+            # 四类**非输入故障**：绝不能记为"输入校验拒绝 PASS"。
+            # 它们可以合法地以其它原因码失败关闭，但不得冒充 ADP-01。
+            fault_cases = [
+                ('ADP-N05', '适配器内部异常/模块脚本崩溃',
+                 _write_probe_config(_tmp, config, module,
+                                     [sys.executable, '-c',
+                                      'raise SystemExit(7)'], 'n05'),
+                 json.dumps(envelope)),
+                ('ADP-N06', '适配器依赖缺失（解释器不存在）',
+                 _write_probe_config(_tmp, config, module,
+                                     ['/nonexistent/python-does-not-exist',
+                                      'x.py'], 'n06'),
+                 json.dumps(envelope)),
+                ('ADP-N07', '配置文件不存在',
+                 os.path.join(_tmp, 'no-such-config.yaml'),
+                 json.dumps(envelope)),
+                ('ADP-N08', '模块返回非零且输出不是合法 JSON',
+                 _write_probe_config(_tmp, config, module,
+                                     [sys.executable, '-c',
+                                      'import sys;sys.stdin.read();'
+                                      'print("NOT JSON");raise SystemExit(1)'],
+                                     'n08'),
+                 json.dumps(envelope)),
+            ]
+            for cid, name, cfg, raw in fault_cases:
+                try:
+                    proc, ev = run_adapter(adapter, cfg, raw, timeout)
+                except Exception as exc:           # noqa: BLE001
+                    # 适配层自身崩溃（如参数解析失败）——绝不能记为输入拒绝成功
+                    report.add(cid, '{0} -> 不得记为输入校验 PASS'.format(name),
+                               'PASS', '适配层未产出结果（{0}），未被误记为输入拒绝'.format(
+                                   str(exc)[:80]),
+                               extra={'misrecorded_as_input_rejection': False})
+                    continue
+                misrecorded, why = judge_clean_input_rejection(ev)
+                if ev['reason_code'] == _td_checks['REASON_INPUT_INVALID']:
+                    misrecorded, why = True, '被错误标记为 ADAPTER_INPUT_INVALID'
+                report.add(cid, '{0} -> 不得记为输入校验 PASS'.format(name),
+                           'FAIL' if misrecorded else 'PASS',
+                           'reason_code={0} rc={1}；{2}'.format(
+                               ev['reason_code'], ev['exit_code'],
+                               '被误判为输入拒绝：' + why if misrecorded
+                               else '未被误判为输入拒绝'),
+                           extra={'adapter_evidence': {
+                               k: v for k, v in ev.items() if k != 'stdout_head'},
+                               'misrecorded_as_input_rejection': bool(misrecorded)})
+
+            # ADP-N09：ADAPTER_BLOCK 但 reason_code 不符预期 -> 必须 FAIL
+            cfg_n09 = _write_probe_config(
+                _tmp, config, module,
+                [sys.executable, '-c',
+                 'import sys;sys.stdin.read();print("{}");raise SystemExit(10)'],
+                'n09')
+            try:
+                _, ev_n09 = run_adapter(adapter, cfg_n09, json.dumps(envelope),
+                                        timeout)
+            except Exception as exc:               # noqa: BLE001
+                report.add('ADP-N09', 'ADAPTER_BLOCK 但原因码不符 -> FAIL',
+                           'PASS', '适配层未产出结果（{0}）'.format(str(exc)[:60]))
+            else:
+                # 该替身未产出合法模块输出，适配层应给出模块类失败原因码，
+                # 而**不是**输入拒绝据此冒充成功
+                wrong = ev_n09['reason_code'] == _td_checks['REASON_INPUT_INVALID']
+                report.add('ADP-N09', '原因码必须与真实失败路径一致（不得冒充输入拒绝）',
+                           'FAIL' if wrong else 'PASS',
+                           'reason_code={0} rc={1}'.format(
+                               ev_n09['reason_code'], ev_n09['exit_code']),
+                           extra={'adapter_evidence': {
+                               k: v for k, v in ev_n09.items() if k != 'stdout_head'}})
+
+            # ADP-N10：发生"输入拒绝"但模块被实际调用 -> 必须 FAIL
+            n10_marker = os.path.join(_tmp, 'N10.marker')
+            cfg_n10 = _write_probe_config(
+                _tmp, config, module,
+                [sys.executable, str(_marker_module(_tmp, n10_marker))], 'n10')
+            try:
+                _, ev_n10 = run_adapter(adapter, cfg_n10, valid_text, timeout)
+                called = os.path.isfile(n10_marker)
+                report.add('ADP-N10', '合法输入必须真实调用模块（未调用即 FAIL）',
+                           'PASS' if called else 'FAIL',
+                           'decision={0} 模块被调用={1}'.format(
+                               ev_n10['decision'], called),
+                           extra={'module_called': called})
+            except Exception as exc:               # noqa: BLE001
+                report.add('ADP-N10', '合法输入必须真实调用模块', 'BLOCKED',
+                           str(exc)[:200])
+
+        # 保留原 ADP-01（畸形信封 -> 明确输入拒绝）
+        try:
+            proc, ev = run_adapter(
+                adapter, args.config,
+                json.dumps({k: v for k, v in envelope.items()
+                            if k != 'observations'}), timeout)
+            ok, detail = judge_clean_input_rejection(ev)
+            report.add('ADP-01', '适配层对畸形信封做明确输入拒绝（真正的安全边界）',
+                       'PASS' if ok else 'FAIL', detail,
+                       extra={'adapter_evidence': {
+                           k: v for k, v in ev.items() if k != 'stdout_head'}})
+        except Exception as exc:               # noqa: BLE001
+            report.add('ADP-01', '适配层对畸形信封做明确输入拒绝', 'BLOCKED',
+                       str(exc)[:200])
+
+    # ---------------- 4b) event_id 唯一性与边界（契约事件去重语义） ----------------
+    seen_ids = {}
+    duplicates = []
+    for value, where in event_ids:
+        if not isinstance(value, str) or not value.strip():
+            duplicates.append(('EMPTY', where))
+            continue
+        if len(value) > 128:
+            duplicates.append(('TOO_LONG:{0}'.format(len(value)), where))
+            continue
+        if value in seen_ids:
+            duplicates.append((value, '{0} 与 {1} 重复'.format(where, seen_ids[value])))
+        else:
+            seen_ids[value] = where
+    boundary = {'requests_probed': len(event_ids),
+                'distinct_event_ids': len(seen_ids),
+                'violations': duplicates[:10]}
+    report.add('ID-05', 'event_id 非空、≤128 字符且在同一运行内不重复',
+               'PASS' if event_ids and not duplicates else 'FAIL',
+               '{0} 次调用 / {1} 个不同 event_id / {2} 个违规'.format(
+                   len(event_ids), len(seen_ids), len(duplicates)),
+               extra={'event_id_audit': boundary})
 
     # ---------------- 5) 超时与输出上限 ----------------
     # LIM-01 必须由**可核验事实**决定。旧实现写成
