@@ -107,7 +107,7 @@ git log --oneline -1 demo-2026-10-19-rc-preflight-20261016
 |---|---|---|
 | 标题 | `Chore/member deliveries` | `Fix/m2 m3 acceptance` |
 | 状态 | **open**（未合并） | **open**（未合并） |
-| **base 分支** | **`main`**（`838f66f`） | **`main`**（`838f66f`） |
+| **PR base 实测值** | `main`（`838f66f`）—— **不是** `baseline`，与任务书与团队政策不符，**须改为 baseline**（见 §3.2） | 同左：`main`（`838f66f`）—— **不是** `baseline`，**须改为 baseline** |
 | head 分支 | `chore/member-deliveries` `3ce8202` | `fix/m2-m3-acceptance`（见 §12） |
 | commits | 44 | 53 |
 | changed_files | 192 | 272 |
