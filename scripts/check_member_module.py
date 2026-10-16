@@ -681,6 +681,78 @@ def invoke(command: list, envelope: dict, timeout: float, max_bytes: int,
     }
 
 
+#: 超时后允许的额外开销（秒）：进程组终止 + 子进程回收 + 管道关闭。
+#: 超过该余量说明超时**没有真正生效**（进程跑过了配置的上限）。
+TIMEOUT_GRACE_SEC = 3.0
+#: 终止结果必须落在这些取值内才算「已回收」；含 unreaped / fail 即清理失败。
+_CLEAN_TERMINATION = ('terminated', 'already_gone', 'terminated+killed')
+
+
+def judge_timeout(result: dict, timeout: float) -> tuple:
+    """判定一次极小超时调用的真实结果，返回 (ok, status, detail)。
+
+    必须区分三种情况，而不是无条件放行：
+
+    * ``clean_completion`` —— 进程在超时前正常结束，没有挂起。此时 elapsed
+      必须**未超过**上限，否则说明「极小超时」并未真正约束运行时间。
+    * ``timeout_terminated`` —— 超时触发，并且进程组被**真实终止并回收**：
+      退出码是被信号杀死的负值、终止结果不是 unreaped/failed、
+      且 elapsed 未显著超过 timeout + 余量（证明终止生效而非放任继续跑）。
+    * ``failed`` —— 上述任一条件不成立：超时后未能终止、进程未回收、
+      或运行时间远超上限。**这些情况绝不能记为 PASS。**
+
+    ``exceeded`` 的其他取值（STDOUT_TOO_LARGE / SPAWN_FAILED / NOT_FOUND /
+    SETUP_FAILED…）同样判负：极小超时检查只接受「干净结束」或「超时且已回收」。
+    """
+    exceeded = result.get('exceeded')
+    elapsed = result.get('elapsed') or 0.0
+    returncode = result.get('returncode')
+    terminate = result.get('terminate')
+
+    if exceeded is None:
+        if elapsed > timeout + TIMEOUT_GRACE_SEC:
+            return (False, 'overran_without_timeout',
+                    '进程在 {0:.2f}s 后结束，超过上限 {1:.3f}s + {2:.1f}s 余量，'
+                    '说明极小超时未约束运行时间'.format(
+                        elapsed, timeout, TIMEOUT_GRACE_SEC))
+        return (True, 'clean_completion',
+                '进程在超时前自行结束（rc={0}，{1:.3f}s <= {2:.3f}s）'.format(
+                    returncode, elapsed, timeout))
+
+    if exceeded != 'TIMEOUT':
+        return (False, 'unexpected_exceeded',
+                'exceeded={0!r} 不是 TIMEOUT，极小超时检查不接受该结果'.format(exceeded))
+
+    problems = []
+    if not (isinstance(returncode, int) and returncode < 0):
+        problems.append('超时后 returncode={0!r} 不是被信号终止的负值'.format(returncode))
+    if terminate not in _CLEAN_TERMINATION:
+        problems.append('终止结果 terminate={0!r} 未完成回收'.format(terminate))
+    if elapsed > timeout + TIMEOUT_GRACE_SEC:
+        problems.append('elapsed={0:.2f}s 远超上限 {1:.3f}s + {2:.1f}s 余量，'
+                        '超时后进程未被及时终止'.format(
+                            elapsed, timeout, TIMEOUT_GRACE_SEC))
+    if problems:
+        return False, 'timeout_not_contained', '；'.join(problems)
+    return (True, 'timeout_terminated',
+            '超时已触发且进程组被终止回收（rc={0}，terminate={1}，'
+            '{2:.3f}s <= {3:.3f}s + {4:.1f}s）'.format(
+                returncode, terminate, elapsed, timeout, TIMEOUT_GRACE_SEC))
+
+
+def judge_exit_consistency(result: dict) -> tuple:
+    """判定「产出结构化输出」与「成功退出」是否自洽。
+
+    模块把协议跑完并产出结构化输出时，必须以 0 退出；否则无法区分
+    「成功产出后崩溃」和「正常结束」。**没有**产出结构化输出时，非零退出是
+    合法的失败关闭信号（例如输入非法 -> rc=2），不在此处判负。
+    """
+    rc = result.get('returncode')
+    if result.get('stdout', '').strip() and rc not in (0, None):
+        return (False, '输出结构化结果却以 rc={0} 退出（应为 0）'.format(rc))
+    return (True, '')
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description='统一成员模块验收')
     parser.add_argument('--module', required=True, choices=sorted(MODULE_SPEC))
@@ -965,21 +1037,31 @@ def main(argv=None) -> int:
                     extra_fail = (extra_fail + ' | ' if extra_fail else '') + (
                         'reason_code {0!r} != 期望 {1!r}'.format(
                             row['actual_reason_code'], reason_expect))
+                # rc==0 是真实状态验收的一部分：合法 JSON + 期望状态但以
+                # 非零状态退出，说明协议没有正常跑完，不得判为通过。
+                # UNKNOWN / ERROR 等安全阻断**只要结构合法且 rc==0** 仍然通过
+                # （它们不是 Schema 错误，只是不允许推进）。
+                rc_ok = row['returncode'] == 0
+                if not rc_ok:
+                    extra_fail = (extra_fail + ' | ' if extra_fail else '') + (
+                        'returncode={0} != 0，模块未成功退出'.format(
+                            row['returncode']))
                 passed = (
                     row['structured'] and row['schema_ok'] is True
-                    and row['ids_ok'] and row['traceability_ok']
+                    and row['ids_ok'] and row['traceability_ok'] and rc_ok
                     and row['actual_state'] == row['expected_state']
                     and row['actual_class'] == row['expected_class']
                     and not extra_fail)
                 row['passed'] = passed
+                row['returncode_ok'] = rc_ok
                 row['expected_class_ok'] = (
                     row['actual_class'] == row['expected_class'])
                 row['expectation_failure'] = extra_fail
                 cid = 'REAL-STATE-{0}'.format(scenario['name'].upper())
-                detail = ('rc={0} policy={1} actual={2} expected={3} '
-                          'schema_ok={4} class={5} ids_ok={6} '
-                          'traceability_ok={7} reason_code={8}').format(
-                    row['returncode'], row['policy_ref'],
+                detail = ('rc={0} rc_ok={1} policy={2} actual={3} expected={4} '
+                          'schema_ok={5} class={6} ids_ok={7} '
+                          'traceability_ok={8} reason_code={9}').format(
+                    row['returncode'], row['returncode_ok'], row['policy_ref'],
                     row['actual_state'], row['expected_state'],
                     row['schema_ok'], row['actual_class'], row['ids_ok'],
                     row['traceability_ok'], row['actual_reason_code'])
@@ -1168,11 +1250,32 @@ def main(argv=None) -> int:
                    'scripts/team_demo.py 不存在')
 
     # ---------------- 5) 超时与输出上限 ----------------
-    r_t = invoke(command, envelope, timeout=0.001, max_bytes=max_bytes)
-    report.add('LIM-01', '极小超时下不会挂起（超时即阻断）',
-               'PASS' if r_t['exceeded'] in ('TIMEOUT', None) else 'PASS',
-               'rc={0} exceeded={1} elapsed={2:.2f}s'.format(
-                   r_t['returncode'], r_t['exceeded'], r_t['elapsed']))
+    # LIM-01 必须由**可核验事实**决定。旧实现写成
+    #     'PASS' if r_t['exceeded'] in ('TIMEOUT', None) else 'PASS'
+    # 两个分支同为 PASS，恒为 PASS，无法验证任何东西。现在改为区分
+    # 「超时前干净结束」/「超时且进程组已终止回收」/「超时未被约束」三种情况。
+    LIMIT_TIMEOUT = 0.001
+    r_t = invoke(command, envelope, timeout=LIMIT_TIMEOUT, max_bytes=max_bytes)
+    lim_ok, lim_status, lim_detail = judge_timeout(r_t, LIMIT_TIMEOUT)
+    # 「产出结构化输出就必须以 0 退出」只在**未经过超时终止**时适用：
+    # 一旦判定为 timeout_terminated，负的 returncode 正是终止成功所要求的，
+    # 此时根本不存在"成功退出"的语义，不能用退出码一致性去否定它。
+    if lim_status != 'timeout_terminated':
+        exit_ok, exit_detail = judge_exit_consistency(r_t)
+        if not exit_ok:
+            lim_ok = False
+            lim_detail = lim_detail + '；' + exit_detail
+    report.add('LIM-01', '极小超时下不会挂起（超时即阻断，且必须真实终止回收）',
+               'PASS' if lim_ok else 'FAIL',
+               '{0}；rc={1} exceeded={2} elapsed={3:.3f}s terminate={4}'.format(
+                   lim_detail, r_t['returncode'], r_t['exceeded'],
+                   r_t['elapsed'], r_t.get('terminate')),
+               extra={'timeout_verdict': lim_status,
+                      'returncode': r_t['returncode'],
+                      'exceeded': r_t['exceeded'],
+                      'elapsed_sec': round(r_t['elapsed'], 4),
+                      'terminate': r_t.get('terminate'),
+                      'effective_timeout_sec': LIMIT_TIMEOUT})
 
     # 有界读取的强制验证：输出超限必须立即终止，且不得判为成功
     r_big = invoke(command, envelope, timeout=max(timeout, 30), max_bytes=64)
