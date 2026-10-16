@@ -46,8 +46,12 @@
 | `origin/baseline` | `a4c597161d254192b662ee7b8f4d17f76a89cc16` | ✅ 一致，**未被移动** |
 | `origin/chore/member-deliveries` | `3ce820258c69b89e2ad9291e16c44dc7d2b99150` | ✅ 一致 |
 | `origin/main` | `838f66f41821edf0421612a205d162ae8e9eb955` | — |
-| `origin/fix/m2-m3-acceptance` | `b60bca71a7326983ad14cb37a4a9ec127739e83e`（修复前 `13098b7a…`） | 本轮**前进 3 个提交** |
+| `origin/fix/m2-m3-acceptance` | 见 §12 权威 SHA（本报告所在分支，**其 SHA 随本报告提交而变**；以 `origin/demo/2026-10-19-rc` 的 SHA 为权威引用） | 本轮前进 4 个提交 |
 | `origin/demo/2026-10-19-rc` | `9ecb3534a8ef02aea1dac18eb218b55d6eaf9a84` | **本轮新建** |
+
+**关于 SHA 自引用**：`fix/m2-m3-acceptance` 承载本报告，因此**无法在报告内固定自身 SHA**
+（每次修订都会改变它）。可复现的权威引用是 **`demo/2026-10-19-rc`**（见 §12），
+它是一次性构建的演示候选，包含本分支全部内容。
 
 ### 2.2 分支职责（严格区分，未混用）
 
@@ -55,7 +59,7 @@
 |---|---|---|
 | `baseline` | `a4c5971` | 公共基线（本轮未推任何提交） |
 | `chore/member-deliveries` | `3ce8202` | 三成员原始交付归档 |
-| `fix/m2-m3-acceptance` | `b60bca7` | 后续整改成果（M2/M3 修复 + 验收器严谨性修复 + 收尾报告/证据） |
+| `fix/m2-m3-acceptance` | （见 §12；该分支承载本报告，SHA 自引用不可固定） | 后续整改成果（M2/M3 修复 + 验收器严谨性修复 + 收尾报告/证据） |
 | `demo/2026-10-19-rc` | `4f2c670` | **演示集成候选开发起点**（合并了 fix 分支） |
 
 `demo/2026-10-19-rc` 是**演示候选开发分支**，不是已验收通过的 RC1。
@@ -85,7 +89,7 @@
 | 标题 | `Chore/member deliveries` | `Fix/m2 m3 acceptance` |
 | 状态 | **open**（未合并） | **open**（未合并） |
 | **base 分支** | **`main`**（`838f66f`） | **`main`**（`838f66f`） |
-| head 分支 | `chore/member-deliveries` `3ce8202` | `fix/m2-m3-acceptance` `b60bca7` |
+| head 分支 | `chore/member-deliveries` `3ce8202` | `fix/m2-m3-acceptance`（见 §12） |
 | commits | 44 | 53 |
 | changed_files | 192 | 272 |
 | ± | +59011 / −497 | +71145 / −497 |
