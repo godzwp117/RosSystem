@@ -516,13 +516,31 @@ def _run_m2_checker(tmp_path, run_id):
 
 
 def test_m2_real_fixture_reaches_gate(tmp_path):
-    """真实评估器在真实 fixture 下必须达到门槛，且四场景状态正确。"""
+    """真实评估器在真实 fixture 下的四场景状态必须正确。
+
+    注意（WORK_A / A2 语义收紧）
+    ---------------------------
+    历史实现曾断言 `meets_pr_gate is True`，因为 S2 的历史 `AUTHORIZED` 被视为
+    足以让适配层推进。这在语义上是错的：历史受控实验只证明**当时那次运行**中
+    某个已认证主体访问成功，不证明当前这条候选请求的发送方身份。
+    现在 F0 额外要求 `extensions.current_request_identity.status ==
+    AUTHENTICATED`；真实模块在拿不到中间件身份证据时只能给 UNKNOWN，
+    因此**没有任何一条真实路径能让适配层推进**（下面逐条断言）。
+
+    L1 协议门槛仍然通过：四场景状态、Schema、可追溯性、ID 关联、失败关闭。
+    "通过 L1 门槛"与"能证明当前请求身份"是两条不同的轴，后者见交接文件里
+    的 ONLINE_PROCEED_READY = FAIL。
+    """
     proc = _run_m2_checker(tmp_path, 'm2-gate')
     assert proc.returncode == 0, proc.stdout[-3000:] + proc.stderr[-2000:]
     report = json.loads((tmp_path / 'm2-gate' / 'report.json')
                         .read_text(encoding='utf-8'))
     assert report['meets_pr_gate'] is True, report.get('counts')
     rows = {r['scenario']: r for r in report['real_state_matrix']}
+    # 没有任何一条真实场景能让适配层给出 READY
+    adapter_rows = [c for c in report['checks'] if c['id'].startswith('REAL-ADP-')]
+    assert adapter_rows
+    assert all(c['decision'] == 'ADAPTER_BLOCK' for c in adapter_rows), adapter_rows
     assert set(rows) == {'s2-authorized', 's3c-positive-control',
                          's3-native-denial', 's4-native-denial'}
     assert rows['s2-authorized']['actual_state'] == 'AUTHORIZED'
@@ -545,10 +563,13 @@ def test_m2_real_fixture_blocks_and_never_authorizes_nav_execute(tmp_path):
         entry = checks['REAL-ADP-{0}'.format(name)]
         assert entry['status'] == 'PASS', entry
         assert entry['decision'] == 'ADAPTER_BLOCK'
-    # S2 资源一致 -> 允许推进，但也只是 READY，不是 Gateway ALLOW
-    ready = checks['REAL-ADP-S2-AUTHORIZED']
-    assert ready['decision'] == 'READY_FOR_GATEWAY_SUBMISSION'
-    assert ready.get('gateway_decision') is None
+    # S2 的历史资源与当前候选入口一致，模块级结论是 AUTHORIZED，
+    # 但**当前请求身份未绑定**，适配层必须阻断在 ADAPTER_CURRENT_IDENTITY_UNBOUND。
+    s2 = checks['REAL-ADP-S2-AUTHORIZED']
+    assert s2['status'] == 'PASS', s2
+    assert s2['decision'] == 'ADAPTER_BLOCK', s2
+    assert s2['reason_code'] == 'ADAPTER_CURRENT_IDENTITY_UNBOUND', s2
+    assert s2.get('gateway_decision') is None
 
 
 def test_m2_fixture_cannot_inject_commands(tmp_path):

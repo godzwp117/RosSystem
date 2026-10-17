@@ -113,6 +113,18 @@ def main() -> int:
         'evidence_refs': [{'ref': 'tests/fixtures/team_modules/permissions_matrix.json',
                            'kind': 'MOCK',
                            'note': '测试夹具推导，不得当作已通过 DDS 认证'}],
+        # 测试替身**模拟**当前请求身份绑定（MOCK_FIXTURE）。
+        # 真实模块在拿不到中间件身份证据时只能给 UNKNOWN。
+        'extensions': {
+            'current_request_identity': {
+                'status': 'AUTHENTICATED' if status == 'AUTHORIZED' else 'UNKNOWN',
+                'evidence_kind': 'MOCK_FIXTURE',
+                'binding': ('MOCK_SIMULATED_CURRENT_BINDING' if status == 'AUTHORIZED'
+                            else 'MOCK_NO_CURRENT_BINDING'),
+                'reason': '测试替身模拟当前请求身份绑定（非真实 DDS 认证）',
+                'historical_only': False,
+            },
+        },
     }
     note('替身矩阵：subject={0} resource={1} op={2} -> {3}'.format(
         subject, resource, operation, status))

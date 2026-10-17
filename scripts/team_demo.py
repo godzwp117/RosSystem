@@ -91,6 +91,8 @@ REASON_CLEANUP_FAILED = 'ADAPTER_CLEANUP_FAILED'
 REASON_AUDIT_WRITE_FAILED = 'ADAPTER_AUDIT_WRITE_FAILED'
 REASON_INPUT_TOO_LARGE = 'ADAPTER_INPUT_TOO_LARGE'
 REASON_DEPENDENCY_MISSING = 'ADAPTER_DEPENDENCY_MISSING'
+# 身份位置专用：历史证据 / 自报身份都不能证明**当前请求**已完成 DDS 身份绑定。
+REASON_CURRENT_IDENTITY_UNBOUND = 'ADAPTER_CURRENT_IDENTITY_UNBOUND'
 
 # 唯一推进条件：三个接口必须分别处于下列状态
 PROCEED_STATES = {
@@ -98,6 +100,21 @@ PROCEED_STATES = {
     'identity_trust': 'AUTHORIZED',
     'task_risk': 'ALLOW_RECOMMENDED',
 }
+
+# 身份位置**额外**要求：模块必须在 extensions.current_request_identity 中声明
+# 当前请求已完成 DDS 身份绑定，且状态为 AUTHENTICATED。
+#
+# 为什么单独加这一条
+# ------------------
+# identity_trust_assessment 的顶层 status 表达的是"依据所列证据的授权判断"。
+# 成员二的证据来源是**历史受控实验**：历史 AUTHORIZED 只证明当时那次运行中
+# 某个已认证主体访问成功，不证明当前这条候选请求来自同一个主体。
+# 若不额外要求当前身份绑定，历史授权会被静默当成当前认证，违反
+# "UNKNOWN、ERROR、无可信证据时必须失败关闭"的权威边界。
+#
+# 该字段位于 Schema 预留的 extensions 中，不改变任何既有字段含义，
+# 也不修改 1.0.0-proposed 契约版本。
+REQUIRED_CURRENT_IDENTITY = {'identity_trust': 'AUTHENTICATED'}
 
 # 模块调用顺序固定，避免执行顺序影响结论
 MODULE_ORDER = ('comm_risk', 'identity_trust', 'task_risk')
@@ -822,6 +839,30 @@ def run(envelope_text: str, config_path: str, log_path: str, workdir: str,
                     '模块 {0} 状态为 {1!r}，不是允许推进的 {2!r}；'
                     '本地阻断，不进入提交流程'.format(
                         name, status, PROCEED_STATES[name]))
+
+        # 身份位置额外条件：必须证明**当前请求**的身份绑定。
+        # 历史受控实验的 AUTHORIZED 在这里不再构成推进依据。
+        for name, required in REQUIRED_CURRENT_IDENTITY.items():
+            extensions = outputs[name].get('extensions')
+            current = (extensions.get('current_request_identity')
+                       if isinstance(extensions, dict) else None)
+            if not isinstance(current, dict):
+                raise AdapterBlock(
+                    REASON_CURRENT_IDENTITY_UNBOUND,
+                    '模块 {0} 未提供 extensions.current_request_identity：'
+                    '无法证明当前请求的 DDS 身份绑定，历史授权不能替代'.format(name))
+            if current.get('status') != required:
+                raise AdapterBlock(
+                    REASON_CURRENT_IDENTITY_UNBOUND,
+                    '模块 {0} 的当前请求身份状态为 {1!r}（{2}），不是 {3!r}；'
+                    '历史证据与自报身份都不能证明当前请求已通过 DDS 身份绑定'.format(
+                        name, current.get('status'), current.get('binding'),
+                        required))
+            if current.get('historical_only') is True:
+                raise AdapterBlock(
+                    REASON_CURRENT_IDENTITY_UNBOUND,
+                    '模块 {0} 的当前请求身份被标记为 historical_only：'
+                    '历史结论不得冒充当前请求的身份认证'.format(name))
 
         result['decision'] = 'READY_FOR_GATEWAY_SUBMISSION'
         result['reason_code'] = REASON_OK

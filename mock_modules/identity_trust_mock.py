@@ -106,6 +106,21 @@ def build(envelope):
             'note': '模拟结论；不得当作已通过 DDS 认证或已获授权',
         }],
     }
+    # 当前请求身份绑定：Mock **模拟**一个已完成绑定的结果，并显式标注为
+    # MOCK_FIXTURE。它不是身份认证，也不能被引用为认证证据；F0 适配层记录
+    # mode=mock 正是为了让这种模拟结论在审计里一眼可辨。
+    document['extensions'] = {
+        'current_request_identity': {
+            'status': 'AUTHENTICATED' if status == 'AUTHORIZED' else 'UNKNOWN',
+            'evidence_kind': 'MOCK_FIXTURE',
+            'binding': ('MOCK_SIMULATED_CURRENT_BINDING' if status == 'AUTHORIZED'
+                        else 'MOCK_NO_CURRENT_BINDING'),
+            'reason': ('模拟实现声明当前请求已完成身份绑定（MOCK，非真实认证）'
+                       if status == 'AUTHORIZED' else
+                       '模拟实现未给出当前请求身份绑定'),
+            'historical_only': False,
+        },
+    }
     # 可选字段：仅在来源明确时才写 policy_ref（此处刻意不写，避免伪造策略版本）
     return document, scenario
 

@@ -161,6 +161,34 @@ F0 不依赖任务动态状态机。`task_phase`、`policy_epoch`、`policy_dige
 缺失不得导致正常输入被拒绝；同时**不得**用零值、随机值或 Mock 常量冒充真实策略版本。
 只有在可信来源明确后才可填写。
 
+### 规则九：当前请求身份绑定（适配层附加要求，未改动 Schema）
+
+> 本条由工作包 A（成员模块适配）引入，用于修正一个真实存在的安全语义错误：
+> 历史受控实验的 `AUTHORIZED` 曾被当作当前请求已通过 DDS 身份认证。
+
+- `identity_trust_assessment` 的顶层 `status` **含义不变**：它仍是"依据所列证据
+  的授权判断"，证据可以来自历史受控实验。
+- 适配层对身份位置**额外**要求 `extensions.current_request_identity`
+  存在且 `status == "AUTHENTICATED"`，且 `historical_only != true`；
+  否则以 `ADAPTER_CURRENT_IDENTITY_UNBOUND` 阻断。
+- 该对象位于 Schema 预留的 `extensions` 内，属于第 4.1 节允许的**兼容扩展**，
+  因此**不升级**契约版本、不修改任何既有字段语义。
+- 字段定义（消费方必须容忍未知键）：
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `status` | enum | `AUTHENTICATED` / `DENIED` / `UNKNOWN` |
+| `evidence_kind` | enum | `MIDDLEWARE_IDENTITY_BINDING` / `NONE` / `MOCK_FIXTURE` |
+| `binding` | string | 机器可读的绑定结论（如 `UNBOUND_NO_TRUSTED_CURRENT_IDENTITY_WITNESS`） |
+| `reason` | string | 人类可读理由（≤512） |
+| `historical_only` | bool | 必须为 `false`；为 `true` 即视为把历史结论冒充当前身份，阻断 |
+
+- **不得**用 `request_id`、业务 JSON 自报的 `declared_enclave`、节点名或
+  `producer` 填充该对象。当前 ROS 2 Jazzy 没有可用的"订阅端对端主体身份"API，
+  所以真实模块在此字段上只能给 `UNKNOWN`——这是**正确结果**，不是缺陷。
+- Mock / 测试替身可以给出 `AUTHENTICATED` + `evidence_kind=MOCK_FIXTURE`，
+  用于验证适配层放行路径；其 `mode` 会在适配层审计记录里标明为 mock。
+
 ### 规则八：执行链路
 最终业务操作必须经过 `/rg/guarded_navigate`。
 `candidate_action.action_resource` 在 Schema 层被固定为该值（`const`），
@@ -267,5 +295,6 @@ F0 不依赖任务动态状态机。`task_phase`、`policy_epoch`、`policy_dige
 | 契约版本 | 状态 | 日期 | 说明 |
 | --- | --- | --- | --- |
 | `1.0.0-proposed` | `PROPOSED_V1` | 2026-10-10 | 首版：三个输出 Schema + 统一输入信封 + 校验工具 + 样例与负例 |
+| `1.0.0-proposed` | `PROPOSED_V1` | 2026-10-17 | 规则修订（Schema 未变）：新增规则九"当前请求身份绑定"；新增 `extensions.current_request_identity` 兼容扩展；适配层新增 `ADAPTER_CURRENT_IDENTITY_UNBOUND` 原因码。详见 `docs/integration/WORK_A_MODULE_ADAPTATION_REPORT.md` |
 
 > 本表只记录**已实际发生**的契约变更。冻结前的修订也在此登记，写明改了哪几条规则。

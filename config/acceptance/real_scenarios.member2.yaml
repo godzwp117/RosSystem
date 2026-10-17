@@ -28,10 +28,17 @@ real_scenarios:
   identity_trust:
 
     # ------------------------------------------------------------------
-    # S2 -> AUTHORIZED（资源与当前候选入口一致）
+    # S2 -> 模块级 AUTHORIZED，但 F0 必须阻断
     # ------------------------------------------------------------------
+    # 资源一致时，历史受控实验确实支持"该主体当时被允许访问该入口"，
+    # 因此模块级状态是 AUTHORIZED（证据本身必须完整保留）。
+    #
+    # 但它**不证明当前这条请求**来自同一个已认证主体。成员二在拿不到
+    # 中间件身份证据时，extensions.current_request_identity.status 只能是
+    # UNKNOWN；F0 因此必须以 ADAPTER_CURRENT_IDENTITY_UNBOUND 阻断。
+    # 这是"如实失败"，不是回归：历史授权不得冒充当前身份认证。
     - name: s2-authorized
-      description: 受控实验中 /planner 对候选入口的授权通信成功
+      description: 受控实验中 /planner 对候选入口的授权通信成功（历史证据）
       trigger: 归档 S2 日志 PLANNER_RESULT success=true 且资源与候选入口一致
       expected_state: AUTHORIZED
       expected_class: PROCEED
@@ -44,6 +51,8 @@ real_scenarios:
       expect:
         allowed_states: [AUTHORIZED]
         contains: ["/rg/guarded_navigate"]
+        adapter_decision: ADAPTER_BLOCK
+        adapter_reason: ADAPTER_CURRENT_IDENTITY_UNBOUND
 
     # ------------------------------------------------------------------
     # S3C -> UNKNOWN（正向对照成功的是执行端资源）
