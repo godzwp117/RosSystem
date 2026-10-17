@@ -347,6 +347,8 @@ def validate_claims(summary, claims):
     缺失的声明键表示"不作声称"，不参与比对（避免把未写的字段当成 0）。
     """
     findings = Findings()
+    # 允许声明文件省略 run_id（模板可跨 run 复用：CID -> 期望事实与具体
+    # request_id 无关，request_id 由 manifest 提供并单独校验）
     if not isinstance(claims, dict) or not isinstance(claims.get('scenarios'), dict):
         findings.add('GLOBAL', 'CLAIMS_MALFORMED', False,
                      'claims 必须形如 {"scenarios": {CID: {...}}}')
