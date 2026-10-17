@@ -16,19 +16,27 @@ demo/2026-10-19-rc2
 
 ## 2. 完整 40 字符 Git SHA
 
-| 角色 | SHA | 说明 |
+| 角色 | 值 | 说明 |
 | --- | --- | --- |
-| **最终复验所测定的代码状态** | **`f6574acbf51062a96a918ac3096e7aecf83371c6`** | `scripts/final_verify_demo.py` 在此提交上执行，工作区干净 |
-| **rc2 分支最终 Tip（含证据与报告）** | **`687b0751316638b7428d7a7a4139d06b6fb4bccc`** | 在受测 SHA 之上**仅新增文档与证据** |
-| 标签 `demo-2026-10-19-rc2-verified` 指向 | `687b075` | 见 §12.2 的说明与等价性证明 |
+| **最终复验所测定的代码状态** | **`f6574acbf51062a96a918ac3096e7aecf83371c6`** | 不可变事实：`scripts/final_verify_demo.py` 在此提交上执行，工作区干净 |
+| **rc2 分支 Tip（含证据与报告）** | 用标签解析（见下） | 会随文档修订前进，**故不在此写死** |
+| 标签 `demo-2026-10-19-rc2-verified` | 指向 rc2 Tip | 权威引用；不可变 |
+
+> **为什么不在正文写死 Tip SHA**：本文件位于该分支上，每次修订都会改变 Tip。
+> 因此正文只固定**受测 SHA**（不可变事实），分支版本一律通过标签解析：
+>
+> ```bash
+> git fetch origin --tags
+> git rev-parse demo-2026-10-19-rc2-verified^{commit}   # => rc2 Tip
+> ```
 
 **源码等价性证明**（可独立复跑）：
 
 ```bash
 git fetch origin --tags
-git diff --stat f6574acbf51062a96a918ac3096e7aecf83371c6 \
-                687b0751316638b7428d7a7a4139d06b6fb4bccc \
-                -- scripts src config security tests modules identity_trust docs/interfaces
+TAG=$(git rev-parse demo-2026-10-19-rc2-verified^{commit})
+git diff --stat f6574acbf51062a96a918ac3096e7aecf83371c6 "$TAG" \
+    -- scripts src config security tests modules identity_trust docs/interfaces
 # 输出为空 => 受测状态与标签目标的源码、契约、策略完全一致；
 # 两者差异仅存在于 docs/reviews/** 与 artifacts/**（文档与证据）。
 ```
