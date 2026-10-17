@@ -10,7 +10,8 @@
 
 | 项 | 值 |
 | --- | --- |
-| **受测 SHA** | **`f6574acbf51062a96a918ac3096e7aecf83371c6`** |
+| **受测 SHA（复验实际测定）** | **`f6574acbf51062a96a918ac3096e7aecf83371c6`** |
+| rc2 Tip（受测 SHA + 本文档与证据） | `687b0751316638b7428d7a7a4139d06b6fb4bccc` |
 | 分支 | `demo/2026-10-19-rc2`（**唯一演示候选**） |
 | 工作区状态 | **干净**（`git status --porcelain` 除本地 `user/` 外为空） |
 | 复验 run_id | `final-20261017T131601Z` |
@@ -271,8 +272,14 @@ NavigationSim journal 判定。**超时 ≠ 未收到 ≠ BLOCK ≠ 未执行。
 复验已达标，按 `DEMO_20261019_VERSION_SELECTION.md` §12.2 为该 SHA 创建不可变标签：
 
 ```
-demo-2026-10-19-rc2-verified   ->  f6574acbf51062a96a918ac3096e7aecf83371c6
+demo-2026-10-19-rc2-verified   ->  687b0751316638b7428d7a7a4139d06b6fb4bccc
+                                  （受测代码状态 = f6574ac，源码等价性见版本选定文档 §2）
 ```
+
+**为什么标签指向 Tip 而非受测 SHA**：复验要求工作区干净，证据只能在复验之后提交，
+因此受测 SHA 必然早于含证据的 Tip。标签指向 Tip 便于评审者 checkout 后同时获得
+代码与证据；其**受测代码状态**由 `git diff f6574ac 687b075 -- scripts src config
+security tests modules identity_trust docs/interfaces`（输出为空）锚定。
 
 **2026-10-16 旧预检标签 `demo-2026-10-19-rc-preflight-20261016`（`df5a0f0`）保持不变。**
 

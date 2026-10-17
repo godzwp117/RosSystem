@@ -16,18 +16,27 @@ demo/2026-10-19-rc2
 
 ## 2. 完整 40 字符 Git SHA
 
-```
-候选固定 SHA（本轮代码收敛完成时的 rc2 提交）
+| 角色 | SHA | 说明 |
+| --- | --- | --- |
+| **最终复验所测定的代码状态** | **`f6574acbf51062a96a918ac3096e7aecf83371c6`** | `scripts/final_verify_demo.py` 在此提交上执行，工作区干净 |
+| **rc2 分支最终 Tip（含证据与报告）** | **`687b0751316638b7428d7a7a4139d06b6fb4bccc`** | 在受测 SHA 之上**仅新增文档与证据** |
+| 标签 `demo-2026-10-19-rc2-verified` 指向 | `687b075` | 见 §12.2 的说明与等价性证明 |
+
+**源码等价性证明**（可独立复跑）：
+
+```bash
+git fetch origin --tags
+git diff --stat f6574acbf51062a96a918ac3096e7aecf83371c6 \
+                687b0751316638b7428d7a7a4139d06b6fb4bccc \
+                -- scripts src config security tests modules identity_trust docs/interfaces
+# 输出为空 => 受测状态与标签目标的源码、契约、策略完全一致；
+# 两者差异仅存在于 docs/reviews/** 与 artifacts/**（文档与证据）。
 ```
 
-> 该 SHA 在本文档所在提交中给出；由于本文档本身也会改变提交 SHA，
-> 权威引用请使用**不可变标签**（见 §12）：`demo-2026-10-19-rc2-verified`。
->
-> 取法：
-> ```bash
-> git fetch origin --tags
-> git rev-parse demo-2026-10-19-rc2-verified^{commit}
-> ```
+> 之所以存在两个 SHA：复验必须在**工作区干净**时执行（`GIT-02` 强制），
+> 而证据只能在复验**之后**提交。因此"受测 SHA"必然早于"含证据的 Tip"。
+> 标签指向 Tip 以便评审者 checkout 后同时拿到代码与证据，
+> 但其**受测代码状态**由上面的等价性证明锚定到 `f6574ac`。
 
 ---
 
@@ -186,9 +195,12 @@ demo-2026-10-19-rc2-verified
 ```bash
 git fetch origin --tags
 RC2=$(git rev-parse origin/demo/2026-10-19-rc2)
-git tag -a demo-2026-10-19-rc2-verified "$RC2" -m "2026-10-19 演示候选（已通过最终复验）"
+git tag -a demo-2026-10-19-rc2-verified "$RC2" \
+  -m "2026-10-19 演示候选（已通过最终复验）"
 git push origin demo-2026-10-19-rc2-verified
 ```
+
+实际采用的标签消息中同时记录了受测 SHA 与 Tip SHA，以及源码等价性证明命令。
 
 **规则**：
 
