@@ -525,7 +525,7 @@ phase2:
       - tests/unit/test_phase2_security_boundaries.py: 9 passed, 2 xfailed
       - tests/unit/test_member1_runtime_observation.py: 7 passed
   can_b1_merge:
-    functional_commit: PHASE2_COMMIT_PLACEHOLDER
+    functional_commit: "c6f6755e3c5b21febf23d3f8a0f5ce57e5957715"
     verdict: MERGEABLE_WITH_B1_FOLLOWUP
     condition: >-
       模块与证据侧可直接合入；F0 身份判定（P0-2）必须在 B1 侧同期或随后修正，

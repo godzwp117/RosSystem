@@ -325,7 +325,7 @@ PASS / FAIL / NOT_RUN / BLOCKED；本表中没有任何一项是"大概通过"�
 | 项 | 值 |
 | --- | --- |
 | 上一轮基准 | `f51bab800d7bb3fe325d7e096bb15438178f5122` |
-| 本轮功能提交 | `PHASE2_COMMIT_PLACEHOLDER` |
+| 本轮功能提交 | `c6f6755e3c5b21febf23d3f8a0f5ce57e5957715` |
 | 分支 | `integration/member-module-adaptation`（已推送，见 §10.9） |
 | 证据包 | `docs/integration/evidence/PHASE2_EVIDENCE.json` |
 | 专题文档 | `WORK_A_PHASE2_SECURITY_REVIEW.md`、`M1_RUNTIME_FEATURE_FEASIBILITY.md`、`M2_CURRENT_IDENTITY_TRUST_BOUNDARY.md` |
