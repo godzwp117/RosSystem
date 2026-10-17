@@ -32,6 +32,7 @@ aff53bb250f820f9ae17e4f9083a666516bf5a5ddbdc66ed1d20070794417045  ./f0_ON04.json
 7971eb76a16e09a91de060daf357c4226bdbd5a1e0ef20c5e945fc376fc798b2  ./gateway_audit.jsonl
 617f5b1fa72198261cee55773917d7f55a481a84c48b03c268d7f0bcb45529eb  ./manifest.json
 f80dded33608c3fa64297b21cff4b2262bacae0f1ea48f4cf131c7287f7b935c  ./navsim_goals.jsonl
+3014a28ffb9cdf62e8a1a8c530c18302ec53c64d02d95eb80fa31038391f776b  ./report_claims.json
 21892c48ff1ca0fe1ade27b52d72e00e7ff8f68f7b1f6cf1562358f653691994  ./stack-a/adapter_ON01.jsonl
 b4440bfa8818e151620cb04b3887e7a150aea0965fcac26b7641671ae13aa5f7  ./stack-a/adapter_ON02.jsonl
 3a2a33b378e8c254def1c1ed1eda2ff423179f81689fd86207a57ab61e9cb4a5  ./stack-a/adapter_ON05.jsonl
@@ -61,5 +62,5 @@ c0e9311e278c17c2dda8d8f68956455559cda0e8b26846c867c621e6f61abeca  ./stack-b/gate
 bc462dacfc2d28b9fb6a88e9f08176931afc335adc139ce404ec38a21f1d31e2  ./stack-b/manifest.json
 ad1f8894d2c6aad8b22eeef8f335539ae7d7c49937fd9f474828d9d4d0cbc36f  ./stack-b/navsim.log
 1fc78a759416e6465f3e5e5db46ca4c55f3c64873ab4e20ca23443dadd502e2d  ./stack-b/navsim_goals.jsonl
-e89e52db8db0543eabab5e1b5bff98ade8addfd482387cb527da1456be43f781  ./verification.json
-c24c70a62c69efeee2886e5ba69014703873b05221eb68d9b34d62fb0335be0a  ./verification.md
+89d668af5b90520efc729e3f714a21266e4f615ac01062275aa8a081383dbfcd  ./verification.json
+a8dac3dfda4cb29f2fa25366455e701c19ddcc6120c4f4afb152941ac96179fc  ./verification.md

@@ -218,7 +218,7 @@ blocked = ('ADAPTER_BLOCK' in proc.stdout
 | **ON-03** 策略缺失 | `UNKNOWN` | `ADAPTER_BLOCK` | **未启动** | 未到达 | 0 | **0** |
 | **ON-04** 策略损坏 | `ERROR` | `ADAPTER_BLOCK` | **未启动** | 未到达 | 0 | **0** |
 | **ON-05** Gateway 独立权威 | `ALLOW_RECOMMENDED` | `READY_FOR_GATEWAY_SUBMISSION` | 已提交 | **BLOCK** / `OUT_OF_REGION` | 0 | **0** |
-| **ON-06** Planner 超时 | `ALLOW_RECOMMENDED` | `READY_FOR_GATEWAY_SUBMISSION` | `PLANNER_RESULT_TIMEOUT` | 无决策 | 0 | 0 |
+| **ON-06** Planner 超时 | `ALLOW_RECOMMENDED` | `READY_FOR_GATEWAY_SUBMISSION` | `PLANNER_RESULT_TIMEOUT`（客户端未等到结果） | **ALLOW** / `ALLOW_IN_POLICY` | **1** | **1** |
 
 ### 5.1 ON-05 的关键意义
 
@@ -232,12 +232,34 @@ ON-05 使用 **TEST_ONLY** 外扩策略（允许区域 0..10，仅供本次实�
 
 > 未修改、未放宽、未覆盖 Gateway 的正式策略文件；`config/task_policy.yaml` 在本轮 `git diff` 中为 **0 改动**。
 
-### 5.2 ON-06 的超时语义
+### 5.2 ON-06 的超时语义（**本轮勘误后的实测事实**）
 
-- 超时**未**被记为 Gateway BLOCK（`online.outcome = PLANNER_RESULT_TIMEOUT`）。
-- **未**自动重试，**未**更换 `request_id` 重新发送。
-- 适配层如实提示"该请求可能已经到达 Gateway，甚至已到达下游执行端"，
-  要求依据 Gateway 审计与 NavigationSim journal 核对。
+本次 ON-06（`request_id = on06-m3online-20261016T134406Z`，`--planner-timeout 0.5`）
+的**原始证据**如下（按 request_id 精确匹配，非按文件行数推断）：
+
+| 层次 | 实测值 |
+| --- | --- |
+| M3 状态 | `ALLOW_RECOMMENDED`（`schema_ok=True`） |
+| 适配层决策 | `READY_FOR_GATEWAY_SUBMISSION` / `ADAPTER_OK` |
+| Planner outcome | **`PLANNER_RESULT_TIMEOUT`**（客户端在 0.5s 内未得到终态） |
+| Gateway `RosCommEvent` | **1**（`13:44:16.261Z`，target=(1.5,1.5)） |
+| Gateway `DecisionEvent` | **1**：`ALLOW` / `ALLOW_IN_POLICY`（`13:44:16.262Z`） |
+| Gateway `ExecutionEvent` | **1**：`success=true` / `EXECUTED`（`13:44:16.266Z`） |
+| NavigationSim Goal | **1**（`goal_id=f430a6e0…`，`13:44:16.264Z`） |
+
+**正确结论（必须按此表述）**：
+
+1. **Planner 等待超时 ≠ Gateway 未收到请求**。本次请求确实到达 Gateway。
+2. **Planner 等待超时 ≠ Gateway BLOCK**。Gateway 给出的是 `ALLOW`，不是 `BLOCK`。
+3. **Planner 等待超时 ≠ 未执行**。本次已产生 `ExecutionEvent` 与 1 条下游 Goal。
+4. 客户端超时只说明**客户端未在超时窗口内观察到终态**；请求是否已到达、是否被允许、
+   是否已执行，**必须**依据 Gateway 权威审计与 NavigationSim journal 逐 request_id 判定。
+5. 本条**仅是本次观测**，**不得**推广为"所有 Planner 超时都会执行"；
+   也不能据此认为超时后的执行一定安全或一定异常——执行是否被允许由 Gateway 决定，
+   而客户端是否观测到结果与执行事实是两件不同的事。
+
+适配层在超时分支的正确行为：**不自动重试、不新建 request_id、不记为 Gateway BLOCK**，
+并明确提示"该请求可能已经到达 Gateway，甚至已到达下游执行端，请依据 Gateway 审计核对"。
 
 ---
 
@@ -272,8 +294,11 @@ Gateway 的事件标识由其自身审计字段承担。
 | --- | --- |
 | `on01-legal-allow-…` | `RosCommEvent` → `DecisionEvent(ALLOW/ALLOW_IN_POLICY)` → `ExecutionEvent(EXECUTED)` |
 | `on05-gateway-authority-…` | `RosCommEvent` → `DecisionEvent(BLOCK/OUT_OF_REGION)` |
-| ON-02/03/04 | **无任何事件**（适配层阻断，未提交给 Gateway） |
-| ON-06 | **无事件**（Planner 超时，未完成提交） |
+| `on06-m3online-…` | `RosCommEvent` → `DecisionEvent(ALLOW/ALLOW_IN_POLICY)` → `ExecutionEvent(success=true/EXECUTED)` |
+| ON-02/03/04 | **无任何事件**（适配层阻断，从未提交给 Gateway） |
+
+> **勘误**：本报告早期版本把 ON-06 记为"无事件"，与原始 `gateway_audit.jsonl` 不符。
+> 现已按 request_id 精确匹配更正：ON-06 有完整的到达 / ALLOW / 执行三段事件。
 
 `RosCommEvent` 与 `DecisionEvent` 的 `event_id` 成对一致，可按 `request_id` 串联。
 
@@ -286,10 +311,14 @@ Gateway 的事件标识由其自身审计字段承担。
 | ON-01 | `PLANNER_RESULT_RECEIVED` | `EXECUTED` | `true` | `e9e8…`（本轮另一次运行示例） |
 | ON-05 | `PLANNER_RESULT_RECEIVED` | **`OUT_OF_REGION`** | **`false`** | 已受理但业务拒绝 |
 | ON-02/03/04 | —（未启动） | — | — | — |
-| ON-06 | `PLANNER_RESULT_TIMEOUT` | — | — | — |
+| ON-06 | `PLANNER_RESULT_TIMEOUT` | 客户端未观测到（**服务端已执行**） | 客户端未观测到 | 见 `ExecutionEvent`：`success=true` |
 
 **注意区分**：`Gateway BLOCK`（审计决策）与 `Action Result = OUT_OF_REGION`（客户端观察到
 的业务拒绝）是两个不同层次的证据，本报告分别记录。ON-05 中二者一致指向越界拒绝。
+
+**ON-06 更进一步说明"客户端视角"与"权威事实"可以不一致**：客户端等不到结果（超时），
+而 Gateway 审计显示请求被 `ALLOW` 且已 `EXECUTED`、NavigationSim 已记录 1 条 Goal。
+因此**不得**把客户端超时当作"未执行"或"被拒绝"的证据。
 
 ---
 
@@ -302,11 +331,14 @@ Gateway 的事件标识由其自身审计字段承担。
 | ON-02 | **0** |
 | ON-03 | **0** |
 | ON-04 | **0** |
-| ON-06 | **0** |
+| ON-06 | **1**（Planner 超时，但请求已被 Gateway 允许并执行） |
 
-全 run 共 **2** 条 Goal（分别属于 ON-01 与另一次 ON-06 的受理；ON-06 的 Planner 超时
-发生在受理之后，故其 Goal 记录存在但无 ExecutionEvent）。
-**没有任何被阻断的 request_id 产生 Goal。**
+**全 run 共 2 条 Goal**，分别属于 **ON-01** 与 **ON-06**（`on01-…` 与 `on06-…`）。
+ON-05 虽被提交并到达 Gateway，但 Gateway `BLOCK`，故 **0** 条 Goal。
+**没有任何被 Gateway 阻断或未提交的 request_id 产生 Goal。**
+
+> **勘误**：本报告早期版本在 §9 表中把 ON-06 记为 0，并与 §7"无事件"的表述互相矛盾；
+> 两处均已按原始日志更正为 1。
 
 ---
 
@@ -478,7 +510,7 @@ ModuleInputEnvelope
 - 越权阻断：ON-02 M3 `BLOCK_RECOMMENDED` → `ADAPTER_BLOCK`，Planner 未启动，Goal **0**。
 - 失败关闭：ON-03 `UNKNOWN` / ON-04 `ERROR` 均阻断，Goal **0**。
 - **Gateway 独立权威**：ON-05 M3 建议允许且适配层放行，Gateway 仍 `BLOCK/OUT_OF_REGION`，Goal **0**。
-- 超时语义：ON-06 `PLANNER_RESULT_TIMEOUT`，未记为 BLOCK，未重试。
+- 超时语义：ON-06 `PLANNER_RESULT_TIMEOUT`，未记为 BLOCK、未重试；且该请求实际已被 Gateway `ALLOW` 并 `EXECUTED`（1 条 Goal）——**超时 ≠ 未收到 ≠ BLOCK ≠ 未执行**。
 - DDS Enforce：域 43 S1–S6 **7/7 PASS**，含原生拒绝与正向对照。
 - 跨层可复核：独立工具 19 项检查 **0 失败**，含 5 类篡改反例测试。
 

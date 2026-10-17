@@ -1,5 +1,6 @@
 {
-  "run_dir": "/home/zhangwei/project/RosSystem/logs/m3_online/m3online-20261016T134406Z/merged",
+  "run_dir": "/home/zhangwei/project/RosSystem/artifacts/demo-2026-10-19/m3-online-m3online-20261016T134406Z",
+  "claims_checked": true,
   "manifest_used": true,
   "manifest_scenarios": [
     "ON01",
@@ -227,9 +228,171 @@
       "code": "TIMEOUT_NOT_BLOCK",
       "ok": true,
       "detail": "超时未记为 Gateway BLOCK（outcome=PLANNER_RESULT_TIMEOUT）"
+    },
+    {
+      "scenario": "ON01",
+      "code": "PLANNER_OUTCOME_MISMATCH",
+      "ok": true,
+      "detail": "声明 planner_outcome='PLANNER_RESULT_RECEIVED' vs 实测 'PLANNER_RESULT_RECEIVED'"
+    },
+    {
+      "scenario": "ON01",
+      "code": "GATEWAY_ARRIVAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_arrival=1 vs 实测 1"
+    },
+    {
+      "scenario": "ON01",
+      "code": "GATEWAY_DECISION_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_decision='ALLOW' vs 实测 'ALLOW'"
+    },
+    {
+      "scenario": "ON01",
+      "code": "GATEWAY_REASON_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_reason_code='ALLOW_IN_POLICY' vs 实测 'ALLOW_IN_POLICY'"
+    },
+    {
+      "scenario": "ON01",
+      "code": "GATEWAY_EXECUTION_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_execution=1 vs 实测 1"
+    },
+    {
+      "scenario": "ON01",
+      "code": "NAVSIM_GOAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 navsim_goals=1 vs 实测 1"
+    },
+    {
+      "scenario": "ON02",
+      "code": "GATEWAY_ARRIVAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_arrival=0 vs 实测 0"
+    },
+    {
+      "scenario": "ON02",
+      "code": "GATEWAY_EXECUTION_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_execution=0 vs 实测 0"
+    },
+    {
+      "scenario": "ON02",
+      "code": "NAVSIM_GOAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 navsim_goals=0 vs 实测 0"
+    },
+    {
+      "scenario": "ON03",
+      "code": "GATEWAY_ARRIVAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_arrival=0 vs 实测 0"
+    },
+    {
+      "scenario": "ON03",
+      "code": "GATEWAY_EXECUTION_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_execution=0 vs 实测 0"
+    },
+    {
+      "scenario": "ON03",
+      "code": "NAVSIM_GOAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 navsim_goals=0 vs 实测 0"
+    },
+    {
+      "scenario": "ON04",
+      "code": "GATEWAY_ARRIVAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_arrival=0 vs 实测 0"
+    },
+    {
+      "scenario": "ON04",
+      "code": "GATEWAY_EXECUTION_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_execution=0 vs 实测 0"
+    },
+    {
+      "scenario": "ON04",
+      "code": "NAVSIM_GOAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 navsim_goals=0 vs 实测 0"
+    },
+    {
+      "scenario": "ON05",
+      "code": "PLANNER_OUTCOME_MISMATCH",
+      "ok": true,
+      "detail": "声明 planner_outcome='PLANNER_RESULT_RECEIVED' vs 实测 'PLANNER_RESULT_RECEIVED'"
+    },
+    {
+      "scenario": "ON05",
+      "code": "GATEWAY_ARRIVAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_arrival=1 vs 实测 1"
+    },
+    {
+      "scenario": "ON05",
+      "code": "GATEWAY_DECISION_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_decision='BLOCK' vs 实测 'BLOCK'"
+    },
+    {
+      "scenario": "ON05",
+      "code": "GATEWAY_REASON_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_reason_code='OUT_OF_REGION' vs 实测 'OUT_OF_REGION'"
+    },
+    {
+      "scenario": "ON05",
+      "code": "GATEWAY_EXECUTION_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_execution=0 vs 实测 0"
+    },
+    {
+      "scenario": "ON05",
+      "code": "NAVSIM_GOAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 navsim_goals=0 vs 实测 0"
+    },
+    {
+      "scenario": "ON06",
+      "code": "PLANNER_OUTCOME_MISMATCH",
+      "ok": true,
+      "detail": "声明 planner_outcome='PLANNER_RESULT_TIMEOUT' vs 实测 'PLANNER_RESULT_TIMEOUT'"
+    },
+    {
+      "scenario": "ON06",
+      "code": "GATEWAY_ARRIVAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_arrival=1 vs 实测 1"
+    },
+    {
+      "scenario": "ON06",
+      "code": "GATEWAY_DECISION_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_decision='ALLOW' vs 实测 'ALLOW'"
+    },
+    {
+      "scenario": "ON06",
+      "code": "GATEWAY_REASON_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_reason_code='ALLOW_IN_POLICY' vs 实测 'ALLOW_IN_POLICY'"
+    },
+    {
+      "scenario": "ON06",
+      "code": "GATEWAY_EXECUTION_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_execution=1 vs 实测 1"
+    },
+    {
+      "scenario": "ON06",
+      "code": "NAVSIM_GOAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 navsim_goals=1 vs 实测 1"
     }
   ],
   "failures": 0,
-  "checks": 19,
+  "checks": 46,
   "verdict": "PASS"
 }

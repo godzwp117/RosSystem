@@ -142,7 +142,8 @@ PATCH /repos/godzwp117/RosSystem/pulls/6  ->  HTTP 401 {"message":"Requires auth
 
 ## 9. M3 在线联调结果（本轮核心成果）
 
-`run_id = m3online-20261016T134406Z`，域 42，`rmw_fastrtps_cpp`。
+`run_id = m3online-20261016T134406Z`，域 42，`rmw_fastrtps_cpp`（**普通模式**，非 Enforce；
+Enforce 回归另见 §8，两者不是同一次运行）。
 配置：`comm_risk=MOCK`、`identity_trust=MOCK`、`task_risk=EXTERNAL`。
 
 | 场景 | M3 状态 | 适配层 | Planner | Gateway | Execution | Goal |
@@ -152,9 +153,16 @@ PATCH /repos/godzwp117/RosSystem/pulls/6  ->  HTTP 401 {"message":"Requires auth
 | **ON-03** UNKNOWN（策略缺失） | `UNKNOWN` | `ADAPTER_BLOCK` | **未启动** | 未到达 | 0 | **0** |
 | **ON-04** ERROR（策略损坏） | `ERROR` | `ADAPTER_BLOCK` | **未启动** | 未到达 | 0 | **0** |
 | **ON-05** **Gateway 独立权威** | `ALLOW_RECOMMENDED` | `READY_FOR_GATEWAY_SUBMISSION` | 已提交 | **BLOCK** / `OUT_OF_REGION` | 0 | **0** |
-| **ON-06** Planner 超时 | `ALLOW_RECOMMENDED` | `READY_FOR_GATEWAY_SUBMISSION` | 超时 | 无决策 | 0 | 0 |
+| **ON-06** Planner 超时 | `ALLOW_RECOMMENDED` | `READY_FOR_GATEWAY_SUBMISSION` | 超时（客户端未等到结果） | **ALLOW** / `ALLOW_IN_POLICY` | **1** | **1** |
 
 独立复核工具 `scripts/verify_m3_online_evidence.py`：**19 项检查全部 PASS，0 失败**。
+
+**ON-06 的正确解读（勘误）**：该场景 Planner 在 0.5s 内未返回终态（`PLANNER_RESULT_TIMEOUT`），
+但按 `request_id = on06-…` 精确匹配的原始审计显示：Gateway 收到请求（1 条 `RosCommEvent`）、
+给出 **`ALLOW` / `ALLOW_IN_POLICY`**、并已 **`EXECUTED`**（1 条 `ExecutionEvent`），
+NavigationSim 记录 **1** 条 Goal。
+即 **Planner 超时不等于 Gateway 未收到、不等于 BLOCK、也不等于未执行**；
+客户端观测与权威执行事实必须分别判定。该结论仅适用于本次观测，不可推广。
 
 **ON-05 是本轮最有价值的证据**：它证明上游 M3 在 TEST_ONLY 外扩策略下**自行推导出
 `ALLOW_RECOMMENDED`**、适配层也确实放行提交，但 Gateway 依**未修改的权威策略**独立

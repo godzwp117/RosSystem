@@ -1,9 +1,9 @@
 # M3 在线联调证据复核（独立工具输出）
 
-- 证据目录：`/home/zhangwei/project/RosSystem/logs/m3_online/m3online-20261016T134406Z/merged`
+- 证据目录：`/home/zhangwei/project/RosSystem/artifacts/demo-2026-10-19/m3-online-m3online-20261016T134406Z`
 - Gateway 审计行数：8
 - NavigationSim Goal 行数：2
-- 复核检查项：19（失败 0）
+- 复核检查项：46（失败 0）
 - **判定：`PASS`**
 
 ## 场景关联表
@@ -38,3 +38,30 @@
 - [PASS] `ON05` SUBMITTED_TO_GATEWAY :: Gateway arrival=1
 - [PASS] `ON06` M3_PROPOSED :: M3 状态='ALLOW_RECOMMENDED'
 - [PASS] `ON06` TIMEOUT_NOT_BLOCK :: 超时未记为 Gateway BLOCK（outcome=PLANNER_RESULT_TIMEOUT）
+- [PASS] `ON01` PLANNER_OUTCOME_MISMATCH :: 声明 planner_outcome='PLANNER_RESULT_RECEIVED' vs 实测 'PLANNER_RESULT_RECEIVED'
+- [PASS] `ON01` GATEWAY_ARRIVAL_MISMATCH :: 声明 gateway_arrival=1 vs 实测 1
+- [PASS] `ON01` GATEWAY_DECISION_MISMATCH :: 声明 gateway_decision='ALLOW' vs 实测 'ALLOW'
+- [PASS] `ON01` GATEWAY_REASON_MISMATCH :: 声明 gateway_reason_code='ALLOW_IN_POLICY' vs 实测 'ALLOW_IN_POLICY'
+- [PASS] `ON01` GATEWAY_EXECUTION_MISMATCH :: 声明 gateway_execution=1 vs 实测 1
+- [PASS] `ON01` NAVSIM_GOAL_MISMATCH :: 声明 navsim_goals=1 vs 实测 1
+- [PASS] `ON02` GATEWAY_ARRIVAL_MISMATCH :: 声明 gateway_arrival=0 vs 实测 0
+- [PASS] `ON02` GATEWAY_EXECUTION_MISMATCH :: 声明 gateway_execution=0 vs 实测 0
+- [PASS] `ON02` NAVSIM_GOAL_MISMATCH :: 声明 navsim_goals=0 vs 实测 0
+- [PASS] `ON03` GATEWAY_ARRIVAL_MISMATCH :: 声明 gateway_arrival=0 vs 实测 0
+- [PASS] `ON03` GATEWAY_EXECUTION_MISMATCH :: 声明 gateway_execution=0 vs 实测 0
+- [PASS] `ON03` NAVSIM_GOAL_MISMATCH :: 声明 navsim_goals=0 vs 实测 0
+- [PASS] `ON04` GATEWAY_ARRIVAL_MISMATCH :: 声明 gateway_arrival=0 vs 实测 0
+- [PASS] `ON04` GATEWAY_EXECUTION_MISMATCH :: 声明 gateway_execution=0 vs 实测 0
+- [PASS] `ON04` NAVSIM_GOAL_MISMATCH :: 声明 navsim_goals=0 vs 实测 0
+- [PASS] `ON05` PLANNER_OUTCOME_MISMATCH :: 声明 planner_outcome='PLANNER_RESULT_RECEIVED' vs 实测 'PLANNER_RESULT_RECEIVED'
+- [PASS] `ON05` GATEWAY_ARRIVAL_MISMATCH :: 声明 gateway_arrival=1 vs 实测 1
+- [PASS] `ON05` GATEWAY_DECISION_MISMATCH :: 声明 gateway_decision='BLOCK' vs 实测 'BLOCK'
+- [PASS] `ON05` GATEWAY_REASON_MISMATCH :: 声明 gateway_reason_code='OUT_OF_REGION' vs 实测 'OUT_OF_REGION'
+- [PASS] `ON05` GATEWAY_EXECUTION_MISMATCH :: 声明 gateway_execution=0 vs 实测 0
+- [PASS] `ON05` NAVSIM_GOAL_MISMATCH :: 声明 navsim_goals=0 vs 实测 0
+- [PASS] `ON06` PLANNER_OUTCOME_MISMATCH :: 声明 planner_outcome='PLANNER_RESULT_TIMEOUT' vs 实测 'PLANNER_RESULT_TIMEOUT'
+- [PASS] `ON06` GATEWAY_ARRIVAL_MISMATCH :: 声明 gateway_arrival=1 vs 实测 1
+- [PASS] `ON06` GATEWAY_DECISION_MISMATCH :: 声明 gateway_decision='ALLOW' vs 实测 'ALLOW'
+- [PASS] `ON06` GATEWAY_REASON_MISMATCH :: 声明 gateway_reason_code='ALLOW_IN_POLICY' vs 实测 'ALLOW_IN_POLICY'
+- [PASS] `ON06` GATEWAY_EXECUTION_MISMATCH :: 声明 gateway_execution=1 vs 实测 1
+- [PASS] `ON06` NAVSIM_GOAL_MISMATCH :: 声明 navsim_goals=1 vs 实测 1

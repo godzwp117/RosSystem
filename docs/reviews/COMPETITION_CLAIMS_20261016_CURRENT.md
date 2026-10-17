@@ -50,7 +50,7 @@ M3 在线联调已在 ROS 2 Jazzy 受控环境中完成（ON-01..ON-06），因�
 | 越权阻断（模块侧） | ON-02：M3 `BLOCK_RECOMMENDED` → `ADAPTER_BLOCK`，Planner **未启动**，Goal **0** | 同上 |
 | 失败关闭（UNKNOWN/ERROR） | ON-03 / ON-04：策略缺失→`UNKNOWN`、策略损坏→`ERROR`，均阻断且 Goal **0** | 同上 |
 | **Gateway 独立权威** | ON-05：M3 依 TEST_ONLY 外扩策略给出 `ALLOW_RECOMMENDED`、适配层放行，Gateway 仍 `BLOCK/OUT_OF_REGION`，Goal **0** | 同上 |
-| 超时语义 | ON-06：Planner `PLANNER_RESULT_TIMEOUT`，**未**记为 Gateway BLOCK，未自动重试 | 同上 |
+| 超时语义 | ON-06：Planner `PLANNER_RESULT_TIMEOUT`，**未**记为 Gateway BLOCK、未自动重试；同时该请求实际已被 Gateway `ALLOW` 并 `EXECUTED`，NavigationSim 记 1 条 Goal ——**超时 ≠ 未收到 ≠ BLOCK ≠ 未执行**，客户端观测与权威执行事实分别判定 | 同上 |
 | 跨层可审计 | 独立复核工具 19 项检查 **全部 PASS / 0 失败** | `verification.json` / `verification.md` |
 | DDS-Security Enforce | 域 43 S1–S6 **7/7 PASS**，含原生拒绝 + 正向对照 | `dds-security-regression/` |
 
@@ -123,6 +123,9 @@ M3 在线联调已在 ROS 2 Jazzy 受控环境中完成（ON-01..ON-06），因�
 8. ❌ "六类攻击均已有效评测。"
 9. ❌ "动态任务状态机已完成集成。"
 10. ❌ 任何把 Mock / 测试替身 / 离线模型表述为真实在线算法能力的说法。
+11. ❌ "Planner 超时说明请求未被执行 / 未被 Gateway 接收 / 被安全策略拒绝。"
+    （2026-10-16 在线实测的 ON-06 中，超时请求**已**被 Gateway `ALLOW` 且**已执行**；
+    客户端超时只说明客户端未在窗口内观测到终态。）
 
 ---
 

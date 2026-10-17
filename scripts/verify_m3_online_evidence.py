@@ -321,7 +321,98 @@ def load_manifest(run_dir):
         return None
 
 
-def verify_run(run_dir, require_manifest=True):
+#: 声明中表示"客户端未观测到结果"的保留字，用于超时场景。
+UNOBSERVED = 'UNOBSERVED'
+
+
+def validate_claims(summary, claims):
+    """校验**报告声明**与**实测证据**是否一致。
+
+    为什么需要它：2026-10-16 的收尾报告曾把 ON-06（Planner 超时）表述为
+    "Gateway 无决策、Goal 0"，而原始审计显示该请求实际被 ALLOW 且已执行。
+    该错误由**人工书写**引入，原始日志与校验器本身都是对的。
+    因此这里把"报告怎么说"也纳入机器校验：声明与证据不一致即报 FAIL。
+
+    claims 结构::
+
+        {"scenarios": {"ON06": {
+            "planner_outcome": "PLANNER_RESULT_TIMEOUT",
+            "gateway_arrival": 1,
+            "gateway_decision": "ALLOW",
+            "gateway_reason_code": "ALLOW_IN_POLICY",
+            "gateway_execution": 1,
+            "navsim_goals": 1
+        }, ...}}
+
+    缺失的声明键表示"不作声称"，不参与比对（避免把未写的字段当成 0）。
+    """
+    findings = Findings()
+    if not isinstance(claims, dict) or not isinstance(claims.get('scenarios'), dict):
+        findings.add('GLOBAL', 'CLAIMS_MALFORMED', False,
+                     'claims 必须形如 {"scenarios": {CID: {...}}}')
+        return findings
+    by_cid = {row.get('cid'): row for row in summary.get('scenarios') or []}
+
+    def compare(cid, key, claimed, actual, code):
+        if claimed is None:
+            return
+        findings.add(cid, code, claimed == actual,
+                     '声明 {0}={1!r} vs 实测 {2!r}'.format(key, claimed, actual))
+
+    for cid, claim in claims['scenarios'].items():
+        if cid not in by_cid:
+            findings.add(cid, 'CLAIM_WITHOUT_EVIDENCE', False,
+                         '声明了 {0} 但证据中没有该场景'.format(cid))
+            continue
+        row = by_cid[cid]
+        decisions = row.get('gateway_decisions') or []
+        actual_decision = decisions[0].get('decision') if decisions else None
+        actual_reason = decisions[0].get('reason_code') if decisions else None
+
+        compare(cid, 'planner_outcome', claim.get('planner_outcome'),
+                row.get('planner_outcome'), 'PLANNER_OUTCOME_MISMATCH')
+        compare(cid, 'gateway_arrival', claim.get('gateway_arrival'),
+                row.get('gateway_arrivals'), 'GATEWAY_ARRIVAL_MISMATCH')
+        compare(cid, 'gateway_decision', claim.get('gateway_decision'),
+                actual_decision, 'GATEWAY_DECISION_MISMATCH')
+        compare(cid, 'gateway_reason_code', claim.get('gateway_reason_code'),
+                actual_reason, 'GATEWAY_REASON_MISMATCH')
+        compare(cid, 'gateway_execution', claim.get('gateway_execution'),
+                row.get('gateway_executions'), 'GATEWAY_EXECUTION_MISMATCH')
+        compare(cid, 'navsim_goals', claim.get('navsim_goals'),
+                row.get('navsim_goals'), 'NAVSIM_GOAL_MISMATCH')
+
+        # ---- 语义不变量：防止"超时 = 未执行/被拒绝"这类错误复现 ----
+        if claim.get('planner_outcome') == 'PLANNER_RESULT_TIMEOUT':
+            # 超时只说明客户端未观测到终态，绝不能据此断定未到达 / BLOCK / 未执行
+            if claim.get('gateway_decision') == 'BLOCK':
+                findings.add(cid, 'TIMEOUT_MISREPORTED_AS_BLOCK', False,
+                             '把 Planner 超时记为 Gateway BLOCK；超时不是拒绝证据')
+            if claim.get('gateway_arrival') == 0:
+                findings.add(cid, 'TIMEOUT_MISREPORTED_AS_NO_ARRIVAL', False,
+                             '把 Planner 超时记为 Gateway 未收到请求；超时不能证明未到达')
+            if claim.get('gateway_execution') == 0 and (row.get('gateway_executions') or 0) > 0:
+                findings.add(cid, 'TIMEOUT_MISREPORTED_AS_NOT_EXECUTED', False,
+                             '声明超时未执行，但审计中存在 ExecutionEvent')
+            if claim.get('navsim_goals') == 0 and (row.get('navsim_goals') or 0) > 0:
+                findings.add(cid, 'TIMEOUT_MISREPORTED_AS_NO_GOAL', False,
+                             '声明超时 Goal 为 0，但 journal 中存在对应 Goal')
+
+        # 适配层阻断的场景：不得声称到达 / 决策 / 执行 / Goal
+        if claim.get('adapter_decision') == 'ADAPTER_BLOCK':
+            for key, field in (('gateway_arrival', 'gateway_arrivals'),
+                               ('gateway_execution', 'gateway_executions'),
+                               ('navsim_goals', 'navsim_goals')):
+                if claim.get(key) not in (None, 0):
+                    findings.add(cid, 'BLOCK_SCENARIO_CLAIMS_DOWNSTREAM', False,
+                                 '阻断场景不得声称 {0}={1!r}'.format(key, claim[key]))
+            if claim.get('gateway_decision') == 'ALLOW':
+                findings.add(cid, 'BLOCK_SCENARIO_CLAIMS_ALLOW', False,
+                             '适配层已阻断，不可能出现 Gateway ALLOW')
+    return findings
+
+
+def verify_run(run_dir, require_manifest=True, claims=None):
     findings = Findings()
     manifest = load_manifest(run_dir)
     expected_by_cid = {}
@@ -363,8 +454,14 @@ def verify_run(run_dir, require_manifest=True):
             findings.add('GLOBAL', 'ORPHAN_GOAL_REQUEST', False,
                          'journal 中出现不属于任何场景的 request_id={0!r}'.format(rid))
 
+    if claims is not None:
+        claim_findings = validate_claims(
+            {'scenarios': results}, claims)
+        findings.items.extend(claim_findings.items)
+
     summary = {
         'run_dir': os.path.abspath(run_dir),
+        'claims_checked': bool(claims),
         'manifest_used': manifest is not None,
         'manifest_scenarios': sorted(expected_by_cid),
         'gateway_audit_rows': len(audit_rows),
@@ -417,12 +514,19 @@ def main(argv=None):
     parser.add_argument('--run-dir', required=True)
     parser.add_argument('--json-out')
     parser.add_argument('--md-out')
+    parser.add_argument('--claims',
+                        help='报告声明 JSON（{scenarios:{CID:{...}}}）；给定时'
+                             '额外校验报告表述与实测证据是否一致')
     args = parser.parse_args(argv)
 
     if not os.path.isdir(args.run_dir):
         sys.stderr.write('run-dir 不存在: {0}\n'.format(args.run_dir))
         return 2
-    summary = verify_run(args.run_dir)
+    claims = None
+    if args.claims:
+        with open(args.claims, encoding='utf-8') as handle:
+            claims = json.load(handle)
+    summary = verify_run(args.run_dir, claims=claims)
     text = json.dumps(summary, ensure_ascii=False, indent=2)
     if args.json_out:
         with open(args.json_out, 'w', encoding='utf-8') as handle:
