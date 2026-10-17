@@ -1,0 +1,10 @@
+# Merge only this section into a trusted local copy of team_modules.example.yaml.
+# Other modules remain unchanged. A model must first be trained locally.
+modules:
+  comm_risk:
+    mode: external
+    interface: comm_risk_evidence
+    command: ["python3", "modules/my_comm/module.py", "--module", "comm_risk", "--model", "training_runs/member1/model.json", "--model-sha256", "REPLACE_WITH_ACTUAL_MODEL_SHA256"]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false

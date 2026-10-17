@@ -1,0 +1,10 @@
+# Merge ONLY task_risk into your existing trusted local adapter config.
+# Do not replace Members 1/2 with unrelated templates.
+modules:
+  task_risk:
+    mode: external
+    interface: task_risk_decision
+    command: [python3, modules/member3_taskrisk/module.py, --policy, config/task_policy.yaml]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false

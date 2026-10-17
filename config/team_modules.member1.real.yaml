@@ -1,0 +1,67 @@
+# 成员一真实通信风险模块配置（受信任本地文件）
+#
+# 用途
+# ----
+#   python3 scripts/check_member_module.py --module comm_risk \
+#       --config config/team_modules.member1.real.yaml \
+#       --real-fixture config/acceptance/real_scenarios.member1.yaml
+#
+# 语义
+# ----
+# * comm_risk 由仓库内交付的**纯数值 JSON 模型**真实推理（modules/member1_comm）。
+# * identity_trust / task_risk 保持 MOCK：本配置不改变另外两位的语义。
+# * `--model-sha256` 是模型身份的唯一依据，与
+#   modules/member1_comm/model/model_manifest.json 中的 SHA-256 一致。
+# * `--observation-provenance UNKNOWN`：受信任配置**不声明**观察来源可信，
+#   因此即使模型给出"低于阈值"，也只能是 UNKNOWN。业务 JSON 自报
+#   `kind=RUNTIME_LOG` 不能换来 NORMAL。
+# * `--controlled-test` 只出现在命令档案 `model_controlled_test` 里，
+#   它是受控 L1 测试配置，用于验证 NORMAL 路径可达；生产/联调配置不得使用。
+adapter:
+  log_path: logs/member1/adapter.jsonl
+  planner_command: [ros2, run, rg_demo_nodes, planner_node]
+
+real_command_profiles:
+  # 生产语义：受信任配置不声明可信观察来源 -> 低于阈值时保留 UNKNOWN
+  # （--module 只是显式写出模块身份，不改变任何安全语义）
+  model_valid:
+    args: [--module, comm_risk]
+  # 受控 L1：允许未通过验证门槛的模型给出 NORMAL（结果里会写明 CONTROLLED_TEST_ONLY）
+  model_controlled_test:
+    args: [--controlled-test]
+  # 声明受信任观察来源（仍受模型验证门槛约束；当前模型门槛未通过）
+  model_trusted_provenance:
+    args: [--observation-provenance, CONTROLLED_SECURITY_EXPERIMENT]
+  # 模型不存在 -> 退出码 3（失败关闭，不产出任何结论）
+  model_absent:
+    args: [--model, training_runs/absent/comm_risk_model.json]
+  # 模型哈希不符 -> 合法 ERROR 输出（失败关闭）
+  model_bad_hash:
+    args: [--model-sha256, ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]
+
+modules:
+  comm_risk:
+    mode: external
+    interface: comm_risk_evidence
+    command: [python3, modules/member1_comm/module.py,
+              --model, modules/member1_comm/model/comm_risk_model.json,
+              --model-sha256, d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df,
+              --features, modules/member1_comm/features.json,
+              --observation-provenance, UNKNOWN]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+  identity_trust:
+    mode: mock
+    interface: identity_trust_assessment
+    command: [python3, mock_modules/identity_trust_mock.py]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+  task_risk:
+    mode: mock
+    interface: task_risk_decision
+    command: [python3, mock_modules/task_risk_mock.py]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
