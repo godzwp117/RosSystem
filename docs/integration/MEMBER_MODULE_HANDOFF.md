@@ -2,7 +2,7 @@
 
 | 项 | 值 |
 | --- | --- |
-| 交接版本 | `member_module_handoff/1.0.0` |
+| 交接版本 | `member_module_handoff/1.0.0`（**第二阶段更新：见 §10**） |
 | 产出工作包 | 工作 A：成员真实模块适配、兼容性修复与必要重构 |
 | 目标分支 | `integration/member-module-adaptation` |
 | 开发基准 | `demo-2026-10-19-rc2-verified` = `33cb4f93d5e5fd268878fe83fc040c655d632a70` |
@@ -274,13 +274,20 @@ $PY -m pytest tests/unit/test_joint_three_modules.py -q
 
 ---
 
-## 7. 就绪状态总表（唯一权威版本）
+## 7. 就绪状态总表（唯一权威版本，第二阶段复核后）
 
 | 模块 | CALLABLE_REAL | SCHEMA_VALID | EVIDENCE_VALID | ONLINE_PROCEED_READY |
 | --- | --- | --- | --- | --- |
-| M1 `comm_risk` | PASS | PASS | PASS | **FAIL** |
-| M2 `identity_trust` | PASS | PASS | PASS | **FAIL** |
+| M1 `comm_risk` | PASS | PASS | PASS※ | **FAIL** |
+| M2 `identity_trust` | PASS | PASS | PASS※※ | **FAIL** |
 | M3 `task_risk` | PASS | PASS | PASS | PASS |
+
+※ M1 的 `EVIDENCE_VALID` 仅覆盖"真实 Linux `/proc` 子集（24 维，窗口级、主机级）
++ 离线模型"这一范围；不覆盖 22 维逐包特征与 2 维 ROS 图特征（不可得），
+也不覆盖任何"在线检测"声明。
+
+※※ M2 的 `EVIDENCE_VALID` 仅覆盖"历史受控实验证据 + 签名/绑定/新鲜度/防重放核验"
+这一范围；**不**覆盖"当前请求的 DDS 身份认证"——该能力不存在，见 §10.3。
 
 证据见 `.yaml` 中 `modules.<name>.readiness_evidence`。四项取值只能取
 PASS / FAIL / NOT_RUN / BLOCKED；本表中没有任何一项是"大概通过"。
@@ -308,3 +315,123 @@ PASS / FAIL / NOT_RUN / BLOCKED；本表中没有任何一项是"大概通过"�
 3. 若需要联合运行，直接复用 `config/team_modules.all-real.yaml`；
 4. 若需要 `READY` 证据，只能在受控测试配置下取得，并在报告中显式标注；
 5. 任何接口变更请先改本目录下的两个交接文件，再改代码。
+
+---
+
+## 10. 第二阶段更新（真实模块可信化）
+
+### 10.1 本轮基准与提交
+
+| 项 | 值 |
+| --- | --- |
+| 上一轮基准 | `f51bab800d7bb3fe325d7e096bb15438178f5122` |
+| 本轮功能提交 | `PHASE2_COMMIT_PLACEHOLDER` |
+| 分支 | `integration/member-module-adaptation`（已推送，见 §10.9） |
+| 证据包 | `docs/integration/evidence/PHASE2_EVIDENCE.json` |
+| 专题文档 | `WORK_A_PHASE2_SECURITY_REVIEW.md`、`M1_RUNTIME_FEATURE_FEASIBILITY.md`、`M2_CURRENT_IDENTITY_TRUST_BOUNDARY.md` |
+
+### 10.2 接口变更（仅 `extensions` 与受信任参数，Schema 未改）
+
+| 变更 | 类型 | 兼容性 |
+| --- | --- | --- |
+| `extensions.current_request_identity` 增加 `checks`/`verifier`/`attestation` | 兼容扩展（§4.1） | 旧消费方忽略即可；新消费方应用 `f0_accepts()` |
+| 证据契约 `current-identity-witness/1` → `current-identity-attestation/2` | **测试件内部**契约 | 旧证据不再被接受（无生产签发者，无影响） |
+| 新增受信任参数 `--identity-issuers` | 进程参数 | 未配置时永不 AUTHENTICATED |
+| `--identity-ledger` 由可选变为 AUTHENTICATED 必要条件 | 语义收紧 | 旧配置若不配账本，只会更严格（继续阻断） |
+| 新增 `identity_trust/test_issuer.py` | TEST_ONLY 工具 | 只能产出 `AUTHENTICATED_TEST_ONLY` |
+| 新增 M1 采集器与 24 维子集模型 | 新增能力 | 不改 49 维命令的语义 |
+
+### 10.3 信任边界（必须原样转述）
+
+* **HMAC 有效 ≠ 身份已认证。** 签名只证明字节完整性；身份可信只来自受信任签发者
+  清单，而仓库不交付该清单、也不存在能签发它的组件。
+* 因此 M2 的真实输出恒为 `UNKNOWN`（或 `DENIED`）；测试签发器最多给出
+  `AUTHENTICATED_TEST_ONLY`。
+* `ONLINE_PROCEED_READY` 保持 **FAIL**。测试签发器不能把它改成 PASS。
+
+### 10.4 模块执行命令（第二阶段）
+
+```bash
+PY=tests/evidence/research-venv/bin/python
+
+# M1 真实观测（REAL_RUNTIME）：产出 /tmp/m1_snapshot.json 与可合并的观测块
+$PY -m modules.member1_comm.collector.emit_observation \
+    --duration 1.0 --interval 0.25 \
+    --out /tmp/m1_snapshot.json --observation-out /tmp/m1_observation.json
+#   不给 --request-count 时 mapping=BLOCKED_MISSING_REQUEST_COUNT
+#   （M1 随后以退出码 4 失败关闭）。给 --request-count 时该数字会被标注为
+#   OPERATOR_DECLARED_CONTROLLED_TEST。
+
+# M1 24 维子集模型（离线训练，门槛 FAIL）
+$PY modules/member1_comm/module.py \
+    --model modules/member1_comm/model/comm_risk_model_runtime_subset.json \
+    --model-sha256 9de89b7a96928c5fc1b5f1d0a24870d3ac9e091e179ea2988454e820097ce588 \
+    --features modules/member1_comm/features_runtime_subset.json \
+    --observation-provenance RUNTIME_LOG < envelope.json
+
+# M2（生产语义：无签发者清单 -> 恒 UNKNOWN）
+$PY identity_trust/assessor.py \
+    --experiment-run 20261009T093144Z \
+    --evidence-root artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence \
+    --policy security/policies/minimal_permissions.xml --keystore security/keystore \
+    --case S2 --identity-ledger logs/m2/ledger.jsonl < envelope.json
+#   受控测试时再加 --identity-issuers <TEST_ONLY 清单> 与受控测试签发器产出的证据
+```
+
+### 10.5 测试结果
+
+```text
+tests/unit/test_identity_current_binding.py            27 passed
+tests/unit/test_phase2_security_boundaries.py           9 passed, 2 xfailed   ← 2 项是已知 F0 缺口反例
+tests/unit/test_member1_runtime_observation.py          7 passed
+全仓：734 passed, 3 skipped, 2 xfailed in 532.64s (0:08:52)
+```
+
+### 10.6 B1 必须做的事（P0-2）
+
+F0 目前只比较 `extensions.current_request_identity.status` 字符串。实测：一个只写
+`"status": "AUTHENTICATED"` 的模块即可让适配层给出
+`READY_FOR_GATEWAY_SUBMISSION / ADAPTER_OK`。
+
+要求的改法（一行）：
+
+```python
+from identity_trust.current_identity import f0_accepts
+current = (outputs['identity_trust'].get('extensions') or {}).get('current_request_identity')
+if not f0_accepts(current):
+    raise AdapterBlock(REASON_CURRENT_IDENTITY_UNBOUND, '当前身份未通过受信任核验')
+```
+
+反例（当前 `xfail`，修好后改普通断言）：
+
+* `tests/unit/test_phase2_security_boundaries.py::test_f0_rejects_bare_status_self_report`
+* `tests/unit/test_phase2_security_boundaries.py::test_f0_rejects_mock_fixture_identity`
+
+### 10.7 未完成的在线条件
+
+| 编号 | 条件 | 当前 |
+| --- | --- | --- |
+| A-1 | ROS 2 运行时（Jazzy） | 缺失（本机无 `/opt/ros`、无 `ros2`） |
+| A-2 | 业务请求计数 | 缺失（需 ROS 2 Action 计数；不得用包数/采样数代替） |
+| A-3 | 22 维逐包 + 2 维图特征 | 缺失（需 tshark / ROS 图内省） |
+| A-4 | 模型验证门槛 | 两个模型均 FAIL |
+| A-5 | 特征语义等价性 | UNVERIFIED |
+| A-6 | 真实身份签发者 | 不存在 |
+| A-7 | F0 身份判定 | 仍信任裸状态（owner B1） |
+| A-8 | 密钥/核验器隔离 | 同 uid，无强隔离 |
+
+### 10.8 是否可供 B1 合流
+
+**模块与证据侧：可以合流。** 结论：`MERGEABLE_WITH_B1_FOLLOWUP`——
+前提是 P0-2（`f0_accepts`）在 B1 侧同期或随后落地；否则 `identity` 自报仍可绕过。
+合入前请先跑两个 `xfail` 用例确认 F0 现状，再决定是否把它们翻正。
+
+### 10.9 复验与推送
+
+```bash
+cd /home/zhangwei/project/RosSystem/.worktrees/work-a
+git log --oneline -3
+git status --short          # 应为空
+git rev-parse HEAD
+git rev-parse origin/integration/member-module-adaptation   # 应一致
+```
