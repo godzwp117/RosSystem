@@ -1,0 +1,24 @@
+# 把本段合并进受信任的 team_modules 配置副本即可启用成员一的真实模块。
+# 其他模块保持不变（仍需显式标注 mode）。
+#
+# 说明
+# ----
+# * --model-sha256 是模型身份的唯一依据，必须与
+#   modules/member1_comm/model/model_manifest.json 一致。
+# * --observation-provenance UNKNOWN 表示"受信任配置不声明可信观察来源"：
+#   模型低于阈值时只能给 UNKNOWN。要声明可信来源（例如受控实验日志），
+#   改成 CONTROLLED_SECURITY_EXPERIMENT 或 RUNTIME_LOG —— 这是受信任配置的
+#   决定，业务 JSON 无法影响。
+# * 不要在**生产/联调**命令里加 --controlled-test；它只用于 L1 受控测试。
+modules:
+  comm_risk:
+    mode: external
+    interface: comm_risk_evidence
+    command: ["python3", "modules/member1_comm/module.py",
+              "--model", "modules/member1_comm/model/comm_risk_model.json",
+              "--model-sha256", "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df",
+              "--features", "modules/member1_comm/features.json",
+              "--observation-provenance", "UNKNOWN"]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false

@@ -296,6 +296,17 @@ def parse_real_fixture(path: str, module: str, config: dict) -> dict:
         expect = row.get('expect') or {}
         if not isinstance(expect, dict):
             raise FixtureError('{0}.expect 必须是映射'.format(where))
+        adapter_decision = expect.get('adapter_decision')
+        if adapter_decision not in (None, 'READY_FOR_GATEWAY_SUBMISSION',
+                                   'ADAPTER_BLOCK'):
+            raise FixtureError(
+                '{0}.expect.adapter_decision 非法: {1!r}'.format(
+                    where, adapter_decision))
+        adapter_reason = expect.get('adapter_reason')
+        if adapter_reason is not None and (
+                not isinstance(adapter_reason, str) or not adapter_reason):
+            raise FixtureError(
+                '{0}.expect.adapter_reason 必须是非空字符串'.format(where))
         allowed_states = expect.get('allowed_states')
         if allowed_states is not None:
             if (not isinstance(allowed_states, list) or not allowed_states
@@ -324,6 +335,12 @@ def parse_real_fixture(path: str, module: str, config: dict) -> dict:
                 'reason_code': expect.get('reason_code'),
                 'policy_version': expect.get('policy_version'),
                 'contains': expect.get('contains'),
+                # 适配层预期（可选）：合法真实条件默认只应产生
+                # READY_FOR_GATEWAY_SUBMISSION；当模块的"模块级结论"合法、
+                # 但缺少**当前请求身份绑定**时，fixture 可以显式声明适配层
+                # 必须阻断，并由 adapter_reason 精确核对原因码。
+                'adapter_decision': expect.get('adapter_decision'),
+                'adapter_reason': expect.get('adapter_reason'),
             },
         })
     return {'fixture': rel(path), 'module': module, 'scenarios': scenarios}
@@ -382,7 +399,8 @@ def invoke_real_scenario(module: str, scenario: dict, timeout: float,
     row['ids_ok'] = (payload.get('run_id') == env['run_id']
                      and payload.get('request_id') == env['request_id'])
     extensions = payload.get('extensions') or {}
-    member = extensions.get('member3') or extensions.get('member2') or {}
+    member = (extensions.get('member3') or extensions.get('member2')
+              or extensions.get('member1_comm') or {})
     row['actual_reason_code'] = (
         member.get('reason_code')
         or (payload.get('authorization') or {}).get('denial_layer')
@@ -524,13 +542,72 @@ def _pin_real_command(temp_dir: str, config: dict, module: str,
     return cfg_path, log_path
 
 
+#: 成员一真实通信观测的**真实 data row** 来源（已提交、可追溯）。
+COMM_PROBE_FIXTURE = os.path.join(
+    REPO, 'tests', 'fixtures', 'member1', 'rospace_comm_rows.json')
+
+
+def comm_observation_detail() -> dict:
+    """构造 comm_risk 需要的真实通信观测块。
+
+    为什么需要
+    ----------
+    真实通信风险模块依赖**真实**的特征向量、资源、观察窗口与业务请求计数。
+    统一验收器原先只构造 `f0_mock` 场景开关，于是真实模块会（正确地）
+    失败关闭退出 4，导致 stdout / JSON / 输出上限 / event_id 这些协议层
+    检查全部失去意义（不是模块不可调用，而是输入里根本没有可映射的观测）。
+
+    这里注入的是 tests/fixtures/member1/rospace_comm_rows.json 中的**真实
+    held-out 数据行**（分片号 / 原始 CSV 行号 / 标签 / 模型打分均可追溯），
+    不是随机填充，也不是标签反推。它只用于让协议层检查有合法输入；
+    各状态是否可达由 REAL-STATE-* 用真实条件单独核对。
+    """
+    try:
+        with open(COMM_PROBE_FIXTURE, encoding='utf-8') as handle:
+            document = json.load(handle)
+        threshold = document['model']['threshold']
+        rows = document['rows']
+        row = next((item for item in rows if item['score'] < threshold), rows[0])
+    except (OSError, ValueError, KeyError, IndexError, StopIteration):
+        return {}
+    return {
+        'rospace_comm': {
+            'features': {'feature_names': row['feature_names'],
+                         'values': row['values']},
+        },
+        'f0_runtime': {
+            'communication': {'resource': '/rg/guarded_navigate',
+                              'resource_type': 'Action', 'operation': 'GOAL_SEND'},
+            'request_count': 12,
+            'window': {'start': '2026-10-12T11:59:55Z',
+                       'end': '2026-10-12T12:00:00Z', 'duration_ms': 5000},
+        },
+        'comm_probe_provenance': {
+            'fixture': 'tests/fixtures/member1/rospace_comm_rows.json',
+            'shard': row['shard'],
+            'original_csv_row': row['original_csv_row'],
+            'dataset_label': row['dataset_label'],
+            'score': row['score'],
+            'note': 'real held-out row; injected by the acceptance harness, not by business input',
+        },
+    }
+
+
 def build_envelope(request_id: str = 'req-accept-001') -> dict:
     """构造一个最小合法的 ModuleInputEnvelope（受控 fixture）。
 
     同时带上 `detail.f0_mock` 场景块：仓库自带的参考 Mock 依靠它选择场景，
     没有它 task_risk Mock 会因缺少任务上下文而无法产出结果。
     成员的真实模块应当**忽略**该块（它只是 mock 的控制字段）。
+
+    另外附带一份**真实**通信观测块（见 comm_observation_detail），
+    使需要真实观测映射的模块（成员一）也能在协议层被真实调用。
     """
+    detail = {'f0_mock': {
+        'comm_risk': {'scenario': 'normal'},
+        'identity_trust': {'scenario': 'authorized'},
+        'task_risk': {'scenario': 'allow'}}}
+    detail.update(comm_observation_detail())
     return {
         'schema_version': '1.0.0-proposed',
         'run_id': 'member-acceptance',
@@ -546,10 +623,7 @@ def build_envelope(request_id: str = 'req-accept-001') -> dict:
             'source': '/rg/guarded_navigate',
             'kind': 'MOCK',
             'observed_at': '2026-10-12T12:00:00Z',
-            'detail': {'f0_mock': {
-                'comm_risk': {'scenario': 'normal'},
-                'identity_trust': {'scenario': 'authorized'},
-                'task_risk': {'scenario': 'allow'}}},
+            'detail': detail,
         }],
         'evidence_refs': [{'ref': 'member-acceptance', 'kind': 'MOCK'}],
     }
@@ -831,6 +905,14 @@ def _marker_module(tmp_path, marker, module):
         '                          "denial_layer": "NONE"}},\n'
         '        "identity_evidence": {{"kind": "MOCK"}},\n'
         '        "access_control_evidence": {{"kind": "NONE"}},\n'
+        # 适配层要求身份位置声明**当前请求**身份绑定（历史授权不算）。
+        # 正向对照替身必须显式给出它并标注 MOCK_FIXTURE；否则 ADP-00 会把
+        # "适配层按安全语义阻断历史授权"误判成控制失败。
+        '        "extensions": {{"current_request_identity": {{\n'
+        '            "status": "AUTHENTICATED",\n'
+        '            "evidence_kind": "MOCK_FIXTURE",\n'
+        '            "binding": "PROBE_POSITIVE_CONTROL",\n'
+        '            "historical_only": False}}}},\n'
         '    }})\n'
         'else:\n'
         '    common.update({{\n'
@@ -1373,17 +1455,28 @@ def main(argv=None) -> int:
                         doc = (json.loads(proc.stdout)
                                if proc.stdout.strip().startswith('{') else {})
                         decision = doc.get('decision')
-                        # READY 只代表可以提交给 Gateway，绝不是 ALLOW，
-                        # 更不是 NavigationSim 执行成功。
-                        ready_only = (
-                            decision == 'READY_FOR_GATEWAY_SUBMISSION'
-                            and doc.get('gateway_decision') is None
-                            and doc.get('navsim_goal_id') is None)
+                        expected_decision = (scenario['expect'].get('adapter_decision')
+                                             or 'READY_FOR_GATEWAY_SUBMISSION')
+                        expected_reason = scenario['expect'].get('adapter_reason')
+                        no_downstream = (doc.get('gateway_decision') is None
+                                         and doc.get('navsim_goal_id') is None)
+                        if expected_decision == 'ADAPTER_BLOCK':
+                            # 模块级结论合法，但适配层按安全语义必须阻断
+                            # （例如历史授权不能替代当前请求身份绑定）。
+                            ok = (decision == 'ADAPTER_BLOCK' and no_downstream
+                                  and (expected_reason is None
+                                       or doc.get('reason_code') == expected_reason))
+                            name = ('合法模块结论仍被 F0 阻断（期望 {0}）').format(
+                                expected_reason or 'ADAPTER_BLOCK')
+                        else:
+                            # READY 只代表可以提交给 Gateway，绝不是 ALLOW，
+                            # 更不是 NavigationSim 执行成功。
+                            ok = (decision == 'READY_FOR_GATEWAY_SUBMISSION'
+                                  and no_downstream)
+                            name = ('合法真实条件只产生 READY_FOR_GATEWAY_SUBMISSION'
+                                    '（仍需 Gateway 判定）')
                         report.add(
-                            cid,
-                            '合法真实条件只产生 READY_FOR_GATEWAY_SUBMISSION'
-                            '（仍需 Gateway 判定）',
-                            'PASS' if ready_only else 'FAIL',
+                            cid, name, 'PASS' if ok else 'FAIL',
                             'rc={0} decision={1} reason={2}'
                             ' gateway_decision={3}'.format(
                                 proc.returncode, decision,
@@ -1391,6 +1484,7 @@ def main(argv=None) -> int:
                                 doc.get('gateway_decision')),
                             extra={'returncode': proc.returncode,
                                    'decision': decision,
+                                   'reason_code': doc.get('reason_code'),
                                    'actual_state': row['actual_state']})
                     except Exception as exc:               # noqa: BLE001
                         report.add(cid, '合法真实条件 -> 仅 READY', 'BLOCKED',

@@ -16,7 +16,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = '0.1.0'
+VERSION = '0.2.0'
+# 允许"以脚本方式执行"（python3 identity_trust/assessor.py）与"作为包导入"
+# （tests 中 from identity_trust.assessor import ...）两种入口共用同一份
+# 当前请求身份绑定核验逻辑，避免出现两套语义不同的实现。
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from identity_trust.current_identity import (  # noqa: E402
+    Ledger, assessment_key, verify as verify_current_identity)
+
 CONTRACT = '1.0.0-proposed'
 ENTRY = '/rg/guarded_navigate'
 EXECUTE = '/rg/nav_execute'
@@ -394,6 +402,20 @@ def examine(policy, keystore, evidence_root, run_id, case_id):
 def assessment(envelope, args):
     envelope_check(envelope)
     case_id = args.case
+    # 历史证据解释（下方 status）与当前请求身份绑定（current_request_identity）
+    # 是两件不同的事。这里先取可信配置（进程参数）给出的证据路径；
+    # 任何身份信息都不从 stdin 读取。
+    witness_path = getattr(args, 'identity_witness', None)
+    witness_key = getattr(args, 'identity_witness_key', None)
+    ledger_path = getattr(args, 'identity_ledger', None)
+    ledger = None
+    if ledger_path:
+        try:
+            ledger = Ledger(ledger_path)
+        except (OSError, ValueError) as exc:
+            ledger = None
+            print('[identity_trust] 身份账本不可用，重放检测不可用: '
+                  + type(exc).__name__, file=sys.stderr)
     enclave, node, action, _expected, _logname = CASES[case_id]
     current_resource = envelope['candidate_action']['action_resource']
     status, detail = 'UNKNOWN', None
@@ -428,6 +450,36 @@ def assessment(envelope, args):
         reason = '证据不足或不可核验，失败关闭：' + str(exc)[:420]
         print('[identity_trust] ' + reason, file=sys.stderr)
 
+    # ------------------------------------------------------------------
+    # 历史授权复用检测：同一 (case, experiment_run, request_id, resource) 只能
+    # 被解释一次。第二次出现说明有人在**重用**一份历史授权来支撑新的请求。
+    # ------------------------------------------------------------------
+    reuse = False
+    if ledger is not None and args.experiment_run:
+        key = assessment_key(case_id, args.experiment_run,
+                             envelope['request_id'], current_resource)
+        if ledger.seen_assessment(key):
+            reuse = True
+            status = 'UNKNOWN'
+            binding = 'HISTORICAL_AUTHORIZATION_REUSE'
+            reason = ('同一历史受控实验证据已被用于解析该 request_id 一次；'
+                      '重复解释属于历史授权复用，不能再次支撑当前请求')
+        else:
+            try:
+                ledger.append({'kind': 'assessment', 'key': key,
+                               'case': case_id, 'request_id': envelope['request_id'],
+                               'resource': current_resource,
+                               'experiment_run': args.experiment_run})
+            except OSError as exc:
+                status = 'UNKNOWN'
+                binding = 'HISTORICAL_REPLAY_LEDGER_WRITE_FAILED'
+                reason = ('历史证据复用账本写入失败（{0}）；维持 UNKNOWN').format(
+                    type(exc).__name__)
+
+    # 当前请求身份绑定：没有可信证据时恒为 UNKNOWN（失败关闭）。
+    current_identity = verify_current_identity(
+        envelope, witness_path, witness_key, ledger=ledger)
+
     item = {
         'schema_version': CONTRACT, 'run_id': envelope['run_id'], 'request_id': envelope['request_id'],
         # event_id 必须能与 request_id 关联：与 modules/member3_taskrisk 的既有约定
@@ -455,7 +507,11 @@ def assessment(envelope, args):
                        'current_candidate_resource': current_resource,
                        'identity_binding_note': ('历史实验只覆盖该次运行中真实使用 DDS 身份的主体；'
                                                  'request_id / declared_enclave / 业务 JSON 自报身份'
-                                                 '都不是 DDS 已认证身份')},
+                                                 '都不是 DDS 已认证身份'),
+                       # 历史证据与当前请求身份**分离**：单一 AUTHORIZED 状态
+                       # 不再可能被误用为"当前请求已完成 DDS 身份认证"。
+                       'current_request_identity': current_identity,
+                       'historical_authorization_reuse_detected': reuse},
     }
     if detail:
         if detail['denial']:
@@ -489,6 +545,10 @@ def main(argv=None):
     p.add_argument('--evidence-root', default=str(ROOT / 'tests/evidence'))
     p.add_argument('--experiment-run', help='受信任本地配置指定的 SROS2 实验运行 ID（不从 stdin 读取）')
     p.add_argument('--case', choices=CASES, default='S2', help='待审阅的受控安全实验场景')
+    # 以下三项只能来自受信任本地配置，绝不从 stdin / 业务 JSON 读取。
+    p.add_argument('--identity-witness', help='当前请求身份绑定的可信证据文件（默认无 -> UNKNOWN）')
+    p.add_argument('--identity-witness-key', help='核验该证据的 HMAC 密钥文件（受信任本地文件）')
+    p.add_argument('--identity-ledger', help='重放/复用检测账本（JSONL，运行时状态）')
     args = p.parse_args(argv)
     try:
         inp = strict_json(sys.stdin.read())
