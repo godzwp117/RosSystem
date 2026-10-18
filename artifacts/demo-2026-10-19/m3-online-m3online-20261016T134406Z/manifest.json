@@ -1,0 +1,41 @@
+{
+  "run_id": "m3online-20261016T134406Z",
+  "scenarios": [
+    {
+      "cid": "ON01",
+      "request_id": "on01-legal-allow-m3online-20261016T134406Z",
+      "run_id": "m3online-20261016T134406Z",
+      "expected": "ALLOW_AND_EXECUTE"
+    },
+    {
+      "cid": "ON02",
+      "request_id": "on02-oor-block-m3online-20261016T134406Z",
+      "run_id": "m3online-20261016T134406Z",
+      "expected": "M3_BLOCK_NO_SUBMIT"
+    },
+    {
+      "cid": "ON05",
+      "request_id": "on05-gateway-authority-m3online-20261016T134406Z",
+      "run_id": "m3online-20261016T134406Z",
+      "expected": "M3_ALLOW_GATEWAY_BLOCK"
+    },
+    {
+      "cid": "ON03",
+      "request_id": "on03-m3online-20261016T134406Z",
+      "run_id": "m3online-20261016T134406Z",
+      "expected": "UNKNOWN_BLOCK"
+    },
+    {
+      "cid": "ON04",
+      "request_id": "on04-m3online-20261016T134406Z",
+      "run_id": "m3online-20261016T134406Z",
+      "expected": "ERROR_BLOCK"
+    },
+    {
+      "cid": "ON06",
+      "request_id": "on06-m3online-20261016T134406Z",
+      "run_id": "m3online-20261016T134406Z",
+      "expected": "TIMEOUT_NOT_BLOCK"
+    }
+  ]
+}

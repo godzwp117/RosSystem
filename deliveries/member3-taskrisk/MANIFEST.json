@@ -1,0 +1,68 @@
+{
+  "baseline_sha": "a4c597161d254192b662ee7b8f4d17f76a89cc16",
+  "source_commit_sha": "00f3f219d8226cfe6b3ce3d02f6ae8b920905997",
+  "module_version": "0.1.0",
+  "packaging_change_only": true,
+  "files": [
+    {
+      "path": "config/team_modules.member3.yaml",
+      "sha256": "d8335bc922269c1c1c515c93b6be8f66388bf8bd3d1e114ddac1c7ee27704257",
+      "size_bytes": 914
+    },
+    {
+      "path": "docs/member3/IMPLEMENTATION_REPORT.md",
+      "sha256": "aed3d779823a27778eaad8420a61f99afc51b696f578ba4ab577db6da3beff13",
+      "size_bytes": 6699
+    },
+    {
+      "path": "docs/member3/PR_DRAFT.md",
+      "sha256": "af64083b25ba601a8ddbab4436f9b1e4d02d80818196dee8c608af4ece5e1e5b",
+      "size_bytes": 2075
+    },
+    {
+      "path": "modules/member3_taskrisk/README.md",
+      "sha256": "e20055e4aafa2f88d8021cc3e4f7472c5879cc4640bf88af1b7fe1b57a868577",
+      "size_bytes": 8232
+    },
+    {
+      "path": "modules/member3_taskrisk/example_config.yaml",
+      "sha256": "e02baa573e7a3df5d520eaa691d839e535425665415ff099b8142a64aa668c7b",
+      "size_bytes": 377
+    },
+    {
+      "path": "modules/member3_taskrisk/experiments.py",
+      "sha256": "aa1873cf2ba46c3aa410d560849621cd5cf89df884ae9b6036f2c30f484ac505",
+      "size_bytes": 9996
+    },
+    {
+      "path": "modules/member3_taskrisk/module.py",
+      "sha256": "5150cf2b547a8e6377f494fbb8a023ffb5043bc74a32446954781de163cae2ee",
+      "size_bytes": 5327
+    },
+    {
+      "path": "modules/member3_taskrisk/online_check.py",
+      "sha256": "294184150b2baa34342e3654bd72824bcf3767a000db42d7b0499b68b2559789",
+      "size_bytes": 10060
+    },
+    {
+      "path": "modules/member3_taskrisk/requirements.txt",
+      "sha256": "44ce25e9e470c654f3708a9cecf1c353e7e5dcb200bc4827159b7cb46562f560",
+      "size_bytes": 40
+    },
+    {
+      "path": "modules/member3_taskrisk/risk_model.py",
+      "sha256": "db724fcd754853688dbe2b44022d3e77e2d704562631c7ae6b5c2b07fe686d2c",
+      "size_bytes": 15161
+    },
+    {
+      "path": "modules/member3_taskrisk/test_module.py",
+      "sha256": "02fbb2b5281cdee2edfec9ae747d320c6d197bd39ce66a8e3ab05b60c52e3f91",
+      "size_bytes": 359
+    },
+    {
+      "path": "tests/unit/test_member3_taskrisk.py",
+      "sha256": "f1f23e3c6d60b3559e5ee4124d339438e4c1b177ba82547d2f1924442b9ee0a0",
+      "size_bytes": 12518
+    }
+  ]
+}

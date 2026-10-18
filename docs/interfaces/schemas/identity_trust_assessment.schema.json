@@ -1,0 +1,317 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/godzwp117/RosSystem/docs/interfaces/schemas/identity_trust_assessment.schema.json",
+  "title": "IdentityTrustAssessment",
+  "description": "DDS 身份与资源访问安全分析模块的输出。表达“某通信主体对某资源的访问是否获得授权”。本接口明确区分四种证据等级：客户端自报、权限文件推导、日志观察到的访问控制拒绝、受控安全实验结论。**任何 status=AUTHORIZED 都不等于该主体已通过 DDS 认证，也不能替代 Gateway 的最终授权。**",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "request_id",
+    "event_id",
+    "producer",
+    "observed_at",
+    "status",
+    "reason",
+    "evidence_refs",
+    "subject",
+    "requested_resource",
+    "authorization",
+    "identity_evidence",
+    "access_control_evidence"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": [
+        "1.0.0-proposed"
+      ],
+      "description": "接口契约版本。首版仅接受 1.0.0-proposed。"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "运行实例标识，用于跨模块关联。自报信息，不参与安全决策。"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "业务请求关联标识。**不代表通信主体的安全身份**，也不代表已验证的 DDS 身份。"
+    },
+    "event_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "本次输出事件唯一标识。"
+    },
+    "producer": {
+      "$ref": "#/$defs/producer"
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "本结论生成时间，RFC 3339（含时区）。"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "AUTHORIZED",
+        "DENIED",
+        "UNKNOWN",
+        "ERROR"
+      ],
+      "description": "授权分析结论。AUTHORIZED 仅表示“依据所列证据判断为已授权”，其强度由 identity_evidence.kind 决定；**不构成 DDS 身份认证证明**。UNKNOWN 表示证据不足；ERROR 表示模块失败。两者默认都不得推动执行。"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "description": "人类可读的判断理由，必须与 status 一致。"
+    },
+    "evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {
+        "$ref": "#/$defs/evidenceRef"
+      },
+      "description": "证据引用。模拟数据必须显式标注 kind=MOCK。"
+    },
+    "extensions": {
+      "type": "object",
+      "description": "预留扩展位；未来字段只能放入本对象。",
+      "additionalProperties": true
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observed_name"
+      ],
+      "description": "被观察到的通信主体。",
+      "properties": {
+        "observed_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "观察到的节点或参与者名称。属观察值，不等于已认证身份。"
+        },
+        "declared_enclave": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "**客户端自行声明的** enclave 或安全上下文。此字段本身不证明任何身份，仅作为待核验声明记录。"
+        },
+        "authenticated_identity": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "可选的、由安全层实际认证得到的身份标识。仅在存在受控安全实验或访问控制日志支持时才可填写；无可靠来源时必须省略，不得用声明值填充。"
+        }
+      }
+    },
+    "requested_resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resource",
+        "operation"
+      ],
+      "properties": {
+        "resource": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "description": "被请求的资源名，例如 /rg/task_control/switch（若该资源在当前基线不存在，评估结论应标注 UNKNOWN）。"
+        },
+        "operation": {
+          "type": "string",
+          "enum": [
+            "PUBLISH",
+            "SUBSCRIBE",
+            "SERVICE_REQUEST",
+            "SERVICE_REPLY",
+            "UNKNOWN"
+          ],
+          "description": "请求的资源操作。"
+        }
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "result_status",
+        "denial_layer"
+      ],
+      "description": "授权分析结果与拒绝层级。拒绝层级用于区分四类现象，避免把不相关的失败误归因为安全层拒绝。",
+      "properties": {
+        "result_status": {
+          "type": "string",
+          "enum": [
+            "AUTHORIZED",
+            "DENIED",
+            "UNKNOWN",
+            "ERROR"
+          ],
+          "description": "授权分析结论，应与顶层 status 一致。"
+        },
+        "denial_layer": {
+          "type": "string",
+          "enum": [
+            "NONE",
+            "DDS_ACCESS_CONTROL",
+            "ACTION_SERVER_UNREACHABLE",
+            "BUSINESS_POLICY",
+            "ADAPTER",
+            "UNKNOWN"
+          ],
+          "description": "拒绝发生的层级：NONE=未拒绝；DDS_ACCESS_CONTROL=安全层主动拒绝（必须有访问控制证据）；ACTION_SERVER_UNREACHABLE=服务端不可达；BUSINESS_POLICY=业务策略阻断；ADAPTER=模块接入层阻断；UNKNOWN=无法判定。**仅凭客户端超时不得填写 DDS_ACCESS_CONTROL。**"
+        },
+        "denial_detail": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "拒绝细节（如访问控制报错原文摘要）。"
+        }
+      }
+    },
+    "identity_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "description": "身份判断所依据的证据等级。",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "CLIENT_ASSERTED",
+            "PERMISSION_FILE_DERIVED",
+            "DDS_ACCESS_CONTROL_LOG",
+            "CONTROLLED_SECURITY_EXPERIMENT",
+            "MOCK",
+            "UNKNOWN"
+          ],
+          "description": "证据等级（由弱到强）：CLIENT_ASSERTED=客户端自报（**不可作为认证依据**）；PERMISSION_FILE_DERIVED=由权限文件推导的理论授权；DDS_ACCESS_CONTROL_LOG=日志中观察到的访问控制判定；CONTROLLED_SECURITY_EXPERIMENT=受控安全实验支持的结论；MOCK=模拟实现；UNKNOWN=未知。"
+        },
+        "detail": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "证据说明，例如所引用的权限文件或实验标识。"
+        }
+      }
+    },
+    "access_control_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "description": "访问控制层面的证据。声称 DDS_ACCESS_CONTROL 拒绝时，本对象必须给出可核验来源。",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "NONE",
+            "NATIVE_ACCESS_CONTROL_LOG",
+            "MOCK",
+            "UNKNOWN"
+          ],
+          "description": "NONE=无访问控制证据；NATIVE_ACCESS_CONTROL_LOG=原生访问控制日志（例如权限规则未命中导致端点创建失败的报错）；MOCK=模拟；UNKNOWN=未知。"
+        },
+        "detail": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "证据细节。"
+        }
+      }
+    },
+    "policy_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "权限策略引用。可选；缺失表示未关联到具体策略版本，不得用占位常量填充。",
+      "properties": {
+        "permissions_ref": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "权限配置引用（相对路径或版本标识）。"
+        },
+        "policy_version": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "权限策略版本标识（若来源明确）。"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "producer": {
+      "additionalProperties": false,
+      "description": "输出声明者信息。**不是安全认证凭据**：producer 字段无法证明该来源已通过 DDS 认证，也不能作为身份判断依据。",
+      "properties": {
+        "module_version": {
+          "description": "模块实现版本。与 schema_version（数据契约版本）无关，两者必须分别记录。",
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        },
+        "name": {
+          "description": "声明者名称（模块名或节点名）。属自报信息。",
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        },
+        "source": {
+          "description": "输出提供方类型：MOCK=模拟实现（仅用于联调，不构成任何安全保证）；EXTERNAL=真实模块；UNKNOWN=未知。",
+          "enum": [
+            "MOCK",
+            "EXTERNAL",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "source"
+      ],
+      "type": "object"
+    },
+    "evidenceRef": {
+      "additionalProperties": false,
+      "description": "证据引用及其可信级别。",
+      "properties": {
+        "kind": {
+          "description": "证据来源可信级别。MOCK=模拟数据；RUNTIME_LOG=运行日志观察；PERMISSION_FILE_ANALYSIS=权限配置推导；CONTROLLED_SECURITY_EXPERIMENT=受控安全实验；UNIT_TEST=单元测试断言；UNKNOWN=无法归类。",
+          "enum": [
+            "MOCK",
+            "RUNTIME_LOG",
+            "PERMISSION_FILE_ANALYSIS",
+            "CONTROLLED_SECURITY_EXPERIMENT",
+            "UNIT_TEST",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        },
+        "note": {
+          "description": "可选补充说明。",
+          "maxLength": 256,
+          "type": "string"
+        },
+        "ref": {
+          "description": "证据定位（相对路径、日志行标识或样本标识）。必须能实际关联到对象。",
+          "maxLength": 512,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "ref",
+        "kind"
+      ],
+      "type": "object"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "run_id": "rc2b-final-20261017T131601Z",
+  "scenarios": [
+    {
+      "cid": "ON03",
+      "request_id": "on03-rc2b-final-20261017T131601Z",
+      "run_id": "rc2b-final-20261017T131601Z",
+      "expected": "UNKNOWN_BLOCK"
+    },
+    {
+      "cid": "ON04",
+      "request_id": "on04-rc2b-final-20261017T131601Z",
+      "run_id": "rc2b-final-20261017T131601Z",
+      "expected": "ERROR_BLOCK"
+    },
+    {
+      "cid": "ON06",
+      "request_id": "on06-rc2b-final-20261017T131601Z",
+      "run_id": "rc2b-final-20261017T131601Z",
+      "expected": "TIMEOUT_NOT_BLOCK"
+    }
+  ]
+}
