@@ -1,0 +1,2 @@
+data: '{"task_id": "patrol_a_001", "policy_version": "1.0", "coordinate_frame": "map", "description": "perimeter patrol, A zone", "publ...'
+---
