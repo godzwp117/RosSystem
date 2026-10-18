@@ -165,6 +165,15 @@ F0 如实记录 `ADAPTER_MODULE_EXIT_NONZERO` —— 安全上正确（失败关
 | `request_count` | — | 采集器**拒绝伪造**：无活体 ROS 2 时 `mapping = BLOCKED_MISSING_REQUEST_COUNT` |
 | 实测结论 | `UNKNOWN` | **仍为 `UNKNOWN`** |
 
+**能力边界的准确表述**（不得写成"M1 完全没有运行时采集器"，也不得写成"已具备在线检测"）：
+
+- 已有 **Linux `/proc` 主机级** 24 维采集器（`Net_Sent`、`pgpgin`、`Tcp_Syn`、`pgfault` 等）；
+- **部分 ROS 2 / RTPS 层特征仍然缺失**：采集源是主机内核计数器，不是 ROS 2 中间件或
+  DDS 报文层统计，二者不能互相替代；
+- 当前模型（含 24 维子集模型）**未达到验证门槛** `validation_gate_passed=false`；
+- 因此**尚未证明具备有效的 ROS 2 在线通信攻击检测能力**，也不得把离线数据集结论
+  当作在线检测效果。
+
 **决定性实验**（本轮实际执行）：用采集器真实产出观测块（`--request-count` 显式给出、
 `mapping = COMPLETE`）+ 运行时子集模型 + 受信任来源 `--observation-provenance RUNTIME_LOG`：
 
@@ -191,6 +200,19 @@ provenance=UNKNOWN        rc=0   status=UNKNOWN
 
 即：**同一个模块可以同时是"历史上授权过"和"当前请求身份未绑定"**。
 F0 必须后者说了算。
+
+**能力边界的准确表述**（P0 修复后必须这样写）：
+
+- 系统**已有**签名核验、受信任签发者判定、请求绑定比对、新鲜度检查、
+  原子 nonce 防重放组件（`identity_trust/current_identity.py`）；
+- `identity_trust/test_issuer.py` 是 **TEST_ONLY 签发器**：它签出的证据最多只能得到
+  `AUTHENTICATED_TEST_ONLY`，**不具备任何真实认证效力**，也不得进入正式受信任清单；
+- 当前**尚无经审核的生产 DDS 身份签发者**（ROS 2 Jazzy 不向订阅端暴露发布者主体身份）；
+- 因此严格真实模式**不能宣称已完成当前请求的身份认证**，其正确结果就是阻断
+  （`ADAPTER_CURRENT_IDENTITY_UNBOUND`）。
+
+> 重要区分：P0 修复让 **F0 不再相信自报身份**，这不等于 **M2 已经具备真实 DDS
+> 身份认证能力**。两者是不同命题，不得混写。
 
 ### 6.3 M3 `task_risk`：`ONLINE_PROCEED_READY = PASS`
 
