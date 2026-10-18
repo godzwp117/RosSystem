@@ -401,7 +401,9 @@ def test_t4_offline_normal_not_treated_as_current_safety():
             'identity_trust': {'command': [
                 str(p) for p in _load_base()['modules']['identity_trust']['command']]},
         }, name='t4b.yaml')
-        ledger = _ledger_path(tmpdir + '-b')
+        # 账本必须放在**已存在**的目录内：路径所在目录不存在时 M2 无法写入，
+        # 会以失败关闭返回非推进状态，从而把"身份未绑定"误判成"状态不符"。
+        ledger = os.path.join(tmpdir, 'identity_ledger_b.jsonl')
         cfg = yaml.safe_load(open(config, encoding='utf-8'))
         cmd2 = cfg['modules']['identity_trust']['command']
         cmd2[cmd2.index('--identity-ledger') + 1] = ledger

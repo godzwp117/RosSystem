@@ -1,8 +1,10 @@
 # 工作 B1：三真实模块联合运行与 ROS 2 系统级在线整合报告
 
 > 契约：`PROPOSED_V1` / `1.0.0-proposed`（未冻结）
-> 本报告所有结论均来自本工作树内实际执行，证据目录
-> `artifacts/integration/three-real/b1-20261018T061235Z/`（93 个文件，SHA-256 全部校验通过）。
+> 本报告所有结论均来自本工作树内实际执行。
+> **权威证据目录**：`artifacts/integration/three-real/b1p2-20261018T065613Z/`
+> （94 个文件，SHA-256 全部校验通过）——对应合流工作 A **第二阶段**后的代码。
+> 第一阶段证据保留在 `artifacts/integration/three-real/b1-20261018T061235Z/` 作为历史对照。
 
 ---
 
@@ -26,7 +28,8 @@
 | 起始提交 | `33cb4f93d5e5fd268878fe83fc040c655d632a70` |
 | B1 分支 | `integration/three-real-online` |
 | B1 工作树 | `/home/zhangwei/project/RosSystem-worktrees/work-b1`（独立于主工作区） |
-| 功能提交（本报告所测代码） | `18088347cdccb93bb88749358f73444867aea0a1` |
+| 功能提交（本报告所测代码） | `a8d07ab`（合流 A 第二阶段后的 merge 提交） |
+| 前一次功能提交（第一阶段） | `18088347cdccb93bb88749358f73444867aea0a1` |
 
 RC2 作为回退底座**未被破坏**：主工作区仍在 `demo/2026-10-19-rc2`，标签未移动。
 
@@ -46,17 +49,19 @@ RC2 作为回退底座**未被破坏**：主工作区仍在 `demo/2026-10-19-rc2
 | ON-05 | `ALLOW_RECOMMENDED` | `READY` | `RECEIVED` | **BLOCK**/`OUT_OF_REGION` | 0 | **0** |
 | ON-06 | `ALLOW_RECOMMENDED` | `READY` | **`PLANNER_RESULT_TIMEOUT`** | **0 事件** | 0 | **0** |
 
-独立复核器：**41 项检查，0 失败**，`claims_checked=true`。
+独立复核器：**39 项检查，0 失败**，`claims_checked=true`。
 
 ### 2.1 ON-06 本轮与 RC2 不同，且这是重要发现
 
-| 运行 | Planner | Gateway 到达 | 决策 | 执行 | Goal |
-| --- | --- | --- | --- | --- | --- |
-| 2026-10-16（RC2，域 42） | TIMEOUT | **1** | **ALLOW** | **1** | **1** |
-| 2026-10-18（B1，域 54） | TIMEOUT | **0** | — | **0** | **0** |
+| # | 运行 | Planner | Gateway 到达 | 决策 | 执行 | Goal |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 2026-10-16（RC2，域 42） | TIMEOUT | **1** | **ALLOW** | **1** | **1** |
+| 2 | 2026-10-18 `b1-20261018T061235Z`（B1 阶段一） | TIMEOUT | **0** | — | **0** | **0** |
+| 3 | 2026-10-18 `b1p2-20261018T065613Z`（B1 阶段二） | TIMEOUT | **1** | **ALLOW** | **1** | **1** |
 
-两次都是真实观测。**Planner 超时后的下游结果是不确定的**：
-本轮 0.5s 超时窗口内请求根本没送到 Gateway，而 RC2 那次已经送达并执行完毕。
+**三次都是真实观测，且下游结果出现 1→0→1 的摆动。**
+这实证了 **Planner 超时后的下游结果是运行时不确定的**：
+同一份代码、同一个 0.5s 超时窗口，有时请求已经送达并执行完毕，有时根本没送到 Gateway。
 
 因此：
 - 超时**不能**被预设有任何下游结论（既不能假定"已执行"，也不能假定"未执行"）；
@@ -150,16 +155,29 @@ F0 如实记录 `ADAPTER_MODULE_EXIT_NONZERO` —— 安全上正确（失败关
 
 ### 6.1 M1 `comm_risk`：`ONLINE_PROCEED_READY = FAIL`
 
-| 维度 | 事实 |
-| --- | --- |
-| 模型产物 | `modules/member1_comm/model/comm_risk_model.json`（extra_trees 48 棵，阈值 0.75，纯数值 JSON，SHA-256 校验） |
-| 模型门槛 | **`validation_gate_passed = false`** |
-| 受信任来源声明 | `--observation-provenance UNKNOWN` |
-| 本轮结论 | 分类器分数低于阈值，但**门槛未过** → `NORMAL` 被扣留 → **`UNKNOWN`** |
-| 实时采集 | 49 维 ROSPaCe 特征在 ROS 2 Jazzy 运行时**没有等价实时采集器** |
+**合流工作 A 第二阶段后，M1 的阻断理由已改变，必须按新事实表述：**
 
-两个**独立**原因各自都足以阻断（门槛未过；观测与模型输入映射未建立）。
-按任务书要求，**不允许**通过伪造 `NORMAL` 来达成 LEVEL 3。
+| 维度 | 第一阶段 | **第二阶段（当前）** |
+| --- | --- | --- |
+| 运行时采集器 | **完全没有** | **已有**：`modules/member1_comm/collector/proc_runtime.py`，从 `/proc` 真实读取 24 维特征（`Net_Sent`、`pgpgin`、`Tcp_Syn`、`pgfault` 等） |
+| 特征与模型 | 49 维 ROSPaCe，无映射 | 24 维运行时子集清单 + `comm_risk_model_runtime_subset.json` |
+| 模型门槛 | `validation_gate_passed = false` | **仍为 `false`** |
+| `request_count` | — | 采集器**拒绝伪造**：无活体 ROS 2 时 `mapping = BLOCKED_MISSING_REQUEST_COUNT` |
+| 实测结论 | `UNKNOWN` | **仍为 `UNKNOWN`** |
+
+**决定性实验**（本轮实际执行）：用采集器真实产出观测块（`--request-count` 显式给出、
+`mapping = COMPLETE`）+ 运行时子集模型 + 受信任来源 `--observation-provenance RUNTIME_LOG`：
+
+```
+provenance=RUNTIME_LOG    rc=0   status=UNKNOWN
+provenance=UNKNOWN        rc=0   status=UNKNOWN
+```
+
+即**即使当前观测真实可信、来源受信任、模型与特征匹配，M1 仍然给出 `UNKNOWN`**。
+根因收敛为**一个**：`validation_gate_passed = false`，生产语义下低于阈值不得放行 `NORMAL`。
+
+> 因此"缺实时采集器"不再是 M1 的首要阻断理由（该能力第二阶段已补上）；
+> 首要阻断是**模型未通过验证门槛**。报告若继续沿用第一阶段的措辞即为失实。
 
 ### 6.2 M2 `identity_trust`：`ONLINE_PROCEED_READY = FAIL`
 
@@ -273,7 +291,9 @@ SROS2 SUMMARY (7 passed / 7 total)
 | 工作 A 提交 | `f51bab800d7bb3fe325d7e096bb15438178f5122` |
 | B1 起点（RC2） | `33cb4f93d5e5fd268878fe83fc040c655d632a70` |
 | 合流方式 | `git merge --no-ff`（A 基于 RC2，合流干净，无冲突） |
-| 合流提交 | `18088347cdccb93bb88749358f73444867aea0a1` |
+| 合流提交（阶段一） | `18088347cdccb93bb88749358f73444867aea0a1` |
+| **工作 A 第二阶段** | **`acadbf7654036a11d74aff9f507bef34b4223aa8`**（`c6f6755` 安全加固 + M1 `/proc` 采集 + `acadbf7` 文档） |
+| 合流提交（阶段二） | `a8d07ab` |
 | 交接文件 | `docs/integration/MEMBER_MODULE_HANDOFF.md`、`member_module_handoff.yaml` |
 
 合流后立即执行：全仓单元测试、三模块验收、三真实联调、M3 在线回归、DDS Enforce，
@@ -294,7 +314,7 @@ A 的 `readiness` 四项已被 B1 独立复核（不是照抄）：
 | # | 风险 | 级别 | 影响 |
 | --- | --- | --- | --- |
 | R-1 | M1 模型 `validation_gate_passed=false`（F1 低于恒预测攻击基线） | **P1** | 生产语义下只能 `UNKNOWN`；不得宣称检测有效 |
-| R-2 | M1 无 ROS 2 实时特征采集器（49 维 ROSPaCe 特征与运行时无映射） | **P1** | 即使模型达标也无法形成"当前观测" |
+| R-2 | ~~M1 无实时采集器~~ → **第二阶段已补 `/proc` 采集器（24 维）**，但采集器在无活体 ROS 2 时不给 `request_count`（`BLOCKED_MISSING_REQUEST_COUNT`），且该子集模型同样门槛未过 | P2 | 采集能力已具备，剩余阻断是模型门槛 |
 | R-3 | M2 无当前请求身份绑定组件（ROS 2 无可用中间件 API） | **P1** | 三真实模块永远停在 `ADAPTER_CURRENT_IDENTITY_UNBOUND` |
 | R-4 | 交付配置用裸 `python3`，系统 jsonschema 3.2.0 会导致三模块假性失败 | P2 | 已由 `scripts/module_python.sh` 缓解；仍需上游修正配置 |
 | R-5 | 三真实 + Enforce 同次运行未打通（F0 Planner 启动无安全上下文接线） | P2 | 只能分别声明 L3 与 L4 |
@@ -309,7 +329,7 @@ A 的 `readiness` 四项已被 B1 独立复核（不是照抄）：
 
 | 项 | 命令/入口 | 结果 |
 | --- | --- | --- |
-| 全仓单元测试 | `pytest tests/unit -q` | **704 passed, 3 skipped** |
+| 全仓单元测试 | `pytest tests/unit -q` | **734 passed, 3 skipped, 2 xfailed** |
 | 契约与 Schema | `validate_team_contracts.py --all` | PASS（随单元测试） |
 | M1 验收 | `check_member_module.py --module comm_risk --real-fixture …` | **60 PASS / 3 非门槛 FAIL**，`gate=True` |
 | M2 验收 | 同上 `identity_trust` | **58 PASS / 3 非门槛 FAIL**，`gate=True` |
@@ -322,7 +342,7 @@ A 的 `readiness` 四项已被 B1 独立复核（不是照抄）：
 | T6 Gateway 独立阻断 | ON-05（在线） | **PASS** |
 | T7 DDS Enforce | `sros2_check.py --run-id b1-enforce` | **7/7 PASS** |
 | 三真实联调守卫 | `test_runner_refuses_mock_config` | **PASS** |
-| M3 在线六场景 | `m3_online_drive.sh` + `m3_online_extra.sh` | **6/6，复核 41 检查 0 失败** |
+| M3 在线六场景 | `m3_online_drive.sh` + `m3_online_extra.sh` | **6/6，复核 39 检查 0 失败** |
 | 三真实 + Enforce 同次 | — | **NOT_RUN**（理由见 §9.1） |
 
 > 3 条非门槛 `FAIL` 是"Mock 场景开关对不解析该开关的真实模块不适用"的记录
@@ -348,7 +368,7 @@ A 的 `readiness` 四项已被 B1 独立复核（不是照抄）：
 
 | 角色 | 值 |
 | --- | --- |
-| 功能提交（本报告全部测试所测代码） | `18088347cdccb93bb88749358f73444867aea0a1` |
+| 功能提交（本报告全部测试所测代码，阶段二） | `a8d07ab`（完整 SHA 见下方） |
 | 分支 | `integration/three-real-online` |
 | 报告提交 | 本文件所在提交（在其之后，仅文档与证据） |
 | 回退底座 | `demo-2026-10-19-rc2-verified` = `33cb4f9…`（未移动） |
