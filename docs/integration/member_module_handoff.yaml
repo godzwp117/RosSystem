@@ -14,6 +14,10 @@
 schema_version: "1.0.0"
 generated_by: "WORK_A / member-module-adaptation"
 generated_at: "2026-10-17"
+#: 第二阶段（真实模块可信化）对本文件的增量。历史字段保持原义，第二阶段结论以
+#: phase2 段与 docs/integration/WORK_A_PHASE2_SECURITY_REVIEW.md 为准。
+phase: 2
+phase2_base_commit: "f51bab800d7bb3fe325d7e096bb15438178f5122"
 branch: "integration/member-module-adaptation"
 base_ref: "demo-2026-10-19-rc2-verified"
 base_commit: "33cb4f93d5e5fd268878fe83fc040c655d632a70"
@@ -124,6 +128,18 @@ modules:
                 "--model-sha256", "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df",
                 "--features", "modules/member1_comm/features.json",
                 "--observation-provenance", "UNKNOWN"]
+      #: 第二阶段新增：只用 Linux /proc 可真实采集的 24 维（离线训练，门槛 FAIL）。
+      runtime_subset_command:
+        ["python3", "modules/member1_comm/module.py",
+         "--model", "modules/member1_comm/model/comm_risk_model_runtime_subset.json",
+         "--model-sha256", "9de89b7a96928c5fc1b5f1d0a24870d3ac9e091e179ea2988454e820097ce588",
+         "--features", "modules/member1_comm/features_runtime_subset.json",
+         "--observation-provenance", "RUNTIME_LOG"]
+      collector_command:
+        ["python3", "-m", "modules.member1_comm.collector.emit_observation",
+         "--duration", "1.0", "--interval", "0.25",
+         "--out", "/tmp/m1_snapshot.json",
+         "--observation-out", "/tmp/m1_observation.json"]
       workdir: "仓库根目录"
       dependencies: ["jsonschema>=4.20", "PyYAML>=6", "numpy>=1.26（仅训练/导出工具需要）",
                      "scikit-learn>=1.5（仅训练需要）"]
@@ -414,6 +430,28 @@ system_level:
     - "config/team_modules.all-real.yaml"
     - "config/team_modules.all-real.controlled-test.yaml"
     - "config/acceptance/real_scenarios.member1.yaml"
+  b1_required_changes:
+    - id: P0-2
+      severity: HIGH
+      file: scripts/team_demo.py
+      requirement: >-
+        身份位置的判定必须从"比较 extensions.current_request_identity.status
+        字符串"改为调用 identity_trust.current_identity.f0_accepts(current)。
+        当前实现允许一个只自报 status 的模块通过（已实测 READY_FOR_GATEWAY_SUBMISSION）。
+      one_line_patch: |
+        from identity_trust.current_identity import f0_accepts
+        current = (outputs['identity_trust'].get('extensions') or {}).get('current_request_identity')
+        if not f0_accepts(current):
+            raise AdapterBlock(REASON_CURRENT_IDENTITY_UNBOUND, '当前身份未通过受信任核验')
+      tripwire_tests:
+        - tests/unit/test_phase2_security_boundaries.py::test_f0_rejects_bare_status_self_report
+        - tests/unit/test_phase2_security_boundaries.py::test_f0_rejects_mock_fixture_identity
+      note: 两个用例当前是 xfail（断言 F0 应阻断、而实际放行）。B1 修好后改成普通断言。
+    - id: P0-2b
+      severity: MEDIUM
+      requirement: >-
+        真实模式下应拒绝 evidence_kind == "MOCK_FIXTURE" 的身份对象；Mock 演示保留在
+        mode: mock 的配置里。
   compatibility_notes_for_B1:
     - >-
       F0 会先调用**全部**三个模块再做推进判定；只有进程/协议级故障
@@ -432,3 +470,72 @@ system_level:
     - >-
       公共 Schema 未改动、契约版本仍为 1.0.0-proposed；新增内容全部位于
       extensions（兼容扩展）或适配层规则（见 docs/interfaces/CONTRACT_VERSION.md 规则九）。
+    - >-
+      【第二阶段】M2 的当前身份契约升级为 current-identity-attestation/2：
+      新增 checks 五元组与 f0_accepts()；AUTHENTICATED 必须同时满足签名有效、
+      签发者被受信任清单标记为 VERIFIED_IDENTITY_SOURCE、请求摘要匹配、新鲜、
+      nonce 原子预留。仓库不交付该清单，因此真实路径恒 UNKNOWN。
+    - >-
+      【第二阶段】--identity-issuers 为新增受信任参数；未配置时永不 AUTHENTICATED。
+      --identity-ledger 从"可选"变为 AUTHENTICATED 的必要条件。
+
+phase2:
+  evidence_bundle: docs/integration/evidence/PHASE2_EVIDENCE.json
+  documents:
+    - docs/integration/WORK_A_PHASE2_SECURITY_REVIEW.md
+    - docs/integration/M1_RUNTIME_FEATURE_FEASIBILITY.md
+    - docs/integration/M2_CURRENT_IDENTITY_TRUST_BOUNDARY.md
+    - docs/integration/m1_feature_feasibility.json
+  m1_runtime_observation:
+    provenance: REAL_RUNTIME
+    collector: modules/member1_comm/collector/proc_runtime.py
+    features_collectable: 24
+    features_missing_on_host: 1        # pgalloc_dma
+    features_requiring_pcap: 22
+    features_requiring_ros_graph: 2
+    semantic_equivalence: UNVERIFIED
+    request_count_available: false
+    module_result_without_request_count: "exit 4 (MAPPING_BLOCKED)"
+    online_detection: NOT_READY
+  m1_runtime_subset_model:
+    provenance: OFFLINE_RESEARCH
+    path: modules/member1_comm/model/comm_risk_model_runtime_subset.json
+    sha256: "9de89b7a96928c5fc1b5f1d0a24870d3ac9e091e179ea2988454e820097ce588"
+    features: 24
+    threshold: 0.90
+    validation_gate_passed: false
+    test_f1: 0.0891089108910891
+    always_attack_f1: 0.8131620330534374
+  m2_trust_boundary:
+    verifier_contract: current-identity-attestation/2
+    authenticated_requires:
+      - signature_valid
+      - issuer_listed_as_VERIFIED_IDENTITY_SOURCE
+      - request_digest_match
+      - fresh_within_30s
+      - nonce_reserved_atomically
+    trusted_issuer_file_shipped: false
+    real_issuer_exists: false
+    test_issuer: identity_trust/test_issuer.py        # TEST_ONLY
+    outputs_possible: [UNKNOWN, DENIED, AUTHENTICATED_TEST_ONLY, AUTHENTICATED]
+  tests:
+    full_suite: "734 passed, 3 skipped, 2 xfailed in 532.64s (0:08:52)"
+    new_or_rewritten:
+      - tests/unit/test_identity_current_binding.py: 27 passed
+      - tests/unit/test_phase2_security_boundaries.py: 9 passed, 2 xfailed
+      - tests/unit/test_member1_runtime_observation.py: 7 passed
+  can_b1_merge:
+    functional_commit: "c6f6755e3c5b21febf23d3f8a0f5ce57e5957715"
+    verdict: MERGEABLE_WITH_B1_FOLLOWUP
+    condition: >-
+      模块与证据侧可直接合入；F0 身份判定（P0-2）必须在 B1 侧同期或随后修正，
+      否则 identity 自报仍可绕过。合入前请先跑两个 xfail 用例确认现状。
+  open_blockers:
+    - A-1 no ROS 2 runtime on this host
+    - A-2 no business request count
+    - A-3 24 of 49 features unavailable online (22 pcap + 2 ros graph + 1 host)
+    - A-4 both models fail the validation gate
+    - A-5 feature semantic equivalence UNVERIFIED
+    - A-6 no real identity issuer
+    - A-7 F0 trusts bare status string (owner B1)
+    - A-8 key and verifier share uid (no hard isolation)

@@ -23,7 +23,7 @@ VERSION = '0.2.0'
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 from identity_trust.current_identity import (  # noqa: E402
-    Ledger, assessment_key, verify as verify_current_identity)
+    Ledger, WitnessError, assessment_key, verify as verify_current_identity)
 
 CONTRACT = '1.0.0-proposed'
 ENTRY = '/rg/guarded_navigate'
@@ -408,14 +408,12 @@ def assessment(envelope, args):
     witness_path = getattr(args, 'identity_witness', None)
     witness_key = getattr(args, 'identity_witness_key', None)
     ledger_path = getattr(args, 'identity_ledger', None)
-    ledger = None
-    if ledger_path:
-        try:
-            ledger = Ledger(ledger_path)
-        except (OSError, ValueError) as exc:
-            ledger = None
-            print('[identity_trust] 身份账本不可用，重放检测不可用: '
-                  + type(exc).__name__, file=sys.stderr)
+    issuers_path = getattr(args, 'identity_issuers', None)
+    # 账本是**惰性**对象：真正的打开/加锁/判重发生在 reserve_* 内。
+    # 没有配置账本时 ledger=None，核验器会把 AUTHENTICATED 判为不可达
+    # （WITNESS_LEDGER_UNAVAILABLE），绝不静默放行。
+    ledger = Ledger(ledger_path) if ledger_path else None
+    ledger_problem = None if ledger else 'not configured'
     enclave, node, action, _expected, _logname = CASES[case_id]
     current_resource = envelope['candidate_action']['action_resource']
     status, detail = 'UNKNOWN', None
@@ -458,27 +456,29 @@ def assessment(envelope, args):
     if ledger is not None and args.experiment_run:
         key = assessment_key(case_id, args.experiment_run,
                              envelope['request_id'], current_resource)
-        if ledger.seen_assessment(key):
-            reuse = True
+        try:
+            outcome = ledger.reserve_assessment(key, {
+                'case': case_id, 'request_id': envelope['request_id'],
+                'resource': current_resource,
+                'experiment_run': args.experiment_run})
+        except WitnessError as exc:
+            ledger_problem = str(exc)[:160]
             status = 'UNKNOWN'
-            binding = 'HISTORICAL_AUTHORIZATION_REUSE'
-            reason = ('同一历史受控实验证据已被用于解析该 request_id 一次；'
-                      '重复解释属于历史授权复用，不能再次支撑当前请求')
+            binding = 'HISTORICAL_REPLAY_LEDGER_WRITE_FAILED'
+            reason = ('历史证据复用账本不可用（{0}）；维持 UNKNOWN').format(
+                ledger_problem)
         else:
-            try:
-                ledger.append({'kind': 'assessment', 'key': key,
-                               'case': case_id, 'request_id': envelope['request_id'],
-                               'resource': current_resource,
-                               'experiment_run': args.experiment_run})
-            except OSError as exc:
+            if outcome == 'already_present':
+                reuse = True
                 status = 'UNKNOWN'
-                binding = 'HISTORICAL_REPLAY_LEDGER_WRITE_FAILED'
-                reason = ('历史证据复用账本写入失败（{0}）；维持 UNKNOWN').format(
-                    type(exc).__name__)
+                binding = 'HISTORICAL_AUTHORIZATION_REUSE'
+                reason = ('同一历史受控实验证据已被用于解析该 request_id 一次；'
+                          '重复解释属于历史授权复用，不能再次支撑当前请求')
 
     # 当前请求身份绑定：没有可信证据时恒为 UNKNOWN（失败关闭）。
     current_identity = verify_current_identity(
-        envelope, witness_path, witness_key, ledger=ledger)
+        envelope, witness_path, witness_key, issuers_path=issuers_path,
+        ledger=ledger, ledger_error=ledger_problem)
 
     item = {
         'schema_version': CONTRACT, 'run_id': envelope['run_id'], 'request_id': envelope['request_id'],
@@ -549,6 +549,8 @@ def main(argv=None):
     p.add_argument('--identity-witness', help='当前请求身份绑定的可信证据文件（默认无 -> UNKNOWN）')
     p.add_argument('--identity-witness-key', help='核验该证据的 HMAC 密钥文件（受信任本地文件）')
     p.add_argument('--identity-ledger', help='重放/复用检测账本（JSONL，运行时状态）')
+    p.add_argument('--identity-issuers',
+                   help='受信任签发者清单（默认无 -> 当前身份恒为 UNKNOWN）')
     args = p.parse_args(argv)
     try:
         inp = strict_json(sys.stdin.read())
