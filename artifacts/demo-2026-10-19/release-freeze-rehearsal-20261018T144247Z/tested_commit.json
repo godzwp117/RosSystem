@@ -1,0 +1,15 @@
+{
+  "DEMO_TESTED_CODE_SHA": "be47ccd6c1b19460b65abc0ea8004706383d01d4",
+  "RESEARCH_BASE_SHA": "be47ccd6c1b19460b65abc0ea8004706383d01d4",
+  "git_tree": "1ececaeb73b63034c9381c3529cb31433e282a40",
+  "branch": "release/demo-2026-10-19-freeze",
+  "worktree_clean_at_test_time": true,
+  "clean_tree_evidence": "scenario_results.txt (preflight gate output of this run)",
+  "docs_and_evidence_added_after_testing": true,
+  "no_source_change_after_testing_proof": "git diff <DEMO_TESTED_CODE_SHA> HEAD -- scripts src config tests modules identity_trust docs/interfaces  # must be empty",
+  "base_commit": "50dd6d86e746d0b3c5002f288f67ec63b1ca3d5c",
+  "base_ref": "fix/f0-trust-boundary-closeout",
+  "rc2_fallback_tag": "demo-2026-10-19-rc2-verified",
+  "rc2_fallback_commit": "33cb4f93d5e5fd268878fe83fc040c655d632a70",
+  "note": "The rehearsal and every acceptance run executed on DEMO_TESTED_CODE_SHA with a clean tree; the preflight gate that enforces it is recorded in scenario_results.txt. Documentation and this evidence bundle were committed afterwards and change no source, test or runtime configuration."
+}

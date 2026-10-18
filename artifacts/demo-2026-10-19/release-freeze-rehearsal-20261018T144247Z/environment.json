@@ -1,0 +1,40 @@
+{
+  "run_id": "rehearsal-20261018T144247Z",
+  "purpose": "2026-10-19 demo release freeze + full rehearsal",
+  "host": "WSL2 Linux x86_64",
+  "interpreter_host": "/home/zhangwei/project/RosSystem-worktrees/demo-freeze/.research-venv/bin/python",
+  "python_host": "3.10.12",
+  "jsonschema_host": "4.26.0",
+  "ros": {
+    "distro": "jazzy",
+    "rmw": "rmw_fastrtps_cpp",
+    "container": "rg_demo",
+    "domain_online": 56,
+    "domain_enforce": 43,
+    "security_mode_online": "disabled (normal mode, domain 56)",
+    "security_mode_enforce": "enforce (domain 43)",
+    "jsonschema_container": "4.10.3"
+  },
+  "module_modes": {
+    "demo_ab": {
+      "comm_risk": "mock",
+      "identity_trust": "mock",
+      "task_risk": "external"
+    },
+    "m3_online": {
+      "comm_risk": "mock",
+      "identity_trust": "mock",
+      "task_risk": "external"
+    },
+    "three_real": {
+      "comm_risk": "external",
+      "identity_trust": "external",
+      "task_risk": "external"
+    }
+  },
+  "identity_mode": {
+    "three_real": "STRICT (default, fail-closed)",
+    "rc2_controlled": "CONTROLLED_TEST_ONLY (explicit)"
+  },
+  "contract_version": "1.0.0-proposed"
+}
