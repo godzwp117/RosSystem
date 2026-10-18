@@ -77,8 +77,24 @@ def proceed_control(**per_module):
 
 
 def write_config(tmp_path, *, mode='mock', allow_faults=False, modules=None,
-                 commands=None, timeouts=None):
-    """生成受信任的测试配置（故障注入必须在这里显式开启）。"""
+                 commands=None, timeouts=None,
+                 identity_mode='CONTROLLED_TEST_ONLY',
+                 identity_attestation=None):
+    """生成受信任的测试配置（故障注入必须在这里显式开启）。
+
+    identity_mode
+    -------------
+    F0 的身份信任边界分两档（见 scripts/team_demo.py 的 IDENTITY_MODE_*）：
+
+    * ``CONTROLLED_TEST_ONLY``（本辅助的默认值）：显式声明"身份结论来自
+      模块自报"，用于沿用 RC2 受控演示与既有单元测试。它**不**代表真实
+      DDS 身份认证，F0 会把这一点写进输出的 identity_attestation。
+    * ``STRICT``：F0 自己核验原始身份证据。安全反例测试必须用这一档，
+      否则"伪造身份被拒"的结论会被受控模式掩盖而失去意义。
+
+    默认值取受控模式是为了不改变既有测试语义；需要验证安全边界的用例
+    必须**显式**传 STRICT。
+    """
     import yaml
 
     definitions = modules or {
@@ -102,6 +118,16 @@ def write_config(tmp_path, *, mode='mock', allow_faults=False, modules=None,
             'max_stdout_bytes': 65536,
             'allow_fault_injection': allow_faults,
         }
+    if identity_attestation is not None:
+        config['identity_attestation'] = identity_attestation
+    elif identity_mode == 'CONTROLLED_TEST_ONLY':
+        config['identity_attestation'] = {
+            'mode': 'CONTROLLED_TEST_ONLY',
+            'controlled_reason': ('unit-test controlled fixture: identity is '
+                                  'module self-report, not DDS authentication'),
+        }
+    # identity_mode == 'STRICT' 时不写该块：F0 默认即严格模式（失败关闭）。
+
     path = tmp_path / 'team_modules.yaml'
     path.write_text(yaml.safe_dump(config, allow_unicode=True), encoding='utf-8')
     return str(path)

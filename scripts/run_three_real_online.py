@@ -302,6 +302,21 @@ def check_level2(documents, envelope):
     return problems, notes
 
 
+def _ensure_ledger_dir(config, module):
+    """确保模块 `--identity-ledger` 的父目录存在（运行时状态文件的前置条件）。"""
+    entry = (config.get('modules') or {}).get(module) or {}
+    command = [str(part) for part in (entry.get('command') or [])]
+    if '--identity-ledger' not in command:
+        return
+    index = command.index('--identity-ledger')
+    if index + 1 >= len(command):
+        return
+    path = command[index + 1]
+    parent = os.path.dirname(os.path.abspath(os.path.join(REPO, path)))
+    if parent and not os.path.isdir(parent):
+        os.makedirs(parent, exist_ok=True)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description='三真实模块联合运行')
     parser.add_argument('--run-id', required=True)
@@ -440,6 +455,11 @@ def main(argv=None):
                         rec.get('error')))
 
     # ---------------- 阶段 B：F0 联合判定 ----------------
+    #
+    # identity_trust 的防重放账本是**运行时状态文件**：它的父目录必须已存在，
+    # 否则 M2 无法打开账本只能失败关闭（UNKNOWN），随后交叉核对会把它误报成
+    # "F0 与直采状态不一致"。这里显式准备该目录，让结论只反映真实性差异。
+    _ensure_ledger_dir(config, 'identity_trust')
     f0_log = os.path.join(out_dir, 'adapter.jsonl')
     f0_cmd = [sys.executable, 'scripts/team_demo.py',
               '--input', os.path.join(out_dir, 'envelope.json'),

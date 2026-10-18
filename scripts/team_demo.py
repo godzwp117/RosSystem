@@ -53,6 +53,12 @@ from datetime import datetime, timezone
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if os.path.join(REPO_ROOT, 'scripts') not in sys.path:
     sys.path.insert(0, os.path.join(REPO_ROOT, 'scripts'))
+# 仓库根也必须在 sys.path 上：F0 严格身份模式要导入 identity_trust 的核验器。
+# 只加 scripts/ 时 `python scripts/team_demo.py` 会 sys.path[0]=scripts/，
+# 导致 `import identity_trust.current_identity` 直接 ModuleNotFoundError，
+# 从而使所有严格模式配置都被判为"核验组件不可用"。
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
 
 import validate_team_contracts as vtc  # noqa: E402
 
@@ -93,6 +99,25 @@ REASON_INPUT_TOO_LARGE = 'ADAPTER_INPUT_TOO_LARGE'
 REASON_DEPENDENCY_MISSING = 'ADAPTER_DEPENDENCY_MISSING'
 # 身份位置专用：历史证据 / 自报身份都不能证明**当前请求**已完成 DDS 身份绑定。
 REASON_CURRENT_IDENTITY_UNBOUND = 'ADAPTER_CURRENT_IDENTITY_UNBOUND'
+# 严格模式下：没有可核验的原始身份证据（配置缺失或证据文件不存在）。
+REASON_IDENTITY_ATTESTATION_UNVERIFIED = 'ADAPTER_IDENTITY_ATTESTATION_UNVERIFIED'
+# 严格模式下：证据存在但核验失败（签名/签发者/绑定/新鲜度/重放）。
+REASON_IDENTITY_ATTESTATION_REJECTED = 'ADAPTER_IDENTITY_ATTESTATION_REJECTED'
+# 身份核验配置本身非法（路径不绝对、类型错误、与 M2 争抢同一凭据等）。
+REASON_IDENTITY_ATTESTATION_CONFIG_INVALID = (
+    'ADAPTER_IDENTITY_ATTESTATION_CONFIG_INVALID')
+
+# ---------------------------------------------------------------- 身份信任模式
+# STRICT（默认）：F0 **自己**核验原始身份证据。模块输出里的
+#   extensions.current_request_identity 只作为交叉比对材料，不再构成推进依据。
+#   这是修复 P0 的核心：外部进程可以伪造 status 甚至伪造完整 checks 字典，
+#   但它无法伪造 F0 从受信任路径读取到的签名证据与 F0 自己持有的核验密钥。
+# CONTROLLED_TEST_ONLY：显式受控模式，用于 RC2 的受控演示与单元测试。
+#   必须由受信任本地配置显式开启，并附非空的 controlled_reason；
+#   其 READY 不得被表述为"当前 DDS 身份已完成真实认证"。
+IDENTITY_MODE_STRICT = 'STRICT'
+IDENTITY_MODE_CONTROLLED = 'CONTROLLED_TEST_ONLY'
+ALLOWED_IDENTITY_MODES = (IDENTITY_MODE_STRICT, IDENTITY_MODE_CONTROLLED)
 
 # 唯一推进条件：三个接口必须分别处于下列状态
 PROCEED_STATES = {
@@ -246,7 +271,94 @@ def load_config(path: str) -> dict:
         _require_number(name, 'max_stderr_bytes',
                         entry.get('max_stderr_bytes', DEFAULT_STDERR_LIMIT),
                         0, MAX_STDERR_LIMIT, integer=True)
+    config['identity_attestation'] = _load_identity_attestation(config)
     return config
+
+
+def _load_identity_attestation(config: dict) -> dict:
+    """解析并校验身份核验配置块（受信任本地配置，业务输入无法影响）。
+
+    安全要点：
+    * 缺省即 **STRICT**，不是"跳过检查"——漏配等于失败关闭。
+    * 受控模式必须显式声明并给出理由，避免"任意配置轻易把生产模式
+      变成无身份检查模式"。
+    * 所有路径必须是绝对路径：相对路径可能被工作目录操纵。
+    * 正式凭据不得同时被 M2 与 F0 消耗（nonce 只能有一个权威消费路径）。
+    """
+    block = config.get('identity_attestation')
+    if block is None:
+        return {'mode': IDENTITY_MODE_STRICT, 'controlled_reason': None,
+                'witness_path': None, 'key_path': None,
+                'issuers_path': None, 'ledger_path': None,
+                'declared': False}
+    if not isinstance(block, dict):
+        raise AdapterBlock(REASON_IDENTITY_ATTESTATION_CONFIG_INVALID,
+                           'identity_attestation 必须是对象')
+
+    mode = block.get('mode', IDENTITY_MODE_STRICT)
+    if mode not in ALLOWED_IDENTITY_MODES:
+        raise AdapterBlock(
+            REASON_IDENTITY_ATTESTATION_CONFIG_INVALID,
+            'identity_attestation.mode 无效: {0!r}（可选 {1}）'.format(
+                mode, list(ALLOWED_IDENTITY_MODES)))
+
+    reason = block.get('controlled_reason')
+    if mode == IDENTITY_MODE_CONTROLLED:
+        if not isinstance(reason, str) or not reason.strip():
+            raise AdapterBlock(
+                REASON_IDENTITY_ATTESTATION_CONFIG_INVALID,
+                '受控身份模式必须提供非空 identity_attestation.controlled_reason：'
+                '该模式不具备真实 DDS 身份认证能力，必须有明确记录')
+
+    parsed = {'mode': mode, 'controlled_reason': reason, 'declared': True,
+              'witness_path': None, 'key_path': None,
+              'issuers_path': None, 'ledger_path': None}
+    for field in ('witness_path', 'key_path', 'issuers_path', 'ledger_path'):
+        value = block.get(field)
+        if value is None:
+            continue
+        if not isinstance(value, str) or not os.path.isabs(value):
+            raise AdapterBlock(
+                REASON_IDENTITY_ATTESTATION_CONFIG_INVALID,
+                'identity_attestation.{0} 必须是绝对路径（当前 {1!r}）'.format(
+                    field, value))
+        parsed[field] = value
+
+    if mode == IDENTITY_MODE_STRICT:
+        # 严格模式下必须同时给出证据与核验材料，否则无法完成核验。
+        missing = [f for f in ('witness_path', 'key_path') if not parsed[f]]
+        if missing:
+            raise AdapterBlock(
+                REASON_IDENTITY_ATTESTATION_CONFIG_INVALID,
+                '严格身份模式要求 identity_attestation.{0}：缺少核验材料时'
+                '不得退化为"仅看模块自报状态"'.format('/'.join(missing)))
+        _reject_shared_witness(config, parsed['witness_path'])
+
+    return parsed
+
+
+def _reject_shared_witness(config: dict, witness_path: str) -> None:
+    """禁止 M2 与 F0 消耗同一份正式凭据。
+
+    nonce 预留是原子且一次性的：若 M2 先用同一 witness 核验，F0 再核验必然
+    被判为重放；反之 M2 会失败。两者共用账本还会让防重放语义互相污染。
+    因此正式凭据只能有一个权威消费路径（本设计选 F0），M2 若需要该路径
+    必须在配置层面就暴露为冲突，而不是运行时才发现。
+    """
+    entry = (config.get('modules') or {}).get('identity_trust') or {}
+    command = entry.get('command') or []
+    if '--identity-witness' not in command:
+        return
+    index = command.index('--identity-witness')
+    if index + 1 >= len(command):
+        return
+    other = command[index + 1]
+    if os.path.abspath(str(other)) == os.path.abspath(witness_path):
+        raise AdapterBlock(
+            REASON_IDENTITY_ATTESTATION_CONFIG_INVALID,
+            'M2 的 --identity-witness 与 identity_attestation.witness_path 指向'
+            '同一文件：同一 nonce 会被两个进程先后消耗，合法请求会被误判为重放。'
+            '正式凭据只能由 F0 单独核验')
 
 
 def _require_number(module: str, field: str, value, low, high, *, integer: bool):
@@ -780,6 +892,91 @@ def check_action_boundary(envelope: dict) -> None:
 
 
 # ---------------------------------------------------------------- 主流程
+def verify_identity_attestation(config: dict, envelope: dict) -> dict:
+    """由 F0 **自己**核验当前请求身份绑定证据（P0 修复核心）。
+
+    为什么不能只看模块输出的 checks
+    -------------------------------
+    `extensions.current_request_identity` 是外部进程写出的 JSON。它可以把
+    status 写成 AUTHENTICATED，把 checks 六个字段全部写成 VALID/MATCH/OK/
+    RESERVED，而不持有任何签名密钥、也不在受信任签发者清单里。
+    只消费该字典等于把"自报"当"认证"。
+
+    本函数改为：原始证据、核验密钥、受信任签发者清单、防重放账本**全部**
+    来自受信任本地配置（业务信封无法影响），再调用
+    `identity_trust/current_identity.py:verify()` 执行真正的
+    签名核验、签发者信任判定、请求绑定比对、新鲜度检查与原子 nonce 预留。
+    模块自报的内容只用于事后交叉比对，不参与推进判定。
+
+    返回的字典只含可安全记录的信息（绝不含密钥或签名原文）。
+    """
+    block = config.get('identity_attestation') or {}
+    info = {'mode': block.get('mode', IDENTITY_MODE_STRICT),
+            'verified': False, 'status': None, 'verified_by': 'F0_LOCAL_VERIFIER',
+            'reason_code': None, 'detail_code': None, 'reason': None,
+            'checks': None, 'issuer_trust': None, 'binding': None}
+
+    witness = block.get('witness_path')
+    key = block.get('key_path')
+    # 材料不可得时，**顶层原因码沿用既有的 ADAPTER_CURRENT_IDENTITY_UNBOUND**：
+    # 语义没有变化（仍然是"拿不到可信的当前身份绑定"），只是失败细节更精确，
+    # 精确原因放在 identity_attestation.detail_code 里。这样已有消费者
+    # （M2 真实验收 fixture）不需要因为一次内部重构而改判定语义。
+    if not witness or not key:
+        info['reason_code'] = REASON_CURRENT_IDENTITY_UNBOUND
+        info['detail_code'] = REASON_IDENTITY_ATTESTATION_UNVERIFIED
+        info['reason'] = ('严格身份模式未配置可核验的原始证据（witness_path/key_path）：'
+                          '缺少可信当前身份来源，不得提交 Planner')
+        return info
+    if not os.path.isfile(witness) or not os.path.isfile(key):
+        info['reason_code'] = REASON_CURRENT_IDENTITY_UNBOUND
+        info['detail_code'] = REASON_IDENTITY_ATTESTATION_UNVERIFIED
+        info['reason'] = ('严格身份模式下证据或密钥文件不存在（witness={0} key={1}）：'
+                          '不得退化为信任模块自报状态').format(
+                              os.path.basename(witness), os.path.basename(key))
+        return info
+
+    try:
+        from identity_trust import current_identity as ci
+    except Exception as exc:                                   # noqa: BLE001
+        info['reason_code'] = REASON_CURRENT_IDENTITY_UNBOUND
+        info['detail_code'] = REASON_IDENTITY_ATTESTATION_UNVERIFIED
+        info['reason'] = '身份核验组件不可用：{0}'.format(type(exc).__name__)
+        return info
+
+    ledger = None
+    ledger_error = None
+    ledger_path = block.get('ledger_path')
+    if ledger_path:
+        ledger = ci.Ledger(ledger_path)
+    else:
+        ledger_error = 'not configured'
+
+    try:
+        outcome = ci.verify(envelope, witness, key,
+                            issuers_path=block.get('issuers_path'),
+                            ledger=ledger, ledger_error=ledger_error)
+    except Exception as exc:                                   # noqa: BLE001
+        info['reason_code'] = REASON_IDENTITY_ATTESTATION_REJECTED
+        info['reason'] = '身份证据核验异常（失败关闭）：{0}'.format(str(exc)[:200])
+        return info
+
+    info['status'] = outcome.get('status')
+    info['checks'] = outcome.get('checks')
+    info['binding'] = outcome.get('binding')
+    info['issuer_trust'] = ((outcome.get('attestation') or {}).get('identity_source')
+                            or None)
+    if info['status'] == ci.STATUS_AUTHENTICATED:
+        info['verified'] = True
+        info['reason'] = '受信任签发者证明当前请求主体已通过 DDS 身份认证'
+        return info
+    info['reason_code'] = REASON_IDENTITY_ATTESTATION_REJECTED
+    info['reason'] = ('当前请求身份证据未通过核验（status={0}, checks={1}）：{2}'
+                      ).format(info['status'], info['checks'],
+                               str(outcome.get('reason'))[:200])
+    return info
+
+
 def run(envelope_text: str, config_path: str, log_path: str, workdir: str,
         online: dict = None) -> dict:
     invocation_id = uuid.uuid4().hex[:12]
@@ -840,33 +1037,63 @@ def run(envelope_text: str, config_path: str, log_path: str, workdir: str,
                     '本地阻断，不进入提交流程'.format(
                         name, status, PROCEED_STATES[name]))
 
-        # 身份位置额外条件：必须证明**当前请求**的身份绑定。
-        # 历史受控实验的 AUTHORIZED 在这里不再构成推进依据。
-        for name, required in REQUIRED_CURRENT_IDENTITY.items():
-            extensions = outputs[name].get('extensions')
-            current = (extensions.get('current_request_identity')
-                       if isinstance(extensions, dict) else None)
-            if not isinstance(current, dict):
+        # 身份位置：分模式处理（P0 修复）。
+        #
+        # 严格模式（默认）：**不看**模块自报的 current_request_identity，
+        #   由 F0 用受信任配置里的原始证据独立核验。外部进程可以伪造
+        #   status 乃至伪造完整 checks 字典，但拿不到受信任路径下的
+        #   签名证据与 F0 使用的核验密钥。
+        # 受控模式：显式开启，沿用"模块自报 + 显式标注"的旧路径，
+        #   仅用于 RC2 受控演示与单元测试；其 READY 不等于真实身份认证。
+        identity_block = config.get('identity_attestation') or {}
+        identity_mode = identity_block.get('mode', IDENTITY_MODE_STRICT)
+
+        if identity_mode == IDENTITY_MODE_CONTROLLED:
+            for name, required in REQUIRED_CURRENT_IDENTITY.items():
+                extensions = outputs[name].get('extensions')
+                current = (extensions.get('current_request_identity')
+                           if isinstance(extensions, dict) else None)
+                if not isinstance(current, dict):
+                    raise AdapterBlock(
+                        REASON_CURRENT_IDENTITY_UNBOUND,
+                        '模块 {0} 未提供 extensions.current_request_identity：'
+                        '无法证明当前请求的 DDS 身份绑定，历史授权不能替代'.format(
+                            name))
+                if current.get('status') != required:
+                    raise AdapterBlock(
+                        REASON_CURRENT_IDENTITY_UNBOUND,
+                        '模块 {0} 的当前请求身份状态为 {1!r}（{2}），不是 {3!r}；'
+                        '历史证据与自报身份都不能证明当前请求已通过 DDS '
+                        '身份绑定'.format(name, current.get('status'),
+                                          current.get('binding'), required))
+                if current.get('historical_only') is True:
+                    raise AdapterBlock(
+                        REASON_CURRENT_IDENTITY_UNBOUND,
+                        '模块 {0} 的当前请求身份被标记为 historical_only：'
+                        '历史结论不得冒充当前请求的身份认证'.format(name))
+            result['identity_attestation'] = {
+                'mode': IDENTITY_MODE_CONTROLLED,
+                'controlled_reason': identity_block.get('controlled_reason'),
+                'verified': False,
+                'verified_by': 'MODULE_SELF_REPORT',
+                'caveat': ('受控身份模式：身份结论来自模块自报，'
+                           '不构成真实 DDS 身份认证'),
+            }
+        else:
+            attestation = verify_identity_attestation(config, envelope)
+            result['identity_attestation'] = attestation
+            if not attestation.get('verified'):
                 raise AdapterBlock(
-                    REASON_CURRENT_IDENTITY_UNBOUND,
-                    '模块 {0} 未提供 extensions.current_request_identity：'
-                    '无法证明当前请求的 DDS 身份绑定，历史授权不能替代'.format(name))
-            if current.get('status') != required:
-                raise AdapterBlock(
-                    REASON_CURRENT_IDENTITY_UNBOUND,
-                    '模块 {0} 的当前请求身份状态为 {1!r}（{2}），不是 {3!r}；'
-                    '历史证据与自报身份都不能证明当前请求已通过 DDS 身份绑定'.format(
-                        name, current.get('status'), current.get('binding'),
-                        required))
-            if current.get('historical_only') is True:
-                raise AdapterBlock(
-                    REASON_CURRENT_IDENTITY_UNBOUND,
-                    '模块 {0} 的当前请求身份被标记为 historical_only：'
-                    '历史结论不得冒充当前请求的身份认证'.format(name))
+                    attestation.get('reason_code')
+                    or REASON_IDENTITY_ATTESTATION_UNVERIFIED,
+                    attestation.get('reason') or '当前请求身份证据未通过核验')
 
         result['decision'] = 'READY_FOR_GATEWAY_SUBMISSION'
         result['reason_code'] = REASON_OK
-        result['detail'] = '三个模块状态均为推进状态且全部校验通过'
+        result['detail'] = ('三个模块状态均为推进状态且全部校验通过'
+                            if identity_mode == IDENTITY_MODE_STRICT else
+                            '三个模块状态均为推进状态（受控身份模式，'
+                            '非真实身份认证）')
     except AdapterBlock as block:
         result['decision'] = 'ADAPTER_BLOCK'
         result['reason_code'] = block.reason_code

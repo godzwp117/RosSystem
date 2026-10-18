@@ -76,33 +76,43 @@ def _identity_module(tmp_path, body):
     return module
 
 
-def _run_with_identity(tmp_path, module):
-    config = write_config(tmp_path, mode='mock',
-                          commands={'identity_trust': [sys.executable, str(module)]})
+def _run_with_identity(tmp_path, module, *, identity_mode='CONTROLLED_TEST_ONLY'):
+    config = write_config(
+        tmp_path, mode='mock', identity_mode=identity_mode,
+        commands={'identity_trust': [sys.executable, str(module)]})
     return run_adapter(tmp_path, envelope(proceed_control()), config)
 
 
-# ---------------------------------------------------------------- 已知缺口（B1）
-@pytest.mark.xfail(reason=('P0-2 open: F0 仅比较 status 字符串，缺少对证据种类/签发者/'
-                           '绑定的核验；修复责任人 B1（scripts/team_demo.py）。'
-                           '修复后请把本用例改成普通断言。'),
-                   strict=False)
+# ---------------------------------------------------------------- P0 已修复
+# 这两个用例原本是 strict=False 的 xfail（记录 F0 的身份信任边界过宽）。
+# P0 修复后它们改为**强制断言**，并且必须运行在**严格身份模式**下：
+# 若给它们套上受控模式，"伪造身份被拒"的结论会被受控模式掩盖而失去意义。
 def test_f0_rejects_bare_status_self_report(tmp_path):
-    """没有签名、没有签发者、没有账本的"AUTHENTICATED"不应让 F0 推进。"""
+    """没有签名、没有签发者、没有账本的"AUTHENTICATED"不得让 F0 推进。
+
+    严格模式下 F0 不看模块自报状态，而是要求受信任配置提供可核验的原始证据；
+    没有材料即失败关闭（ADAPTER_IDENTITY_ATTESTATION_UNVERIFIED）。
+    """
     code, result, _err = _run_with_identity(
-        tmp_path, _identity_module(tmp_path, SELF_REPORTING_IDENTITY))
+        tmp_path, _identity_module(tmp_path, SELF_REPORTING_IDENTITY),
+        identity_mode='STRICT')
+    assert code != 0, result
     assert result['decision'] == 'ADAPTER_BLOCK', result
-    assert result['reason_code'] == 'ADAPTER_CURRENT_IDENTITY_UNBOUND'
+    assert result['reason_code'] == 'ADAPTER_CURRENT_IDENTITY_UNBOUND', result
+    assert (result['identity_attestation']['detail_code']
+            == 'ADAPTER_IDENTITY_ATTESTATION_UNVERIFIED'), result
+    assert result['identity_attestation']['mode'] == 'STRICT', result
 
 
-@pytest.mark.xfail(reason=('P0-2 open: mock 的 MOCK_FIXTURE 身份与真实签名证据在 F0 眼里'
-                           '没有区别；修复责任人 B1。修复后改成普通断言。'),
-                   strict=False)
 def test_f0_rejects_mock_fixture_identity(tmp_path):
-    """Mock 自报的身份不得让 F0 在"真实模式"下推进。"""
-    config = write_config(tmp_path, mode='mock')
-    _code, result, _err = run_adapter(tmp_path, envelope(proceed_control()), config)
+    """Mock 自报的 MOCK_FIXTURE 身份不得让 F0 在严格模式下推进。"""
+    config = write_config(tmp_path, mode='mock', identity_mode='STRICT')
+    code, result, _err = run_adapter(tmp_path, envelope(proceed_control()), config)
+    assert code != 0, result
     assert result['decision'] == 'ADAPTER_BLOCK', result
+    assert result['reason_code'] == 'ADAPTER_CURRENT_IDENTITY_UNBOUND', result
+    assert (result['identity_attestation']['detail_code']
+            == 'ADAPTER_IDENTITY_ATTESTATION_UNVERIFIED'), result
 
 
 # ---------------------------------------------------------------- M2 侧已守住

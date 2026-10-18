@@ -58,3 +58,10 @@ modules:
     timeout_sec: 10
     max_stdout_bytes: 65536
     allow_fault_injection: false
+
+# 身份信任模式（P0 修复后新增）：本配置的 identity_trust 是 MOCK，
+# 身份结论来自模块自报。F0 默认严格模式会拒绝这种自报，因此这里必须
+# 显式声明受控模式。该 READY **不**表示当前请求已完成真实 DDS 身份认证。
+identity_attestation:
+  mode: CONTROLLED_TEST_ONLY
+  controlled_reason: RC2 受控演示：identity_trust 为 MOCK，身份结论来自模块自报，不构成真实 DDS 身份认证

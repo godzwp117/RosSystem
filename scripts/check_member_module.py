@@ -934,7 +934,19 @@ def _marker_module(tmp_path, marker, module):
 
 
 def _write_probe_config(tmp_path, config, module, command, name):
-    """在临时目录生成一份**受信任**配置副本，仅替换目标模块命令。"""
+    """在临时目录生成一份**受信任**配置副本，仅替换目标模块命令。
+
+    关于身份模式
+    ------------
+    探针会把目标模块换成"调用标记"测试替身，用来证明适配层在拒绝非法输入时
+    确实没有调用模块、以及合法输入确实能推进（ADP-00 正向对照）。
+    这类探针**按定义**是受控测试：它没有任何真实 DDS 身份证据。
+
+    F0 的严格身份模式（默认）会因此阻断所有探针，使 ADP-00 变成"永远失败"的
+    哨兵而失去意义。所以探针配置必须**显式**声明受控身份模式并写明理由——
+    这是如实标注探针性质，不是放宽安全边界：真实运行的配置仍是严格模式，
+    只有这份临时探针配置是受控的。
+    """
     import copy
     import yaml
     document = copy.deepcopy(config)
@@ -942,6 +954,11 @@ def _write_probe_config(tmp_path, config, module, command, name):
     document['modules'][module]['command'] = list(command)
     document.setdefault('adapter', {})
     document['adapter']['log_path'] = str(Path(tmp_path) / ('adapter-{0}.jsonl'.format(name)))
+    document['identity_attestation'] = {
+        'mode': 'CONTROLLED_TEST_ONLY',
+        'controlled_reason': ('验收器探针：目标模块被替换为调用标记测试替身，'
+                              '不含任何真实 DDS 身份证据'),
+    }
     path = Path(tmp_path) / ('config-{0}.yaml'.format(name))
     path.write_text(yaml.safe_dump(document, allow_unicode=True), encoding='utf-8')
     return str(path)
