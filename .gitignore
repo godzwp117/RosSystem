@@ -69,3 +69,6 @@ security/keystore/
 
 # Generated trusted commands contain local interpreter/model paths.
 /config/team_modules*.local.yaml
+
+# 研究环境生成的 keystore（含权限与治理文件）不入库
+artifacts/research/**/keystore/
