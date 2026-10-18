@@ -22,6 +22,10 @@ set -uo pipefail
 set -m
 
 RUN_ID="${1:?usage: m3_online_drive.sh <run_id>}"
+# 必须 export：内嵌 python 用 os.environ["RUN_ID"] 拼 request_id。
+# 若只设 shell 变量，python 会退回历史默认值 "m3online"，导致本次运行的
+# request_id 与 manifest 不一致（跨 run 串单），复核器会如实报 FAIL。
+export RUN_ID
 OUT="${2:-/tmp/m3_online}"
 WS=/ws
 CFG="${3:-config/team_modules.member3.real.yaml}"
