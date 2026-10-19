@@ -52,6 +52,31 @@ REPO = os.path.dirname(os.path.dirname(os.path.dirname(
 #: 少于这个样本数就不给结论：窗口统计在极稀疏样本上没有意义。
 MIN_SAMPLES = 8
 
+#: 训练窗口时长（毫秒）。第二轮模型是用约 30 秒窗口训练的
+#: （训练集 duration_ms 中位数 29730 ms，p1..p99 约 10000..30015）。
+#: 部署侧若用 1 秒窗口，等价于给模型喂了一个它从未见过的量纲：
+#: 实测 duration_ms 单独贡献 +169.35 的 logit，把正常 50 Hz 流量推到 1.0。
+#: 因此把"窗口时长必须与训练一致"做成硬校验，而不是靠人记住。
+TRAINING_WINDOW_MS = 30000.0
+#: 允许的相对偏差；超出即视为窗口契约不一致。
+WINDOW_DEVIATION_TOLERANCE = 0.20
+
+
+def window_contract(interval_sec):
+    """校验采集窗口是否符合训练窗口契约。"""
+    observed_ms = interval_sec * 1000.0
+    deviation = abs(observed_ms - TRAINING_WINDOW_MS) / TRAINING_WINDOW_MS
+    return {
+        'training_window_ms': TRAINING_WINDOW_MS,
+        'observed_window_ms': round(observed_ms, 3),
+        'relative_deviation': round(deviation, 4),
+        'tolerance': WINDOW_DEVIATION_TOLERANCE,
+        'compliant': deviation <= WINDOW_DEVIATION_TOLERANCE,
+        'why': ('窗口时长是模型输入的量纲之一；训练用 30 秒窗口时，'
+                '1 秒窗口会让 duration_ms 偏离训练分布约 30 倍，'
+                '导致正常流量被判为攻击（已实测归因）。'),
+    }
+
 
 def now_iso():
     return datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
@@ -174,9 +199,11 @@ def main(argv=None):
 
     windows, meta = collect(args.topic, args.message_type, args.duration,
                             args.interval)
+    contract = window_contract(args.interval)
     document = {
         'schema_version': '1.0.0-proposed',
         'collected_at': now_iso(),
+        'window_contract': contract,
         'collector': {
             'component': 'modules/member1_comm/collector/ros2_window.py',
             'observation_source': 'LIVE_ROS2_SUBSCRIPTION',
@@ -205,7 +232,21 @@ def main(argv=None):
     }
 
     insufficient = [w for w in windows if w['samples'] < MIN_SAMPLES]
-    if len(insufficient) == len(windows):
+    if not contract['compliant']:
+        # 合约不符时**先**拒绝给结论：否则得到的高分会被误读成"检测到攻击"，
+        # 实际上只是喂了模型没见过的窗口时长。
+        document['verdict'] = {
+            'status': 'WINDOW_CONTRACT_MISMATCH',
+            'reason': ('窗口时长 {0} ms 与训练窗口 {1} ms 相对偏差 {2:.1%}，'
+                       '超出容差 {3:.0%}；该输入不在模型训练域内，'
+                       '拒绝给出 NORMAL/SUSPICIOUS 结论').format(
+                           contract['observed_window_ms'],
+                           contract['training_window_ms'],
+                           contract['relative_deviation'],
+                           contract['tolerance']),
+            'contract': contract,
+        }
+    elif len(insufficient) == len(windows):
         document['verdict'] = {'status': 'INSUFFICIENT_OBSERVATION',
                                'reason': f'所有窗口样本数均 < {MIN_SAMPLES}，'
                                          '拒绝据此给出风险结论'}
