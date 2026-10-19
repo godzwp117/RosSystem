@@ -77,7 +77,7 @@ std::string guid_prefix_string(const eprosima::fastrtps::rtps::GuidPrefix_t& pre
     char buf[4];
     std::snprintf(buf, sizeof(buf), "%02x", prefix.value[i]);
     os << buf;
-    if (i + 1 < 12) {
+    if (i + 1 < rtps::GuidPrefix_t::size) {
       os << '.';
     }
   }

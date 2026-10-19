@@ -142,12 +142,12 @@ namespace {
 std::string guid_prefix_string(const rtps::GuidPrefix_t& prefix)
 {
     std::ostringstream os;
-    for (size_t i = 0; i < 12; ++i)
+    for (size_t i = 0; i < rtps::GuidPrefix_t::size; ++i)
     {
         char buf[4];
         std::snprintf(buf, sizeof(buf), "%02x", prefix.value[i]);
         os << buf;
-        if (i + 1 < 12)
+        if (i + 1 < rtps::GuidPrefix_t::size)
         {
             os << '.';
         }
@@ -159,7 +159,9 @@ std::string writer_guid_string(const rtps::GUID_t& guid)
 {
     std::ostringstream os;
     os << guid_prefix_string(guid.guidPrefix) << '|';
-    for (size_t i = 0; i < 12; ++i)
+    // EntityId_t::size == 4（GUID 前缀才是 12）。按 12 遍历会越界读取 8 字节，
+    // 属于未定义行为，读到的可能是相邻内存——绝不能让这种实现成为身份信任根。
+    for (size_t i = 0; i < rtps::EntityId_t::size; ++i)
     {
         char buf[4];
         std::snprintf(buf, sizeof(buf), "%02x", guid.entityId.value[i]);
