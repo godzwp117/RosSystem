@@ -1,0 +1,27 @@
+# Member 3 integration example. Members 1/2 remain explicit MOCKs.
+# Commands are trusted local argv; no business-provided file/command paths.
+adapter:
+  log_path: logs/member3/adapter.jsonl
+  planner_command: [ros2, run, rg_demo_nodes, planner_node]
+modules:
+  comm_risk:
+    mode: mock
+    interface: comm_risk_evidence
+    command: [python3, mock_modules/comm_risk_mock.py]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+  identity_trust:
+    mode: mock
+    interface: identity_trust_assessment
+    command: [python3, mock_modules/identity_trust_mock.py]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+  task_risk:
+    mode: external
+    interface: task_risk_decision
+    command: [python3, modules/member3_taskrisk/module.py, --policy, config/task_policy.yaml]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false

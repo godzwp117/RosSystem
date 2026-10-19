@@ -1,0 +1,377 @@
+Starting >>> rg_interfaces
+Starting >>> rg_policy
+-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ament_cmake: 2.5.6 (/opt/ros/jazzy/share/ament_cmake/cmake)
+-- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter
+-- Found rosidl_default_generators: 1.6.1 (/opt/ros/jazzy/share/rosidl_default_generators/cmake)
+-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+-- Found rosidl_adapter: 4.6.9 (/opt/ros/jazzy/share/rosidl_adapter/cmake)
+-- Found geometry_msgs: 5.3.8 (/opt/ros/jazzy/share/geometry_msgs/cmake)
+running egg_info
+creating ../../build/rg_policy/rg_policy.egg-info
+writing ../../build/rg_policy/rg_policy.egg-info/PKG-INFO
+writing dependency_links to ../../build/rg_policy/rg_policy.egg-info/dependency_links.txt
+writing requirements to ../../build/rg_policy/rg_policy.egg-info/requires.txt
+writing top-level names to ../../build/rg_policy/rg_policy.egg-info/top_level.txt
+writing manifest file '../../build/rg_policy/rg_policy.egg-info/SOURCES.txt'
+reading manifest file '../../build/rg_policy/rg_policy.egg-info/SOURCES.txt'
+writing manifest file '../../build/rg_policy/rg_policy.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /ws/build/rg_policy/build
+creating /ws/build/rg_policy/build/lib
+creating /ws/build/rg_policy/build/lib/rg_policy
+copying rg_policy/policy_engine.py -> /ws/build/rg_policy/build/lib/rg_policy
+copying rg_policy/events.py -> /ws/build/rg_policy/build/lib/rg_policy
+copying rg_policy/reason_codes.py -> /ws/build/rg_policy/build/lib/rg_policy
+copying rg_policy/request_tracker.py -> /ws/build/rg_policy/build/lib/rg_policy
+copying rg_policy/__init__.py -> /ws/build/rg_policy/build/lib/rg_policy
+copying rg_policy/futures.py -> /ws/build/rg_policy/build/lib/rg_policy
+copying rg_policy/task_policy.py -> /ws/build/rg_policy/build/lib/rg_policy
+running install
+running install_lib
+creating /ws/install/rg_policy/lib/python3.12/site-packages/rg_policy
+copying /ws/build/rg_policy/build/lib/rg_policy/policy_engine.py -> /ws/install/rg_policy/lib/python3.12/site-packages/rg_policy
+copying /ws/build/rg_policy/build/lib/rg_policy/events.py -> /ws/install/rg_policy/lib/python3.12/site-packages/rg_policy
+copying /ws/build/rg_policy/build/lib/rg_policy/reason_codes.py -> /ws/install/rg_policy/lib/python3.12/site-packages/rg_policy
+copying /ws/build/rg_policy/build/lib/rg_policy/request_tracker.py -> /ws/install/rg_policy/lib/python3.12/site-packages/rg_policy
+copying /ws/build/rg_policy/build/lib/rg_policy/__init__.py -> /ws/install/rg_policy/lib/python3.12/site-packages/rg_policy
+copying /ws/build/rg_policy/build/lib/rg_policy/futures.py -> /ws/install/rg_policy/lib/python3.12/site-packages/rg_policy
+copying /ws/build/rg_policy/build/lib/rg_policy/task_policy.py -> /ws/install/rg_policy/lib/python3.12/site-packages/rg_policy
+byte-compiling /ws/install/rg_policy/lib/python3.12/site-packages/rg_policy/policy_engine.py to policy_engine.cpython-312.pyc
+byte-compiling /ws/install/rg_policy/lib/python3.12/site-packages/rg_policy/events.py to events.cpython-312.pyc
+byte-compiling /ws/install/rg_policy/lib/python3.12/site-packages/rg_policy/reason_codes.py to reason_codes.cpython-312.pyc
+byte-compiling /ws/install/rg_policy/lib/python3.12/site-packages/rg_policy/request_tracker.py to request_tracker.cpython-312.pyc
+byte-compiling /ws/install/rg_policy/lib/python3.12/site-packages/rg_policy/__init__.py to __init__.cpython-312.pyc
+byte-compiling /ws/install/rg_policy/lib/python3.12/site-packages/rg_policy/futures.py to futures.cpython-312.pyc
+byte-compiling /ws/install/rg_policy/lib/python3.12/site-packages/rg_policy/task_policy.py to task_policy.cpython-312.pyc
+running install_data
+creating /ws/install/rg_policy/share/ament_index
+creating /ws/install/rg_policy/share/ament_index/resource_index
+creating /ws/install/rg_policy/share/ament_index/resource_index/packages
+copying resource/rg_policy -> /ws/install/rg_policy/share/ament_index/resource_index/packages
+copying package.xml -> /ws/install/rg_policy/share/rg_policy
+running install_egg_info
+Copying ../../build/rg_policy/rg_policy.egg-info to /ws/install/rg_policy/lib/python3.12/site-packages/rg_policy-0.1.0-py3.12.egg-info
+running install_scripts
+writing list of installed files to '/ws/build/rg_policy/install.log'
+Finished <<< rg_policy [0.73s]
+-- Found ament_cmake_ros: 0.12.1 (/opt/ros/jazzy/share/ament_cmake_ros/cmake)
+-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+-- Found python_cmake_module: 0.11.1 (/opt/ros/jazzy/share/python_cmake_module/cmake)
+-- Found PythonExtra: /usr/bin/python3
+-- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter Development NumPy Development.Module Development.Embed
+-- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter
+-- Configuring done (2.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /ws/build/rg_interfaces
+[  2%] Generating type hashes for ROS interfaces
+[  5%] Generating Rust code for ROS interfaces
+[  5%] Built target ament_cmake_python_copy_rg_interfaces
+running egg_info
+creating rg_interfaces.egg-info
+writing rg_interfaces.egg-info/PKG-INFO
+writing dependency_links to rg_interfaces.egg-info/dependency_links.txt
+writing top-level names to rg_interfaces.egg-info/top_level.txt
+writing manifest file 'rg_interfaces.egg-info/SOURCES.txt'
+reading manifest file 'rg_interfaces.egg-info/SOURCES.txt'
+writing manifest file 'rg_interfaces.egg-info/SOURCES.txt'
+[  5%] Built target rg_interfaces__rosidl_generator_type_description
+[  8%] Generating C code for ROS interfaces
+[ 11%] Generating C++ code for ROS interfaces
+[ 11%] Built target rg_interfaces__rs
+[ 11%] Built target ament_cmake_python_build_rg_interfaces_egg
+[ 11%] Built target rg_interfaces__cpp
+[ 20%] Building C object CMakeFiles/rg_interfaces__rosidl_generator_c.dir/rosidl_generator_c/rg_interfaces/action/detail/patrol_navigate__type_support.c.o
+[ 20%] Building C object CMakeFiles/rg_interfaces__rosidl_generator_c.dir/rosidl_generator_c/rg_interfaces/action/detail/patrol_navigate__functions.c.o
+[ 20%] Building C object CMakeFiles/rg_interfaces__rosidl_generator_c.dir/rosidl_generator_c/rg_interfaces/action/detail/patrol_navigate__description.c.o
+[ 22%] Linking C shared library librg_interfaces__rosidl_generator_c.so
+[ 22%] Built target rg_interfaces__rosidl_generator_c
+[ 31%] Generating C introspection for ROS interfaces
+[ 31%] Generating C type support for eProsima Fast-RTPS
+[ 31%] Generating C++ introspection for ROS interfaces
+[ 34%] Generating C type support dispatch for ROS interfaces
+[ 40%] Generating C++ type support for eProsima Fast-RTPS
+[ 40%] Generating C++ type support dispatch for ROS interfaces
+[ 42%] Building CXX object CMakeFiles/rg_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/rg_interfaces/action/patrol_navigate__type_support.cpp.o
+[ 45%] Building CXX object CMakeFiles/rg_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/rg_interfaces/action/patrol_navigate__type_support.cpp.o
+[ 48%] Building C object CMakeFiles/rg_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/rg_interfaces/action/detail/patrol_navigate__type_support.c.o
+[ 51%] Building CXX object CMakeFiles/rg_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/rg_interfaces/action/detail/patrol_navigate__type_support.cpp.o
+[ 54%] Linking CXX shared library librg_interfaces__rosidl_typesupport_c.so
+[ 57%] Linking C shared library librg_interfaces__rosidl_typesupport_introspection_c.so
+[ 57%] Built target rg_interfaces__rosidl_typesupport_c
+[ 57%] Built target rg_interfaces__rosidl_typesupport_introspection_c
+[ 60%] Building CXX object CMakeFiles/rg_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/rg_interfaces/action/detail/dds_fastrtps/patrol_navigate__type_support.cpp.o
+[ 62%] Building CXX object CMakeFiles/rg_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/rg_interfaces/action/detail/patrol_navigate__type_support_c.cpp.o
+[ 65%] Linking CXX shared library librg_interfaces__rosidl_typesupport_cpp.so
+[ 65%] Built target rg_interfaces__rosidl_typesupport_cpp
+[ 71%] Linking CXX shared library librg_interfaces__rosidl_typesupport_introspection_cpp.so
+[ 71%] Linking CXX shared library librg_interfaces__rosidl_typesupport_fastrtps_c.so
+[ 71%] Built target rg_interfaces__rosidl_typesupport_fastrtps_c
+[ 71%] Built target rg_interfaces__rosidl_typesupport_introspection_cpp
+[ 74%] Linking CXX shared library librg_interfaces__rosidl_typesupport_fastrtps_cpp.so
+[ 74%] Built target rg_interfaces__rosidl_typesupport_fastrtps_cpp
+[ 74%] Built target rg_interfaces
+[ 77%] Generating Python code for ROS interfaces
+[ 77%] Built target rg_interfaces__py
+[ 80%] Building C object CMakeFiles/rg_interfaces__rosidl_generator_py.dir/rosidl_generator_py/rg_interfaces/action/_patrol_navigate_s.c.o
+[ 82%] Linking C shared library librg_interfaces__rosidl_generator_py.so
+[ 82%] Built target rg_interfaces__rosidl_generator_py
+[ 88%] Building C object CMakeFiles/rg_interfaces_s__rosidl_typesupport_introspection_c.dir/rosidl_generator_py/rg_interfaces/_rg_interfaces_s.ep.rosidl_typesupport_introspection_c.c.o
+[ 88%] Building C object CMakeFiles/rg_interfaces_s__rosidl_typesupport_c.dir/rosidl_generator_py/rg_interfaces/_rg_interfaces_s.ep.rosidl_typesupport_c.c.o
+[ 91%] Building C object CMakeFiles/rg_interfaces_s__rosidl_typesupport_fastrtps_c.dir/rosidl_generator_py/rg_interfaces/_rg_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c.o
+[100%] Linking C shared module rosidl_generator_py/rg_interfaces/rg_interfaces_s__rosidl_typesupport_c.so
+[100%] Linking C shared module rosidl_generator_py/rg_interfaces/rg_interfaces_s__rosidl_typesupport_fastrtps_c.so
+[100%] Linking C shared module rosidl_generator_py/rg_interfaces/rg_interfaces_s__rosidl_typesupport_introspection_c.so
+[100%] Built target rg_interfaces_s__rosidl_typesupport_c
+[100%] Built target rg_interfaces_s__rosidl_typesupport_introspection_c
+[100%] Built target rg_interfaces_s__rosidl_typesupport_fastrtps_c
+-- Install configuration: ""
+-- Installing: /ws/install/rg_interfaces/share/ament_index/resource_index/rosidl_interfaces/rg_interfaces
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/action/PatrolNavigate.json
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/msg
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/msg/rosidl_generator_c__visibility_control.h
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/patrol_navigate.h
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail/patrol_navigate__type_support.c
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail/patrol_navigate__functions.h
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail/patrol_navigate__type_support.h
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail/patrol_navigate__functions.c
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail/patrol_navigate__struct.h
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail/patrol_navigate__description.c
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/environment/library_path.sh
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/environment/library_path.dsv
+-- Installing: /ws/install/rg_interfaces/lib/librg_interfaces__rosidl_generator_c.so
+-- Set non-toolchain portion of runtime path of "/ws/install/rg_interfaces/lib/librg_interfaces__rosidl_generator_c.so" to ""
+-- Up-to-date: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces
+-- Up-to-date: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/msg
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/msg/rosidl_typesupport_fastrtps_c__visibility_control.h
+-- Up-to-date: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action
+-- Up-to-date: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail/patrol_navigate__rosidl_typesupport_fastrtps_c.h
+-- Installing: /ws/install/rg_interfaces/lib/librg_interfaces__rosidl_typesupport_fastrtps_c.so
+-- Set non-toolchain portion of runtime path of "/ws/install/rg_interfaces/lib/librg_interfaces__rosidl_typesupport_fastrtps_c.so" to ""
+-- Up-to-date: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces
+-- Up-to-date: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/msg
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/msg/rosidl_typesupport_introspection_c__visibility_control.h
+-- Up-to-date: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action
+-- Up-to-date: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail/patrol_navigate__type_support.c
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail/patrol_navigate__rosidl_typesupport_introspection_c.h
+-- Installing: /ws/install/rg_interfaces/lib/librg_interfaces__rosidl_typesupport_introspection_c.so
+-- Set non-toolchain portion of runtime path of "/ws/install/rg_interfaces/lib/librg_interfaces__rosidl_typesupport_introspection_c.so" to ""
+-- Installing: /ws/install/rg_interfaces/lib/librg_interfaces__rosidl_typesupport_c.so
+-- Set non-toolchain portion of runtime path of "/ws/install/rg_interfaces/lib/librg_interfaces__rosidl_typesupport_c.so" to ""
+-- Up-to-date: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces
+-- Up-to-date: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/msg
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/msg/rosidl_generator_cpp__visibility_control.hpp
+-- Up-to-date: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/patrol_navigate.hpp
+-- Up-to-date: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail/patrol_navigate__traits.hpp
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail/patrol_navigate__struct.hpp
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail/patrol_navigate__builder.hpp
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail/patrol_navigate__type_support.hpp
+-- Up-to-date: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces
+-- Up-to-date: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/msg
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h
+-- Up-to-date: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action
+-- Up-to-date: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail/dds_fastrtps
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail/patrol_navigate__rosidl_typesupport_fastrtps_cpp.hpp
+-- Installing: /ws/install/rg_interfaces/lib/librg_interfaces__rosidl_typesupport_fastrtps_cpp.so
+-- Set non-toolchain portion of runtime path of "/ws/install/rg_interfaces/lib/librg_interfaces__rosidl_typesupport_fastrtps_cpp.so" to ""
+-- Up-to-date: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces
+-- Up-to-date: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action
+-- Up-to-date: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail/patrol_navigate__rosidl_typesupport_introspection_cpp.hpp
+-- Installing: /ws/install/rg_interfaces/include/rg_interfaces/rg_interfaces/action/detail/patrol_navigate__type_support.cpp
+-- Installing: /ws/install/rg_interfaces/lib/librg_interfaces__rosidl_typesupport_introspection_cpp.so
+-- Set non-toolchain portion of runtime path of "/ws/install/rg_interfaces/lib/librg_interfaces__rosidl_typesupport_introspection_cpp.so" to ""
+-- Installing: /ws/install/rg_interfaces/lib/librg_interfaces__rosidl_typesupport_cpp.so
+-- Set non-toolchain portion of runtime path of "/ws/install/rg_interfaces/lib/librg_interfaces__rosidl_typesupport_cpp.so" to ""
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/environment/pythonpath.sh
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/environment/pythonpath.dsv
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces-0.1.0-py3.12.egg-info
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces-0.1.0-py3.12.egg-info/top_level.txt
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces-0.1.0-py3.12.egg-info/dependency_links.txt
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces-0.1.0-py3.12.egg-info/SOURCES.txt
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces-0.1.0-py3.12.egg-info/PKG-INFO
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/rg_interfaces_s__rosidl_typesupport_fastrtps_c.so
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/_rg_interfaces_s.ep.rosidl_typesupport_c.c
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/rg_interfaces_s__rosidl_typesupport_c.so
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/rg_interfaces_s__rosidl_typesupport_introspection_c.so
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/_rg_interfaces_s.ep.rosidl_typesupport_introspection_c.c
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/__init__.py
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/_rg_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/action
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/action/_patrol_navigate_s.c
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/action/_patrol_navigate.py
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/action/__init__.py
+Listing '/ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces'...
+Compiling '/ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/__init__.py'...
+Listing '/ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/action'...
+Compiling '/ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/action/__init__.py'...
+Compiling '/ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/action/_patrol_navigate.py'...
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/rg_interfaces_s__rosidl_typesupport_fastrtps_c.so
+-- Set non-toolchain portion of runtime path of "/ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/rg_interfaces_s__rosidl_typesupport_fastrtps_c.so" to ""
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/rg_interfaces_s__rosidl_typesupport_introspection_c.so
+-- Set non-toolchain portion of runtime path of "/ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/rg_interfaces_s__rosidl_typesupport_introspection_c.so" to ""
+-- Installing: /ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/rg_interfaces_s__rosidl_typesupport_c.so
+-- Set non-toolchain portion of runtime path of "/ws/install/rg_interfaces/lib/python3.12/site-packages/rg_interfaces/rg_interfaces_s__rosidl_typesupport_c.so" to ""
+-- Installing: /ws/install/rg_interfaces/lib/librg_interfaces__rosidl_generator_py.so
+-- Set non-toolchain portion of runtime path of "/ws/install/rg_interfaces/lib/librg_interfaces__rosidl_generator_py.so" to ""
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/rust
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/rust/src
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/rust/src/action.rs
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/rust/src/lib.rs
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/rust/src/action
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/rust/src/action/rmw.rs
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/rust/Cargo.toml
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/rust/build.rs
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/action/PatrolNavigate.idl
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/action/PatrolNavigate.action
+-- Installing: /ws/install/rg_interfaces/share/ament_index/resource_index/package_run_dependencies/rg_interfaces
+-- Installing: /ws/install/rg_interfaces/share/ament_index/resource_index/parent_prefix_path/rg_interfaces
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/environment/ament_prefix_path.sh
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/environment/ament_prefix_path.dsv
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/environment/path.sh
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/environment/path.dsv
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/local_setup.bash
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/local_setup.sh
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/local_setup.zsh
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/local_setup.dsv
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/package.dsv
+-- Installing: /ws/install/rg_interfaces/share/ament_index/resource_index/packages/rg_interfaces
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/export_rg_interfaces__rosidl_generator_cExport.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/export_rg_interfaces__rosidl_generator_cExport-noconfig.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/export_rg_interfaces__rosidl_typesupport_fastrtps_cExport.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/export_rg_interfaces__rosidl_typesupport_fastrtps_cExport-noconfig.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/rg_interfaces__rosidl_typesupport_introspection_cExport.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/rg_interfaces__rosidl_typesupport_introspection_cExport-noconfig.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/rg_interfaces__rosidl_typesupport_cExport.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/rg_interfaces__rosidl_typesupport_cExport-noconfig.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/export_rg_interfaces__rosidl_generator_cppExport.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/export_rg_interfaces__rosidl_typesupport_fastrtps_cppExport.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/export_rg_interfaces__rosidl_typesupport_fastrtps_cppExport-noconfig.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/rg_interfaces__rosidl_typesupport_introspection_cppExport.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/rg_interfaces__rosidl_typesupport_introspection_cppExport-noconfig.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/rg_interfaces__rosidl_typesupport_cppExport.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/rg_interfaces__rosidl_typesupport_cppExport-noconfig.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/export_rg_interfaces__rosidl_generator_pyExport.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/export_rg_interfaces__rosidl_generator_pyExport-noconfig.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/rosidl_cmake-extras.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/ament_cmake_export_dependencies-extras.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/ament_cmake_export_include_directories-extras.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/ament_cmake_export_libraries-extras.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/ament_cmake_export_targets-extras.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/rosidl_cmake_aggregate_target-extras.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/rg_interfacesConfig.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/cmake/rg_interfacesConfig-version.cmake
+-- Installing: /ws/install/rg_interfaces/share/rg_interfaces/package.xml
+Finished <<< rg_interfaces [4.80s]
+Starting >>> rg_demo_nodes
+Starting >>> rg_gateway
+running egg_info
+creating ../../build/rg_demo_nodes/rg_demo_nodes.egg-info
+running egg_info
+creating ../../build/rg_gateway/rg_gateway.egg-info
+writing ../../build/rg_demo_nodes/rg_demo_nodes.egg-info/PKG-INFO
+writing dependency_links to ../../build/rg_demo_nodes/rg_demo_nodes.egg-info/dependency_links.txt
+writing entry points to ../../build/rg_demo_nodes/rg_demo_nodes.egg-info/entry_points.txt
+writing requirements to ../../build/rg_demo_nodes/rg_demo_nodes.egg-info/requires.txt
+writing top-level names to ../../build/rg_demo_nodes/rg_demo_nodes.egg-info/top_level.txt
+writing manifest file '../../build/rg_demo_nodes/rg_demo_nodes.egg-info/SOURCES.txt'
+writing ../../build/rg_gateway/rg_gateway.egg-info/PKG-INFO
+writing dependency_links to ../../build/rg_gateway/rg_gateway.egg-info/dependency_links.txt
+writing entry points to ../../build/rg_gateway/rg_gateway.egg-info/entry_points.txt
+writing requirements to ../../build/rg_gateway/rg_gateway.egg-info/requires.txt
+writing top-level names to ../../build/rg_gateway/rg_gateway.egg-info/top_level.txt
+writing manifest file '../../build/rg_gateway/rg_gateway.egg-info/SOURCES.txt'
+reading manifest file '../../build/rg_demo_nodes/rg_demo_nodes.egg-info/SOURCES.txt'
+writing manifest file '../../build/rg_demo_nodes/rg_demo_nodes.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /ws/build/rg_demo_nodes/build
+creating /ws/build/rg_demo_nodes/build/lib
+creating /ws/build/rg_demo_nodes/build/lib/rg_demo_nodes
+copying rg_demo_nodes/operator_node.py -> /ws/build/rg_demo_nodes/build/lib/rg_demo_nodes
+copying rg_demo_nodes/planner_node.py -> /ws/build/rg_demo_nodes/build/lib/rg_demo_nodes
+copying rg_demo_nodes/__init__.py -> /ws/build/rg_demo_nodes/build/lib/rg_demo_nodes
+copying rg_demo_nodes/navigation_sim.py -> /ws/build/rg_demo_nodes/build/lib/rg_demo_nodes
+reading manifest file '../../build/rg_gateway/rg_gateway.egg-info/SOURCES.txt'
+running install
+writing manifest file '../../build/rg_gateway/rg_gateway.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /ws/build/rg_gateway/build
+creating /ws/build/rg_gateway/build/lib
+creating /ws/build/rg_gateway/build/lib/rg_gateway
+copying rg_gateway/security_gateway.py -> /ws/build/rg_gateway/build/lib/rg_gateway
+copying rg_gateway/__init__.py -> /ws/build/rg_gateway/build/lib/rg_gateway
+running install
+running install_lib
+running install_lib
+creating /ws/install/rg_demo_nodes/lib/python3.12/site-packages/rg_demo_nodes
+copying /ws/build/rg_demo_nodes/build/lib/rg_demo_nodes/operator_node.py -> /ws/install/rg_demo_nodes/lib/python3.12/site-packages/rg_demo_nodes
+copying /ws/build/rg_demo_nodes/build/lib/rg_demo_nodes/planner_node.py -> /ws/install/rg_demo_nodes/lib/python3.12/site-packages/rg_demo_nodes
+copying /ws/build/rg_demo_nodes/build/lib/rg_demo_nodes/__init__.py -> /ws/install/rg_demo_nodes/lib/python3.12/site-packages/rg_demo_nodes
+copying /ws/build/rg_demo_nodes/build/lib/rg_demo_nodes/navigation_sim.py -> /ws/install/rg_demo_nodes/lib/python3.12/site-packages/rg_demo_nodes
+creating /ws/install/rg_gateway/lib/python3.12/site-packages/rg_gateway
+copying /ws/build/rg_gateway/build/lib/rg_gateway/security_gateway.py -> /ws/install/rg_gateway/lib/python3.12/site-packages/rg_gateway
+copying /ws/build/rg_gateway/build/lib/rg_gateway/__init__.py -> /ws/install/rg_gateway/lib/python3.12/site-packages/rg_gateway
+byte-compiling /ws/install/rg_demo_nodes/lib/python3.12/site-packages/rg_demo_nodes/operator_node.py to operator_node.cpython-312.pyc
+byte-compiling /ws/install/rg_gateway/lib/python3.12/site-packages/rg_gateway/security_gateway.py to security_gateway.cpython-312.pyc
+byte-compiling /ws/install/rg_demo_nodes/lib/python3.12/site-packages/rg_demo_nodes/planner_node.py to planner_node.cpython-312.pyc
+byte-compiling /ws/install/rg_demo_nodes/lib/python3.12/site-packages/rg_demo_nodes/__init__.py to __init__.cpython-312.pyc
+byte-compiling /ws/install/rg_demo_nodes/lib/python3.12/site-packages/rg_demo_nodes/navigation_sim.py to navigation_sim.cpython-312.pyc
+byte-compiling /ws/install/rg_gateway/lib/python3.12/site-packages/rg_gateway/__init__.py to __init__.cpython-312.pyc
+running install_data
+creating /ws/install/rg_gateway/share/ament_index
+creating /ws/install/rg_gateway/share/ament_index/resource_index
+running install_data
+creating /ws/install/rg_gateway/share/ament_index/resource_index/packages
+creating /ws/install/rg_demo_nodes/share/ament_index
+copying resource/rg_gateway -> /ws/install/rg_gateway/share/ament_index/resource_index/packages
+creating /ws/install/rg_demo_nodes/share/ament_index/resource_index
+copying package.xml -> /ws/install/rg_gateway/share/rg_gateway
+creating /ws/install/rg_demo_nodes/share/ament_index/resource_index/packages
+running install_egg_info
+copying resource/rg_demo_nodes -> /ws/install/rg_demo_nodes/share/ament_index/resource_index/packages
+copying package.xml -> /ws/install/rg_demo_nodes/share/rg_demo_nodes
+creating /ws/install/rg_demo_nodes/share/rg_demo_nodes/launch
+copying launch/stack.launch.py -> /ws/install/rg_demo_nodes/share/rg_demo_nodes/launch
+copying launch/demo.launch.py -> /ws/install/rg_demo_nodes/share/rg_demo_nodes/launch
+running install_egg_info
+Copying ../../build/rg_gateway/rg_gateway.egg-info to /ws/install/rg_gateway/lib/python3.12/site-packages/rg_gateway-0.1.0-py3.12.egg-info
+Copying ../../build/rg_demo_nodes/rg_demo_nodes.egg-info to /ws/install/rg_demo_nodes/lib/python3.12/site-packages/rg_demo_nodes-0.1.0-py3.12.egg-info
+running install_scripts
+running install_scripts
+Installing security_gateway script to /ws/install/rg_gateway/lib/rg_gateway
+writing list of installed files to '/ws/build/rg_gateway/install.log'
+Installing navigation_sim script to /ws/install/rg_demo_nodes/lib/rg_demo_nodes
+Installing operator_node script to /ws/install/rg_demo_nodes/lib/rg_demo_nodes
+Installing planner_node script to /ws/install/rg_demo_nodes/lib/rg_demo_nodes
+writing list of installed files to '/ws/build/rg_demo_nodes/install.log'
+Finished <<< rg_demo_nodes [0.81s]
+Finished <<< rg_gateway [0.81s]
+
+Summary: 4 packages finished [5.75s]

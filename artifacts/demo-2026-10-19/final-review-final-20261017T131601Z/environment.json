@@ -1,0 +1,33 @@
+{
+  "run_id": "final-20261017T131601Z",
+  "generated_at": "2026-10-17T13:16:01Z",
+  "repo": "/home/zhangwei/project/RosSystem",
+  "host": "Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+  "python": "3.10.12",
+  "git": {
+    "head_sha": "f6574acbf51062a96a918ac3096e7aecf83371c6",
+    "branch": "demo/2026-10-19-rc2",
+    "status_porcelain": "",
+    "baseline": "a4c597161d254192b662ee7b8f4d17f76a89cc16",
+    "main": "838f66f41821edf0421612a205d162ae8e9eb955",
+    "member_deliveries": "3ce820258c69b89e2ad9291e16c44dc7d2b99150",
+    "fix_branch": "19f6a256e71db7270de88e5b76b9ac2d87668cc6",
+    "old_demo": "df5a0f0d3a12286b3dc3861fb104987cf10d21d3"
+  },
+  "container": {
+    "ROS_DISTRO": "jazzy",
+    "RMW": "rmw_fastrtps_cpp",
+    "DOMAIN": "42",
+    "PY": "Python 3.12.3",
+    "PKGS": "4",
+    "NODES": "0",
+    "_returncode": 0
+  },
+  "dds_security_mode_l3": "disabled (domain 42, normal mode)",
+  "dds_security_mode_l4": "enforce (domain 43)",
+  "module_config_l3": {
+    "comm_risk": "MOCK",
+    "identity_trust": "MOCK",
+    "task_risk": "EXTERNAL"
+  }
+}

@@ -1,0 +1,233 @@
+{
+  "schema_version": "phase2-evidence/1",
+  "generated_at": "2026-10-17T17:29:06Z",
+  "note": "真实运行产出：M1 的 /proc 采集为 REAL_RUNTIME；M1 模型为 OFFLINE_RESEARCH；request_count 为 CONTROLLED_TEST 声明；M2 签发者为 TEST_ONLY。",
+  "m1_runtime_collection": {
+    "provenance": "REAL_RUNTIME",
+    "window": {
+      "start": "2026-10-17T17:29:06.474Z",
+      "end": "2026-10-17T17:29:07.476Z",
+      "duration_ms": 1002,
+      "interval_ms": 250,
+      "sample_count": 5
+    },
+    "source": {
+      "kind": "LINUX_PROC",
+      "host": "DESKTOP-MSNF8B9",
+      "kernel": "6.18.54.1-microsoft-standard-WSL2",
+      "privileges_required": "none (world-readable /proc entries)"
+    },
+    "feature_count": 24,
+    "missing": {
+      "pgalloc_dma": "field absent on this host"
+    },
+    "unavailable": {
+      "request_count": "business request count requires ROS 2 action accounting; packet/loop counts are NOT a substitute",
+      "tshark_features": "22 of the 49 model features are per-packet Wireshark dissections; no tshark in this environment",
+      "ros_graph_features": [
+        "subscribers_count",
+        "publishers_count"
+      ]
+    },
+    "measurement_sha256": "501ce7ec28c2be30d830c57a065c31ca0bd6456a5934f1837fa1810200cfddfb",
+    "window_deltas_nonzero": [
+      "pgactivate",
+      "pgfault",
+      "MemFree",
+      "Inactive",
+      "pgfree",
+      "nr_active_file",
+      "Cached",
+      "nr_inactive_file",
+      "Disk_Write",
+      "pgpgout",
+      "Buffers",
+      "Active"
+    ],
+    "sample_values": {
+      "Net_Sent": 1504176761.0,
+      "pgpgin": 414620855.0,
+      "pgactivate": 21106173.0,
+      "Disk_Read": 829237870.0,
+      "pgfault": 522968050.0,
+      "Net_Received": 298747331.0,
+      "MemFree": 8355160.0,
+      "Inactive": 2911268.0,
+      "pgdeactivate": 116204746.0,
+      "Tcp_Close": 0.0,
+      "pgfree": 480276347.0,
+      "nr_active_file": 88954.0,
+      "Cached": 579248.0,
+      "nr_inactive_file": 59869.0,
+      "Disk_Write": 12418520.0,
+      "pgpgout": 6209260.0,
+      "Tcp_Syn": 0.0,
+      "Buffers": 36372.0,
+      "Tcp_TimeWait": 1.0,
+      "Tcp_Listen": 11.0,
+      "Tcp_Established": 10.0,
+      "Active": 372748.0,
+      "pgmajfault": 5618389.0,
+      "SwapFree": 3145728.0
+    }
+  },
+  "m1_module_without_request_count": {
+    "provenance": "REAL_RUNTIME features + missing request_count",
+    "returncode": 4,
+    "stderr_head": "MAPPING_OR_INTERNAL_ERROR: MAPPING_BLOCKED: missing f0_runtime.request_count\n",
+    "verdict": "失败关闭：真实观测缺少业务请求计数 -> 模块拒绝产出结论"
+  },
+  "m1_module_with_subset_model": {
+    "provenance": "REAL_RUNTIME features + CONTROLLED_TEST request_count + OFFLINE_RESEARCH model",
+    "returncode": 0,
+    "status": "UNKNOWN",
+    "reason": "MODEL_NOT_ACCEPTED_OR_UNTRUSTED_OBSERVATION: normal prediction withheld",
+    "model_sha256": "9de89b7a96928c5fc1b5f1d0a24870d3ac9e091e179ea2988454e820097ce588",
+    "score": 0.6552271281077134,
+    "schema_valid": true
+  },
+  "m2_verification_matrix": {
+    "provenance": "CONTROLLED_TEST issuers (no production issuer exists)",
+    "cases": [
+      {
+        "case": "no witness",
+        "status": "UNKNOWN",
+        "binding": "UNBOUND_NO_TRUSTED_CURRENT_IDENTITY_WITNESS",
+        "checks": {
+          "signature": "NOT_PRESENT",
+          "issuer": "NOT_EVALUATED",
+          "request_binding": "NOT_CHECKED",
+          "freshness": "NOT_CHECKED",
+          "replay": "NOT_RESERVED"
+        },
+        "f0_accepts": false,
+        "reason": "没有可信证据把当前请求绑定到已认证 DDS 主体：ROS 2 Jazzy 未提供获取订阅端对端主体身份的 API，且业务 JSON 自报身份不构成认证"
+      },
+      {
+        "case": "signed, issuer not listed",
+        "status": "UNKNOWN",
+        "binding": "WITNESS_ISSUER_UNTRUSTED",
+        "checks": {
+          "signature": "VALID",
+          "issuer": "NOT_LISTED",
+          "request_binding": "MATCH",
+          "freshness": "OK",
+          "replay": "NOT_RESERVED"
+        },
+        "f0_accepts": false,
+        "reason": "签发者 'test-only:evidence' 不在受信任清单内：签名有效只证明字节完整，不证明其掌握任何已认证 DDS 身份"
+      },
+      {
+        "case": "signed, TEST_ONLY issuer",
+        "status": "AUTHENTICATED_TEST_ONLY",
+        "binding": "TEST_ONLY_ISSUER_ATTESTATION",
+        "checks": {
+          "signature": "VALID",
+          "issuer": "TEST_ONLY",
+          "request_binding": "MATCH",
+          "freshness": "OK",
+          "replay": "RESERVED"
+        },
+        "f0_accepts": false,
+        "reason": "签名与绑定均成立，但签发者仅为 TEST_ONLY 角色：不得作为在线身份授权依据"
+      },
+      {
+        "case": "signed, VERIFIED issuer + ledger",
+        "status": "AUTHENTICATED",
+        "binding": "CURRENT_REQUEST_BOUND_TO_AUTHENTICATED_DDS_SUBJECT",
+        "checks": {
+          "signature": "VALID",
+          "issuer": "VERIFIED_IDENTITY_SOURCE",
+          "request_binding": "MATCH",
+          "freshness": "OK",
+          "replay": "RESERVED"
+        },
+        "f0_accepts": true,
+        "reason": "受信任签发者证明当前请求主体已通过 DDS 身份认证"
+      },
+      {
+        "case": "same witness replayed",
+        "status": "UNKNOWN",
+        "binding": "WITNESS_NONCE_REPLAYED",
+        "checks": {
+          "signature": "VALID",
+          "issuer": "VERIFIED_IDENTITY_SOURCE",
+          "request_binding": "MATCH",
+          "freshness": "OK",
+          "replay": "REPLAYED"
+        },
+        "f0_accepts": false,
+        "reason": "该证据的 nonce 已使用过（重放）"
+      },
+      {
+        "case": "no ledger configured",
+        "status": "UNKNOWN",
+        "binding": "WITNESS_LEDGER_UNAVAILABLE",
+        "checks": {
+          "signature": "VALID",
+          "issuer": "VERIFIED_IDENTITY_SOURCE",
+          "request_binding": "MATCH",
+          "freshness": "OK",
+          "replay": "LEDGER_UNAVAILABLE"
+        },
+        "f0_accepts": false,
+        "reason": "未配置可用的重放账本（not configured）：无法排除重放，因此不得判定为已认证"
+      },
+      {
+        "case": "ledger path is a directory",
+        "status": "UNKNOWN",
+        "binding": "WITNESS_LEDGER_WRITE_FAILED",
+        "checks": {
+          "signature": "VALID",
+          "issuer": "VERIFIED_IDENTITY_SOURCE",
+          "request_binding": "MATCH",
+          "freshness": "OK",
+          "replay": "LEDGER_ERROR"
+        },
+        "f0_accepts": false,
+        "reason": "重放账本不可用（ledger unopenable: Is a directory）；维持 UNKNOWN"
+      },
+      {
+        "case": "world-readable key",
+        "status": "UNKNOWN",
+        "binding": "WITNESS_REJECTED",
+        "checks": {
+          "signature": "NOT_PRESENT",
+          "issuer": "NOT_EVALUATED",
+          "request_binding": "NOT_CHECKED",
+          "freshness": "NOT_CHECKED",
+          "replay": "NOT_RESERVED"
+        },
+        "f0_accepts": false,
+        "reason": "witness key: permissions too open (mode 644); must be 0600"
+      }
+    ]
+  },
+  "f0_identity_trust_gap": {
+    "provenance": "REAL_RUNTIME (adapter executed)",
+    "case": "identity module自报 AUTHENTICATED，无签名/无签发者/无账本",
+    "decision": "READY_FOR_GATEWAY_SUBMISSION",
+    "reason_code": "ADAPTER_OK",
+    "modules": [
+      {
+        "module": "comm_risk",
+        "mode": "mock",
+        "status": "NORMAL",
+        "schema_ok": true
+      },
+      {
+        "module": "identity_trust",
+        "mode": "mock",
+        "status": "AUTHORIZED",
+        "schema_ok": true
+      },
+      {
+        "module": "task_risk",
+        "mode": "mock",
+        "status": "ALLOW_RECOMMENDED",
+        "schema_ok": true
+      }
+    ],
+    "verdict": "F0 当前只比较 status 字符串，因此被自报值骗过 -> 必须由 B1 改为调用 identity_trust.current_identity.f0_accepts()"
+  }
+}
