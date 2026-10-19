@@ -1,0 +1,673 @@
+{
+  "model": "modules/member1_comm/model/comm_risk_window_model.json",
+  "threshold": 0.1,
+  "windows_scored": 7,
+  "windows_attack": 7,
+  "training_distribution": {
+    "request_count": {
+      "training_percentiles": {
+        "p1": 2.0,
+        "p5": 3.0,
+        "p50": 17.0,
+        "p95": 214.0,
+        "p99": 990.0
+      },
+      "training_weight": -0.5832251308
+    },
+    "frequency_hz": {
+      "training_percentiles": {
+        "p1": 0.0436,
+        "p5": 0.0961,
+        "p50": 0.6031,
+        "p95": 9.4004,
+        "p99": 44.2936
+      },
+      "training_weight": 0.6555247351
+    },
+    "gap_median_ms": {
+      "training_percentiles": {
+        "p1": 0.006,
+        "p5": 0.032,
+        "p50": 0.876,
+        "p95": 119.148,
+        "p99": 4966.776
+      },
+      "training_weight": 1.1048209656
+    },
+    "gap_p95_ms": {
+      "training_percentiles": {
+        "p1": 0.051,
+        "p5": 15.496,
+        "p50": 3555.112,
+        "p95": 15289.173,
+        "p99": 21404.038
+      },
+      "training_weight": -0.9375573051
+    },
+    "gap_max_ms": {
+      "training_percentiles": {
+        "p1": 0.118,
+        "p5": 35.794,
+        "p50": 5865.502,
+        "p95": 16927.742,
+        "p99": 22636.714
+      },
+      "training_weight": 0.608523615
+    },
+    "duration_ms": {
+      "training_percentiles": {
+        "p1": 10000.57,
+        "p5": 20712.231,
+        "p50": 29729.899,
+        "p95": 30001.401,
+        "p99": 30015.054
+      },
+      "training_weight": -10.596340435
+    }
+  },
+  "windows": [
+    {
+      "window_index": 0,
+      "samples": 47,
+      "features": {
+        "request_count": 47,
+        "duration_ms": 1007.304,
+        "frequency_hz": 46.659191,
+        "gap_median_ms": 19.963,
+        "gap_p95_ms": 20.2297,
+        "gap_max_ms": 20.3402
+      },
+      "probability": 1.0,
+      "logit": 175.044033,
+      "threshold": 0.1,
+      "decision": "ATTACK",
+      "contributions": [
+        {
+          "feature": "duration_ms",
+          "raw": 1007.304,
+          "imputed": false,
+          "transformed": 6.916025,
+          "standardised": -15.982381,
+          "weight": -10.596340435,
+          "contribution_to_logit": 169.354752
+        },
+        {
+          "feature": "frequency_hz",
+          "raw": 46.659191,
+          "imputed": false,
+          "transformed": 3.864075,
+          "standardised": 4.006711,
+          "weight": 0.6555247351,
+          "contribution_to_logit": 2.626498
+        },
+        {
+          "feature": "gap_p95_ms",
+          "raw": 20.2297,
+          "imputed": false,
+          "transformed": 3.055401,
+          "standardised": -1.615158,
+          "weight": -0.9375573051,
+          "contribution_to_logit": 1.514303
+        },
+        {
+          "feature": "gap_max_ms",
+          "raw": 20.3402,
+          "imputed": false,
+          "transformed": 3.060593,
+          "standardised": -2.209849,
+          "weight": 0.608523615,
+          "contribution_to_logit": -1.344745
+        },
+        {
+          "feature": "gap_median_ms",
+          "raw": 19.963,
+          "imputed": false,
+          "transformed": 3.042759,
+          "standardised": 0.702415,
+          "weight": 1.1048209656,
+          "contribution_to_logit": 0.776043
+        },
+        {
+          "feature": "request_count",
+          "raw": 47,
+          "imputed": false,
+          "transformed": 3.871201,
+          "standardised": 0.673523,
+          "weight": -0.5832251308,
+          "contribution_to_logit": -0.392816
+        }
+      ],
+      "outside_training_p1_p99": [
+        {
+          "feature": "frequency_hz",
+          "value": 46.659191,
+          "training_p1": 0.0436,
+          "training_p99": 44.2936
+        },
+        {
+          "feature": "duration_ms",
+          "value": 1007.304,
+          "training_p1": 10000.57,
+          "training_p99": 30015.054
+        }
+      ]
+    },
+    {
+      "window_index": 1,
+      "samples": 50,
+      "features": {
+        "request_count": 50,
+        "duration_ms": 1000.011,
+        "frequency_hz": 49.999458,
+        "gap_median_ms": 20.0176,
+        "gap_p95_ms": 20.2764,
+        "gap_max_ms": 20.3323
+      },
+      "probability": 1.0,
+      "logit": 175.453336,
+      "threshold": 0.1,
+      "decision": "ATTACK",
+      "contributions": [
+        {
+          "feature": "duration_ms",
+          "raw": 1000.011,
+          "imputed": false,
+          "transformed": 6.908766,
+          "standardised": -16.018396,
+          "weight": -10.596340435,
+          "contribution_to_logit": 169.736378
+        },
+        {
+          "feature": "frequency_hz",
+          "raw": 49.999458,
+          "imputed": false,
+          "transformed": 3.931815,
+          "standardised": 4.092813,
+          "weight": 0.6555247351,
+          "contribution_to_logit": 2.68294
+        },
+        {
+          "feature": "gap_p95_ms",
+          "raw": 20.2764,
+          "imputed": false,
+          "transformed": 3.057598,
+          "standardised": -1.614277,
+          "weight": -0.9375573051,
+          "contribution_to_logit": 1.513477
+        },
+        {
+          "feature": "gap_max_ms",
+          "raw": 20.3323,
+          "imputed": false,
+          "transformed": 3.060222,
+          "standardised": -2.210019,
+          "weight": 0.608523615,
+          "contribution_to_logit": -1.344849
+        },
+        {
+          "feature": "gap_median_ms",
+          "raw": 20.0176,
+          "imputed": false,
+          "transformed": 3.04536,
+          "standardised": 0.703771,
+          "weight": 1.1048209656,
+          "contribution_to_logit": 0.777541
+        },
+        {
+          "feature": "request_count",
+          "raw": 50,
+          "imputed": false,
+          "transformed": 3.931826,
+          "standardised": 0.723818,
+          "weight": -0.5832251308,
+          "contribution_to_logit": -0.422149
+        }
+      ],
+      "outside_training_p1_p99": [
+        {
+          "feature": "frequency_hz",
+          "value": 49.999458,
+          "training_p1": 0.0436,
+          "training_p99": 44.2936
+        },
+        {
+          "feature": "duration_ms",
+          "value": 1000.011,
+          "training_p1": 10000.57,
+          "training_p99": 30015.054
+        }
+      ]
+    },
+    {
+      "window_index": 2,
+      "samples": 50,
+      "features": {
+        "request_count": 50,
+        "duration_ms": 1000.227,
+        "frequency_hz": 49.988674,
+        "gap_median_ms": 20.0089,
+        "gap_p95_ms": 20.2758,
+        "gap_max_ms": 20.3358
+      },
+      "probability": 1.0,
+      "logit": 175.441635,
+      "threshold": 0.1,
+      "decision": "ATTACK",
+      "contributions": [
+        {
+          "feature": "duration_ms",
+          "raw": 1000.227,
+          "imputed": false,
+          "transformed": 6.908982,
+          "standardised": -16.017326,
+          "weight": -10.596340435,
+          "contribution_to_logit": 169.725035
+        },
+        {
+          "feature": "frequency_hz",
+          "raw": 49.988674,
+          "imputed": false,
+          "transformed": 3.931604,
+          "standardised": 4.092544,
+          "weight": 0.6555247351,
+          "contribution_to_logit": 2.682764
+        },
+        {
+          "feature": "gap_p95_ms",
+          "raw": 20.2758,
+          "imputed": false,
+          "transformed": 3.05757,
+          "standardised": -1.614288,
+          "weight": -0.9375573051,
+          "contribution_to_logit": 1.513488
+        },
+        {
+          "feature": "gap_max_ms",
+          "raw": 20.3358,
+          "imputed": false,
+          "transformed": 3.060386,
+          "standardised": -2.209944,
+          "weight": 0.608523615,
+          "contribution_to_logit": -1.344803
+        },
+        {
+          "feature": "gap_median_ms",
+          "raw": 20.0089,
+          "imputed": false,
+          "transformed": 3.044946,
+          "standardised": 0.703555,
+          "weight": 1.1048209656,
+          "contribution_to_logit": 0.777303
+        },
+        {
+          "feature": "request_count",
+          "raw": 50,
+          "imputed": false,
+          "transformed": 3.931826,
+          "standardised": 0.723818,
+          "weight": -0.5832251308,
+          "contribution_to_logit": -0.422149
+        }
+      ],
+      "outside_training_p1_p99": [
+        {
+          "feature": "frequency_hz",
+          "value": 49.988674,
+          "training_p1": 0.0436,
+          "training_p99": 44.2936
+        },
+        {
+          "feature": "duration_ms",
+          "value": 1000.227,
+          "training_p1": 10000.57,
+          "training_p99": 30015.054
+        }
+      ]
+    },
+    {
+      "window_index": 3,
+      "samples": 51,
+      "features": {
+        "request_count": 51,
+        "duration_ms": 1019.634,
+        "frequency_hz": 50.017953,
+        "gap_median_ms": 19.9877,
+        "gap_p95_ms": 20.3629,
+        "gap_max_ms": 20.5543
+      },
+      "probability": 1.0,
+      "logit": 174.424209,
+      "threshold": 0.1,
+      "decision": "ATTACK",
+      "contributions": [
+        {
+          "feature": "duration_ms",
+          "raw": 1019.634,
+          "imputed": false,
+          "transformed": 6.928179,
+          "standardised": -15.922081,
+          "weight": -10.596340435,
+          "contribution_to_logit": 168.715786
+        },
+        {
+          "feature": "frequency_hz",
+          "raw": 50.017953,
+          "imputed": false,
+          "transformed": 3.932178,
+          "standardised": 4.093274,
+          "weight": 0.6555247351,
+          "contribution_to_logit": 2.683242
+        },
+        {
+          "feature": "gap_p95_ms",
+          "raw": 20.3629,
+          "imputed": false,
+          "transformed": 3.061656,
+          "standardised": -1.612651,
+          "weight": -0.9375573051,
+          "contribution_to_logit": 1.511953
+        },
+        {
+          "feature": "gap_max_ms",
+          "raw": 20.5543,
+          "imputed": false,
+          "transformed": 3.070575,
+          "standardised": -2.205251,
+          "weight": 0.608523615,
+          "contribution_to_logit": -1.341947
+        },
+        {
+          "feature": "gap_median_ms",
+          "raw": 19.9877,
+          "imputed": false,
+          "transformed": 3.043937,
+          "standardised": 0.703029,
+          "weight": 1.1048209656,
+          "contribution_to_logit": 0.776721
+        },
+        {
+          "feature": "request_count",
+          "raw": 51,
+          "imputed": false,
+          "transformed": 3.951244,
+          "standardised": 0.739927,
+          "weight": -0.5832251308,
+          "contribution_to_logit": -0.431544
+        }
+      ],
+      "outside_training_p1_p99": [
+        {
+          "feature": "frequency_hz",
+          "value": 50.017953,
+          "training_p1": 0.0436,
+          "training_p99": 44.2936
+        },
+        {
+          "feature": "duration_ms",
+          "value": 1019.634,
+          "training_p1": 10000.57,
+          "training_p99": 30015.054
+        }
+      ]
+    },
+    {
+      "window_index": 4,
+      "samples": 50,
+      "features": {
+        "request_count": 50,
+        "duration_ms": 1000.025,
+        "frequency_hz": 49.998775,
+        "gap_median_ms": 19.988,
+        "gap_p95_ms": 20.1849,
+        "gap_max_ms": 20.5071
+      },
+      "probability": 1.0,
+      "logit": 175.455684,
+      "threshold": 0.1,
+      "decision": "ATTACK",
+      "contributions": [
+        {
+          "feature": "duration_ms",
+          "raw": 1000.025,
+          "imputed": false,
+          "transformed": 6.90878,
+          "standardised": -16.018327,
+          "weight": -10.596340435,
+          "contribution_to_logit": 169.735642
+        },
+        {
+          "feature": "frequency_hz",
+          "raw": 49.998775,
+          "imputed": false,
+          "transformed": 3.931802,
+          "standardised": 4.092796,
+          "weight": 0.6555247351,
+          "contribution_to_logit": 2.682929
+        },
+        {
+          "feature": "gap_p95_ms",
+          "raw": 20.1849,
+          "imputed": false,
+          "transformed": 3.053289,
+          "standardised": -1.616004,
+          "weight": -0.9375573051,
+          "contribution_to_logit": 1.515097
+        },
+        {
+          "feature": "gap_max_ms",
+          "raw": 20.5071,
+          "imputed": false,
+          "transformed": 3.068383,
+          "standardised": -2.20626,
+          "weight": 0.608523615,
+          "contribution_to_logit": -1.342562
+        },
+        {
+          "feature": "gap_median_ms",
+          "raw": 19.988,
+          "imputed": false,
+          "transformed": 3.043951,
+          "standardised": 0.703037,
+          "weight": 1.1048209656,
+          "contribution_to_logit": 0.77673
+        },
+        {
+          "feature": "request_count",
+          "raw": 50,
+          "imputed": false,
+          "transformed": 3.931826,
+          "standardised": 0.723818,
+          "weight": -0.5832251308,
+          "contribution_to_logit": -0.422149
+        }
+      ],
+      "outside_training_p1_p99": [
+        {
+          "feature": "frequency_hz",
+          "value": 49.998775,
+          "training_p1": 0.0436,
+          "training_p99": 44.2936
+        },
+        {
+          "feature": "duration_ms",
+          "value": 1000.025,
+          "training_p1": 10000.57,
+          "training_p99": 30015.054
+        }
+      ]
+    },
+    {
+      "window_index": 5,
+      "samples": 51,
+      "features": {
+        "request_count": 51,
+        "duration_ms": 1020.045,
+        "frequency_hz": 49.99777,
+        "gap_median_ms": 20.0141,
+        "gap_p95_ms": 20.1932,
+        "gap_max_ms": 20.4428
+      },
+      "probability": 1.0,
+      "logit": 174.40498,
+      "threshold": 0.1,
+      "decision": "ATTACK",
+      "contributions": [
+        {
+          "feature": "duration_ms",
+          "raw": 1020.045,
+          "imputed": false,
+          "transformed": 6.928582,
+          "standardised": -15.920083,
+          "weight": -10.596340435,
+          "contribution_to_logit": 168.694621
+        },
+        {
+          "feature": "frequency_hz",
+          "raw": 49.99777,
+          "imputed": false,
+          "transformed": 3.931782,
+          "standardised": 4.092771,
+          "weight": 0.6555247351,
+          "contribution_to_logit": 2.682913
+        },
+        {
+          "feature": "gap_p95_ms",
+          "raw": 20.1932,
+          "imputed": false,
+          "transformed": 3.05368,
+          "standardised": -1.615847,
+          "weight": -0.9375573051,
+          "contribution_to_logit": 1.514949
+        },
+        {
+          "feature": "gap_max_ms",
+          "raw": 20.4428,
+          "imputed": false,
+          "transformed": 3.065389,
+          "standardised": -2.20764,
+          "weight": 0.608523615,
+          "contribution_to_logit": -1.343401
+        },
+        {
+          "feature": "gap_median_ms",
+          "raw": 20.0141,
+          "imputed": false,
+          "transformed": 3.045194,
+          "standardised": 0.703684,
+          "weight": 1.1048209656,
+          "contribution_to_logit": 0.777445
+        },
+        {
+          "feature": "request_count",
+          "raw": 51,
+          "imputed": false,
+          "transformed": 3.951244,
+          "standardised": 0.739927,
+          "weight": -0.5832251308,
+          "contribution_to_logit": -0.431544
+        }
+      ],
+      "outside_training_p1_p99": [
+        {
+          "feature": "frequency_hz",
+          "value": 49.99777,
+          "training_p1": 0.0436,
+          "training_p99": 44.2936
+        },
+        {
+          "feature": "duration_ms",
+          "value": 1020.045,
+          "training_p1": 10000.57,
+          "training_p99": 30015.054
+        }
+      ]
+    },
+    {
+      "window_index": 6,
+      "samples": 50,
+      "features": {
+        "request_count": 50,
+        "duration_ms": 1000.09,
+        "frequency_hz": 49.995481,
+        "gap_median_ms": 20.0288,
+        "gap_p95_ms": 20.3404,
+        "gap_max_ms": 20.6233
+      },
+      "probability": 1.0,
+      "logit": 175.452098,
+      "threshold": 0.1,
+      "decision": "ATTACK",
+      "contributions": [
+        {
+          "feature": "duration_ms",
+          "raw": 1000.09,
+          "imputed": false,
+          "transformed": 6.908845,
+          "standardised": -16.018005,
+          "weight": -10.596340435,
+          "contribution_to_logit": 169.732229
+        },
+        {
+          "feature": "frequency_hz",
+          "raw": 49.995481,
+          "imputed": false,
+          "transformed": 3.931737,
+          "standardised": 4.092714,
+          "weight": 0.6555247351,
+          "contribution_to_logit": 2.682875
+        },
+        {
+          "feature": "gap_p95_ms",
+          "raw": 20.3404,
+          "imputed": false,
+          "transformed": 3.060602,
+          "standardised": -1.613073,
+          "weight": -0.9375573051,
+          "contribution_to_logit": 1.512349
+        },
+        {
+          "feature": "gap_max_ms",
+          "raw": 20.6233,
+          "imputed": false,
+          "transformed": 3.073771,
+          "standardised": -2.203779,
+          "weight": 0.608523615,
+          "contribution_to_logit": -1.341051
+        },
+        {
+          "feature": "gap_median_ms",
+          "raw": 20.0288,
+          "imputed": false,
+          "transformed": 3.045893,
+          "standardised": 0.704049,
+          "weight": 1.1048209656,
+          "contribution_to_logit": 0.777848
+        },
+        {
+          "feature": "request_count",
+          "raw": 50,
+          "imputed": false,
+          "transformed": 3.931826,
+          "standardised": 0.723818,
+          "weight": -0.5832251308,
+          "contribution_to_logit": -0.422149
+        }
+      ],
+      "outside_training_p1_p99": [
+        {
+          "feature": "frequency_hz",
+          "value": 49.995481,
+          "training_p1": 0.0436,
+          "training_p99": 44.2936
+        },
+        {
+          "feature": "duration_ms",
+          "value": 1000.09,
+          "training_p1": 10000.57,
+          "training_p99": 30015.054
+        }
+      ]
+    }
+  ],
+  "diagnosis_hint": "若 duration_ms / request_count / frequency_hz 的取值与 training_percentiles 相差一个数量级，说明窗口契约不一致，而不是\"模型学错了\"。"
+}

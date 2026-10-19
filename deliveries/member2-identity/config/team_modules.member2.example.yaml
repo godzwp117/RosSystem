@@ -1,0 +1,28 @@
+# 安全提示：这只是显式示例，不要把历史实验回放配置直接投入生产。
+# 请用 scripts/member2_adapter_check.py 自动生成经本地验证的临时配置。
+# REPLACE_WITH_REAL_SROS2_RUN_ID 不会匹配证据；模块将安全返回 UNKNOWN。
+adapter:
+  log_path: logs/member2_adapter.jsonl
+  planner_command: ["ros2", "run", "rg_demo_nodes", "planner_node"]
+modules:
+  comm_risk:
+    mode: mock
+    interface: comm_risk_evidence
+    command: ["python3", "mock_modules/comm_risk_mock.py"]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+  identity_trust:
+    mode: external
+    interface: identity_trust_assessment
+    command: ["python3", "identity_trust/assessor.py", "--experiment-run", "REPLACE_WITH_REAL_SROS2_RUN_ID", "--case", "S2"]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+  task_risk:
+    mode: mock
+    interface: task_risk_decision
+    command: ["python3", "mock_modules/task_risk_mock.py"]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false

@@ -1,0 +1,136 @@
+{
+  "schema_version": "1.0.0-proposed",
+  "collected_at": "2026-10-19T02:20:09.585415Z",
+  "window_contract": {
+    "training_window_ms": 30000.0,
+    "observed_window_ms": 1000.0,
+    "relative_deviation": 0.9667,
+    "tolerance": 0.2,
+    "compliant": false,
+    "why": "窗口时长是模型输入的量纲之一；训练用 30 秒窗口时，1 秒窗口会让 duration_ms 偏离训练分布约 30 倍，导致正常流量被判为攻击（已实测归因）。"
+  },
+  "collector": {
+    "component": "modules/member1_comm/collector/ros2_window.py",
+    "observation_source": "LIVE_ROS2_SUBSCRIPTION",
+    "topic": "/m1p3/g",
+    "message_type": "std_msgs/msg/String",
+    "count_definition": "本进程在该窗口内实际收到的消息数（不由命令行或信封提供）",
+    "duration_sec": 8.0,
+    "interval_sec": 1.0,
+    "total_messages": 350
+  },
+  "feature_semantics": {
+    "request_count": "窗口内消息数",
+    "frequency_hz": "request_count / 窗口秒数",
+    "gap_median_ms": "相邻消息到达间隔的中位数（毫秒）",
+    "gap_p95_ms": "相邻消息到达间隔的 95 分位（毫秒）",
+    "gap_max_ms": "相邻消息到达间隔的最大值（毫秒）",
+    "duration_ms": "窗口时长（毫秒）",
+    "alignment_note": "与训练集 windows_0.jsonl 同名同定义；训练集来自 PCAP 侧统计，本采集器来自 ROS 2 订阅侧，二者在\"同一资源、同一时间窗\"意义下语义等价，但采样位置不同，数值不保证逐点相同。"
+  },
+  "windows": [
+    {
+      "window_start_monotonic": 404173.848258,
+      "window_end_monotonic": 404174.866439,
+      "features": {
+        "request_count": 47,
+        "duration_ms": 1018.181,
+        "frequency_hz": 46.160772,
+        "gap_median_ms": 19.9302,
+        "gap_p95_ms": 20.3232,
+        "gap_max_ms": 20.3724
+      },
+      "samples": 47
+    },
+    {
+      "window_start_monotonic": 404174.866439,
+      "window_end_monotonic": 404175.866668,
+      "features": {
+        "request_count": 50,
+        "duration_ms": 1000.229,
+        "frequency_hz": 49.988552,
+        "gap_median_ms": 20.008,
+        "gap_p95_ms": 20.3172,
+        "gap_max_ms": 20.7361
+      },
+      "samples": 50
+    },
+    {
+      "window_start_monotonic": 404175.866668,
+      "window_end_monotonic": 404176.886763,
+      "features": {
+        "request_count": 51,
+        "duration_ms": 1020.095,
+        "frequency_hz": 49.995321,
+        "gap_median_ms": 19.9794,
+        "gap_p95_ms": 20.4812,
+        "gap_max_ms": 20.8167
+      },
+      "samples": 51
+    },
+    {
+      "window_start_monotonic": 404176.886763,
+      "window_end_monotonic": 404177.906379,
+      "features": {
+        "request_count": 51,
+        "duration_ms": 1019.615,
+        "frequency_hz": 50.018858,
+        "gap_median_ms": 20.0141,
+        "gap_p95_ms": 20.4904,
+        "gap_max_ms": 20.6332
+      },
+      "samples": 51
+    },
+    {
+      "window_start_monotonic": 404177.906379,
+      "window_end_monotonic": 404178.926262,
+      "features": {
+        "request_count": 51,
+        "duration_ms": 1019.883,
+        "frequency_hz": 50.005746,
+        "gap_median_ms": 20.0299,
+        "gap_p95_ms": 20.4886,
+        "gap_max_ms": 20.5601
+      },
+      "samples": 51
+    },
+    {
+      "window_start_monotonic": 404178.926262,
+      "window_end_monotonic": 404179.92636,
+      "features": {
+        "request_count": 50,
+        "duration_ms": 1000.098,
+        "frequency_hz": 49.995102,
+        "gap_median_ms": 19.9981,
+        "gap_p95_ms": 20.3424,
+        "gap_max_ms": 20.7525
+      },
+      "samples": 50
+    },
+    {
+      "window_start_monotonic": 404179.92636,
+      "window_end_monotonic": 404180.926565,
+      "features": {
+        "request_count": 50,
+        "duration_ms": 1000.205,
+        "frequency_hz": 49.989738,
+        "gap_median_ms": 20.0056,
+        "gap_p95_ms": 20.3993,
+        "gap_max_ms": 20.6298
+      },
+      "samples": 50
+    }
+  ],
+  "verdict": {
+    "status": "WINDOW_CONTRACT_MISMATCH",
+    "reason": "窗口时长 1000.0 ms 与训练窗口 30000.0 ms 相对偏差 96.7%，超出容差 20%；该输入不在模型训练域内，拒绝给出 NORMAL/SUSPICIOUS 结论",
+    "contract": {
+      "training_window_ms": 30000.0,
+      "observed_window_ms": 1000.0,
+      "relative_deviation": 0.9667,
+      "tolerance": 0.2,
+      "compliant": false,
+      "why": "窗口时长是模型输入的量纲之一；训练用 30 秒窗口时，1 秒窗口会让 duration_ms 偏离训练分布约 30 倍，导致正常流量被判为攻击（已实测归因）。"
+    }
+  }
+}
