@@ -1,0 +1,42 @@
+{
+  "run_id": "m2api-20261018T160244Z",
+  "research_base_sha": "be47ccd6c1b19460b65abc0ea8004706383d01d4",
+  "branch": "research/m2-current-identity",
+  "git_head_at_run": "be47ccd6c1b19460b65abc0ea8004706383d01d4",
+  "dds_versions": {
+    "ros-jazzy-fastrtps": "2.14.6-1noble",
+    "ros-jazzy-fastcdr": "2.2.8-1noble",
+    "ros-jazzy-rmw-fastrtps-cpp": "8.4.4-1noble"
+  },
+  "environment": {
+    "container": "rg_m2",
+    "domain": 58,
+    "security": "enforce (research keystore)",
+    "keystore": "artifacts/research/m2/m2api-20261018T160244Z/keystore (research-only, gitignored)"
+  },
+  "api_finding": {
+    "api": "ParticipantProxyData::identity_token_ (public, HAVE_SECURITY)",
+    "listener": "DomainParticipantListener::on_participant_discovery",
+    "observed_class_id": "DDS:Auth:PKI-DH:1.0",
+    "observed_cert_subject": "/CN=\\/m2_peer",
+    "observed_ca_subject": "/CN=sros2CA",
+    "negative_control": "--no-security -> has_identity=false",
+    "not_available": [
+      "rclpy direct access",
+      "custom security plugin registration (no SecurityManager.h)"
+    ]
+  },
+  "experiments": {
+    "total": 9,
+    "pass": 9,
+    "fail": 0
+  },
+  "artifacts": [
+    "attestation",
+    "compiler.txt",
+    "experiments",
+    "versions.txt",
+    "witness_peer.log",
+    "witness_probe.log"
+  ]
+}
