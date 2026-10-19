@@ -1,0 +1,41 @@
+{
+  "run_id": "m2p3-20261019T033811Z",
+  "base_sha": "4741656c6f205d02b1f90a3bc73268839bb3be9a",
+  "branch": "research/m2-action-origin-binding",
+  "git_head_at_run": "4741656c6f205d02b1f90a3bc73268839bb3be9a",
+  "environment": {
+    "container": "rg_m2p3",
+    "domain": 60,
+    "rmw": "rmw_fastrtps_cpp",
+    "fastdds": "2.14.6",
+    "security": "enforce (research keystore)"
+  },
+  "key_findings": {
+    "on_participant_authentication_has_guid": false,
+    "identity_source": "ParticipantProxyData::identity_token_ (certificate subject)",
+    "writer_guid_source": "SampleInfo::sample_identity.writer_guid()",
+    "requests_received": 5,
+    "distinct_senders": [
+      "/CN=\\/m2_client_a",
+      "/CN=\\/m2_client_b"
+    ],
+    "cross_binding_observed": false,
+    "window_complete_count": 5,
+    "window_coverage": "COMPLETE"
+  },
+  "artifacts": [
+    "client_a.log",
+    "client_b.log",
+    "events.jsonl",
+    "ingress.log",
+    "keystore",
+    "ledger_corrupt.json",
+    "ledger_missing.json",
+    "ledger_truncated.json",
+    "ledger_wrong_resource.json",
+    "logs",
+    "policy.xml",
+    "window_complete.json",
+    "window_early.json"
+  ]
+}
