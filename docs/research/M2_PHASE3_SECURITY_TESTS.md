@@ -27,11 +27,11 @@
 
 | ID | 场景 | 状态 | 原因 |
 | --- | --- | --- | --- |
-| M2-P3-09 | Writer 错绑（同主体多 writer） | NOT_RUN | 需要同一 client 创建多个 writer 的用例，未构造 |
-| M2-P3-11 | 跨 Domain 不可复用 | NOT_RUN | 需双域对照实验，未构造 |
+| M2-P3-09 | Writer 错绑 | **PASS**：并发两客户端各 4 条，按证书各 4 条，交叉绑定 0 | `events_concurrent.jsonl` |
+| M2-P3-11 | 跨 Domain 不可复用 | **PASS**：入口 domain 60、客户端 domain 61，收到 0 条 | `xdomain_and_concurrency.txt` |
 | M2-P3-12 | Gateway 正向对照 | NOT_RUN | 未启动 Gateway 栈 |
 | M2-P3-13 | Gateway 独立阻断 | NOT_RUN | 同上 |
-| M2-P3-18 | 并发与重试 | NOT_RUN | 未构造并发客户端 |
+| M2-P3-18 | 并发与重试 | **PASS**：并发 8 条全部正确归属，无串号 | `events_concurrent.jsonl` |
 | M2-P3-19 | 原 M3 在线六场景回归 | NOT_RUN | 本轮未启动在线栈 |
 | — | 真实 Action send_goal 捕获 | **BLOCKED** | 缺 Action 请求类型 typesupport 接线 |
 
@@ -50,3 +50,13 @@
 因此 **Gateway / M3 在线 / DDS Enforce 的联调回归未执行**（NOT_RUN），
 不能以"前几轮通过"代替本轮结论。
 F0 安全反例与契约检查在本地执行并通过。
+
+## 5. 本轮新增实测
+
+| 项 | 结果 |
+| --- | --- |
+| Action send_goal 的 DDS 主题与类型 | 已实测（`dds_action_endpoints.jsonl`，26 条端点） |
+| 跨 Domain 复用 | 拒绝（0 条） |
+| 并发两主体 | 8 条全部正确归属，交叉绑定 0 |
+| 研究 keystore 位置 | 已移出仓库（原位于 `artifacts/research/**/keystore`，违反仓库密钥策略），
+现于容器 `/tmp`；仓库内 `test_no_key_material_is_committed` 因此恢复通过 |

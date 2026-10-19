@@ -351,6 +351,32 @@ public:
         append_line(ledger_, os.str());
     }
 
+    void on_publisher_discovery(
+            fdds::DomainParticipant*,
+            rtps::WriterDiscoveryInfo&& info) override
+    {
+        if (info.status != rtps::WriterDiscoveryInfo::DISCOVERED_WRITER)
+        {
+            return;
+        }
+        std::cout << "{\"event\":\"dds_endpoint\",\"kind\":\"writer\",\"topic\":\""
+                  << json_escape(std::string(info.info.topicName())) << "\",\"type\":\""
+                  << json_escape(std::string(info.info.typeName())) << "\"}" << std::endl;
+    }
+
+    void on_subscriber_discovery(
+            fdds::DomainParticipant*,
+            rtps::ReaderDiscoveryInfo&& info) override
+    {
+        if (info.status != rtps::ReaderDiscoveryInfo::DISCOVERED_READER)
+        {
+            return;
+        }
+        std::cout << "{\"event\":\"dds_endpoint\",\"kind\":\"reader\",\"topic\":\""
+                  << json_escape(std::string(info.info.topicName())) << "\",\"type\":\""
+                  << json_escape(std::string(info.info.typeName())) << "\"}" << std::endl;
+    }
+
 #if HAVE_SECURITY
     void onParticipantAuthentication(
             fdds::DomainParticipant*,
@@ -468,6 +494,7 @@ int main(int argc, char** argv)
     int seconds = 45;
     int send_count = 1;
     bool security = true;
+    bool list_topics = false;
 
     for (int i = 1; i < argc; ++i)
     {
@@ -484,6 +511,7 @@ int main(int argc, char** argv)
         else if (arg == "--seconds")        seconds = std::atoi(argv[++i]);
         else if (arg == "--send")           send_count = std::atoi(argv[++i]);
         else if (arg == "--no-security")    security = false;
+        else if (arg == "--list-topics")    list_topics = true;
         else if (arg == "--help")
         {
             std::cout << "usage: " << argv[0]
@@ -532,6 +560,20 @@ int main(int argc, char** argv)
               << "\",\"domain\":" << domain << ",\"security\":" << (security ? "true" : "false")
               << ",\"guid_prefix\":\"" << guid_prefix_string(participant->guid().guidPrefix)
               << "\",\"resource\":\"" << json_escape(resource) << "\"}" << std::endl;
+
+    if (list_topics)
+    {
+        // Fast DDS 2.14 的 `get_discovered_topics` 明确标注 "Not supported yet"
+        // （返回 RETCODE_UNSUPPORTED），因此从**端点发现回调**取真实 DDS 名称：
+        // WriterDiscoveryInfo / ReaderDiscoveryInfo 带 topic_name 与 type_name。
+        // 这是核实 "Action 服务 -> DDS 主题映射" 的直接证据。
+        std::this_thread::sleep_for(std::chrono::seconds(seconds));
+        participant->delete_contained_entities();
+        eprosima::fastdds::dds::DomainParticipantFactory::get_instance()
+            ->delete_participant(participant);
+        delete listener;
+        return 0;
+    }
 
     if (role != "client")
     {

@@ -89,3 +89,65 @@ ROS 2 Action 的 `send_goal` 是**服务请求**，映射到 DDS 的 `rq/<servic
 本轮把时间用于先打通**同一绑定机制**（自定义类型已完整验证），
 以上三点列为后续工作。**因此 `ACTION_SEND_GOAL_CAPTURED` 判 BLOCKED**，
 不以"机制相同"冒充已完成。
+
+---
+
+## 5. Action send_goal 的真实 DDS 映射（本轮实测，补齐 §4 缺口）
+
+本轮不再停留在"需要 typesupport"的推断，而是**实际跑了一个真实的
+`PatrolNavigate` Action Server**（rclpy + 已构建的 `rg_interfaces`），
+并用 DDS 端点发现回调枚举它注册的真实主题与类型。
+
+采集方式：`on_publisher_discovery` / `on_subscriber_discovery`
+（注意：Fast DDS 2.14 的 `get_discovered_topics()` 标注 "Not supported yet"，
+返回 `RETCODE_UNSUPPORTED`，因此必须走端点发现回调）。
+
+### 5.1 send_goal 相关端点（原文摘录）
+
+```json
+{"kind":"reader","topic":"rq/rg/guarded_navigate/_action/send_goalRequest",
+ "type":"rg_interfaces::action::dds_::PatrolNavigate_SendGoal_Request_"}
+{"kind":"writer","topic":"rr/rg/guarded_navigate/_action/send_goalReply",
+ "type":"rg_interfaces::action::dds_::PatrolNavigate_SendGoal_Response_"}
+```
+
+其余相关端点（同一份证据，见 `dds_action_endpoints.jsonl`，共 26 条）：
+
+| 主题 | 类型 | 归属 |
+| --- | --- | --- |
+| `rq/rg/guarded_navigate/_action/get_resultRequest` | `PatrolNavigate_GetResult_Request_` | 服务端 Reader |
+| `rr/rg/guarded_navigate/_action/get_resultReply` | `PatrolNavigate_GetResult_Response_` | 服务端 Writer |
+| `rq/rg/guarded_navigate/_action/cancel_goalRequest` | `action_msgs::srv::dds_::CancelGoal_Request_` | 服务端 Reader |
+| `rr/rg/guarded_navigate/_action/cancel_goalReply` | `CancelGoal_Response_` | 服务端 Writer |
+| `rt/rg/guarded_navigate/_action/feedback` | `PatrolNavigate_FeedbackMessage_` | 服务端 Writer |
+| `rt/rg/guarded_navigate/_action/status` | `action_msgs::msg::dds_::GoalStatusArray_` | 服务端 Writer |
+
+### 5.2 对 §6 十个问题的回答
+
+| 问题 | 实测答案 |
+| --- | --- |
+| Action IDL | `src/rg_interfaces/action/PatrolNavigate.action`（仓库内唯一 action） |
+| SendGoal 请求具体类型 | `rg_interfaces::action::dds_::PatrolNavigate_SendGoal_Request_` |
+| 服务到 DDS 主题映射 | 请求 `rq/<service>`，响应 `rr/<service>`；Action 服务名为 `<action>/_action/send_goal` |
+| DataWriter / DataReader 位置 | **请求方向：客户端 Writer → 服务端 Reader**；观察 send_goal 必须以 Reader 订阅 `rq/...Request` |
+| 请求 SampleIdentity | 由 `SampleInfo::sample_identity`（含 `writer_guid` + `sequence_number`）提供 |
+| 请求 Writer GUID | 同上，接收侧填充，发送方无法伪造 |
+| `publication_handle` | 属 rclcpp/rcl 层句柄，**不携带认证主体**，不能作为身份依据 |
+| 响应 `related_sample_identity` | 是**响应**与**请求**的关联，**不是**请求发送者的身份来源 |
+| Goal UUID | 在请求负载内（`goal_id`），由客户端生成，**可伪造，不能作为身份依据** |
+| Action 目标及其他业务字段 | 同样在请求负载内，需与 writer GUID 绑定才有意义 |
+
+**结论**：`SampleInfo.sample_identity.writer_guid()` 确实是请求发送者的可靠标识；
+但 `Goal UUID`、`publication_handle`、`related_sample_identity` **都不能**用于身份推定。
+这正是任务书要求"不得混用"的几项。
+
+### 5.3 为什么仍判 BLOCKED 而不是 PASS
+
+要在**原始 DDS 层**订阅 `rq/.../send_goalRequest`，还需要把
+`rg_interfaces::action::dds_::PatrolNavigate_SendGoal_Request_` 的
+typesupport 装进我自己的 `TopicDataType`（`rosidl_typesupport_fastrtps_cpp`），
+并验证额外 Reader 不会影响服务端正常接收。
+
+本轮已经把**主题名、类型名、方向、观察位置**全部测出来（这些是接线所需的全部输入），
+但**没有实际完成订阅与干扰验证**，所以 `ACTION_SEND_GOAL_CAPTURED` 仍判 **BLOCKED**。
+下一步是纯工程接线，不再是未知问题。

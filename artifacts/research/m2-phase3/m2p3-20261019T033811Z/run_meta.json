@@ -21,21 +21,35 @@
     ],
     "cross_binding_observed": false,
     "window_complete_count": 5,
-    "window_coverage": "COMPLETE"
+    "window_coverage": "COMPLETE",
+    "action_send_goal_dds_topic": "rq/rg/guarded_navigate/_action/send_goalRequest",
+    "action_send_goal_type": "rg_interfaces::action::dds_::PatrolNavigate_SendGoal_Request_",
+    "action_endpoint_count": 26,
+    "cross_domain_events_received": 0,
+    "concurrent_requests": 8,
+    "concurrent_cross_bindings": 0,
+    "unit_suite": "763 passed, 3 skipped",
+    "keystore_relocated": "moved out of repo to container /tmp (policy compliance)"
   },
   "artifacts": [
+    "SHA256SUMS.txt",
+    "action_server.log",
     "client_a.log",
     "client_b.log",
+    "dds_action_endpoints.jsonl",
     "events.jsonl",
+    "events_concurrent.jsonl",
+    "events_xdomain.jsonl",
     "ingress.log",
-    "keystore",
     "ledger_corrupt.json",
     "ledger_missing.json",
     "ledger_truncated.json",
     "ledger_wrong_resource.json",
     "logs",
     "policy.xml",
+    "run_meta.json",
     "window_complete.json",
-    "window_early.json"
+    "window_early.json",
+    "xdomain_and_concurrency.txt"
   ]
 }
