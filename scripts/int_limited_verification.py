@@ -41,7 +41,12 @@ from test_team_process_protocol import (  # noqa: E402
 RESULTS = []
 
 
-def record(item, name, expectation, result, ok):
+#: 证据来源标签。**不得**用适配器返回的 JSON 字段冒充真实 Gateway 观测。
+ADAPTER_UNIT_ONLY = 'ADAPTER_UNIT_ONLY'
+REAL_ROS2_ONLINE_AUDIT = 'REAL_ROS2_ONLINE_AUDIT'
+
+
+def record(item, name, expectation, result, ok, evidence_source=ADAPTER_UNIT_ONLY):
     downstream = {
         'decision': result.get('decision'),
         'reason_code': result.get('reason_code'),
@@ -55,6 +60,7 @@ def record(item, name, expectation, result, ok):
         'downstream': downstream,
         'module_statuses': [(m.get('module'), m.get('status'))
                             for m in (result.get('modules') or [])],
+        'evidence_source': evidence_source,
         'verdict': 'PASS' if ok else 'FAIL',
     })
     print(f'  [{"PASS" if ok else "FAIL"}] item {item:>2} {name}: '
@@ -129,14 +135,19 @@ def main(argv=None):
               if r['downstream'].get('gateway_submission')
               or r['downstream'].get('submitted_to_gateway')]
     RESULTS.append({
-        'item': '8', 'case': '被阻断请求未进入 Planner/Gateway',
-        'expectation': '所有 ADAPTER_BLOCK 结果不得带下游提交标记',
+        'item': '8', 'case': '被阻断请求未进入 Planner（适配器层）',
+        'expectation': ('所有 ADAPTER_BLOCK 结果不得带下游提交标记；'
+                        '该结论仅覆盖适配器层，Gateway 实际到达与否'
+                        '必须由真实在线审计另行证明，不能由本字段推断'),
         'decision': f'{len(blocked_cases)} blocked / {len(leaked)} leaked',
         'reason_code': None, 'downstream': None, 'module_statuses': [],
+        'evidence_source': ADAPTER_UNIT_ONLY,
+        'scope_limit': '适配器层证据；不等价于 Gateway 审计中的 0 到达',
         'verdict': 'PASS' if not leaked else 'FAIL',
     })
     print(f'  [{"PASS" if not leaked else "FAIL"}] item  8 '
-          f'阻断后下游泄漏: {len(leaked)} / {len(blocked_cases)}')
+          f'适配器层下游泄漏: {len(leaked)} / {len(blocked_cases)}'
+          f'（Gateway 层面由真实在线审计另行验证）')
 
     # ---- 12) M2 研究组件不得改变原有决策 ----
     # M2 组件（src/m2_witness/**、scripts/m2_*.py）只在被显式调用时运行，
@@ -151,6 +162,10 @@ def main(argv=None):
             and result_a.get('reason_code') == result_b.get('reason_code'))
     record('12', 'M2 组件存在不改变 F0 决策（重复判定一致）',
            '两次判定完全一致', result_b, same)
+    # 注意：本项只证明 F0 适配器自身判定稳定，**不**证明 Gateway 的
+    # ALLOW/BLOCK 行为未变。Gateway 权威对照必须由真实在线审计证明
+    # （见 docs/integration/LIMITED_THREE_REAL_ONLINE_CLOSEOUT.md）。
+    RESULTS[-1]['scope_limit'] = '仅 F0 适配器重复判定；Gateway 决策对照需真实在线证据'
 
     # F0 适配器是否导入 M2 研究脚本（应为否）
     adapter_source = Path(REPO, 'scripts', 'team_demo.py').read_text(encoding='utf-8')
@@ -162,6 +177,7 @@ def main(argv=None):
         'expectation': 'team_demo.py 不得引用 M2 研究组件',
         'decision': 'imported' if imports_m2 else 'not imported',
         'reason_code': None, 'downstream': None, 'module_statuses': [],
+        'evidence_source': ADAPTER_UNIT_ONLY,
         'verdict': 'PASS' if not imports_m2 else 'FAIL',
     })
     print(f'  [{"PASS" if not imports_m2 else "FAIL"}] item 12b '
@@ -172,9 +188,12 @@ def main(argv=None):
         'contract': 'limited-three-real-verification/1',
         'cases': len(RESULTS), 'pass': passed,
         'fail': len(RESULTS) - passed,
-        'scope_note': ('本证据只覆盖三真实调用、Schema、严格失败关闭与 M2 惰性；'
-                       '不包含 ROS 2 下游、M3 在线六场景、DDS Enforce，'
-                       '因此不得据此宣称 LEVEL 3 通过。'),
+        'scope_note': ('本文件全部用例均为 ADAPTER_UNIT_ONLY：使用受控 Mock 驱动 F0，'
+                       '证明受控决策与失败关闭。它**不**包含真实 ROS 2 下游、'
+                       'M3 在线六场景与 DDS Enforce；那些结论见 '
+                       'LIMITED_THREE_REAL_ONLINE_CLOSEOUT.md 的真实在线证据。'
+                       '不得据此宣称 LEVEL 3 通过，也不得用本文件的 '
+                       'gateway_submission 字段推断 Gateway 是否收到请求。'),
         'results': RESULTS,
     }
     out = evidence / 'limited_verification.json'

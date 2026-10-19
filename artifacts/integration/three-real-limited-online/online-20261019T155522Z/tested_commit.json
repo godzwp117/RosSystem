@@ -1,0 +1,10 @@
+{
+  "tested_commit": "fdc322338499594b06fd94134a2b458a0742b847",
+  "note": "本轮未修改被测产品代码；仅新增集成验收脚本与文档。在线验证在该 SHA 的代码上执行。",
+  "merged_research": {
+    "m1": "d5f03af47df6aac90157d5e86817732fb2c8e691",
+    "m2": "a1d699674204543afc8b15c88bd6df8c7da794de",
+    "m2_guid_fix": "b0bf9cf002d36682966af66b81845101f30dc5bc"
+  },
+  "run_id": "online-20261019T155522Z"
+}
