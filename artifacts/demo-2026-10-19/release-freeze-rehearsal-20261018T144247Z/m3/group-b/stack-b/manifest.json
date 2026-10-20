@@ -1,0 +1,23 @@
+{
+  "run_id": "rehearsal-20261018T144247Z-m3b",
+  "scenarios": [
+    {
+      "cid": "ON03",
+      "request_id": "on03-rehearsal-20261018T144247Z-m3b",
+      "run_id": "rehearsal-20261018T144247Z-m3b",
+      "expected": "UNKNOWN_BLOCK"
+    },
+    {
+      "cid": "ON04",
+      "request_id": "on04-rehearsal-20261018T144247Z-m3b",
+      "run_id": "rehearsal-20261018T144247Z-m3b",
+      "expected": "ERROR_BLOCK"
+    },
+    {
+      "cid": "ON06",
+      "request_id": "on06-rehearsal-20261018T144247Z-m3b",
+      "run_id": "rehearsal-20261018T144247Z-m3b",
+      "expected": "TIMEOUT_NOT_BLOCK"
+    }
+  ]
+}

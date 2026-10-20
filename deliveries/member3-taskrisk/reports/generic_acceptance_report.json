@@ -1,0 +1,375 @@
+{
+  "baseline_sha": "a4c597161d254192b662ee7b8f4d17f76a89cc16",
+  "module": "task_risk",
+  "config": "config/team_modules.member3.yaml",
+  "module_command": [
+    "python3",
+    "modules/member3_taskrisk/module.py",
+    "--policy",
+    "config/task_policy.yaml"
+  ],
+  "executable": "python3",
+  "test_layer": "L1_PROTOCOL",
+  "layer_note": "本脚本只做 L1 协议层验收。通过 L1 不代表算法有效（L2），也不代表具备实时监测能力（L3）。",
+  "checks": [
+    {
+      "id": "CFG-01",
+      "check": "模块配置可解析",
+      "status": "PASS",
+      "detail": "config/team_modules.member3.yaml",
+      "mandatory": true
+    },
+    {
+      "id": "CFG-02",
+      "check": "配置中包含目标模块",
+      "status": "PASS",
+      "detail": "modules 键: ['comm_risk', 'identity_trust', 'task_risk']",
+      "mandatory": true
+    },
+    {
+      "id": "CFG-03",
+      "check": "command 是参数数组（非字符串）",
+      "status": "PASS",
+      "detail": "type=list",
+      "mandatory": true
+    },
+    {
+      "id": "CFG-04",
+      "check": "命令来自受信任本地配置（非业务输入）",
+      "status": "PASS",
+      "detail": "命令只取自 --config 指定的文件",
+      "mandatory": true
+    },
+    {
+      "id": "CFG-05",
+      "check": "接口名与模块匹配",
+      "status": "PASS",
+      "detail": "interface='task_risk_decision'",
+      "mandatory": true
+    },
+    {
+      "id": "RUN-01",
+      "check": "模块被真实调用（记录命令与返回码）",
+      "status": "PASS",
+      "detail": "rc=0 elapsed=0.09s exceeded=None",
+      "mandatory": true,
+      "returncode": 0,
+      "elapsed_sec": 0.095,
+      "stdout_bytes": 1723,
+      "pgid": 26,
+      "exceeded": null,
+      "stderr_head": "[member3] status=ALLOW_RECOMMENDED\n"
+    },
+    {
+      "id": "PROTO-01",
+      "check": "stdout 非空",
+      "status": "PASS",
+      "detail": "1723 字节",
+      "mandatory": true
+    },
+    {
+      "id": "PROTO-02",
+      "check": "stdout 只含一个 JSON 对象",
+      "status": "PASS",
+      "detail": "行数=1",
+      "mandatory": true
+    },
+    {
+      "id": "PROTO-03",
+      "check": "stdout 无额外调试文本污染",
+      "status": "PASS",
+      "detail": "首字符='{'",
+      "mandatory": true
+    },
+    {
+      "id": "PROTO-04",
+      "check": "stdout 未超过 max_stdout_bytes",
+      "status": "PASS",
+      "detail": "1723 <= 65536",
+      "mandatory": true
+    },
+    {
+      "id": "PROTO-05",
+      "check": "诊断信息写入 stderr（stdout 依然干净）",
+      "status": "PASS",
+      "detail": "stderr 35 字节",
+      "mandatory": true
+    },
+    {
+      "id": "PROTO-06",
+      "check": "stdout 是合法 JSON",
+      "status": "PASS",
+      "detail": "",
+      "mandatory": true
+    },
+    {
+      "id": "ID-01",
+      "check": "run_id 与输入一致",
+      "status": "PASS",
+      "detail": "'member-acceptance'",
+      "mandatory": true
+    },
+    {
+      "id": "ID-02",
+      "check": "request_id 与输入一致",
+      "status": "PASS",
+      "detail": "'req-accept-001'",
+      "mandatory": true
+    },
+    {
+      "id": "ID-03",
+      "check": "event_id 存在且含 request_id",
+      "status": "PASS",
+      "detail": "'m3-req-accept-001-8059c4bda24c465ab39c6f9cd0493766'",
+      "mandatory": true
+    },
+    {
+      "id": "ID-04",
+      "check": "schema_version 合法",
+      "status": "PASS",
+      "detail": "'1.0.0-proposed'",
+      "mandatory": true
+    },
+    {
+      "id": "SEM-01",
+      "check": "producer.source 语义合法",
+      "status": "PASS",
+      "detail": "'EXTERNAL'",
+      "mandatory": true,
+      "implementation_type": "EXTERNAL"
+    },
+    {
+      "id": "SEM-02",
+      "check": "evidence_refs 存在且 kind 合法",
+      "status": "PASS",
+      "detail": "['UNKNOWN', 'UNKNOWN']",
+      "mandatory": true
+    },
+    {
+      "id": "SCH-01",
+      "check": "Schema 校验",
+      "status": "PASS",
+      "detail": "",
+      "mandatory": true,
+      "schema_error": null
+    },
+    {
+      "id": "STATE-01",
+      "check": "正常状态为允许推进值",
+      "status": "PASS",
+      "detail": "ALLOW_RECOMMENDED",
+      "mandatory": true
+    },
+    {
+      "id": "STATE-ALLOW",
+      "check": "allow 场景真实运行 -> ALLOW_RECOMMENDED（PROCEED）",
+      "status": "PASS",
+      "detail": "rc=0 state=ALLOW_RECOMMENDED schema_ok=True class=PROCEED ids_ok=True",
+      "mandatory": true,
+      "scenario": "allow",
+      "schema_valid": true,
+      "security_class": "PROCEED",
+      "returncode": 0
+    },
+    {
+      "id": "STATE-BLOCK",
+      "check": "block 场景真实运行 -> BLOCK_RECOMMENDED（LEGAL_BLOCK）",
+      "status": "FAIL",
+      "detail": "rc=0 state=ALLOW_RECOMMENDED schema_ok=True class=PROCEED ids_ok=True",
+      "mandatory": true,
+      "scenario": "block",
+      "schema_valid": true,
+      "security_class": "PROCEED",
+      "returncode": 0
+    },
+    {
+      "id": "STATE-UNKNOWN",
+      "check": "unknown 场景真实运行 -> UNKNOWN（LEGAL_BLOCK）",
+      "status": "FAIL",
+      "detail": "rc=0 state=ALLOW_RECOMMENDED schema_ok=True class=PROCEED ids_ok=True",
+      "mandatory": true,
+      "scenario": "unknown",
+      "schema_valid": true,
+      "security_class": "PROCEED",
+      "returncode": 0
+    },
+    {
+      "id": "STATE-ERROR",
+      "check": "error 场景真实运行 -> ERROR（LEGAL_BLOCK）",
+      "status": "FAIL",
+      "detail": "rc=0 state=ALLOW_RECOMMENDED schema_ok=True class=PROCEED ids_ok=True",
+      "mandatory": true,
+      "scenario": "error",
+      "schema_valid": true,
+      "security_class": "PROCEED",
+      "returncode": 0
+    },
+    {
+      "id": "STATE-SUMMARY",
+      "check": "四状态矩阵完整执行（共 4 种）",
+      "status": "PASS",
+      "detail": "PROCEED=1 LEGAL_BLOCK=3",
+      "mandatory": true
+    },
+    {
+      "id": "STATE-CLASSIFY",
+      "check": "Schema 合法性与安全推进资格分开判定",
+      "status": "PASS",
+      "detail": "阻断状态（BLOCK_RECOMMENDED,UNKNOWN,ERROR）Schema 同样合法，被归类为 LEGAL_BLOCK 而非 Schema 错误",
+      "mandatory": true
+    },
+    {
+      "id": "ADP-BLOCK",
+      "check": "适配层对 BLOCK_RECOMMENDED 返回 ADAPTER_BLOCK",
+      "status": "PASS",
+      "detail": "rc=10 decision=ADAPTER_MODULE_EXIT_NONZERO",
+      "mandatory": true,
+      "returncode": 10
+    },
+    {
+      "id": "ADP-UNKNOWN",
+      "check": "适配层对 UNKNOWN 返回 ADAPTER_BLOCK",
+      "status": "PASS",
+      "detail": "rc=10 decision=ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "mandatory": true,
+      "returncode": 10
+    },
+    {
+      "id": "ADP-ERROR",
+      "check": "适配层对 ERROR 返回 ADAPTER_BLOCK",
+      "status": "PASS",
+      "detail": "rc=10 decision=ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "mandatory": true,
+      "returncode": 10
+    },
+    {
+      "id": "ERR-01",
+      "check": "非法 JSON 输入 -> 失败关闭",
+      "status": "PASS",
+      "detail": "rc=2 stdout=0B exceeded=None",
+      "mandatory": true,
+      "returncode": 2,
+      "stdout_bytes": 0
+    },
+    {
+      "id": "ERR-03",
+      "check": "schema_version 不兼容 -> 模块自行失败关闭（纵深防御）",
+      "status": "PASS",
+      "detail": "模块返回 rc=2；该项非强制，安全边界在适配层",
+      "mandatory": false,
+      "returncode": 2
+    },
+    {
+      "id": "ERR-04",
+      "check": "缺 observations -> 模块自行失败关闭（纵深防御）",
+      "status": "PASS",
+      "detail": "模块返回 rc=2；该项非强制，安全边界在适配层",
+      "mandatory": false,
+      "returncode": 2
+    },
+    {
+      "id": "ADP-01",
+      "check": "适配层对畸形信封失败关闭（真正的安全边界）",
+      "status": "PASS",
+      "detail": "rc=3 stdout 含 ADAPTER_BLOCK=True",
+      "mandatory": true,
+      "returncode": 3
+    },
+    {
+      "id": "LIM-01",
+      "check": "极小超时下不会挂起（超时即阻断）",
+      "status": "PASS",
+      "detail": "rc=-15 exceeded=TIMEOUT elapsed=0.01s",
+      "mandatory": true
+    },
+    {
+      "id": "LIM-02",
+      "check": "stdout 超限时立即终止且不判成功",
+      "status": "PASS",
+      "detail": "exceeded=STDOUT_TOO_LARGE stdout_bytes=64（上限 64）",
+      "mandatory": true,
+      "exceeded": "STDOUT_TOO_LARGE",
+      "stdout_bytes": 64
+    },
+    {
+      "id": "PROC-01",
+      "check": "不快照/不残留：调用使用 shell=False 且受超时约束",
+      "status": "PASS",
+      "detail": "本工具以 subprocess.run(shell=False, timeout=...) 调用",
+      "mandatory": true
+    },
+    {
+      "id": "LAYER-02",
+      "check": "L2 真实研究算法验收",
+      "status": "NOT_RUN",
+      "detail": "需要成员提供真实输入、真实输出与证据来源；脚本不做替代",
+      "mandatory": false
+    },
+    {
+      "id": "LAYER-03",
+      "check": "L3 ROS 2 在线联调（Gateway 审计 + NavigationSim Goal）",
+      "status": "BLOCKED",
+      "detail": "需要 Jazzy 容器；只有真实 Gateway 审计与 Goal 才能证明 Action 层结果",
+      "mandatory": false
+    }
+  ],
+  "implementation_type": "EXTERNAL",
+  "algorithm_evidence": "NOT_READY",
+  "runtime_integration": "BLOCKED",
+  "meets_pr_gate": false,
+  "started_at": "2026-10-12T17:18:34Z",
+  "run_id": "member3-generic-check",
+  "state_matrix": [
+    {
+      "scenario": "allow",
+      "expected_state": "ALLOW_RECOMMENDED",
+      "expected_class": "PROCEED",
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "ALLOW_RECOMMENDED",
+      "actual_class": "PROCEED",
+      "ids_ok": true
+    },
+    {
+      "scenario": "block",
+      "expected_state": "BLOCK_RECOMMENDED",
+      "expected_class": "LEGAL_BLOCK",
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "ALLOW_RECOMMENDED",
+      "actual_class": "PROCEED",
+      "ids_ok": true
+    },
+    {
+      "scenario": "unknown",
+      "expected_state": "UNKNOWN",
+      "expected_class": "LEGAL_BLOCK",
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "ALLOW_RECOMMENDED",
+      "actual_class": "PROCEED",
+      "ids_ok": true
+    },
+    {
+      "scenario": "error",
+      "expected_state": "ERROR",
+      "expected_class": "LEGAL_BLOCK",
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "ALLOW_RECOMMENDED",
+      "actual_class": "PROCEED",
+      "ids_ok": true
+    }
+  ],
+  "counts": {
+    "PASS": 33,
+    "FAIL": 3,
+    "NOT_RUN": 1,
+    "BLOCKED": 1
+  },
+  "log_dir": "logs/member_acceptance/member3-generic-check"
+}

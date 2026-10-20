@@ -1,0 +1,6 @@
+run_id=rehearsal-20261018T144247Z
+scenario=all
+container=rg_demo
+domain=56
+enforce_domain=43
+git_sha=be47ccd6c1b19460b65abc0ea8004706383d01d4

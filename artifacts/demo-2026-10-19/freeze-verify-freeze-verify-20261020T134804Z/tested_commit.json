@@ -1,0 +1,31 @@
+{
+  "run_id": "freeze-verify-20261020T134804Z",
+  "demo_tested_code_sha": "be47ccd6c1b19460b65abc0ea8004706383d01d4",
+  "frozen_release_commit": "6786ff89ee9a60f5084668f67d5d067bf143a193",
+  "release_branch": "release/demo-2026-10-19-freeze",
+  "rc2_tag_commit": "33cb4f93d5e5fd268878fe83fc040c655d632a70",
+  "environment": {
+    "container": "rg_freeze",
+    "online_domain": 71,
+    "formal_domains": [
+      42,
+      43
+    ],
+    "ros": "jazzy",
+    "rmw": "rmw_fastrtps_cpp"
+  },
+  "results": {
+    "contracts": "PASS",
+    "f0_p0": "38 passed",
+    "unit_full": "763 passed, 3 skipped, exit 0",
+    "m3_online_six": "PASS (19 checks / 0 failures)",
+    "three_real": {
+      "called": "PASS",
+      "validated": "PASS",
+      "online_proceed": "BLOCKED"
+    },
+    "dds_enforce": "7/7 PASS"
+  },
+  "known_issue": "m3_online_extra.sh leaves STRAY=6 processes; cleaned manually",
+  "verdict": "DEMO_FREEZE_PASS"
+}

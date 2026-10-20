@@ -1,0 +1,250 @@
+{
+  "run_id": "rehearsal-20261018T144247Z",
+  "demo_tested_code_sha": "be47ccd6c1b19460b65abc0ea8004706383d01d4",
+  "results": [
+    {
+      "id": "PREFLIGHT",
+      "layer": "L0_ENV",
+      "verdict": "PASS",
+      "checks": "工作区干净 / ROS2 Jazzy+4包 / Domain 56 空闲 / keystore 可用 / TaskPolicy 未改动",
+      "log_path": "scenario_results.txt"
+    },
+    {
+      "id": "DEMO_AB",
+      "layer": "L3_ROS2",
+      "check": "Gateway A/B 基础闭环（M1/M2 Mock）",
+      "verdict": "PASS",
+      "commands": [
+        "scripts/demo_20261019_release.sh --scenario ab"
+      ],
+      "log_path": "ab/demo.log"
+    },
+    {
+      "id": "DEMO_M3_ONLINE",
+      "layer": "L3_ROS2",
+      "check": "真实 M3 在线六场景（域 56）",
+      "verdict": "PASS",
+      "checks": 39,
+      "failures": 0,
+      "run_id": null,
+      "scenarios": [
+        {
+          "cid": "ON01",
+          "gateway_arrivals": 1,
+          "gateway_decisions": [
+            {
+              "decision": "ALLOW",
+              "reason_code": "ALLOW_IN_POLICY"
+            }
+          ],
+          "gateway_executions": 1,
+          "navsim_goals": 1,
+          "planner_outcome": "PLANNER_RESULT_RECEIVED"
+        },
+        {
+          "cid": "ON02",
+          "gateway_arrivals": 0,
+          "gateway_decisions": [],
+          "gateway_executions": 0,
+          "navsim_goals": 0,
+          "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK"
+        },
+        {
+          "cid": "ON03",
+          "gateway_arrivals": 0,
+          "gateway_decisions": [],
+          "gateway_executions": 0,
+          "navsim_goals": 0,
+          "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK"
+        },
+        {
+          "cid": "ON04",
+          "gateway_arrivals": 0,
+          "gateway_decisions": [],
+          "gateway_executions": 0,
+          "navsim_goals": 0,
+          "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK"
+        },
+        {
+          "cid": "ON05",
+          "gateway_arrivals": 1,
+          "gateway_decisions": [
+            {
+              "decision": "BLOCK",
+              "reason_code": "OUT_OF_REGION"
+            }
+          ],
+          "gateway_executions": 0,
+          "navsim_goals": 0,
+          "planner_outcome": "PLANNER_RESULT_RECEIVED"
+        },
+        {
+          "cid": "ON06",
+          "gateway_arrivals": 0,
+          "gateway_decisions": [],
+          "gateway_executions": 0,
+          "navsim_goals": 0,
+          "planner_outcome": "PLANNER_RESULT_TIMEOUT"
+        }
+      ],
+      "log_path": "m3/merged/verification.json"
+    },
+    {
+      "id": "DEMO_THREE_REAL",
+      "layer": "L2_ALGORITHM",
+      "check": "三真实模块联合调用（离线，严格身份模式）",
+      "verdict": "BLOCKED",
+      "levels": {
+        "THREE_EXTERNAL_CALLED": "PASS",
+        "THREE_EXTERNAL_VALIDATED": "PASS",
+        "THREE_EXTERNAL_ONLINE_PROCEED": "BLOCKED"
+      },
+      "overall": "B1_INTEGRATED_BLOCKING",
+      "modules": {
+        "comm_risk": {
+          "mode": "external",
+          "returncode": 0,
+          "schema_ok": true,
+          "status": "UNKNOWN"
+        },
+        "identity_trust": {
+          "mode": "external",
+          "returncode": 0,
+          "schema_ok": true,
+          "status": "AUTHORIZED"
+        },
+        "task_risk": {
+          "mode": "external",
+          "returncode": 0,
+          "schema_ok": true,
+          "status": "ALLOW_RECOMMENDED"
+        }
+      },
+      "f0": {
+        "command": [
+          "/home/zhangwei/project/RosSystem-worktrees/demo-freeze/.research-venv/bin/python",
+          "scripts/team_demo.py",
+          "--input",
+          "/home/zhangwei/project/RosSystem-worktrees/demo-freeze/artifacts/demo-2026-10-19/release-freeze-rehearsal-20261018T144247Z/three-real/envelope.json",
+          "--config",
+          "config/team_modules.three-real.yaml",
+          "--log",
+          "/home/zhangwei/project/RosSystem-worktrees/demo-freeze/artifacts/demo-2026-10-19/release-freeze-rehearsal-20261018T144247Z/three-real/adapter.jsonl"
+        ],
+        "returncode": 10,
+        "duration_ms": 429,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+        "detail": "模块 comm_risk 状态为 'UNKNOWN'，不是允许推进的 'NORMAL'；本地阻断，不进入提交流程",
+        "modules": [
+          {
+            "module": "comm_risk",
+            "mode": "external",
+            "exit_code": 0,
+            "schema_ok": true,
+            "status": "UNKNOWN"
+          },
+          {
+            "module": "identity_trust",
+            "mode": "external",
+            "exit_code": 0,
+            "schema_ok": true,
+            "status": "AUTHORIZED"
+          },
+          {
+            "module": "task_risk",
+            "mode": "external",
+            "exit_code": 0,
+            "schema_ok": true,
+            "status": "ALLOW_RECOMMENDED"
+          }
+        ],
+        "stderr_tail": "[adapter] 模块 comm_risk stderr: status=UNKNOWN; offline advisory only\n[adapter] 模块 task_risk stderr: [member3] status=ALLOW_RECOMMENDED\n"
+      },
+      "blockers": [
+        "comm_risk: status='UNKNOWN'，推进需要 'NORMAL'",
+        "identity_trust: current_request_identity.status='UNKNOWN'，本轮没有可信的当前请求身份绑定",
+        "F0 决策为 'ADAPTER_BLOCK'（ADAPTER_MODULE_STATUS_NOT_PROCEED），未提交 Planner"
+      ],
+      "note": "离线运行，未启动 Planner/Gateway/NavigationSim，故不声称已观察下游",
+      "log_path": "three-real/summary.json"
+    },
+    {
+      "id": "DEMO_F0_SECURITY",
+      "layer": "L1_PROTOCOL",
+      "check": "F0 身份防伪造（P0 强制反例）",
+      "verdict": "PASS",
+      "result": "38 passed in 3.27s",
+      "log_path": "f0/p0_security.log"
+    },
+    {
+      "id": "DEMO_DDS_ENFORCE",
+      "layer": "L4_DDS",
+      "check": "DDS-Security Enforce S1-S6（域 43）",
+      "verdict": "PASS",
+      "passed": 7,
+      "failed": 0,
+      "total": 7,
+      "domain": 43,
+      "note": "与 M3 在线不是同一次运行",
+      "log_path": "dds_enforce/summary.json"
+    },
+    {
+      "id": "CONTRACTS",
+      "layer": "L1_PROTOCOL",
+      "check": "公共契约与 Schema 校验",
+      "verdict": "PASS",
+      "log_path": "logs/contracts.log"
+    },
+    {
+      "id": "UNIT_FULL",
+      "layer": "L1_PROTOCOL",
+      "check": "全仓单元测试",
+      "verdict": "PASS",
+      "result": "763 passed, 3 skipped in 532.78s (0:08:52)",
+      "log_path": "logs/unit_full.log"
+    },
+    {
+      "id": "MODULE_ACCEPTANCE",
+      "layer": "L2_ALGORITHM",
+      "check": "M1/M2/M3 模块级真实验收",
+      "verdict": "PASS",
+      "modules": {
+        "comm_risk": {
+          "counts": {
+            "PASS": 60,
+            "FAIL": 3,
+            "NOT_RUN": 1,
+            "BLOCKED": 1
+          },
+          "meets_pr_gate": true
+        },
+        "identity_trust": {
+          "counts": {
+            "PASS": 58,
+            "FAIL": 3,
+            "NOT_RUN": 1,
+            "BLOCKED": 1
+          },
+          "meets_pr_gate": true
+        },
+        "task_risk": {
+          "counts": {
+            "PASS": 58,
+            "FAIL": 3,
+            "NOT_RUN": 1,
+            "BLOCKED": 1
+          },
+          "meets_pr_gate": true
+        }
+      },
+      "log_path": "logs/acceptance_*.log"
+    }
+  ],
+  "summary": {
+    "PASS": 8,
+    "BLOCKED": 1,
+    "NOT_RUN": 0,
+    "FAIL": 0
+  }
+}

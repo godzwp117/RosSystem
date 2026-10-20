@@ -1,0 +1,40 @@
+# M3 在线联调证据复核（独立工具输出）
+
+- 证据目录：`/home/zhangwei/project/RosSystem-worktrees/demo-freeze/artifacts/demo-2026-10-19/freeze-verify-freeze-verify-20261020T134804Z/m3_online/merged`
+- Gateway 审计行数：5
+- NavigationSim Goal 行数：1
+- 复核检查项：19（失败 0）
+- **判定：`PASS`**
+
+## 场景关联表
+
+| 场景 | request_id | 适配层决策 | M3 状态 | Planner outcome | Gateway arrival | Gateway decision | Execution | Goal 数 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ON01 | `on01-legal-allow-freeze-verify-20261020T134804Z` | READY_FOR_GATEWAY_SUBMISSION | ALLOW_RECOMMENDED | PLANNER_RESULT_RECEIVED | 1 | ALLOW/ALLOW_IN_POLICY | 1 | 1 |
+| ON02 | `on02-oor-block-freeze-verify-20261020T134804Z` | ADAPTER_BLOCK | BLOCK_RECOMMENDED | NOT_SUBMITTED_ADAPTER_BLOCK | 0 | - | 0 | 0 |
+| ON03 | `on03-freeze-verify-20261020T134804Z` | ADAPTER_BLOCK | UNKNOWN | NOT_SUBMITTED_ADAPTER_BLOCK | 0 | - | 0 | 0 |
+| ON04 | `on04-freeze-verify-20261020T134804Z` | ADAPTER_BLOCK | ERROR | NOT_SUBMITTED_ADAPTER_BLOCK | 0 | - | 0 | 0 |
+| ON05 | `on05-gateway-authority-freeze-verify-20261020T134804Z` | READY_FOR_GATEWAY_SUBMISSION | ALLOW_RECOMMENDED | PLANNER_RESULT_RECEIVED | 1 | BLOCK/OUT_OF_REGION | 0 | 0 |
+| ON06 | `on06-freeze-verify-20261020T134804Z` | READY_FOR_GATEWAY_SUBMISSION | ALLOW_RECOMMENDED | PLANNER_RESULT_TIMEOUT | 0 | - | 0 | 0 |
+
+## 检查明细
+
+- [PASS] `ON01` M3_PROPOSED :: M3 状态='ALLOW_RECOMMENDED'
+- [PASS] `ON01` SUBMITTED_TO_GATEWAY :: Gateway arrival=1
+- [PASS] `ON01` ACTION_RESULT_GOAL_CONSISTENT :: Action Result=EXECUTED 且 Goal 数=1
+- [PASS] `ON02` BLOCK_NO_PLANNER :: outcome='NOT_SUBMITTED_ADAPTER_BLOCK'
+- [PASS] `ON02` BLOCK_NO_GATEWAY_ARRIVAL :: Gateway arrival=0
+- [PASS] `ON02` BLOCK_NO_GOAL :: Goal 数=0
+- [PASS] `ON02` BLOCK_NO_EXECUTION :: ExecutionEvent=0
+- [PASS] `ON03` BLOCK_NO_PLANNER :: outcome='NOT_SUBMITTED_ADAPTER_BLOCK'
+- [PASS] `ON03` BLOCK_NO_GATEWAY_ARRIVAL :: Gateway arrival=0
+- [PASS] `ON03` BLOCK_NO_GOAL :: Goal 数=0
+- [PASS] `ON03` BLOCK_NO_EXECUTION :: ExecutionEvent=0
+- [PASS] `ON04` BLOCK_NO_PLANNER :: outcome='NOT_SUBMITTED_ADAPTER_BLOCK'
+- [PASS] `ON04` BLOCK_NO_GATEWAY_ARRIVAL :: Gateway arrival=0
+- [PASS] `ON04` BLOCK_NO_GOAL :: Goal 数=0
+- [PASS] `ON04` BLOCK_NO_EXECUTION :: ExecutionEvent=0
+- [PASS] `ON05` M3_PROPOSED :: M3 状态='ALLOW_RECOMMENDED'
+- [PASS] `ON05` SUBMITTED_TO_GATEWAY :: Gateway arrival=1
+- [PASS] `ON06` M3_PROPOSED :: M3 状态='ALLOW_RECOMMENDED'
+- [PASS] `ON06` TIMEOUT_NOT_BLOCK :: 超时未记为 Gateway BLOCK（outcome=PLANNER_RESULT_TIMEOUT）

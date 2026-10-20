@@ -1,0 +1,23 @@
+{
+  "run_id": "freeze-verify-20261020T134804Z",
+  "scenarios": [
+    {
+      "cid": "ON03",
+      "request_id": "on03-freeze-verify-20261020T134804Z",
+      "run_id": "freeze-verify-20261020T134804Z",
+      "expected": "UNKNOWN_BLOCK"
+    },
+    {
+      "cid": "ON04",
+      "request_id": "on04-freeze-verify-20261020T134804Z",
+      "run_id": "freeze-verify-20261020T134804Z",
+      "expected": "ERROR_BLOCK"
+    },
+    {
+      "cid": "ON06",
+      "request_id": "on06-freeze-verify-20261020T134804Z",
+      "run_id": "freeze-verify-20261020T134804Z",
+      "expected": "TIMEOUT_NOT_BLOCK"
+    }
+  ]
+}

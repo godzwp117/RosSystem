@@ -1,0 +1,105 @@
+# 通用验收器真实场景 fixture（受信任本地文件）
+#
+# 用法
+# ----
+#   python3 scripts/check_member_module.py --module task_risk \
+#       --config config/team_modules.member3.real.yaml \
+#       --real-fixture config/acceptance/real_scenarios.member3.yaml
+#
+# 设计约束
+# --------
+# * 本文件是**受信任本地测试输入**，不是 Gateway 策略，也不改变 Gateway 规则顺序。
+# * `envelope_patch` 只能携带**数据字段**。含 command / exec / policy / env /
+#   cwd / script 等本地执行控制字段的 fixture 会被验收器拒绝（失败关闭）。
+# * `command_profile` 只能引用 `--config` 中 `real_command_profiles` 的档案名，
+#   命令本身永远不在业务 JSON 里。
+# * `expected_state` 必须与该模块合法枚举一致，并与 `expected_class` 自洽；
+#   验收器用**模块真实输出状态**核对，只匹配标签不算通过。
+# * 每个场景的期望状态都由真实条件触发，见每个场景的 `trigger` 字段。
+schema_version: "1.0.0"
+
+real_scenarios:
+
+  task_risk:
+
+    # ------------------------------------------------------------------
+    # 1) 合法任务 -> ALLOW_RECOMMENDED
+    #    真实条件：task_id=patrol_a_001、frame=map、目标 (2.0,2.0) 均在
+    #    权威策略 config/task_policy.yaml 允许区域 [0,4]x[0,4] 内。
+    # ------------------------------------------------------------------
+    - name: allow
+      description: 合法任务：任务、坐标系、目标区域均符合权威策略
+      trigger: 目标 (2.0,2.0) 位于权威策略允许区域 [0,4]x[0,4] 内
+      expected_state: ALLOW_RECOMMENDED
+      expected_class: PROCEED
+      request_id: req-real-allow
+      command_profile: policy_valid
+      envelope_patch:
+        candidate_action:
+          task_id: patrol_a_001
+          target: {frame_id: map, x: 2.0, y: 2.0, z: 0.0}
+      expect:
+        reason_code: ALLOW_IN_POLICY
+        policy_version: "1.0"
+        allowed_states: [ALLOW_RECOMMENDED, BLOCK_RECOMMENDED]
+
+    # ------------------------------------------------------------------
+    # 2) 违规任务 -> BLOCK_RECOMMENDED
+    #    真实条件：同一目标 (2.0,2.0) 超出 fixture 策略的允许区域
+    #    [0,1]x[0,1]，真实规则模块必须自行推出 OUT_OF_REGION。
+    # ------------------------------------------------------------------
+    - name: block
+      description: 违规任务：目标超出允许区域
+      trigger: 目标 (2.0,2.0) 超出允许区域 [0,1]x[0,1]
+      expected_state: BLOCK_RECOMMENDED
+      expected_class: LEGAL_BLOCK
+      request_id: req-real-block
+      command_profile: policy_tight_region
+      envelope_patch:
+        candidate_action:
+          task_id: patrol_a_001
+          target: {frame_id: map, x: 2.0, y: 2.0, z: 0.0}
+      expect:
+        reason_code: OUT_OF_REGION
+        policy_version: "1.0-acceptance-tight"
+        allowed_states: [ALLOW_RECOMMENDED, BLOCK_RECOMMENDED]
+
+    # ------------------------------------------------------------------
+    # 3) 缺少策略 -> UNKNOWN
+    #    真实条件：受信任配置指向**不存在**的策略文件。模块必须失败关闭为
+    #    UNKNOWN，绝不默认允许。该路径只在隔离测试配置中出现。
+    # ------------------------------------------------------------------
+    - name: unknown
+      description: 缺少策略：受信任配置指向不存在的策略文件
+      trigger: 策略文件 config/scenarios/task_policy_absent.yaml 不存在
+      expected_state: UNKNOWN
+      expected_class: LEGAL_BLOCK
+      request_id: req-real-unknown
+      command_profile: policy_absent
+      envelope_patch:
+        candidate_action:
+          task_id: patrol_a_001
+          target: {frame_id: map, x: 2.0, y: 2.0, z: 0.0}
+      expect:
+        reason_code: POLICY_MISSING
+        allowed_states: [UNKNOWN]
+
+    # ------------------------------------------------------------------
+    # 4) 错误策略 -> ERROR
+    #    真实条件：受信任配置指向**损坏/不合法**的策略文件（非法 YAML）。
+    #    模块解析失败必须失败关闭为 ERROR，不是 UNKNOWN，也不是 ALLOW。
+    # ------------------------------------------------------------------
+    - name: error
+      description: 错误策略：受信任配置指向损坏或不合法的策略文件
+      trigger: 策略文件 config/scenarios/task_policy_corrupt.yaml 无法解析
+      expected_state: ERROR
+      expected_class: LEGAL_BLOCK
+      request_id: req-real-error
+      command_profile: policy_corrupt
+      envelope_patch:
+        candidate_action:
+          task_id: patrol_a_001
+          target: {frame_id: map, x: 2.0, y: 2.0, z: 0.0}
+      expect:
+        reason_code: POLICY_MISSING
+        allowed_states: [ERROR]

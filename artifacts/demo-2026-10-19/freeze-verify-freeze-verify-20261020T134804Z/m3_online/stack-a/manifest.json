@@ -1,0 +1,23 @@
+{
+  "run_id": "freeze-verify-20261020T134804Z",
+  "scenarios": [
+    {
+      "cid": "ON01",
+      "request_id": "on01-legal-allow-freeze-verify-20261020T134804Z",
+      "run_id": "freeze-verify-20261020T134804Z",
+      "expected": "ALLOW_AND_EXECUTE"
+    },
+    {
+      "cid": "ON02",
+      "request_id": "on02-oor-block-freeze-verify-20261020T134804Z",
+      "run_id": "freeze-verify-20261020T134804Z",
+      "expected": "M3_BLOCK_NO_SUBMIT"
+    },
+    {
+      "cid": "ON05",
+      "request_id": "on05-gateway-authority-freeze-verify-20261020T134804Z",
+      "run_id": "freeze-verify-20261020T134804Z",
+      "expected": "M3_ALLOW_GATEWAY_BLOCK"
+    }
+  ]
+}

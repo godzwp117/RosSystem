@@ -1,0 +1,75 @@
+=== 成员模块验收：identity_trust ===
+  [PASS    ] CFG-01     模块配置可解析
+  [PASS    ] CFG-02     配置中包含目标模块
+  [PASS    ] CFG-03     command 是参数数组（非字符串）
+  [PASS    ] CFG-04     命令来自受信任本地配置（非业务输入）
+  [PASS    ] CFG-05     接口名与模块匹配
+  [PASS    ] RUN-01     模块被真实调用（记录命令与返回码）
+  [PASS    ] PROTO-01   stdout 非空
+  [PASS    ] PROTO-02   stdout 只含一个 JSON 对象
+  [PASS    ] PROTO-03   stdout 无额外调试文本污染
+  [PASS    ] PROTO-04   stdout 未超过 max_stdout_bytes
+  [PASS    ] PROTO-05   诊断信息写入 stderr（stdout 依然干净）
+  [PASS    ] PROTO-06   stdout 是合法 JSON
+  [PASS    ] ID-01      run_id 与输入一致
+  [PASS    ] ID-02      request_id 与输入一致
+  [PASS    ] ID-03      event_id 为合法非空唯一标识（不要求包含 request_id）
+  [PASS    ] ID-03B     event_id 与 request_id 的关联由显式字段承担
+  [PASS    ] ID-04      schema_version 合法
+  [PASS    ] SEM-01     producer.source 语义合法
+  [PASS    ] SEM-02     evidence_refs 存在且 kind 合法
+  [PASS    ] SCH-01     Schema 校验
+  [PASS    ] STATE-01   状态为合法安全阻断（结构合法，不推进）
+  [FAIL    ] STATE-AUTHORIZED authorized 场景真实运行 -> AUTHORIZED（PROCEED）
+             rc=0 state=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True；fixture 的 f0_mock 场景开关对真实模块不适用，该状态由 REAL-STATE-AUTHORIZED 以真实条件校验
+  [FAIL    ] STATE-DENIED denied 场景真实运行 -> DENIED（LEGAL_BLOCK）
+             rc=0 state=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True；fixture 的 f0_mock 场景开关对真实模块不适用，该状态由 REAL-STATE-DENIED 以真实条件校验
+  [PASS    ] STATE-UNKNOWN unknown 场景真实运行 -> UNKNOWN（LEGAL_BLOCK）
+  [FAIL    ] STATE-ERROR error 场景真实运行 -> ERROR（LEGAL_BLOCK）
+             rc=0 state=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True；fixture 的 f0_mock 场景开关对真实模块不适用，该状态由 REAL-STATE-ERROR 以真实条件校验
+  [PASS    ] STATE-SUMMARY 四状态矩阵完整执行（共 4 种）
+  [PASS    ] STATE-CLASSIFY Schema 合法性与安全推进资格分开判定
+  [PASS    ] ADP-DENIED 适配层对 DENIED 返回 ADAPTER_BLOCK
+  [PASS    ] ADP-UNKNOWN 适配层对 UNKNOWN 返回 ADAPTER_BLOCK
+  [PASS    ] ADP-ERROR  适配层对 ERROR 返回 ADAPTER_BLOCK
+  [PASS    ] REAL-01    真实场景 fixture 合法（受信任本地文件）
+  [PASS    ] REAL-02    业务输入不得指定命令/策略/可执行文件
+  [PASS    ] REAL-STATE-S2-AUTHORIZED 真实条件 s2-authorized（归档 S2 日志 PLANNER_RESULT success=true 且资源与候选入口一致）-> AUTHORIZED
+  [PASS    ] REAL-STATE-S3C-POSITIVE-CONTROL 真实条件 s3c-positive-control（归档 S3C 日志 ROGUE_RESULT success=true，资源 = /rg/nav_execute）-> UNKNOWN
+  [PASS    ] REAL-STATE-S3-NATIVE-DENIAL 真实条件 s3-native-denial（归档 S3 日志含原生 not found in allow rule，资源 = /rg/nav_execute）-> UNKNOWN
+  [PASS    ] REAL-STATE-S4-NATIVE-DENIAL 真实条件 s4-native-denial（归档 S4 日志含原生 not found in allow rule，资源 = /rg/nav_execute）-> UNKNOWN
+  [PASS    ] REAL-STATE-SUMMARY 真实条件状态矩阵完整执行（共 4 种）
+  [PASS    ] REAL-STATE-SCHEMA 真实条件输出符合原有 Schema（含阻断状态）
+  [PASS    ] REAL-ADP-S3C-POSITIVE-CONTROL F0 对真实 UNKNOWN（s3c-positive-control）返回 ADAPTER_BLOCK
+  [PASS    ] REAL-ADP-S3-NATIVE-DENIAL F0 对真实 UNKNOWN（s3-native-denial）返回 ADAPTER_BLOCK
+  [PASS    ] REAL-ADP-S4-NATIVE-DENIAL F0 对真实 UNKNOWN（s4-native-denial）返回 ADAPTER_BLOCK
+  [PASS    ] REAL-ADP-S2-AUTHORIZED 合法模块结论仍被 F0 阻断（期望 ADAPTER_CURRENT_IDENTITY_UNBOUND）
+  [PASS    ] ERR-01     非法 JSON 输入 -> 失败关闭
+  [PASS    ] ERR-03     schema_version 不兼容 -> 模块自行失败关闭（纵深防御）
+  [PASS    ] ERR-04     缺 observations -> 模块自行失败关闭（纵深防御）
+  [PASS    ] ADP-00     正向对照：合法输入可推进且模块确实被调用
+  [PASS    ] ADP-N01    缺少 observations -> 明确输入拒绝（ADAPTER_INPUT_INVALID）
+  [PASS    ] ADP-N02    schema_version 非法 -> 明确输入拒绝（ADAPTER_INPUT_INVALID）
+  [PASS    ] ADP-N03    缺少 candidate_action -> 明确输入拒绝（ADAPTER_INPUT_INVALID）
+  [PASS    ] ADP-N04    非法 JSON 输入 -> 明确输入拒绝（ADAPTER_INPUT_INVALID）
+  [PASS    ] ADP-N05    适配器内部异常/模块脚本崩溃 -> 不得记为输入校验 PASS
+  [PASS    ] ADP-N06    适配器依赖缺失（解释器不存在） -> 不得记为输入校验 PASS
+  [PASS    ] ADP-N07    配置文件不存在 -> 不得记为输入校验 PASS
+  [PASS    ] ADP-N08    模块返回非零且输出不是合法 JSON -> 不得记为输入校验 PASS
+  [PASS    ] ADP-N09    原因码必须与真实失败路径一致（不得冒充输入拒绝）
+  [PASS    ] ADP-N10    合法输入必须真实调用模块（未调用即 FAIL）
+  [PASS    ] ADP-01     适配层对畸形信封做明确输入拒绝（真正的安全边界）
+  [PASS    ] ID-05      event_id 非空、≤128 字符且在同一运行内不重复
+  [PASS    ] LIM-01     极小超时下不会挂起（超时即阻断，且必须真实终止回收）
+  [PASS    ] LIM-02     stdout 超限时立即终止且不判成功
+  [PASS    ] PROC-01    不快照/不残留：调用使用 shell=False 且受超时约束
+  [NOT_RUN ] LAYER-02   L2 真实研究算法验收
+             需要成员提供真实输入、真实输出与证据来源；脚本不做替代
+  [BLOCKED ] LAYER-03   L3 ROS 2 在线联调（Gateway 审计 + NavigationSim Goal）
+             需要 Jazzy 容器；只有真实 Gateway 审计与 Goal 才能证明 Action 层结果
+
+  计数: {'PASS': 58, 'FAIL': 3, 'NOT_RUN': 1, 'BLOCKED': 1}
+  达到 PR 合入门槛: True
+  L2 算法证据: NOT_READY | L3 在线联调: BLOCKED
+  报告: artifacts/integration/f0-trust-closeout/f0close-20261018T082739Z/acceptance/identity_trust/f0acc-identity_trust/report.json
+EXIT=0

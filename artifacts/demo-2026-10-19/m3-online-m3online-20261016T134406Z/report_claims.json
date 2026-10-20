@@ -1,0 +1,51 @@
+{
+  "_note": "本文件是【报告声明】的结构化形式，用于让校验器把'报告怎么说'与'原始证据'对齐。它来自勘误后的报告文本，不是从证据自动生成；两者不一致时校验器报 FAIL。",
+  "run_id": "m3online-20261016T134406Z",
+  "scenarios": {
+    "ON01": {
+      "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "planner_outcome": "PLANNER_RESULT_RECEIVED",
+      "gateway_arrival": 1,
+      "gateway_decision": "ALLOW",
+      "gateway_reason_code": "ALLOW_IN_POLICY",
+      "gateway_execution": 1,
+      "navsim_goals": 1
+    },
+    "ON02": {
+      "adapter_decision": "ADAPTER_BLOCK",
+      "gateway_arrival": 0,
+      "gateway_execution": 0,
+      "navsim_goals": 0
+    },
+    "ON03": {
+      "adapter_decision": "ADAPTER_BLOCK",
+      "gateway_arrival": 0,
+      "gateway_execution": 0,
+      "navsim_goals": 0
+    },
+    "ON04": {
+      "adapter_decision": "ADAPTER_BLOCK",
+      "gateway_arrival": 0,
+      "gateway_execution": 0,
+      "navsim_goals": 0
+    },
+    "ON05": {
+      "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "planner_outcome": "PLANNER_RESULT_RECEIVED",
+      "gateway_arrival": 1,
+      "gateway_decision": "BLOCK",
+      "gateway_reason_code": "OUT_OF_REGION",
+      "gateway_execution": 0,
+      "navsim_goals": 0
+    },
+    "ON06": {
+      "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "planner_outcome": "PLANNER_RESULT_TIMEOUT",
+      "gateway_arrival": 1,
+      "gateway_decision": "ALLOW",
+      "gateway_reason_code": "ALLOW_IN_POLICY",
+      "gateway_execution": 1,
+      "navsim_goals": 1
+    }
+  }
+}
