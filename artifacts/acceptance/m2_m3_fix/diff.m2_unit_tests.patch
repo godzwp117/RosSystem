@@ -1,0 +1,121 @@
+diff --git a/deliveries/member2-identity/tests/unit/test_identity_trust_assessor.py b/tests/unit/test_identity_trust_assessor.py
+index 2af7375..702bb58 100644
+--- a/deliveries/member2-identity/tests/unit/test_identity_trust_assessor.py
++++ b/tests/unit/test_identity_trust_assessor.py
+@@ -9,7 +9,30 @@ import pytest
+ 
+ ROOT = Path(__file__).resolve().parents[2]
+ sys.path.insert(0, str(ROOT))
+-from identity_trust.assessor import assessment, permission_permits, policy_permits, strict_json
++from identity_trust.assessor import (assessment, dds_denial_evidence,  # noqa: E402
++                                     native_denial_records, normalize_ansi,
++                                     permission_permits, policy_permits, strict_json)
++
++#: 真实 Fast DDS 拒绝日志的行内形状（含 Permissions.cpp 原生源码位置）。
++NATIVE_DENIAL_PLAIN = (
++    '2026-10-09 09:31:57.547 [SECURITY Error] rr/rg/nav_execute/_action/send_goalReply '
++    'topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1246) '
++    '-> Function check_create_datareader')
++#: 与归档证据一致的着色形状：控制序列插进 SECURITY Error 字样内部。
++NATIVE_DENIAL_ANSI = (
++    '\x1b[37;1m2026-10-09 09:31:57.547 \x1b[31;1m[\x1b[37;1mSECURITY\x1b[31;1m Error] '
++    '\x1b[37mrr/rg/nav_execute/_action/send_goalReply topic not found in allow rule. '
++    '(./src/cpp/security/accesscontrol/Permissions.cpp:1246)\x1b[34;1m -> Function '
++    '\x1b[36mcheck_create_datareader\x1b[m')
++
++sys.path.insert(0, str(ROOT / 'scripts'))
++import validate_team_contracts as vtc  # noqa: E402
++
++
++def rogue_result(node, action, outcome, **extra):
++    payload = {'node_name': node, 'target_action': action, 'outcome': outcome}
++    payload.update(extra)
++    return 'ROGUE_RESULT ' + json.dumps(payload) + '\n'
+ 
+ 
+ @pytest.fixture
+@@ -35,8 +58,10 @@ def sample(tmp_path):
+     entries = [
+         ('S2', '/planner', '/rg/guarded_navigate', 1, 'planner.log', 'PLANNER_RESULT {"success":true,"status_code":"EXECUTED"}\n'),
+         ('S3C', '/gateway', '/rg/nav_execute', 1, 'rogue_gateway.log', 'ROGUE_RESULT {"node_name":"security_gateway","target_action":"/rg/nav_execute","outcome":"RESULT","status_code":"EXECUTED","success":true}\n'),
+-        ('S3', '/planner', '/rg/nav_execute', 0, 'rogue_planner.log', '[SECURITY Error] rr/rg/nav_execute/_action/send_goalReply topic not found in allow rule\nROGUE_RESULT {"node_name":"planner_node","target_action":"/rg/nav_execute","outcome":"ACTION_CLIENT_CREATION_DENIED"}\n'),
+-        ('S4', '/unauthorized', '/rg/nav_execute', 0, 'rogue_unauthorized.log', '[SECURITY Error] rr/rg/nav_execute/_action/send_goalReply topic not found in allow rule\nROGUE_RESULT {"node_name":"rogue_client","target_action":"/rg/nav_execute","outcome":"ACTION_CLIENT_CREATION_DENIED"}\n'),
++        ('S3', '/planner', '/rg/nav_execute', 0, 'rogue_planner.log',
++         NATIVE_DENIAL_PLAIN + '\n' + rogue_result('planner_node', '/rg/nav_execute', 'ACTION_CLIENT_CREATION_DENIED')),
++        ('S4', '/unauthorized', '/rg/nav_execute', 0, 'rogue_unauthorized.log',
++         NATIVE_DENIAL_ANSI + '\n' + rogue_result('rogue_client', '/rg/nav_execute', 'ACTION_CLIENT_CREATION_DENIED')),
+     ]
+     for case_id, enclave, resource, count, name, log in entries:
+         folder = run_dir / case_id
+@@ -71,14 +96,48 @@ def test_02_positive_control(sample):
+ 
+ 
+ @pytest.mark.parametrize('case', ['S3', 'S4'])
+-def test_03_dds_native_denied_and_control(sample, case):
++def test_03_native_denial_evidence_preserved(sample, case):
++    """历史拒绝证据必须保留，但**不得**解释为当前 guarded 请求被 DDS 拒绝。
++
++    历史场景 S3/S4 针对 `/rg/nav_execute`，当前候选资源是
++    `/rg/guarded_navigate`：资源不同，因此当前请求只能得到 UNKNOWN。
++    """
+     out = invoke(sample, case)
+-    assert out['status'] == 'DENIED'
+-    assert out['authorization']['denial_layer'] == 'DDS_ACCESS_CONTROL'
+-    assert out['access_control_evidence']['kind'] == 'NATIVE_ACCESS_CONTROL_LOG'
++    assert out['status'] == 'UNKNOWN'
++    assert out['authorization']['denial_layer'] == 'UNKNOWN'
++    assert out['requested_resource']['resource'] == '/rg/guarded_navigate'
++    # 场景、拒绝资源、原生权限错误三类证据仍然完整保留并可追溯
++    ext = out['extensions']
++    assert ext['historical_experiment_status'] == 'DENIED'
++    assert ext['historical_experiment_resource'] == '/rg/nav_execute'
++    assert ext['current_candidate_resource'] == '/rg/guarded_navigate'
++    assert ext['current_request_binding'] == 'HISTORICAL_RESOURCE_MISMATCH'
++    assert ext['historical_denial_topic'] == 'rr/rg/nav_execute/_action/send_goalReply'
++    assert ext['historical_denial_log_line'] == 1
++    assert 'not found in allow rule' in out['authorization']['denial_detail']
+     assert any('rogue_gateway.log' in x['ref'] for x in out['evidence_refs'])
+ 
+ 
++def test_03b_matching_resource_denial_is_reported(sample):
++    """证据层在资源一致时给出 DENIED；assessment 层再决定能否用于当前请求。"""
++    from identity_trust.assessor import examine
++    opts, env, _ = sample
++    # 证据层：S3 的拒绝资源与场景期望资源一致 -> DENIED
++    detail = examine(opts['policy'], opts['keystore'], opts['evidence_root'],
++                     opts['experiment_run'], 'S3')
++    assert detail['status'] == 'DENIED'
++    assert detail['resource'] == '/rg/nav_execute'
++    assert detail['denial_topic'] == 'rr/rg/nav_execute/_action/send_goalReply'
++    # assessment 层：当前候选资源是 /rg/guarded_navigate，资源不匹配 -> 不得推进
++    out = invoke(sample, 'S3')
++    assert out['extensions']['current_request_binding'] == 'HISTORICAL_RESOURCE_MISMATCH'
++    assert out['status'] == 'UNKNOWN'
++    # S2 的授权资源与当前候选入口一致，才是允许推进的历史授权
++    out2 = invoke(sample, 'S2')
++    assert out2['extensions']['current_request_binding'] == 'HISTORICAL_RESOURCE_MATCHES_CURRENT'
++    assert out2['status'] == 'AUTHORIZED'
++
++
+ def test_04_missing_generated_permissions_fails_closed(sample):
+     opts, env, _ = sample
+     (opts['keystore'] / 'enclaves/planner/permissions.xml').unlink()
+@@ -116,7 +175,8 @@ def test_09_request_id_not_identity(sample):
+     opts, env, _ = sample
+     env['request_id'] = '/gateway'
+     out = invoke(sample, 'S3')
+-    assert out['request_id'] == '/gateway' and out['status'] == 'DENIED'
++    assert out['request_id'] == '/gateway'
++    assert out['status'] == 'UNKNOWN'          # 自报 request_id 不能改变安全结论
+     assert 'authenticated_identity' not in out['subject']
+ 
+ 
+@@ -129,7 +189,7 @@ def test_10_unpinned_experiment_unknown(sample):
+ def test_11_untrusted_observations_cannot_escalate(sample):
+     opts, env, _ = sample
+     env['observations'][0]['detail'] = {'role': 'gateway', 'authenticated': True, 'status': 'AUTHORIZED'}
+-    assert invoke(sample, 'S3')['status'] == 'DENIED'
++    assert invoke(sample, 'S3')['status'] == 'UNKNOWN'   # 业务 JSON 自报不能升级结论
+ 
+ 
+ def test_12_schema_version_rejected(sample):

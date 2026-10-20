@@ -1,0 +1,91 @@
+{
+  "schema_version": "1.0.0-proposed",
+  "collected_at": "2026-10-18T16:05:29.860509Z",
+  "collector": {
+    "component": "modules/member1_comm/collector/ros2_window.py",
+    "observation_source": "LIVE_ROS2_SUBSCRIPTION",
+    "topic": "/m1_probe/tick",
+    "message_type": "std_msgs/msg/String",
+    "count_definition": "本进程在该窗口内实际收到的消息数（不由命令行或信封提供）",
+    "duration_sec": 6.0,
+    "interval_sec": 1.0,
+    "total_messages": 250
+  },
+  "feature_semantics": {
+    "request_count": "窗口内消息数",
+    "frequency_hz": "request_count / 窗口秒数",
+    "gap_median_ms": "相邻消息到达间隔的中位数（毫秒）",
+    "gap_p95_ms": "相邻消息到达间隔的 95 分位（毫秒）",
+    "gap_max_ms": "相邻消息到达间隔的最大值（毫秒）",
+    "duration_ms": "窗口时长（毫秒）",
+    "alignment_note": "与训练集 windows_0.jsonl 同名同定义；训练集来自 PCAP 侧统计，本采集器来自 ROS 2 订阅侧，二者在\"同一资源、同一时间窗\"意义下语义等价，但采样位置不同，数值不保证逐点相同。"
+  },
+  "windows": [
+    {
+      "window_start_monotonic": 369630.559794,
+      "window_end_monotonic": 369631.579795,
+      "features": {
+        "request_count": 47,
+        "duration_ms": 1020.001,
+        "frequency_hz": 46.078377,
+        "gap_median_ms": 19.892,
+        "gap_p95_ms": 20.4755,
+        "gap_max_ms": 20.7771
+      },
+      "samples": 47
+    },
+    {
+      "window_start_monotonic": 369631.579795,
+      "window_end_monotonic": 369632.579835,
+      "features": {
+        "request_count": 50,
+        "duration_ms": 1000.04,
+        "frequency_hz": 49.998012,
+        "gap_median_ms": 20.0209,
+        "gap_p95_ms": 20.2338,
+        "gap_max_ms": 20.347
+      },
+      "samples": 50
+    },
+    {
+      "window_start_monotonic": 369632.579835,
+      "window_end_monotonic": 369633.599535,
+      "features": {
+        "request_count": 51,
+        "duration_ms": 1019.7,
+        "frequency_hz": 50.014694,
+        "gap_median_ms": 19.9813,
+        "gap_p95_ms": 20.2442,
+        "gap_max_ms": 20.4699
+      },
+      "samples": 51
+    },
+    {
+      "window_start_monotonic": 369633.599535,
+      "window_end_monotonic": 369634.603085,
+      "features": {
+        "request_count": 51,
+        "duration_ms": 1003.55,
+        "frequency_hz": 50.819577,
+        "gap_median_ms": 20.0016,
+        "gap_p95_ms": 20.237,
+        "gap_max_ms": 20.4005
+      },
+      "samples": 51
+    },
+    {
+      "window_start_monotonic": 369634.603085,
+      "window_end_monotonic": 369635.623143,
+      "features": {
+        "request_count": 51,
+        "duration_ms": 1020.057,
+        "frequency_hz": 49.997186,
+        "gap_median_ms": 19.9838,
+        "gap_p95_ms": 20.243,
+        "gap_max_ms": 20.4566
+      },
+      "samples": 51
+    }
+  ],
+  "verdict": null
+}

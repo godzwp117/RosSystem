@@ -1,0 +1,53 @@
+{
+  "contract": "m1-session-observation/1",
+  "session_id": "norm-irregular",
+  "scenario": "normal-irregular",
+  "label": "normal",
+  "label_basis": "authorized publisher with jittered intervals; timing noise is not a violation",
+  "label_source": "EXPERIMENT_CONDITION",
+  "model_used_for_labeling": false,
+  "topic": "/m1r/norm_irregular",
+  "message_type": "std_msgs/msg/String",
+  "domain_id": 68,
+  "window_sec": 30.0,
+  "window_policy": "fixed, contiguous, non-overlapping",
+  "started_at": "2026-10-20T02:42:37.457Z",
+  "ended_at": "2026-10-20T02:43:48.369Z",
+  "min_samples": 10,
+  "windows": [
+    {
+      "window_start": 0.0,
+      "window_end": 30.0,
+      "features": {
+        "message_count": 957,
+        "frequency_hz": 31.9,
+        "gap_median_ms": 31.3679,
+        "gap_p95_ms": 58.1659,
+        "gap_max_ms": 60.6608,
+        "gap_cv": 0.5501,
+        "graph_change_count": 3,
+        "distinct_publishers": 2
+      },
+      "samples": 957,
+      "status": "OK"
+    },
+    {
+      "window_start": 30.0,
+      "window_end": 60.0,
+      "features": {
+        "message_count": 984,
+        "frequency_hz": 32.8,
+        "gap_median_ms": 30.0341,
+        "gap_p95_ms": 57.9228,
+        "gap_max_ms": 60.5624,
+        "gap_cv": 0.5637,
+        "graph_change_count": 0,
+        "distinct_publishers": 2
+      },
+      "samples": 984,
+      "status": "OK"
+    }
+  ],
+  "insufficient_windows": 0,
+  "collector": "scripts/m1_session_collector.py"
+}

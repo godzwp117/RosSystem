@@ -1,0 +1,24 @@
+{
+  "run_id": "f0close-20261018T082739Z",
+  "generated_for": "P0 F0 identity trust boundary fix + P1 same-SHA verification",
+  "host": "WSL2 Linux x86_64",
+  "interpreter_host": "/home/zhangwei/project/RosSystem-worktrees/work-f0/.research-venv/bin/python",
+  "python_host": "3.10.12",
+  "jsonschema_host": "4.26.0",
+  "ros": {
+    "distro": "jazzy",
+    "rmw": "rmw_fastrtps_cpp",
+    "container_online": "rg_f0 (isolated worktree mount)",
+    "domain_online_l3": 55,
+    "domain_enforce_l4": 43,
+    "security_mode_online": "disabled (normal mode, domain 55)",
+    "security_mode_enforce": "enforce (domain 43)"
+  },
+  "module_config_three_real": {
+    "comm_risk": "external",
+    "identity_trust": "external",
+    "task_risk": "external"
+  },
+  "identity_mode_three_real": "STRICT (default, fail-closed)",
+  "identity_mode_rc2_controlled": "CONTROLLED_TEST_ONLY (explicit)"
+}

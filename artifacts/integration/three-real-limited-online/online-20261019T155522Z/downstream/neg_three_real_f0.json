@@ -1,0 +1,14 @@
+{
+  "adapter_version": "0.1.0",
+  "contract_version": "1.0.0-proposed",
+  "invocation_id": "6fecdca3e20f",
+  "checked_at": "2026-10-19T15:56:46Z",
+  "decision": "ADAPTER_BLOCK",
+  "reason_code": "ADAPTER_INPUT_INVALID",
+  "detail": "输入信封解析失败（重复键或非有限数值等）: 输入信封: Expecting value: line 1 column 1 (char 0)",
+  "run_id": null,
+  "request_id": null,
+  "modules": [],
+  "adapter_peak_rss_kb": 29164,
+  "note": "本结果仅表示适配层的候选输入检查结论；READY_FOR_GATEWAY_SUBMISSION 不代表 Gateway 已允许，也不代表下游已执行。本层不提交真实 Action。"
+}

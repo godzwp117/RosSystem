@@ -1,0 +1,36 @@
+# 把本片段合并进你自己的 config/team_modules.local.yaml
+#
+# 安全要点
+# --------
+# * `command` 只能来自受信任的本地配置；适配层绝不从业务输入读取命令。
+# * `command` 必须是**参数数组**；字符串形式会被拒绝（会被 Shell 解释）。
+# * `allow_fault_injection` 必须为 false。
+# * 本片段不提供任何指向 /rg/nav_execute 的入口。
+
+modules:
+
+  # --- 成员一：通信行为可信分析 -------------------------------------------
+  comm_risk:
+    mode: external
+    interface: comm_risk_evidence
+    # 把 module.py 换成你自己的实现路径
+    command: ["python3", "modules/my_comm/module.py", "--module", "comm_risk"]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+
+  # --- 成员二：DDS 身份与资源权限 -----------------------------------------
+  identity_trust:
+    mode: external
+    interface: identity_trust_assessment
+    command: ["python3", "modules/my_identity/module.py",
+              "--module", "identity_trust"]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+
+  # --- 成员三：任务风险 ---------------------------------------------------
+  task_risk:
+    mode: external
+    interface: task_risk_decision
+    command: ["python3", "modules/my_taskrisk/module.py", "--module", "task_risk"]
+    timeout_sec: 10
+    max_stdout_bytes: 65536

@@ -1,0 +1,167 @@
+{
+  "run_id": "b1-20261018T061235Z",
+  "work": "WORK_B1 / three-real modules and system-level online integration",
+  "git_sha": "18088347cdccb93bb88749358f73444867aea0a1",
+  "branch": "integration/three-real-online",
+  "base_tag": "demo-2026-10-19-rc2-verified",
+  "base_commit": "33cb4f93d5e5fd268878fe83fc040c655d632a70",
+  "work_a": {
+    "branch": "integration/member-module-adaptation",
+    "commit": "f51bab800d7bb3fe325d7e096bb15438178f5122"
+  },
+  "environment": {
+    "host": "WSL2 Linux x86_64",
+    "container": "rg_b1 (ros:jazzy), isolated worktree mount, ROS_DOMAIN_ID=54",
+    "rmw": "rmw_fastrtps_cpp",
+    "domain_online_l3": 54,
+    "domain_enforce_l4": 43,
+    "module_modes": {
+      "comm_risk": "external",
+      "identity_trust": "external",
+      "task_risk": "external"
+    },
+    "interpreter": "scripts/module_python.sh -> jsonschema>=4 (Draft 2020-12)"
+  },
+  "levels": {
+    "L1_protocol": "PASS",
+    "L2_algorithm": "PASS",
+    "L3_ros2": "PASS",
+    "L4_dds": "PASS"
+  },
+  "three_real": {
+    "level1": "PASS",
+    "level2": "PASS",
+    "level3": "BLOCKED",
+    "overall": "B1_INTEGRATED_BLOCKING",
+    "modules": {
+      "comm_risk": {
+        "status": "UNKNOWN",
+        "returncode": 0,
+        "schema_ok": true,
+        "mode": "external"
+      },
+      "identity_trust": {
+        "status": "AUTHORIZED",
+        "returncode": 0,
+        "schema_ok": true,
+        "mode": "external"
+      },
+      "task_risk": {
+        "status": "ALLOW_RECOMMENDED",
+        "returncode": 0,
+        "schema_ok": true,
+        "mode": "external"
+      }
+    },
+    "f0": {
+      "decision": "ADAPTER_BLOCK",
+      "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED"
+    },
+    "blockers": [
+      "identity_trust: F0 观察到 status='UNKNOWN' 但直采为 'AUTHORIZED'（运行不确定性）",
+      "comm_risk: status='UNKNOWN'，推进需要 'NORMAL'",
+      "identity_trust: current_request_identity.status='UNKNOWN'，本轮没有可信的当前请求身份绑定",
+      "F0 决策为 'ADAPTER_BLOCK'（ADAPTER_MODULE_STATUS_NOT_PROCEED），未提交 Planner"
+    ]
+  },
+  "m3_online": {
+    "verdict": "PASS",
+    "checks": 41,
+    "failures": 0,
+    "scenarios": [
+      {
+        "cid": "ON01",
+        "m3_status": "ALLOW_RECOMMENDED",
+        "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+        "planner_outcome": "PLANNER_RESULT_RECEIVED",
+        "gateway_arrivals": 1,
+        "gateway_decisions": [
+          {
+            "decision": "ALLOW",
+            "reason_code": "ALLOW_IN_POLICY"
+          }
+        ],
+        "gateway_executions": 1,
+        "navsim_goals": 1
+      },
+      {
+        "cid": "ON02",
+        "m3_status": "BLOCK_RECOMMENDED",
+        "adapter_decision": "ADAPTER_BLOCK",
+        "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+        "gateway_arrivals": 0,
+        "gateway_decisions": [],
+        "gateway_executions": 0,
+        "navsim_goals": 0
+      },
+      {
+        "cid": "ON03",
+        "m3_status": "UNKNOWN",
+        "adapter_decision": "ADAPTER_BLOCK",
+        "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+        "gateway_arrivals": 0,
+        "gateway_decisions": [],
+        "gateway_executions": 0,
+        "navsim_goals": 0
+      },
+      {
+        "cid": "ON04",
+        "m3_status": "ERROR",
+        "adapter_decision": "ADAPTER_BLOCK",
+        "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+        "gateway_arrivals": 0,
+        "gateway_decisions": [],
+        "gateway_executions": 0,
+        "navsim_goals": 0
+      },
+      {
+        "cid": "ON05",
+        "m3_status": "ALLOW_RECOMMENDED",
+        "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+        "planner_outcome": "PLANNER_RESULT_RECEIVED",
+        "gateway_arrivals": 1,
+        "gateway_decisions": [
+          {
+            "decision": "BLOCK",
+            "reason_code": "OUT_OF_REGION"
+          }
+        ],
+        "gateway_executions": 0,
+        "navsim_goals": 0
+      },
+      {
+        "cid": "ON06",
+        "m3_status": "ALLOW_RECOMMENDED",
+        "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+        "planner_outcome": "PLANNER_RESULT_TIMEOUT",
+        "gateway_arrivals": 0,
+        "gateway_decisions": [],
+        "gateway_executions": 0,
+        "navsim_goals": 0
+      }
+    ]
+  },
+  "tests": {
+    "unit": "704 passed, 3 skipped",
+    "acceptance": {
+      "comm_risk": {
+        "PASS": 60,
+        "FAIL": 3,
+        "gate": true
+      },
+      "identity_trust": {
+        "PASS": 58,
+        "FAIL": 3,
+        "gate": true
+      },
+      "task_risk": {
+        "PASS": 58,
+        "FAIL": 3,
+        "gate": true
+      }
+    },
+    "three_real_online_check": "11 passed (T1-T5 + guard)",
+    "dds_enforce": "SROS2 SUMMARY 7 passed / 7 total (domain 43)"
+  },
+  "final_state": "B1_INTEGRATED_BLOCKING"
+}

@@ -1,0 +1,2 @@
+PASS  工作区干净，SHA 已记录
+FAIL  容器内 ROS 环境不可用
