@@ -1,0 +1,78 @@
+# 成员 2 真实模块通用验收配置（受信任本地文件）
+#
+# 用途
+# ----
+#   python3 scripts/check_member_module.py --module identity_trust \
+#       --config config/team_modules.member2.real.yaml \
+#       --real-fixture config/acceptance/real_scenarios.member2.yaml
+#
+# 说明
+# ----
+# * `real_command_profiles` 中的每个档案都是**同一真实评估器加上固定的受控
+#   实验参数**（--experiment-run / --case / --policy / --keystore /
+#   --evidence-root）。fixture 只能引用档案名，不能提供命令本身。
+# * `--experiment-run` 指向归档的真实 SROS2 域 43 Enforce 实验
+#   artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence/20261009T093144Z。
+#   该目录是**只读历史证据**，本配置不修改其中任何文件。
+# * 评估器仍是**离线证据解释器**：AUTHORIZED 只表示所引用的历史实验中访问成功，
+#   不代表当前请求已完成 DDS 认证，也不代表 Gateway 已授权。
+# * 其他成员模块保持 MOCK，未做任何真实化。
+adapter:
+  log_path: logs/member2/adapter.jsonl
+  planner_command: [ros2, run, rg_demo_nodes, planner_node]
+
+# 受控实验参数（只读引用归档证据）
+real_experiment:
+  run_id: "20261009T093144Z"
+  evidence_root: "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence"
+  policy: "security/policies/minimal_permissions.xml"
+  keystore: "security/keystore"
+
+real_command_profiles:
+  # S2：/planner -> /rg/guarded_navigate 授权成功；其资源与当前候选入口一致
+  case_s2:
+    args: [--experiment-run, "20261009T093144Z", --case, S2,
+           --evidence-root, "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence",
+           --policy, "security/policies/minimal_permissions.xml",
+           --keystore, "security/keystore"]
+  # S3C：/gateway -> /rg/nav_execute 正向对照成功（资源与候选入口不同）
+  case_s3c:
+    args: [--experiment-run, "20261009T093144Z", --case, S3C,
+           --evidence-root, "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence",
+           --policy, "security/policies/minimal_permissions.xml",
+           --keystore, "security/keystore"]
+  # S3：/planner -> /rg/nav_execute 原生 DDS 拒绝（含 ANSI 日志）+ S3C 正向对照
+  case_s3:
+    args: [--experiment-run, "20261009T093144Z", --case, S3,
+           --evidence-root, "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence",
+           --policy, "security/policies/minimal_permissions.xml",
+           --keystore, "security/keystore"]
+  # S4：/unauthorized -> /rg/nav_execute 原生 DDS 拒绝 + S3C 正向对照
+  case_s4:
+    args: [--experiment-run, "20261009T093144Z", --case, S4,
+           --evidence-root, "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence",
+           --policy, "security/policies/minimal_permissions.xml",
+           --keystore, "security/keystore"]
+
+modules:
+  comm_risk:
+    mode: mock
+    interface: comm_risk_evidence
+    command: [python3, mock_modules/comm_risk_mock.py]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+  identity_trust:
+    mode: external
+    interface: identity_trust_assessment
+    command: [python3, identity_trust/assessor.py]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+  task_risk:
+    mode: mock
+    interface: task_risk_decision
+    command: [python3, mock_modules/task_risk_mock.py]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false

@@ -1,0 +1,5 @@
+{ "schema_version":"1.0.0-proposed","run_id":"run-f0c-0001","request_id":"req-f0c-0001","event_id":"evt-x","producer":{"name":"m","source":"MOCK"}, "observed_at":"2026-10-10 12:00:05", "status":"NORMAL", "reason":"r",
+  "communication":{"resource":"/rg/guarded_navigate","resource_type":"Action"},
+  "window":{"start":"2026-10-10T12:00:00Z","end":"2026-10-10T12:00:05Z","duration_ms":5000},
+  "request_count":1, "anomaly_category":"NONE", "risk_level":"NONE", "basis":["b"],
+  "evidence_refs":[{"ref":"x","kind":"MOCK"}] }

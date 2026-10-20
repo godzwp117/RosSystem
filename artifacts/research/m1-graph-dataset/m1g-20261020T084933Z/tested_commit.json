@@ -1,0 +1,55 @@
+{
+  "run_id": "m1g-20261020T084933Z",
+  "parent_sha": "a5e70df63521ee63195187368071f9b2299e3437",
+  "security_base": "86a8910bf4560dfe455bec09bc503600c30bf670",
+  "branch": "research/m1-graph-observation-dataset",
+  "m1_tested_code_sha": "a5e70df63521ee63195187368071f9b2299e3437",
+  "environment": {
+    "container": "rg_m1g",
+    "domain": 69,
+    "ros": "jazzy",
+    "window_sec": 30,
+    "graph_poll_interval_sec": 0.2
+  },
+  "g1": {
+    "deterministic_tests": 22,
+    "all_passed": true,
+    "zero_message_window_verified_on_real_ros2": true
+  },
+  "g2": {
+    "scenarios": 8,
+    "churn_transitions": 45,
+    "graph_only_transitions": 46,
+    "stable_transitions": 3,
+    "pure_query_transitions": 2,
+    "blip_transitions": 0,
+    "pure_query_verdict": "NOT_OBSERVABLE_WITH_GRAPH_SNAPSHOTS",
+    "short_lived_endpoints_verdict": "MISSED_BY_POLLING"
+  },
+  "g3": {
+    "sessions": 30,
+    "normal": 15,
+    "anomaly": 15,
+    "anomaly_classes": {
+      "anomaly-flood": 5,
+      "anomaly-churn": 5,
+      "anomaly-endpoint-recon": 5
+    },
+    "normal_target": 20,
+    "normal_target_met": false
+  },
+  "g4": {
+    "forbidden_features_present": [],
+    "overall": "INSUFFICIENT_EVIDENCE",
+    "normal_fpr_worst": 1.0,
+    "worst_session_f1": 0.0,
+    "recon_recall": 0.0,
+    "model_exported": false,
+    "production_config_modified": false
+  },
+  "artifacts": {
+    "g1_smoke": 1,
+    "g2": 8,
+    "g3": 30
+  }
+}
