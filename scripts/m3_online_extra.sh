@@ -85,13 +85,40 @@ ros2 run rg_gateway security_gateway --ros-args \
   >"$OUT/gateway.log" 2>&1 &
 PIDS+=($!)
 
+# 就绪判定必须**确认**，不能超时后照样打印成功。
+# 旧实现无论 30 秒内是否就绪都会走到 `echo STACK_READY=1` 并继续跑
+# ON-03/04/06，于是"启动失败"会被后续场景的失败掩盖，日志里却留下
+# STACK_READY=1 —— 属于假阳性，必须修掉。
+READY=0
 for _ in $(seq 1 150); do
   if grep -q NAVSIM_READY "$OUT/navsim.log" 2>/dev/null &&
      grep -q GATEWAY_READY "$OUT/gateway.log" 2>/dev/null; then
+    READY=1
     break
   fi
   sleep 0.2
 done
+if [ "$READY" -ne 1 ]; then
+  echo "ERROR: 栈未在 30 秒内就绪（navsim/gateway READY 标记缺失）" >&2
+  echo "--- navsim.log 尾部 ---" >&2
+  tail -5 "$OUT/navsim.log" >&2 2>/dev/null || true
+  echo "--- gateway.log 尾部 ---" >&2
+  tail -5 "$OUT/gateway.log" >&2 2>/dev/null || true
+  cleanup || true
+  trap - EXIT
+  echo "STACK_READY=0" >&2
+  exit 6
+fi
+
+# 就绪之外还要确认 TaskPolicy 真的加载了：否则 Gateway 会以默认策略运行，
+# "ALLOW/BLOCK" 就不再反映正式策略。
+if ! grep -q '"policy_loaded": true' "$OUT/gateway.log" 2>/dev/null; then
+  echo "ERROR: Gateway 未确认 policy_loaded=true；拒绝在未加载策略的网关上跑验收" >&2
+  tail -5 "$OUT/gateway.log" >&2 2>/dev/null || true
+  cleanup || true
+  trap - EXIT
+  exit 7
+fi
 echo "STACK_READY=1"
 
 IN=/tmp/m3_online_inputs
