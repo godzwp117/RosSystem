@@ -120,6 +120,8 @@ def main(argv=None):
     parser.add_argument('--window', type=float, default=30.0)
     parser.add_argument('--poll-interval', type=float, default=0.2)
     parser.add_argument('--domain', type=int, default=69)
+    parser.add_argument('--emit-raw-events', action='store_true', default=True,
+                        help='导出可独立复算的原始事件时间戳')
     parser.add_argument('--out', required=True)
     args = parser.parse_args(argv)
 
@@ -157,6 +159,8 @@ def main(argv=None):
             'windows': windows,
             'summary': node.aggregator.summary(),
             'tick_lateness_samples': node._tick_lateness[:20],
+            # 原始事件流：足以独立重算窗口特征，非敏感（无消息内容）
+            'raw_events': node.aggregator.raw_events() if args.emit_raw_events else None,
             'collector': 'scripts/m1_graph_collector.py',
         }
         os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)

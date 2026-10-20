@@ -30,8 +30,10 @@ import sys
 from datetime import datetime, timezone
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CONTAINER = 'rg_m1g'
-DOMAIN = '69'
+# 容器与 Domain 可由环境变量覆盖：不同轮次使用不同研究容器，
+# 硬编码会导致采集写进**上一轮**的工作树（第六轮已实际踩到）。
+CONTAINER = os.environ.get('M1_EXPERIMENT_CONTAINER', 'rg_m1g')
+DOMAIN = os.environ.get('M1_EXPERIMENT_DOMAIN', '69')
 COLLECTOR = 'scripts/m1_graph_collector.py'
 
 

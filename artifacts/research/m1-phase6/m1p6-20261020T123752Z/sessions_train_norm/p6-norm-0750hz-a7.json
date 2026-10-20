@@ -1,0 +1,110 @@
+{
+  "contract": "m1-graph-session/1",
+  "session_id": "p6-norm-0750hz-a7",
+  "scenario": "normal-rate",
+  "label": "normal",
+  "label_basis": "authorized 750 Hz publisher, within expected workload",
+  "label_source": "EXPERIMENT_CONDITION",
+  "model_used_for_labeling": false,
+  "topic": "/m1g/p6_norm_0750hz_a7",
+  "message_type": "std_msgs/msg/String",
+  "domain_id": 70,
+  "window_sec": 30.0,
+  "window_policy": "time-driven, fixed, contiguous, non-overlapping",
+  "graph_poll_interval_sec": 0.2,
+  "graph_feature_semantics": "graph_snapshot_transition_count = 相邻轮询快照的差异次数；不是 DDS Discovery 报文数，两次轮询之间的短时变化会被漏掉",
+  "started_at": "2026-10-20T12:55:35.972Z",
+  "ended_at": "2026-10-20T12:56:21.848Z",
+  "min_samples": 10,
+  "windows": [
+    {
+      "contract": "m1-observation-window/2",
+      "window_start": 0.0,
+      "window_end": 30.0,
+      "window_complete": true,
+      "message_observation": {
+        "status": "OK",
+        "samples": 20077,
+        "features": {
+          "message_count": 20077,
+          "frequency_hz": 669.2333,
+          "gap_median_ms": 1.482,
+          "gap_p95_ms": 1.6167,
+          "gap_max_ms": 2.4298,
+          "gap_cv": 0.0509,
+          "publisher_count_in_window": 1,
+          "late_messages_dropped": 0,
+          "dropped_timestamps": 0
+        }
+      },
+      "graph_observation": {
+        "status": "VALID",
+        "successful_polls": 131,
+        "failed_polls": 0,
+        "polls_expected": 150,
+        "observed_span_sec": 29.931,
+        "graph_time_coverage_ratio": 0.9977,
+        "features": {
+          "graph_snapshot_transition_count": 1
+        }
+      },
+      "overall_observation_status": "FULL"
+    },
+    {
+      "contract": "m1-observation-window/2",
+      "window_start": 30.0,
+      "window_end": 40.022,
+      "window_complete": false,
+      "message_observation": {
+        "status": "OK",
+        "samples": 5355,
+        "features": {
+          "message_count": 5355,
+          "frequency_hz": 178.5,
+          "gap_median_ms": 1.4849,
+          "gap_p95_ms": 1.6177,
+          "gap_max_ms": 10.2292,
+          "gap_cv": 0.0996,
+          "publisher_count_in_window": 1,
+          "late_messages_dropped": 0,
+          "dropped_timestamps": 0
+        }
+      },
+      "graph_observation": {
+        "status": "DEGRADED",
+        "successful_polls": 43,
+        "failed_polls": 0,
+        "polls_expected": 150,
+        "observed_span_sec": 9.666,
+        "graph_time_coverage_ratio": 0.3222,
+        "features": {
+          "graph_snapshot_transition_count": 1
+        },
+        "reason": "图观测仅覆盖 32% 的窗口（成功轮询 43 次，期望约 150 次）；不能据此断言该窗口没有拓扑变化"
+      },
+      "overall_observation_status": "PARTIAL"
+    }
+  ],
+  "summary": {
+    "session_sec": 40.027,
+    "windows_total": 2,
+    "windows_complete": 1,
+    "windows_incomplete": 1,
+    "windows_message_ok": 1,
+    "windows_graph_valid": 1,
+    "windows_overall_full": 1,
+    "late_ticks": 0,
+    "graph_coverage_degraded_windows": 0,
+    "uncovered_sec": 0.0,
+    "dropped_timestamps": 0,
+    "late_messages_dropped": 0
+  },
+  "tick_lateness_samples": [],
+  "raw_events": {
+    "messages": [],
+    "graph_transitions": [],
+    "polls": [],
+    "messages_truncated": 0
+  },
+  "collector": "scripts/m1_graph_collector.py"
+}

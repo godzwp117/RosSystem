@@ -61,17 +61,23 @@ def test_zero_messages_still_closes_window():
 
 
 def test_zero_messages_with_graph_change_keeps_graph_features():
-    """零消息 + 有图变化：图通道仍必须给出有效特征。"""
+    """零消息 + 有图变化：图通道仍必须给出有效特征。
+
+    注意：图通道要判 VALID，必须**覆盖足够比例**的窗口时间；
+    只在开头轮询两次然后空转到窗口结束，会正确地被判为 DEGRADED。
+    这里按真实采集节奏（每 3 秒一次）轮询整个窗口。
+    """
     state = {'sig': 'a'}
     agg, clock = make(snapshot=lambda: state['sig'])
     agg.poll_graph()
-    state['sig'] = 'b'
-    clock.advance(5)
-    agg.poll_graph()
-    state['sig'] = 'c'
-    clock.advance(5)
-    agg.poll_graph()
-    clock.advance(25)
+    for step in range(9):
+        clock.advance(3.0)
+        if step == 1:
+            state['sig'] = 'b'
+        elif step == 2:
+            state['sig'] = 'c'
+        agg.poll_graph()
+    clock.advance(4)
     agg.tick()
     window = agg.closed[0]
     assert window['graph_observation']['status'] == 'VALID'
@@ -323,10 +329,68 @@ def test_overall_status_matrix(messages, graph_ok, expected):
     agg, clock = make(snapshot=snapshot)
     if not graph_ok:
         state['fail'] = True
+    # 覆盖整窗口的轮询节奏，避免因覆盖率不足被判 DEGRADED
     agg.poll_graph()
-    for _ in range(messages):
-        clock.advance(1.0)
+    for step in range(messages):
+        clock.advance(30.0 / max(messages, 10))
         agg.record_message()
-    clock.advance(30)
+        if step % 2 == 0:
+            agg.poll_graph()
+    while clock.now < 29.5:
+        clock.advance(1.5)
+        agg.poll_graph()
+    clock.advance(1.0)
     agg.tick()
     assert agg.closed[0]['overall_observation_status'] == expected
+
+
+# ---------------------------------------------------------------- 覆盖质量
+def test_single_successful_poll_is_degraded_not_valid():
+    """核心修复：只轮询一两次不能断言"该窗口没有拓扑变化"。"""
+    agg, clock = make(snapshot=lambda: 'stable')
+    agg.poll_graph()                       # 只有 1 次成功轮询
+    clock.advance(30.0)
+    agg.tick()
+    graph = agg.closed[0]['graph_observation']
+    assert graph['status'] == 'DEGRADED'
+    assert graph['graph_time_coverage_ratio'] < 0.5
+    assert '不能据此断言' in graph['reason']
+
+
+def test_full_window_polling_is_valid():
+    agg, clock = make(snapshot=lambda: 'stable')
+    for _ in range(20):
+        agg.poll_graph()
+        clock.advance(1.5)
+    clock.advance(1.0)
+    agg.tick()
+    graph = agg.closed[0]['graph_observation']
+    assert graph['status'] == 'VALID'
+    assert graph['graph_time_coverage_ratio'] >= 0.5
+
+
+def test_late_ticks_accumulate_uncovered_time():
+    """tick 迟到必须累计未覆盖时长，而不是当作观测连续。"""
+    agg, clock = make()
+    agg.tick(expected_period=0.05)
+    clock.advance(0.05)
+    agg.tick(expected_period=0.05)
+    clock.advance(5.0)                     # 采集器停顿 5 秒
+    agg.tick(expected_period=0.05)
+    clock.advance(30.0)
+    agg.tick(expected_period=0.05)
+    summary = agg.summary()
+    assert summary['late_ticks'] >= 1
+    assert summary['uncovered_sec'] > 0
+
+
+def test_expected_polls_reported_per_window():
+    agg, clock = make()
+    for _ in range(20):
+        agg.poll_graph()
+        clock.advance(1.5)
+    clock.advance(1.0)
+    agg.tick()
+    graph = agg.closed[0]['graph_observation']
+    assert graph['polls_expected'] >= 1
+    assert graph['successful_polls'] >= 19

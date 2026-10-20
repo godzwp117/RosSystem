@@ -39,6 +39,9 @@ MIN_SAMPLES = 10
 #: 单次 tick 若超出应到时刻该值，视为"迟到"，记录并降低覆盖质量
 LATE_TICK_TOLERANCE_SEC = 1.0
 
+#: 图观测覆盖率低于该值时，窗口状态降为 DEGRADED
+MIN_GRAPH_COVERAGE = 0.5
+
 #: 已关闭窗口在内存中保留的最近条数（防止长跑无限增长）
 MAX_RETAINED_WINDOWS = 512
 
@@ -72,11 +75,12 @@ class WindowAggregator:
     """
 
     def __init__(self, window_sec=30.0, clock=None, snapshot=None,
-                 min_samples=MIN_SAMPLES):
+                 min_samples=MIN_SAMPLES, poll_interval=0.2):
         self.window_sec = float(window_sec)
         self.clock = clock
         self.snapshot = snapshot
         self.min_samples = int(min_samples)
+        self.poll_interval = float(poll_interval)
 
         self.session_start = None
         self.window_start = None
@@ -94,11 +98,14 @@ class WindowAggregator:
         self._polls_ok = 0
         self._polls_failed = 0
         self._transition_times = []
+        # 轮询时间戳用于计算"本窗口到底被观察了多久"
+        self._poll_times = []
         self._first_poll_done = False
 
         # 覆盖质量
         self._late_ticks = 0
         self._uncovered_sec = 0.0
+        self._last_tick = None
 
     # ---------------------------------------------------------------- 生命周期
     def start(self):
@@ -152,6 +159,7 @@ class WindowAggregator:
             self._record_graph_failure(now)
             return False
         self._polls_ok += 1
+        self._poll_times.append(now)
         if not self._first_poll_done:
             self._first_poll_done = True
             self._last_signature = signature
@@ -170,13 +178,23 @@ class WindowAggregator:
             pass
         self._uncovered_sec += 0.0
 
-    def tick(self):
+    def tick(self, expected_period=None):
         """时间驱动的主入口：关闭所有已到期的窗口。
 
         即使期间**没有任何消息或图事件**，也必须关闭窗口。
+
+        `expected_period` 是调用方期望的 tick 周期；实际间隔明显超过它
+        即记为一次迟到，并累计未覆盖时长。
         """
         self._ensure_started()
         now = self.clock()
+        if expected_period is not None and self._last_tick is not None:
+            gap = now - self._last_tick
+            if gap > expected_period * 2:
+                self._late_ticks += 1
+                # 超出预期的部分即"没有人在推进观测"的时长
+                self._uncovered_sec += gap - expected_period
+        self._last_tick = now
         self._advance(now)
 
     def _advance(self, now):
@@ -212,6 +230,7 @@ class WindowAggregator:
         self._graph_transitions = 0
         self._polls_ok = 0
         self._polls_failed = 0
+        self._poll_times = []
         return record
 
     def _message_block(self, in_window):
@@ -246,10 +265,19 @@ class WindowAggregator:
         return block
 
     def _graph_block(self, transitions):
+        expected_polls = max(1, int(round(self.window_sec / self.poll_interval))) \
+            if self.poll_interval > 0 else 1
+        observed_span = 0.0
+        if len(self._poll_times) >= 2:
+            observed_span = self._poll_times[-1] - self._poll_times[0]
+        coverage = min(1.0, observed_span / self.window_sec) if self.window_sec else 0.0
         block = {
             'status': 'VALID',
             'successful_polls': self._polls_ok,
             'failed_polls': self._polls_failed,
+            'polls_expected': expected_polls,
+            'observed_span_sec': round(observed_span, 3),
+            'graph_time_coverage_ratio': round(coverage, 4),
             'features': {
                 # 轮询快照差异次数；不是 DDS Discovery 报文数
                 'graph_snapshot_transition_count': self._graph_transitions,
@@ -265,6 +293,13 @@ class WindowAggregator:
             block['status'] = 'DEGRADED'
             block['reason'] = (f'{self._polls_failed} 次轮询失败；'
                                '该窗口可能漏掉变化')
+        elif block['graph_time_coverage_ratio'] < MIN_GRAPH_COVERAGE:
+            # 只有一两次成功轮询时，"没有变化"可能只是"几乎没看"
+            block['status'] = 'DEGRADED'
+            block['reason'] = (
+                f'图观测仅覆盖 {block["graph_time_coverage_ratio"]:.0%} 的窗口'
+                f'（成功轮询 {self._polls_ok} 次，期望约 {expected_polls} 次）；'
+                '不能据此断言该窗口没有拓扑变化')
         return block
 
     def _overall(self, record):
@@ -291,6 +326,24 @@ class WindowAggregator:
             self.window_start = now
         return self.closed
 
+    def raw_events(self, limit=20000):
+        """导出可独立重算特征的基础事件（相对会话起点，秒）。
+
+        只给**非敏感**的时间戳与计数，不含消息内容。
+        保留它是为了满足"证据必须能独立复算特征"的要求：
+        有了消息到达时刻与窗口定义，任何第三方都能重算间隔统计。
+        """
+        if self.session_start is None:
+            return {'messages': [], 'graph_transitions': [], 'polls': []}
+        base = self.session_start
+        return {
+            'messages': [round(t - base, 6) for t in self._timestamps][-limit:],
+            'graph_transitions': [round(t - base, 6)
+                                  for t in self._transition_times][-limit:],
+            'polls': [round(t - base, 6) for t in self._poll_times][-limit:],
+            'messages_truncated': max(0, len(self._timestamps) - limit),
+        }
+
     def summary(self):
         complete = [w for w in self.closed if w['window_complete']]
         return {
@@ -309,6 +362,9 @@ class WindowAggregator:
                 1 for w in complete
                 if w['overall_observation_status'] == 'FULL'),
             'late_ticks': self._late_ticks,
+            'graph_coverage_degraded_windows': sum(
+                1 for w in complete
+                if w['graph_observation']['status'] == 'DEGRADED'),
             'uncovered_sec': round(self._uncovered_sec, 3),
             'dropped_timestamps': self._dropped_timestamps,
             'late_messages_dropped': self._late_messages,
