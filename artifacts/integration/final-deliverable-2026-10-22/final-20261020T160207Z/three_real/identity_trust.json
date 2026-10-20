@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0.0-proposed",
+  "run_id": "three-final-20261020T160207Z",
+  "request_id": "legal-three-final-20261020T160207Z",
+  "event_id": "evt-identity-legal-three-final-20261020T160207Z-1e9bac15f5ed47e1b0598f29",
+  "producer": {
+    "name": "identity_trust_assessor",
+    "module_version": "0.2.0",
+    "source": "EXTERNAL"
+  },
+  "observed_at": "2026-10-20T16:13:09Z",
+  "status": "AUTHORIZED",
+  "reason": "受控 DDS Enforce 实验及本地权限文件一致，观察到授权通信成功",
+  "subject": {
+    "observed_name": "planner_node",
+    "declared_enclave": "/planner"
+  },
+  "requested_resource": {
+    "resource": "/rg/guarded_navigate",
+    "operation": "SERVICE_REQUEST"
+  },
+  "authorization": {
+    "result_status": "AUTHORIZED",
+    "denial_layer": "NONE"
+  },
+  "identity_evidence": {
+    "kind": "CONTROLLED_SECURITY_EXPERIMENT",
+    "detail": "历史受控实验证据；不证明当前请求的 DDS 身份认证，也不证明当前候选资源已被判定"
+  },
+  "access_control_evidence": {
+    "kind": "NONE"
+  },
+  "evidence_refs": [
+    {
+      "ref": "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence/20261009T093144Z/summary.json",
+      "kind": "CONTROLLED_SECURITY_EXPERIMENT"
+    },
+    {
+      "ref": "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence/20261009T093144Z/S2/planner.log",
+      "kind": "RUNTIME_LOG"
+    },
+    {
+      "ref": "security/policies/minimal_permissions.xml",
+      "kind": "PERMISSION_FILE_ANALYSIS"
+    },
+    {
+      "ref": "security/keystore/enclaves/planner/permissions.xml",
+      "kind": "PERMISSION_FILE_ANALYSIS"
+    }
+  ],
+  "extensions": {
+    "experiment_case_id": "S2",
+    "historical_only": true,
+    "current_request_binding": "HISTORICAL_RESOURCE_MATCHES_CURRENT",
+    "historical_experiment_resource": "/rg/guarded_navigate",
+    "current_candidate_resource": "/rg/guarded_navigate",
+    "identity_binding_note": "历史实验只覆盖该次运行中真实使用 DDS 身份的主体；request_id / declared_enclave / 业务 JSON 自报身份都不是 DDS 已认证身份",
+    "current_request_identity": {
+      "status": "UNKNOWN",
+      "evidence_kind": "NONE",
+      "binding": "UNBOUND_NO_TRUSTED_CURRENT_IDENTITY_WITNESS",
+      "reason": "没有可信证据把当前请求绑定到已认证 DDS 主体：ROS 2 Jazzy 未提供获取订阅端对端主体身份的 API，且业务 JSON 自报身份不构成认证",
+      "historical_only": false,
+      "verifier": {
+        "name": "identity_trust/current_identity.py",
+        "contract": "current-identity-attestation/2",
+        "version": "2.0.0"
+      },
+      "checks": {
+        "signature": "NOT_PRESENT",
+        "issuer": "NOT_EVALUATED",
+        "request_binding": "NOT_CHECKED",
+        "freshness": "NOT_CHECKED",
+        "replay": "NOT_RESERVED"
+      },
+      "attestation": {},
+      "producer": "NOT_IMPLEMENTED: 现有 ROS 2 DDS API 不暴露当前请求主体身份"
+    },
+    "historical_authorization_reuse_detected": false,
+    "experiment_run_id": "20261009T093144Z",
+    "historical_experiment_status": "AUTHORIZED"
+  },
+  "policy_ref": {
+    "permissions_ref": "security/keystore/enclaves/planner/permissions.xml",
+    "policy_version": "0.2.0"
+  }
+}

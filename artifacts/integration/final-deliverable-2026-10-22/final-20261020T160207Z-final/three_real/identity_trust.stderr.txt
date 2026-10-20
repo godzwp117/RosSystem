@@ -1,0 +1,3 @@
+MODULE_PYTHON_UNQUALIFIED: 未找到满足 jsonschema>=4 (Draft 2020-12) 的解释器
+已尝试：/ws/.research-venv/bin/python /ws/tests/evidence/research-venv/bin/python python3
+可通过 ROS_MODULE_PYTHON=/path/to/python 显式指定

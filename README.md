@@ -1,8 +1,88 @@
-# RosSystem —— 面向具身智能机器人的 ROS 2 通信可信分析与动态最小权限防护系统
+# RosSystem —— ROS 2 Jazzy 多模块风险评估与分层安全准入原型系统
+
+> **最终交付分支：`integration/final-deliverable-2026-10-22`**
+> 受测代码 SHA：`0563fe7cc8aab6901bb7a91d6ece3b9cdd960a04`
+> 交付日期：2026-10-22
+> 验收结论：**`FINAL_CONTROLLED_SYSTEM_PASS`**（受控系统交付通过）
+> 三真实 LEVEL 3：**`BLOCKED`**（原因见 §2.4 与 §9）
+
+---
+
+## 0. 最终交付摘要（先读这一节）
+
+本分支在既有研究基础上完成**工程交付**，交付一套可部署、可运行、可复验、
+具备明确安全边界的 ROS 2 分层安全准入原型。
+
+### 0.1 系统能做什么
+
+| 能力 | 状态 | 说明 |
+| --- | --- | --- |
+| 受控正向在线闭环 | ✅ 可运行 | M1/M2 受控 Mock + M3 真实规则；F0→Planner→Gateway→NavigationSim 全部真实进程 |
+| Gateway 独立权威阻断 | ✅ 可运行 | 越界任务由 TaskPolicy 独立 BLOCK，Goal 为 0 |
+| 三真实 External 严格准入 | ✅ 可运行（结果为阻断） | M1/M2/M3 均为真实进程，Schema 合法，F0 STRICT 正确 `ADAPTER_BLOCK` |
+| M3 任务风险规则引擎 | ✅ 可运行 | 在线六场景 ON-01..ON-06 实测通过 |
+| 正式 DDS-Security Enforce | ✅ 可运行 | 正式权限 S1/S2/S3/S3C/S4/S5/S6 **7/7** |
+| F0 身份防伪造 | ✅ 可运行 | 38 项 P0 安全反例通过 |
+| **M1 在线检测有效性** | ❌ **未通过** | 模型未达验收门槛（详见 §9） |
+| **M2 生产身份签发者** | ❌ **未就绪** | 仅研究级，不能作为生产信任根 |
+| **三真实 LEVEL 3 正向准入** | ❌ **BLOCKED** | 缺少 M1/M2 可信正向依据 |
+
+### 0.2 统一执行入口
+
+所有模式通过一个脚本进入：
+
+```bash
+scripts/final_system.sh --check                    # 环境与版本自检
+scripts/final_system.sh --mode controlled          # 受控正向在线闭环
+scripts/final_system.sh --mode three-real-strict   # 三真实严格准入
+scripts/final_system.sh --mode enforce             # 正式 DDS Enforce
+scripts/final_system.sh --mode acceptance          # 全量验收
+```
+
+通用参数：`--run-id <id>`、`--out-dir <dir>`、`--domain <n>`。
+每个模式都会把代码 SHA、run_id、命令与退出码写入证据目录；
+任何关键失败都以**非零退出**，不会用 `|| true` 掩盖。
+
+### 0.3 本轮真实验收结果（在本受测 SHA 上执行）
+
+| 项目 | 结果 | 证据 |
+| --- | --- | --- |
+| 公共契约 | **PASS** | `contracts.log` |
+| 全仓单元测试 | **826 passed, 1 skipped** | `unit_tests.log` |
+| F0 P0 安全反例 | **38 passed** | `f0_p0.log` |
+| 三真实 External | 调用 PASS / Schema PASS / **F0 BLOCK（预期）** | `three_real/` |
+| 受控在线正向 | Gateway 审计 5 行 / NavSim Goal **1** | `controlled_online/` |
+| Gateway 独立阻断 | **BLOCK，Goal 0** | `controlled_online/` |
+| M3 在线六场景 | **19 checks / 0 failures / PASS** | `m3_online/merged/verification.json` |
+| 正式 DDS Enforce | **7/7 PASS** | `dds_enforce/` |
+| 全量验收 | **`ACCEPTANCE=PASS`** | `summary.txt` |
+
+证据根目录：
+`artifacts/integration/final-deliverable-2026-10-22/final-20261020T160207Z-v3/`
+（含 `SHA256SUMS.txt`，可 `sha256sum -c` 复核）
+
+### 0.4 两种运行模式的本质区别
+
+| 模式 | M1 | M2 | M3 | 预期结果 |
+| --- | --- | --- | --- | --- |
+| 受控在线 | MOCK | MOCK | **EXTERNAL** | 合法任务可执行；越界任务被 Gateway 阻断 |
+| 三真实严格 | **EXTERNAL** | **EXTERNAL** | **EXTERNAL** | 当前 M1/M2 证据不足 → F0 STRICT **BLOCK** |
+
+**严格模式的 BLOCK 是正确安全行为，不是系统故障。**
+正式 DDS Enforce 是**第三类独立实验**，运行在正式权限绑定的域上，
+不能与在线模式拼成"同次安全通信链路"。
+
+---
+
+## 关于 `baseline` 与 `main`（历史语境，仍然有效）
 
 > **团队研发基线分支：`baseline`**
 > 三个研究模块从 `baseline` 拉功能分支并行研发，成果经审查后合回 `baseline`。
 > **`main` 不接收研究模块的直接合并。**
+
+以下第 1 节起的内容描述的是 **baseline 研发协作语境**。
+其中"模块尚未实现"等表述反映的是该历史时点的状态，
+**不代表**本最终交付分支的当前能力 —— 当前能力以本节 §0 为准。
 
 ---
 
