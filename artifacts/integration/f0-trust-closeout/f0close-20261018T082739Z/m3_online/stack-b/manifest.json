@@ -1,0 +1,23 @@
+{
+  "run_id": "f0close-20261018T082739Z-m3",
+  "scenarios": [
+    {
+      "cid": "ON03",
+      "request_id": "on03-f0close-20261018T082739Z-m3",
+      "run_id": "f0close-20261018T082739Z-m3",
+      "expected": "UNKNOWN_BLOCK"
+    },
+    {
+      "cid": "ON04",
+      "request_id": "on04-f0close-20261018T082739Z-m3",
+      "run_id": "f0close-20261018T082739Z-m3",
+      "expected": "ERROR_BLOCK"
+    },
+    {
+      "cid": "ON06",
+      "request_id": "on06-f0close-20261018T082739Z-m3",
+      "run_id": "f0close-20261018T082739Z-m3",
+      "expected": "TIMEOUT_NOT_BLOCK"
+    }
+  ]
+}

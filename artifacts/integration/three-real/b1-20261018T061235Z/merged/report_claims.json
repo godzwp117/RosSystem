@@ -1,0 +1,45 @@
+{
+  "_note": "B1 本轮声明。ON-06 只声明**不变量**（适配层放行、Planner 超时），不再固定下游事实：2026-10-16 那次超时请求实际已执行；2026-10-18 本轮下游 0 事件 0 Goal。超时后的到达/允许/执行必须逐次从 Gateway 审计与 journal 读取，不可预设。",
+  "scenarios": {
+    "ON01": {
+      "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "planner_outcome": "PLANNER_RESULT_RECEIVED",
+      "gateway_arrival": 1,
+      "gateway_decision": "ALLOW",
+      "gateway_reason_code": "ALLOW_IN_POLICY",
+      "gateway_execution": 1,
+      "navsim_goals": 1
+    },
+    "ON02": {
+      "adapter_decision": "ADAPTER_BLOCK",
+      "gateway_arrival": 0,
+      "gateway_execution": 0,
+      "navsim_goals": 0
+    },
+    "ON03": {
+      "adapter_decision": "ADAPTER_BLOCK",
+      "gateway_arrival": 0,
+      "gateway_execution": 0,
+      "navsim_goals": 0
+    },
+    "ON04": {
+      "adapter_decision": "ADAPTER_BLOCK",
+      "gateway_arrival": 0,
+      "gateway_execution": 0,
+      "navsim_goals": 0
+    },
+    "ON05": {
+      "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "planner_outcome": "PLANNER_RESULT_RECEIVED",
+      "gateway_arrival": 1,
+      "gateway_decision": "BLOCK",
+      "gateway_reason_code": "OUT_OF_REGION",
+      "gateway_execution": 0,
+      "navsim_goals": 0
+    },
+    "ON06": {
+      "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "planner_outcome": "PLANNER_RESULT_TIMEOUT"
+    }
+  }
+}

@@ -1,0 +1,791 @@
+{
+  "generated_at": "2026-10-18T16:03:10Z",
+  "script": "scripts/m1_train_windows.py",
+  "input": {
+    "windows": "/home/zhangwei/project/RosSystem/data/ROSPaCe_reduced/windows_0.jsonl",
+    "rows": 22591,
+    "labels": {
+      "observe": 11347,
+      "nmap discovery": 10845,
+      "ros2 reconnaissance": 399
+    },
+    "segments": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  "design": {
+    "grouping": "GroupKFold by segment_index (采集会话)",
+    "threshold_selection": "仅用训练折，验证折不参与阈值选择",
+    "binary_definition": "攻击 = 非 'observe'",
+    "features": [
+      "request_count",
+      "frequency_hz",
+      "gap_median_ms",
+      "gap_p95_ms",
+      "gap_max_ms",
+      "duration_ms",
+      "resource one-hot (top-k) + other"
+    ]
+  },
+  "folds": [
+    {
+      "fold": 1,
+      "train_rows": 856,
+      "test_rows": 21735,
+      "train_segments": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "test_segments": [
+        0
+      ],
+      "train_labels": {
+        "observe": 457,
+        "ros2 reconnaissance": 399
+      },
+      "test_labels": {
+        "observe": 10890,
+        "nmap discovery": 10845
+      },
+      "test_attack_ratio": 0.499,
+      "baseline_constant_attack": 0.6657458563535912,
+      "baseline_constant_normal": 0.6675862068965517,
+      "candidates": {
+        "constant_attack": {
+          "metrics": {
+            "tp": 10845,
+            "fp": 10890,
+            "fn": 0,
+            "tn": 0,
+            "precision": 0.499,
+            "recall": 1.0,
+            "f1": 0.6657,
+            "specificity": 0.0
+          }
+        },
+        "constant_normal": {
+          "metrics": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 10845,
+            "tn": 10890,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "specificity": 1.0
+          }
+        },
+        "rule_frequency_99pct": {
+          "metrics": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 10845,
+            "tn": 10890,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "specificity": 1.0
+          },
+          "params": {
+            "threshold_frequency_hz": 232.2199,
+            "fitted_on": "train-fold normal windows only"
+          }
+        },
+        "logistic": {
+          "metrics": {
+            "tp": 10273,
+            "fp": 0,
+            "fn": 572,
+            "tn": 10890,
+            "precision": 1.0,
+            "recall": 0.9473,
+            "f1": 0.9729,
+            "specificity": 1.0,
+            "threshold": 0.05,
+            "train_f1_at_threshold": 1.0
+          }
+        },
+        "random_forest": {
+          "metrics": {
+            "tp": 4499,
+            "fp": 2656,
+            "fn": 6346,
+            "tn": 8234,
+            "precision": 0.6288,
+            "recall": 0.4148,
+            "f1": 0.4999,
+            "specificity": 0.7561,
+            "threshold": 0.1,
+            "train_f1_at_threshold": 1.0
+          }
+        },
+        "extra_trees": {
+          "metrics": {
+            "tp": 10845,
+            "fp": 1585,
+            "fn": 0,
+            "tn": 9305,
+            "precision": 0.8725,
+            "recall": 1.0,
+            "f1": 0.9319,
+            "specificity": 0.8545,
+            "threshold": 0.05,
+            "train_f1_at_threshold": 1.0
+          }
+        },
+        "hist_gb": {
+          "metrics": {
+            "tp": 30,
+            "fp": 0,
+            "fn": 10815,
+            "tn": 10890,
+            "precision": 1.0,
+            "recall": 0.0028,
+            "f1": 0.0055,
+            "specificity": 1.0,
+            "threshold": 0.05,
+            "train_f1_at_threshold": 1.0
+          }
+        }
+      },
+      "per_class": {
+        "nmap discovery": {
+          "detected": 10845,
+          "total": 10845,
+          "rate": 1.0
+        },
+        "observe": {
+          "detected": 9305,
+          "total": 10890,
+          "rate": 0.8545
+        }
+      }
+    },
+    {
+      "fold": 2,
+      "train_rows": 22354,
+      "test_rows": 237,
+      "train_segments": [
+        0,
+        1,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "test_segments": [
+        2,
+        3
+      ],
+      "train_labels": {
+        "observe": 11219,
+        "nmap discovery": 10845,
+        "ros2 reconnaissance": 290
+      },
+      "test_labels": {
+        "observe": 128,
+        "ros2 reconnaissance": 109
+      },
+      "test_attack_ratio": 0.4599,
+      "baseline_constant_attack": 0.630057803468208,
+      "baseline_constant_normal": 0.7013698630136985,
+      "candidates": {
+        "constant_attack": {
+          "metrics": {
+            "tp": 109,
+            "fp": 128,
+            "fn": 0,
+            "tn": 0,
+            "precision": 0.4599,
+            "recall": 1.0,
+            "f1": 0.6301,
+            "specificity": 0.0
+          }
+        },
+        "constant_normal": {
+          "metrics": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 109,
+            "tn": 128,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "specificity": 1.0
+          }
+        },
+        "rule_frequency_99pct": {
+          "metrics": {
+            "tp": 46,
+            "fp": 44,
+            "fn": 63,
+            "tn": 84,
+            "precision": 0.5111,
+            "recall": 0.422,
+            "f1": 0.4623,
+            "specificity": 0.6562
+          },
+          "params": {
+            "threshold_frequency_hz": 26.4883,
+            "fitted_on": "train-fold normal windows only"
+          }
+        },
+        "logistic": {
+          "metrics": {
+            "tp": 109,
+            "fp": 0,
+            "fn": 0,
+            "tn": 128,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "specificity": 1.0,
+            "threshold": 0.05,
+            "train_f1_at_threshold": 1.0
+          }
+        },
+        "random_forest": {
+          "metrics": {
+            "tp": 109,
+            "fp": 7,
+            "fn": 0,
+            "tn": 121,
+            "precision": 0.9397,
+            "recall": 1.0,
+            "f1": 0.9689,
+            "specificity": 0.9453,
+            "threshold": 0.1,
+            "train_f1_at_threshold": 1.0
+          }
+        },
+        "extra_trees": {
+          "metrics": {
+            "tp": 109,
+            "fp": 0,
+            "fn": 0,
+            "tn": 128,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "specificity": 1.0,
+            "threshold": 0.2,
+            "train_f1_at_threshold": 1.0
+          }
+        },
+        "hist_gb": {
+          "metrics": {
+            "tp": 109,
+            "fp": 0,
+            "fn": 0,
+            "tn": 128,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "specificity": 1.0,
+            "threshold": 0.05,
+            "train_f1_at_threshold": 1.0
+          }
+        }
+      },
+      "per_class": {
+        "observe": {
+          "detected": 128,
+          "total": 128,
+          "rate": 1.0
+        },
+        "ros2 reconnaissance": {
+          "detected": 109,
+          "total": 109,
+          "rate": 1.0
+        }
+      }
+    },
+    {
+      "fold": 3,
+      "train_rows": 22354,
+      "test_rows": 237,
+      "train_segments": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        8
+      ],
+      "test_segments": [
+        6,
+        9
+      ],
+      "train_labels": {
+        "observe": 11225,
+        "nmap discovery": 10845,
+        "ros2 reconnaissance": 284
+      },
+      "test_labels": {
+        "ros2 reconnaissance": 115,
+        "observe": 122
+      },
+      "test_attack_ratio": 0.4852,
+      "baseline_constant_attack": 0.6534090909090909,
+      "baseline_constant_normal": 0.67966573816156,
+      "candidates": {
+        "constant_attack": {
+          "metrics": {
+            "tp": 115,
+            "fp": 122,
+            "fn": 0,
+            "tn": 0,
+            "precision": 0.4852,
+            "recall": 1.0,
+            "f1": 0.6534,
+            "specificity": 0.0
+          }
+        },
+        "constant_normal": {
+          "metrics": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 115,
+            "tn": 122,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "specificity": 1.0
+          }
+        },
+        "rule_frequency_99pct": {
+          "metrics": {
+            "tp": 40,
+            "fp": 41,
+            "fn": 75,
+            "tn": 81,
+            "precision": 0.4938,
+            "recall": 0.3478,
+            "f1": 0.4082,
+            "specificity": 0.6639
+          },
+          "params": {
+            "threshold_frequency_hz": 27.0282,
+            "fitted_on": "train-fold normal windows only"
+          }
+        },
+        "logistic": {
+          "metrics": {
+            "tp": 115,
+            "fp": 0,
+            "fn": 0,
+            "tn": 122,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "specificity": 1.0,
+            "threshold": 0.05,
+            "train_f1_at_threshold": 1.0
+          }
+        },
+        "random_forest": {
+          "metrics": {
+            "tp": 115,
+            "fp": 0,
+            "fn": 0,
+            "tn": 122,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "specificity": 1.0,
+            "threshold": 0.1,
+            "train_f1_at_threshold": 1.0
+          }
+        },
+        "extra_trees": {
+          "metrics": {
+            "tp": 115,
+            "fp": 0,
+            "fn": 0,
+            "tn": 122,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "specificity": 1.0,
+            "threshold": 0.2,
+            "train_f1_at_threshold": 1.0
+          }
+        },
+        "hist_gb": {
+          "metrics": {
+            "tp": 115,
+            "fp": 4,
+            "fn": 0,
+            "tn": 118,
+            "precision": 0.9664,
+            "recall": 1.0,
+            "f1": 0.9829,
+            "specificity": 0.9672,
+            "threshold": 0.05,
+            "train_f1_at_threshold": 1.0
+          }
+        }
+      },
+      "per_class": {
+        "observe": {
+          "detected": 122,
+          "total": 122,
+          "rate": 1.0
+        },
+        "ros2 reconnaissance": {
+          "detected": 115,
+          "total": 115,
+          "rate": 1.0
+        }
+      }
+    },
+    {
+      "fold": 4,
+      "train_rows": 22401,
+      "test_rows": 190,
+      "train_segments": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        6,
+        8,
+        9
+      ],
+      "test_segments": [
+        5,
+        7
+      ],
+      "train_labels": {
+        "observe": 11248,
+        "nmap discovery": 10845,
+        "ros2 reconnaissance": 308
+      },
+      "test_labels": {
+        "ros2 reconnaissance": 91,
+        "observe": 99
+      },
+      "test_attack_ratio": 0.4789,
+      "baseline_constant_attack": 0.6476868327402135,
+      "baseline_constant_normal": 0.6851211072664359,
+      "candidates": {
+        "constant_attack": {
+          "metrics": {
+            "tp": 91,
+            "fp": 99,
+            "fn": 0,
+            "tn": 0,
+            "precision": 0.4789,
+            "recall": 1.0,
+            "f1": 0.6477,
+            "specificity": 0.0
+          }
+        },
+        "constant_normal": {
+          "metrics": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 91,
+            "tn": 99,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "specificity": 1.0
+          }
+        },
+        "rule_frequency_99pct": {
+          "metrics": {
+            "tp": 27,
+            "fp": 24,
+            "fn": 64,
+            "tn": 75,
+            "precision": 0.5294,
+            "recall": 0.2967,
+            "f1": 0.3803,
+            "specificity": 0.7576
+          },
+          "params": {
+            "threshold_frequency_hz": 31.4246,
+            "fitted_on": "train-fold normal windows only"
+          }
+        },
+        "logistic": {
+          "metrics": {
+            "tp": 91,
+            "fp": 0,
+            "fn": 0,
+            "tn": 99,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "specificity": 1.0,
+            "threshold": 0.05,
+            "train_f1_at_threshold": 1.0
+          }
+        },
+        "random_forest": {
+          "metrics": {
+            "tp": 91,
+            "fp": 2,
+            "fn": 0,
+            "tn": 97,
+            "precision": 0.9785,
+            "recall": 1.0,
+            "f1": 0.9891,
+            "specificity": 0.9798,
+            "threshold": 0.1,
+            "train_f1_at_threshold": 1.0
+          }
+        },
+        "extra_trees": {
+          "metrics": {
+            "tp": 91,
+            "fp": 0,
+            "fn": 0,
+            "tn": 99,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "specificity": 1.0,
+            "threshold": 0.2,
+            "train_f1_at_threshold": 1.0
+          }
+        },
+        "hist_gb": {
+          "metrics": {
+            "tp": 91,
+            "fp": 0,
+            "fn": 0,
+            "tn": 99,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "specificity": 1.0,
+            "threshold": 0.05,
+            "train_f1_at_threshold": 1.0
+          }
+        }
+      },
+      "per_class": {
+        "observe": {
+          "detected": 99,
+          "total": 99,
+          "rate": 1.0
+        },
+        "ros2 reconnaissance": {
+          "detected": 91,
+          "total": 91,
+          "rate": 1.0
+        }
+      }
+    },
+    {
+      "fold": 5,
+      "train_rows": 22399,
+      "test_rows": 192,
+      "train_segments": [
+        0,
+        2,
+        3,
+        5,
+        6,
+        7,
+        9
+      ],
+      "test_segments": [
+        1,
+        4,
+        8
+      ],
+      "train_labels": {
+        "observe": 11239,
+        "nmap discovery": 10845,
+        "ros2 reconnaissance": 315
+      },
+      "test_labels": {
+        "observe": 108,
+        "ros2 reconnaissance": 84
+      },
+      "test_attack_ratio": 0.4375,
+      "baseline_constant_attack": 0.6086956521739131,
+      "baseline_constant_normal": 0.72,
+      "candidates": {
+        "constant_attack": {
+          "metrics": {
+            "tp": 84,
+            "fp": 108,
+            "fn": 0,
+            "tn": 0,
+            "precision": 0.4375,
+            "recall": 1.0,
+            "f1": 0.6087,
+            "specificity": 0.0
+          }
+        },
+        "constant_normal": {
+          "metrics": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 84,
+            "tn": 108,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "specificity": 1.0
+          }
+        },
+        "rule_frequency_99pct": {
+          "metrics": {
+            "tp": 27,
+            "fp": 26,
+            "fn": 57,
+            "tn": 82,
+            "precision": 0.5094,
+            "recall": 0.3214,
+            "f1": 0.3942,
+            "specificity": 0.7593
+          },
+          "params": {
+            "threshold_frequency_hz": 30.7562,
+            "fitted_on": "train-fold normal windows only"
+          }
+        },
+        "logistic": {
+          "metrics": {
+            "tp": 84,
+            "fp": 0,
+            "fn": 0,
+            "tn": 108,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "specificity": 1.0,
+            "threshold": 0.05,
+            "train_f1_at_threshold": 1.0
+          }
+        },
+        "random_forest": {
+          "metrics": {
+            "tp": 84,
+            "fp": 0,
+            "fn": 0,
+            "tn": 108,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "specificity": 1.0,
+            "threshold": 0.1,
+            "train_f1_at_threshold": 1.0
+          }
+        },
+        "extra_trees": {
+          "metrics": {
+            "tp": 84,
+            "fp": 2,
+            "fn": 0,
+            "tn": 106,
+            "precision": 0.9767,
+            "recall": 1.0,
+            "f1": 0.9882,
+            "specificity": 0.9815,
+            "threshold": 0.2,
+            "train_f1_at_threshold": 1.0
+          }
+        },
+        "hist_gb": {
+          "metrics": {
+            "tp": 84,
+            "fp": 0,
+            "fn": 0,
+            "tn": 108,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "specificity": 1.0,
+            "threshold": 0.05,
+            "train_f1_at_threshold": 1.0
+          }
+        }
+      },
+      "per_class": {
+        "observe": {
+          "detected": 106,
+          "total": 108,
+          "rate": 0.9815
+        },
+        "ros2 reconnaissance": {
+          "detected": 84,
+          "total": 84,
+          "rate": 1.0
+        }
+      }
+    }
+  ],
+  "candidates": {
+    "rule_frequency_99pct": {
+      "folds": 5,
+      "mean_f1": 0.329,
+      "worst_f1": 0.0,
+      "best_f1": 0.4623
+    },
+    "logistic": {
+      "folds": 5,
+      "mean_f1": 0.9946,
+      "worst_f1": 0.9729,
+      "best_f1": 1.0
+    },
+    "random_forest": {
+      "folds": 5,
+      "mean_f1": 0.8916,
+      "worst_f1": 0.4999,
+      "best_f1": 1.0
+    },
+    "extra_trees": {
+      "folds": 5,
+      "mean_f1": 0.984,
+      "worst_f1": 0.9319,
+      "best_f1": 1.0
+    },
+    "hist_gb": {
+      "folds": 5,
+      "mean_f1": 0.7977,
+      "worst_f1": 0.0055,
+      "best_f1": 1.0
+    }
+  },
+  "notes": [],
+  "baselines": {
+    "constant_attack_mean_f1": 0.6411,
+    "note": "任何候选的平均 F1 若不超过该值，就没有证据表明它优于\"一律报警\"这条零成本策略。"
+  },
+  "verdict": {
+    "candidates_beating_constant_attack": [
+      "extra_trees",
+      "hist_gb",
+      "logistic",
+      "random_forest"
+    ],
+    "any_candidate_effective": true
+  }
+}

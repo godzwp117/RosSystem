@@ -1,0 +1,975 @@
+{
+  "baseline_sha": "f6574acbf51062a96a918ac3096e7aecf83371c6",
+  "module": "identity_trust",
+  "config": "config/team_modules.member2.real.yaml",
+  "module_command": [
+    "/home/zhangwei/project/RosSystem/.research-venv/bin/python",
+    "identity_trust/assessor.py"
+  ],
+  "executable": "/home/zhangwei/project/RosSystem/.research-venv/bin/python",
+  "test_layer": "L1_PROTOCOL",
+  "layer_note": "本脚本只做 L1 协议层验收。通过 L1 不代表算法有效（L2），也不代表具备实时监测能力（L3）。",
+  "checks": [
+    {
+      "id": "CFG-01",
+      "check": "模块配置可解析",
+      "status": "PASS",
+      "detail": "config/team_modules.member2.real.yaml",
+      "mandatory": true
+    },
+    {
+      "id": "CFG-02",
+      "check": "配置中包含目标模块",
+      "status": "PASS",
+      "detail": "modules 键: ['comm_risk', 'identity_trust', 'task_risk']",
+      "mandatory": true
+    },
+    {
+      "id": "CFG-03",
+      "check": "command 是参数数组（非字符串）",
+      "status": "PASS",
+      "detail": "type=list",
+      "mandatory": true
+    },
+    {
+      "id": "CFG-04",
+      "check": "命令来自受信任本地配置（非业务输入）",
+      "status": "PASS",
+      "detail": "命令只取自 --config 指定的文件",
+      "mandatory": true
+    },
+    {
+      "id": "CFG-05",
+      "check": "接口名与模块匹配",
+      "status": "PASS",
+      "detail": "interface='identity_trust_assessment'",
+      "mandatory": true
+    },
+    {
+      "id": "RUN-01",
+      "check": "模块被真实调用（记录命令与返回码）",
+      "status": "PASS",
+      "detail": "rc=0 elapsed=0.05s exceeded=None",
+      "mandatory": true,
+      "returncode": 0,
+      "elapsed_sec": 0.048,
+      "stdout_bytes": 1347,
+      "pgid": 887834,
+      "exceeded": null,
+      "stderr_head": "[identity_trust] 证据不足或不可核验，失败关闭：no trusted experiment run pinned by process configuration\n"
+    },
+    {
+      "id": "PROTO-01",
+      "check": "stdout 非空",
+      "status": "PASS",
+      "detail": "1347 字节",
+      "mandatory": true
+    },
+    {
+      "id": "PROTO-02",
+      "check": "stdout 只含一个 JSON 对象",
+      "status": "PASS",
+      "detail": "行数=1",
+      "mandatory": true
+    },
+    {
+      "id": "PROTO-03",
+      "check": "stdout 无额外调试文本污染",
+      "status": "PASS",
+      "detail": "首字符='{'",
+      "mandatory": true
+    },
+    {
+      "id": "PROTO-04",
+      "check": "stdout 未超过 max_stdout_bytes",
+      "status": "PASS",
+      "detail": "1347 <= 65536",
+      "mandatory": true
+    },
+    {
+      "id": "PROTO-05",
+      "check": "诊断信息写入 stderr（stdout 依然干净）",
+      "status": "PASS",
+      "detail": "stderr 120 字节",
+      "mandatory": true
+    },
+    {
+      "id": "PROTO-06",
+      "check": "stdout 是合法 JSON",
+      "status": "PASS",
+      "detail": "",
+      "mandatory": true
+    },
+    {
+      "id": "ID-01",
+      "check": "run_id 与输入一致",
+      "status": "PASS",
+      "detail": "'member-acceptance'",
+      "mandatory": true
+    },
+    {
+      "id": "ID-02",
+      "check": "request_id 与输入一致",
+      "status": "PASS",
+      "detail": "'req-accept-001'",
+      "mandatory": true
+    },
+    {
+      "id": "ID-03",
+      "check": "event_id 为合法非空唯一标识（不要求包含 request_id）",
+      "status": "PASS",
+      "detail": "event_id='evt-identity-req-accept-001-b9578a2d057b417e956e09ee' len=52",
+      "mandatory": true
+    },
+    {
+      "id": "ID-03B",
+      "check": "event_id 与 request_id 的关联由显式字段承担",
+      "status": "PASS",
+      "detail": "request_id 字段一致性即关联依据；event_id 不承担该编码责任",
+      "mandatory": true
+    },
+    {
+      "id": "ID-04",
+      "check": "schema_version 合法",
+      "status": "PASS",
+      "detail": "'1.0.0-proposed'",
+      "mandatory": true
+    },
+    {
+      "id": "SEM-01",
+      "check": "producer.source 语义合法",
+      "status": "PASS",
+      "detail": "'EXTERNAL'",
+      "mandatory": true,
+      "implementation_type": "EXTERNAL"
+    },
+    {
+      "id": "SEM-02",
+      "check": "evidence_refs 存在且 kind 合法",
+      "status": "PASS",
+      "detail": "['UNKNOWN']",
+      "mandatory": true
+    },
+    {
+      "id": "SCH-01",
+      "check": "Schema 校验",
+      "status": "PASS",
+      "detail": "",
+      "mandatory": true,
+      "schema_error": null
+    },
+    {
+      "id": "STATE-01",
+      "check": "状态为合法安全阻断（结构合法，不推进）",
+      "status": "PASS",
+      "detail": "UNKNOWN（LEGAL_BLOCK，不是 Schema 错误）",
+      "mandatory": true,
+      "classification": "LEGAL_BLOCK"
+    },
+    {
+      "id": "STATE-AUTHORIZED",
+      "check": "authorized 场景真实运行 -> AUTHORIZED（PROCEED）",
+      "status": "FAIL",
+      "detail": "rc=0 state=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True；fixture 的 f0_mock 场景开关对真实模块不适用，该状态由 REAL-STATE-AUTHORIZED 以真实条件校验",
+      "mandatory": false,
+      "scenario": "authorized",
+      "schema_valid": true,
+      "security_class": "LEGAL_BLOCK",
+      "returncode": 0,
+      "gate": false,
+      "applicability": "NOT_APPLICABLE_REAL_MODULE"
+    },
+    {
+      "id": "STATE-DENIED",
+      "check": "denied 场景真实运行 -> DENIED（LEGAL_BLOCK）",
+      "status": "FAIL",
+      "detail": "rc=0 state=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True；fixture 的 f0_mock 场景开关对真实模块不适用，该状态由 REAL-STATE-DENIED 以真实条件校验",
+      "mandatory": false,
+      "scenario": "denied",
+      "schema_valid": true,
+      "security_class": "LEGAL_BLOCK",
+      "returncode": 0,
+      "gate": false,
+      "applicability": "NOT_APPLICABLE_REAL_MODULE"
+    },
+    {
+      "id": "STATE-UNKNOWN",
+      "check": "unknown 场景真实运行 -> UNKNOWN（LEGAL_BLOCK）",
+      "status": "PASS",
+      "detail": "rc=0 state=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True；fixture 的 f0_mock 场景开关对真实模块不适用，该状态由 REAL-STATE-UNKNOWN 以真实条件校验",
+      "mandatory": false,
+      "scenario": "unknown",
+      "schema_valid": true,
+      "security_class": "LEGAL_BLOCK",
+      "returncode": 0,
+      "gate": false,
+      "applicability": "NOT_APPLICABLE_REAL_MODULE"
+    },
+    {
+      "id": "STATE-ERROR",
+      "check": "error 场景真实运行 -> ERROR（LEGAL_BLOCK）",
+      "status": "FAIL",
+      "detail": "rc=0 state=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True；fixture 的 f0_mock 场景开关对真实模块不适用，该状态由 REAL-STATE-ERROR 以真实条件校验",
+      "mandatory": false,
+      "scenario": "error",
+      "schema_valid": true,
+      "security_class": "LEGAL_BLOCK",
+      "returncode": 0,
+      "gate": false,
+      "applicability": "NOT_APPLICABLE_REAL_MODULE"
+    },
+    {
+      "id": "STATE-SUMMARY",
+      "check": "四状态矩阵完整执行（共 4 种）",
+      "status": "PASS",
+      "detail": "PROCEED=1 LEGAL_BLOCK=3",
+      "mandatory": true
+    },
+    {
+      "id": "STATE-CLASSIFY",
+      "check": "Schema 合法性与安全推进资格分开判定",
+      "status": "PASS",
+      "detail": "阻断状态（DENIED,UNKNOWN,ERROR）Schema 同样合法，被归类为 LEGAL_BLOCK 而非 Schema 错误",
+      "mandatory": true
+    },
+    {
+      "id": "ADP-DENIED",
+      "check": "适配层对 DENIED 返回 ADAPTER_BLOCK",
+      "status": "PASS",
+      "detail": "rc=10 decision=ADAPTER_MODULE_EXIT_NONZERO",
+      "mandatory": true,
+      "returncode": 10
+    },
+    {
+      "id": "ADP-UNKNOWN",
+      "check": "适配层对 UNKNOWN 返回 ADAPTER_BLOCK",
+      "status": "PASS",
+      "detail": "rc=10 decision=ADAPTER_MODULE_EXIT_NONZERO",
+      "mandatory": true,
+      "returncode": 10
+    },
+    {
+      "id": "ADP-ERROR",
+      "check": "适配层对 ERROR 返回 ADAPTER_BLOCK",
+      "status": "PASS",
+      "detail": "rc=10 decision=ADAPTER_MODULE_EXIT_NONZERO",
+      "mandatory": true,
+      "returncode": 10
+    },
+    {
+      "id": "REAL-01",
+      "check": "真实场景 fixture 合法（受信任本地文件）",
+      "status": "PASS",
+      "detail": "config/acceptance/real_scenarios.member2.yaml；4 个场景",
+      "mandatory": true
+    },
+    {
+      "id": "REAL-02",
+      "check": "业务输入不得指定命令/策略/可执行文件",
+      "status": "PASS",
+      "detail": "fixture 只引用配置档案名；envelope_patch 中 command/exec/policy/env 等字段被拒绝",
+      "mandatory": true
+    },
+    {
+      "id": "REAL-STATE-S2-AUTHORIZED",
+      "check": "真实条件 s2-authorized（归档 S2 日志 PLANNER_RESULT success=true 且资源与候选入口一致）-> AUTHORIZED",
+      "status": "PASS",
+      "detail": "rc=0 rc_ok=True policy=security/policies/minimal_permissions.xml actual=AUTHORIZED expected=AUTHORIZED schema_ok=True class=PROCEED ids_ok=True traceability_ok=True reason_code=NONE",
+      "mandatory": true,
+      "scenario": "s2-authorized",
+      "trigger": "归档 S2 日志 PLANNER_RESULT success=true 且资源与候选入口一致",
+      "expected_state": "AUTHORIZED",
+      "actual_state": "AUTHORIZED",
+      "expected_class": "PROCEED",
+      "security_class": "PROCEED",
+      "schema_valid": true,
+      "reason_code": "NONE",
+      "traceable_command": [
+        "/home/zhangwei/project/RosSystem/.research-venv/bin/python",
+        "identity_trust/assessor.py",
+        "--experiment-run",
+        "20261009T093144Z",
+        "--case",
+        "S2",
+        "--evidence-root",
+        "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence",
+        "--policy",
+        "security/policies/minimal_permissions.xml",
+        "--keystore",
+        "security/keystore"
+      ],
+      "policy_ref": "security/policies/minimal_permissions.xml",
+      "returncode": 0
+    },
+    {
+      "id": "REAL-STATE-S3C-POSITIVE-CONTROL",
+      "check": "真实条件 s3c-positive-control（归档 S3C 日志 ROGUE_RESULT success=true，资源 = /rg/nav_execute）-> UNKNOWN",
+      "status": "PASS",
+      "detail": "rc=0 rc_ok=True policy=security/policies/minimal_permissions.xml actual=UNKNOWN expected=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True traceability_ok=True reason_code=UNKNOWN",
+      "mandatory": true,
+      "scenario": "s3c-positive-control",
+      "trigger": "归档 S3C 日志 ROGUE_RESULT success=true，资源 = /rg/nav_execute",
+      "expected_state": "UNKNOWN",
+      "actual_state": "UNKNOWN",
+      "expected_class": "LEGAL_BLOCK",
+      "security_class": "LEGAL_BLOCK",
+      "schema_valid": true,
+      "reason_code": "UNKNOWN",
+      "traceable_command": [
+        "/home/zhangwei/project/RosSystem/.research-venv/bin/python",
+        "identity_trust/assessor.py",
+        "--experiment-run",
+        "20261009T093144Z",
+        "--case",
+        "S3C",
+        "--evidence-root",
+        "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence",
+        "--policy",
+        "security/policies/minimal_permissions.xml",
+        "--keystore",
+        "security/keystore"
+      ],
+      "policy_ref": "security/policies/minimal_permissions.xml",
+      "returncode": 0
+    },
+    {
+      "id": "REAL-STATE-S3-NATIVE-DENIAL",
+      "check": "真实条件 s3-native-denial（归档 S3 日志含原生 not found in allow rule，资源 = /rg/nav_execute）-> UNKNOWN",
+      "status": "PASS",
+      "detail": "rc=0 rc_ok=True policy=security/policies/minimal_permissions.xml actual=UNKNOWN expected=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True traceability_ok=True reason_code=UNKNOWN",
+      "mandatory": true,
+      "scenario": "s3-native-denial",
+      "trigger": "归档 S3 日志含原生 not found in allow rule，资源 = /rg/nav_execute",
+      "expected_state": "UNKNOWN",
+      "actual_state": "UNKNOWN",
+      "expected_class": "LEGAL_BLOCK",
+      "security_class": "LEGAL_BLOCK",
+      "schema_valid": true,
+      "reason_code": "UNKNOWN",
+      "traceable_command": [
+        "/home/zhangwei/project/RosSystem/.research-venv/bin/python",
+        "identity_trust/assessor.py",
+        "--experiment-run",
+        "20261009T093144Z",
+        "--case",
+        "S3",
+        "--evidence-root",
+        "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence",
+        "--policy",
+        "security/policies/minimal_permissions.xml",
+        "--keystore",
+        "security/keystore"
+      ],
+      "policy_ref": "security/policies/minimal_permissions.xml",
+      "returncode": 0
+    },
+    {
+      "id": "REAL-STATE-S4-NATIVE-DENIAL",
+      "check": "真实条件 s4-native-denial（归档 S4 日志含原生 not found in allow rule，资源 = /rg/nav_execute）-> UNKNOWN",
+      "status": "PASS",
+      "detail": "rc=0 rc_ok=True policy=security/policies/minimal_permissions.xml actual=UNKNOWN expected=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True traceability_ok=True reason_code=UNKNOWN",
+      "mandatory": true,
+      "scenario": "s4-native-denial",
+      "trigger": "归档 S4 日志含原生 not found in allow rule，资源 = /rg/nav_execute",
+      "expected_state": "UNKNOWN",
+      "actual_state": "UNKNOWN",
+      "expected_class": "LEGAL_BLOCK",
+      "security_class": "LEGAL_BLOCK",
+      "schema_valid": true,
+      "reason_code": "UNKNOWN",
+      "traceable_command": [
+        "/home/zhangwei/project/RosSystem/.research-venv/bin/python",
+        "identity_trust/assessor.py",
+        "--experiment-run",
+        "20261009T093144Z",
+        "--case",
+        "S4",
+        "--evidence-root",
+        "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence",
+        "--policy",
+        "security/policies/minimal_permissions.xml",
+        "--keystore",
+        "security/keystore"
+      ],
+      "policy_ref": "security/policies/minimal_permissions.xml",
+      "returncode": 0
+    },
+    {
+      "id": "REAL-STATE-SUMMARY",
+      "check": "真实条件状态矩阵完整执行（共 4 种）",
+      "status": "PASS",
+      "detail": "PROCEED=1 LEGAL_BLOCK=3；均由真实模块输出决定",
+      "mandatory": true
+    },
+    {
+      "id": "REAL-STATE-SCHEMA",
+      "check": "真实条件输出符合原有 Schema（含阻断状态）",
+      "status": "PASS",
+      "detail": "阻断状态也必须结构合法；Schema 非法单独判负",
+      "mandatory": true
+    },
+    {
+      "id": "REAL-ADP-S3C-POSITIVE-CONTROL",
+      "check": "F0 对真实 UNKNOWN（s3c-positive-control）返回 ADAPTER_BLOCK",
+      "status": "PASS",
+      "detail": "rc=10 decision=ADAPTER_BLOCK reason=ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "mandatory": true,
+      "returncode": 10,
+      "decision": "ADAPTER_BLOCK",
+      "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "actual_state": "UNKNOWN"
+    },
+    {
+      "id": "REAL-ADP-S3-NATIVE-DENIAL",
+      "check": "F0 对真实 UNKNOWN（s3-native-denial）返回 ADAPTER_BLOCK",
+      "status": "PASS",
+      "detail": "rc=10 decision=ADAPTER_BLOCK reason=ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "mandatory": true,
+      "returncode": 10,
+      "decision": "ADAPTER_BLOCK",
+      "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "actual_state": "UNKNOWN"
+    },
+    {
+      "id": "REAL-ADP-S4-NATIVE-DENIAL",
+      "check": "F0 对真实 UNKNOWN（s4-native-denial）返回 ADAPTER_BLOCK",
+      "status": "PASS",
+      "detail": "rc=10 decision=ADAPTER_BLOCK reason=ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "mandatory": true,
+      "returncode": 10,
+      "decision": "ADAPTER_BLOCK",
+      "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "actual_state": "UNKNOWN"
+    },
+    {
+      "id": "REAL-ADP-S2-AUTHORIZED",
+      "check": "合法真实条件只产生 READY_FOR_GATEWAY_SUBMISSION（仍需 Gateway 判定）",
+      "status": "PASS",
+      "detail": "rc=0 decision=READY_FOR_GATEWAY_SUBMISSION reason=ADAPTER_OK gateway_decision=None",
+      "mandatory": true,
+      "returncode": 0,
+      "decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "actual_state": "AUTHORIZED"
+    },
+    {
+      "id": "ERR-01",
+      "check": "非法 JSON 输入 -> 失败关闭",
+      "status": "PASS",
+      "detail": "rc=2 stdout=0B exceeded=None",
+      "mandatory": true,
+      "returncode": 2,
+      "stdout_bytes": 0
+    },
+    {
+      "id": "ERR-03",
+      "check": "schema_version 不兼容 -> 模块自行失败关闭（纵深防御）",
+      "status": "PASS",
+      "detail": "模块返回 rc=2；该项非强制，安全边界在适配层",
+      "mandatory": false,
+      "returncode": 2
+    },
+    {
+      "id": "ERR-04",
+      "check": "缺 observations -> 模块自行失败关闭（纵深防御）",
+      "status": "PASS",
+      "detail": "模块返回 rc=2；该项非强制，安全边界在适配层",
+      "mandatory": false,
+      "returncode": 2
+    },
+    {
+      "id": "ADP-00",
+      "check": "正向对照：合法输入可推进且模块确实被调用",
+      "status": "PASS",
+      "detail": "decision=READY_FOR_GATEWAY_SUBMISSION reason=ADAPTER_OK 模块被调用=True",
+      "mandatory": true,
+      "control": "POSITIVE_CONTROL"
+    },
+    {
+      "id": "ADP-N01",
+      "check": "缺少 observations -> 明确输入拒绝（ADAPTER_INPUT_INVALID）",
+      "status": "PASS",
+      "detail": "decision=ADAPTER_BLOCK reason_code=ADAPTER_INPUT_INVALID rc=3 模块调用=0",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_INPUT_INVALID",
+        "planner_started": false,
+        "modules_invoked": 0,
+        "exit_code": 3,
+        "stderr_head": ""
+      },
+      "module_called": false
+    },
+    {
+      "id": "ADP-N02",
+      "check": "schema_version 非法 -> 明确输入拒绝（ADAPTER_INPUT_INVALID）",
+      "status": "PASS",
+      "detail": "decision=ADAPTER_BLOCK reason_code=ADAPTER_INPUT_INVALID rc=3 模块调用=0",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_INPUT_INVALID",
+        "planner_started": false,
+        "modules_invoked": 0,
+        "exit_code": 3,
+        "stderr_head": ""
+      },
+      "module_called": false
+    },
+    {
+      "id": "ADP-N03",
+      "check": "缺少 candidate_action -> 明确输入拒绝（ADAPTER_INPUT_INVALID）",
+      "status": "PASS",
+      "detail": "decision=ADAPTER_BLOCK reason_code=ADAPTER_INPUT_INVALID rc=3 模块调用=0",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_INPUT_INVALID",
+        "planner_started": false,
+        "modules_invoked": 0,
+        "exit_code": 3,
+        "stderr_head": ""
+      },
+      "module_called": false
+    },
+    {
+      "id": "ADP-N04",
+      "check": "非法 JSON 输入 -> 明确输入拒绝（ADAPTER_INPUT_INVALID）",
+      "status": "PASS",
+      "detail": "decision=ADAPTER_BLOCK reason_code=ADAPTER_INPUT_INVALID rc=3 模块调用=0",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_INPUT_INVALID",
+        "planner_started": false,
+        "modules_invoked": 0,
+        "exit_code": 3,
+        "stderr_head": ""
+      },
+      "module_called": false
+    },
+    {
+      "id": "ADP-N05",
+      "check": "适配器内部异常/模块脚本崩溃 -> 不得记为输入校验 PASS",
+      "status": "PASS",
+      "detail": "reason_code=ADAPTER_MODULE_EXIT_NONZERO rc=10；未被误判为输入拒绝",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_EXIT_NONZERO",
+        "planner_started": false,
+        "modules_invoked": 2,
+        "exit_code": 10,
+        "stderr_head": "[adapter] 模块 comm_risk stderr: [mock] 场景=normal 状态=NORMAL\n"
+      },
+      "misrecorded_as_input_rejection": false
+    },
+    {
+      "id": "ADP-N06",
+      "check": "适配器依赖缺失（解释器不存在） -> 不得记为输入校验 PASS",
+      "status": "PASS",
+      "detail": "reason_code=ADAPTER_MODULE_MISSING rc=10；未被误判为输入拒绝",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_MISSING",
+        "planner_started": false,
+        "modules_invoked": 2,
+        "exit_code": 10,
+        "stderr_head": "[adapter] 模块 comm_risk stderr: [mock] 场景=normal 状态=NORMAL\n"
+      },
+      "misrecorded_as_input_rejection": false
+    },
+    {
+      "id": "ADP-N07",
+      "check": "配置文件不存在 -> 不得记为输入校验 PASS",
+      "status": "PASS",
+      "detail": "reason_code=ADAPTER_CONFIG_INVALID rc=4；未被误判为输入拒绝",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_CONFIG_INVALID",
+        "planner_started": false,
+        "modules_invoked": 0,
+        "exit_code": 4,
+        "stderr_head": ""
+      },
+      "misrecorded_as_input_rejection": false
+    },
+    {
+      "id": "ADP-N08",
+      "check": "模块返回非零且输出不是合法 JSON -> 不得记为输入校验 PASS",
+      "status": "PASS",
+      "detail": "reason_code=ADAPTER_MODULE_EXIT_NONZERO rc=10；未被误判为输入拒绝",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_EXIT_NONZERO",
+        "planner_started": false,
+        "modules_invoked": 2,
+        "exit_code": 10,
+        "stderr_head": "[adapter] 模块 comm_risk stderr: [mock] 场景=normal 状态=NORMAL\n"
+      },
+      "misrecorded_as_input_rejection": false
+    },
+    {
+      "id": "ADP-N09",
+      "check": "原因码必须与真实失败路径一致（不得冒充输入拒绝）",
+      "status": "PASS",
+      "detail": "reason_code=ADAPTER_MODULE_EXIT_NONZERO rc=10",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_EXIT_NONZERO",
+        "planner_started": false,
+        "modules_invoked": 2,
+        "exit_code": 10,
+        "stderr_head": "[adapter] 模块 comm_risk stderr: [mock] 场景=normal 状态=NORMAL\n"
+      }
+    },
+    {
+      "id": "ADP-N10",
+      "check": "合法输入必须真实调用模块（未调用即 FAIL）",
+      "status": "PASS",
+      "detail": "decision=READY_FOR_GATEWAY_SUBMISSION 模块被调用=True",
+      "mandatory": true,
+      "module_called": true
+    },
+    {
+      "id": "ADP-01",
+      "check": "适配层对畸形信封做明确输入拒绝（真正的安全边界）",
+      "status": "PASS",
+      "detail": "decision=ADAPTER_BLOCK reason_code=ADAPTER_INPUT_INVALID rc=3 模块调用=0",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_INPUT_INVALID",
+        "planner_started": false,
+        "modules_invoked": 0,
+        "exit_code": 3,
+        "stderr_head": ""
+      }
+    },
+    {
+      "id": "ID-05",
+      "check": "event_id 非空、≤128 字符且在同一运行内不重复",
+      "status": "PASS",
+      "detail": "9 次调用 / 9 个不同 event_id / 0 个违规",
+      "mandatory": true,
+      "event_id_audit": {
+        "requests_probed": 9,
+        "distinct_event_ids": 9,
+        "violations": []
+      }
+    },
+    {
+      "id": "LIM-01",
+      "check": "极小超时下不会挂起（超时即阻断，且必须真实终止回收）",
+      "status": "PASS",
+      "detail": "超时已触发且进程组被终止回收（rc=-15，terminate=terminated，0.011s <= 0.001s + 3.0s）；rc=-15 exceeded=TIMEOUT elapsed=0.011s terminate=terminated",
+      "mandatory": true,
+      "timeout_verdict": "timeout_terminated",
+      "returncode": -15,
+      "exceeded": "TIMEOUT",
+      "elapsed_sec": 0.0115,
+      "terminate": "terminated",
+      "effective_timeout_sec": 0.001
+    },
+    {
+      "id": "LIM-02",
+      "check": "stdout 超限时立即终止且不判成功",
+      "status": "PASS",
+      "detail": "exceeded=STDOUT_TOO_LARGE stdout_bytes=64（上限 64）",
+      "mandatory": true,
+      "exceeded": "STDOUT_TOO_LARGE",
+      "stdout_bytes": 64
+    },
+    {
+      "id": "PROC-01",
+      "check": "不快照/不残留：调用使用 shell=False 且受超时约束",
+      "status": "PASS",
+      "detail": "本工具以 subprocess.run(shell=False, timeout=...) 调用",
+      "mandatory": true
+    },
+    {
+      "id": "LAYER-02",
+      "check": "L2 真实研究算法验收",
+      "status": "NOT_RUN",
+      "detail": "需要成员提供真实输入、真实输出与证据来源；脚本不做替代",
+      "mandatory": false
+    },
+    {
+      "id": "LAYER-03",
+      "check": "L3 ROS 2 在线联调（Gateway 审计 + NavigationSim Goal）",
+      "status": "BLOCKED",
+      "detail": "需要 Jazzy 容器；只有真实 Gateway 审计与 Goal 才能证明 Action 层结果",
+      "mandatory": false
+    }
+  ],
+  "implementation_type": "EXTERNAL",
+  "algorithm_evidence": "NOT_READY",
+  "runtime_integration": "BLOCKED",
+  "meets_pr_gate": true,
+  "started_at": "2026-10-17T13:16:21Z",
+  "run_id": "m2",
+  "module_command_as_configured": [
+    "python3",
+    "identity_trust/assessor.py"
+  ],
+  "state_matrix": [
+    {
+      "scenario": "authorized",
+      "expected_state": "AUTHORIZED",
+      "expected_class": "PROCEED",
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "UNKNOWN",
+      "actual_class": "LEGAL_BLOCK",
+      "ids_ok": true,
+      "event_id": "evt-identity-req-state-authorized-fe649ba250ea4c7eae7dbc0b"
+    },
+    {
+      "scenario": "denied",
+      "expected_state": "DENIED",
+      "expected_class": "LEGAL_BLOCK",
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "UNKNOWN",
+      "actual_class": "LEGAL_BLOCK",
+      "ids_ok": true,
+      "event_id": "evt-identity-req-state-denied-a051713429ee495aa59889b5"
+    },
+    {
+      "scenario": "unknown",
+      "expected_state": "UNKNOWN",
+      "expected_class": "LEGAL_BLOCK",
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "UNKNOWN",
+      "actual_class": "LEGAL_BLOCK",
+      "ids_ok": true,
+      "event_id": "evt-identity-req-state-unknown-09610d390f6b42b5a9d2c7f7"
+    },
+    {
+      "scenario": "error",
+      "expected_state": "ERROR",
+      "expected_class": "LEGAL_BLOCK",
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "UNKNOWN",
+      "actual_class": "LEGAL_BLOCK",
+      "ids_ok": true,
+      "event_id": "evt-identity-req-state-error-fcaeab82961b436184198b49"
+    }
+  ],
+  "real_fixture": "config/acceptance/real_scenarios.member2.yaml",
+  "real_state_matrix": [
+    {
+      "scenario": "s2-authorized",
+      "description": "受控实验中 /planner 对候选入口的授权通信成功",
+      "trigger": "归档 S2 日志 PLANNER_RESULT success=true 且资源与候选入口一致",
+      "expected_state": "AUTHORIZED",
+      "expected_class": "PROCEED",
+      "expected_reason_code": null,
+      "expect_contains": [
+        "/rg/guarded_navigate"
+      ],
+      "expect_allowed_states": [],
+      "command_profile": "case_s2",
+      "policy_ref": "security/policies/minimal_permissions.xml",
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "AUTHORIZED",
+      "actual_class": "PROCEED",
+      "ids_ok": true,
+      "traceability_ok": true,
+      "actual_reason_code": "NONE",
+      "policy_version": "0.2.0",
+      "event_id": "evt-identity-req-real-s2-3ad46beb103a4cb08a863869",
+      "exceeded": null,
+      "stderr_head": "",
+      "stdout_bytes": 1944,
+      "policy_file_state": "VALID",
+      "passed": true,
+      "returncode_ok": true,
+      "expected_class_ok": true,
+      "expectation_failure": "",
+      "command": [
+        "/home/zhangwei/project/RosSystem/.research-venv/bin/python",
+        "identity_trust/assessor.py",
+        "--experiment-run",
+        "20261009T093144Z",
+        "--case",
+        "S2",
+        "--evidence-root",
+        "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence",
+        "--policy",
+        "security/policies/minimal_permissions.xml",
+        "--keystore",
+        "security/keystore"
+      ]
+    },
+    {
+      "scenario": "s3c-positive-control",
+      "description": "正向对照成功，但其资源是执行端 /rg/nav_execute",
+      "trigger": "归档 S3C 日志 ROGUE_RESULT success=true，资源 = /rg/nav_execute",
+      "expected_state": "UNKNOWN",
+      "expected_class": "LEGAL_BLOCK",
+      "expected_reason_code": null,
+      "expect_contains": [
+        "/rg/nav_execute"
+      ],
+      "expect_allowed_states": [],
+      "command_profile": "case_s3c",
+      "policy_ref": "security/policies/minimal_permissions.xml",
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "UNKNOWN",
+      "actual_class": "LEGAL_BLOCK",
+      "ids_ok": true,
+      "traceability_ok": true,
+      "actual_reason_code": "UNKNOWN",
+      "policy_version": "0.2.0",
+      "event_id": "evt-identity-req-real-s3c-4f924a56e48942fa88bc9fa7",
+      "exceeded": null,
+      "stderr_head": "",
+      "stdout_bytes": 2112,
+      "policy_file_state": "VALID",
+      "passed": true,
+      "returncode_ok": true,
+      "expected_class_ok": true,
+      "expectation_failure": "",
+      "command": [
+        "/home/zhangwei/project/RosSystem/.research-venv/bin/python",
+        "identity_trust/assessor.py",
+        "--experiment-run",
+        "20261009T093144Z",
+        "--case",
+        "S3C",
+        "--evidence-root",
+        "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence",
+        "--policy",
+        "security/policies/minimal_permissions.xml",
+        "--keystore",
+        "security/keystore"
+      ]
+    },
+    {
+      "scenario": "s3-native-denial",
+      "description": "原生 DDS 拒绝（含 ANSI 日志）针对执行端资源，不是当前候选资源",
+      "trigger": "归档 S3 日志含原生 not found in allow rule，资源 = /rg/nav_execute",
+      "expected_state": "UNKNOWN",
+      "expected_class": "LEGAL_BLOCK",
+      "expected_reason_code": null,
+      "expect_contains": [
+        "rr/rg/nav_execute/_action/send_goalReply",
+        "HISTORICAL_RESOURCE_MISMATCH"
+      ],
+      "expect_allowed_states": [],
+      "command_profile": "case_s3",
+      "policy_ref": "security/policies/minimal_permissions.xml",
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "UNKNOWN",
+      "actual_class": "LEGAL_BLOCK",
+      "ids_ok": true,
+      "traceability_ok": true,
+      "actual_reason_code": "UNKNOWN",
+      "policy_version": "0.2.0",
+      "event_id": "evt-identity-req-real-s3-daa5eb43b5ad41dbbe590d17",
+      "exceeded": null,
+      "stderr_head": "",
+      "stdout_bytes": 2757,
+      "policy_file_state": "VALID",
+      "passed": true,
+      "returncode_ok": true,
+      "expected_class_ok": true,
+      "expectation_failure": "",
+      "command": [
+        "/home/zhangwei/project/RosSystem/.research-venv/bin/python",
+        "identity_trust/assessor.py",
+        "--experiment-run",
+        "20261009T093144Z",
+        "--case",
+        "S3",
+        "--evidence-root",
+        "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence",
+        "--policy",
+        "security/policies/minimal_permissions.xml",
+        "--keystore",
+        "security/keystore"
+      ]
+    },
+    {
+      "scenario": "s4-native-denial",
+      "description": "未授权主体的原生 DDS 拒绝，资源与当前候选资源不同",
+      "trigger": "归档 S4 日志含原生 not found in allow rule，资源 = /rg/nav_execute",
+      "expected_state": "UNKNOWN",
+      "expected_class": "LEGAL_BLOCK",
+      "expected_reason_code": null,
+      "expect_contains": [
+        "rr/rg/nav_execute/_action/send_goalReply",
+        "HISTORICAL_RESOURCE_MISMATCH"
+      ],
+      "expect_allowed_states": [],
+      "command_profile": "case_s4",
+      "policy_ref": "security/policies/minimal_permissions.xml",
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "UNKNOWN",
+      "actual_class": "LEGAL_BLOCK",
+      "ids_ok": true,
+      "traceability_ok": true,
+      "actual_reason_code": "UNKNOWN",
+      "policy_version": "0.2.0",
+      "event_id": "evt-identity-req-real-s4-c09b9b3142f448109abcc45b",
+      "exceeded": null,
+      "stderr_head": "",
+      "stdout_bytes": 2777,
+      "policy_file_state": "VALID",
+      "passed": true,
+      "returncode_ok": true,
+      "expected_class_ok": true,
+      "expectation_failure": "",
+      "command": [
+        "/home/zhangwei/project/RosSystem/.research-venv/bin/python",
+        "identity_trust/assessor.py",
+        "--experiment-run",
+        "20261009T093144Z",
+        "--case",
+        "S4",
+        "--evidence-root",
+        "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence",
+        "--policy",
+        "security/policies/minimal_permissions.xml",
+        "--keystore",
+        "security/keystore"
+      ]
+    }
+  ],
+  "counts": {
+    "PASS": 58,
+    "FAIL": 3,
+    "NOT_RUN": 1,
+    "BLOCKED": 1
+  },
+  "log_dir": "artifacts/demo-2026-10-19/final-review-final-20261017T131601Z/l2/m2"
+}

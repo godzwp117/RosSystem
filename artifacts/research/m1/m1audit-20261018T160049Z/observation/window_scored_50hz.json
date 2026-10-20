@@ -1,0 +1,123 @@
+{
+  "schema_version": "1.0.0-proposed",
+  "collected_at": "2026-10-18T16:06:24.440426Z",
+  "collector": {
+    "component": "modules/member1_comm/collector/ros2_window.py",
+    "observation_source": "LIVE_ROS2_SUBSCRIPTION",
+    "topic": "/m1_probe/tick",
+    "message_type": "std_msgs/msg/String",
+    "count_definition": "本进程在该窗口内实际收到的消息数（不由命令行或信封提供）",
+    "duration_sec": 8.0,
+    "interval_sec": 1.0,
+    "total_messages": 349
+  },
+  "feature_semantics": {
+    "request_count": "窗口内消息数",
+    "frequency_hz": "request_count / 窗口秒数",
+    "gap_median_ms": "相邻消息到达间隔的中位数（毫秒）",
+    "gap_p95_ms": "相邻消息到达间隔的 95 分位（毫秒）",
+    "gap_max_ms": "相邻消息到达间隔的最大值（毫秒）",
+    "duration_ms": "窗口时长（毫秒）",
+    "alignment_note": "与训练集 windows_0.jsonl 同名同定义；训练集来自 PCAP 侧统计，本采集器来自 ROS 2 订阅侧，二者在\"同一资源、同一时间窗\"意义下语义等价，但采样位置不同，数值不保证逐点相同。"
+  },
+  "windows": [
+    {
+      "window_start_monotonic": 369680.203819,
+      "window_end_monotonic": 369681.211123,
+      "features": {
+        "request_count": 47,
+        "duration_ms": 1007.304,
+        "frequency_hz": 46.659191,
+        "gap_median_ms": 19.963,
+        "gap_p95_ms": 20.2297,
+        "gap_max_ms": 20.3402
+      },
+      "samples": 47
+    },
+    {
+      "window_start_monotonic": 369681.211123,
+      "window_end_monotonic": 369682.211134,
+      "features": {
+        "request_count": 50,
+        "duration_ms": 1000.011,
+        "frequency_hz": 49.999458,
+        "gap_median_ms": 20.0176,
+        "gap_p95_ms": 20.2764,
+        "gap_max_ms": 20.3323
+      },
+      "samples": 50
+    },
+    {
+      "window_start_monotonic": 369682.211134,
+      "window_end_monotonic": 369683.21136,
+      "features": {
+        "request_count": 50,
+        "duration_ms": 1000.227,
+        "frequency_hz": 49.988674,
+        "gap_median_ms": 20.0089,
+        "gap_p95_ms": 20.2758,
+        "gap_max_ms": 20.3358
+      },
+      "samples": 50
+    },
+    {
+      "window_start_monotonic": 369683.21136,
+      "window_end_monotonic": 369684.230994,
+      "features": {
+        "request_count": 51,
+        "duration_ms": 1019.634,
+        "frequency_hz": 50.017953,
+        "gap_median_ms": 19.9877,
+        "gap_p95_ms": 20.3629,
+        "gap_max_ms": 20.5543
+      },
+      "samples": 51
+    },
+    {
+      "window_start_monotonic": 369684.230994,
+      "window_end_monotonic": 369685.231019,
+      "features": {
+        "request_count": 50,
+        "duration_ms": 1000.025,
+        "frequency_hz": 49.998775,
+        "gap_median_ms": 19.988,
+        "gap_p95_ms": 20.1849,
+        "gap_max_ms": 20.5071
+      },
+      "samples": 50
+    },
+    {
+      "window_start_monotonic": 369685.231019,
+      "window_end_monotonic": 369686.251064,
+      "features": {
+        "request_count": 51,
+        "duration_ms": 1020.045,
+        "frequency_hz": 49.99777,
+        "gap_median_ms": 20.0141,
+        "gap_p95_ms": 20.1932,
+        "gap_max_ms": 20.4428
+      },
+      "samples": 51
+    },
+    {
+      "window_start_monotonic": 369686.251064,
+      "window_end_monotonic": 369687.251155,
+      "features": {
+        "request_count": 50,
+        "duration_ms": 1000.09,
+        "frequency_hz": 49.995481,
+        "gap_median_ms": 20.0288,
+        "gap_p95_ms": 20.3404,
+        "gap_max_ms": 20.6233
+      },
+      "samples": 50
+    }
+  ],
+  "verdict": {
+    "status": "SCORED",
+    "windows_scored": 7,
+    "score_max": 1.0,
+    "score_mean": 1.0,
+    "score_min": 1.0
+  }
+}

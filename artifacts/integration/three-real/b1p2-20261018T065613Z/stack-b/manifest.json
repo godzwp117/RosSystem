@@ -1,0 +1,23 @@
+{
+  "run_id": "b1p2-20261018T065613Z",
+  "scenarios": [
+    {
+      "cid": "ON03",
+      "request_id": "on03-b1p2-20261018T065613Z",
+      "run_id": "b1p2-20261018T065613Z",
+      "expected": "UNKNOWN_BLOCK"
+    },
+    {
+      "cid": "ON04",
+      "request_id": "on04-b1p2-20261018T065613Z",
+      "run_id": "b1p2-20261018T065613Z",
+      "expected": "ERROR_BLOCK"
+    },
+    {
+      "cid": "ON06",
+      "request_id": "on06-b1p2-20261018T065613Z",
+      "run_id": "b1p2-20261018T065613Z",
+      "expected": "TIMEOUT_NOT_BLOCK"
+    }
+  ]
+}

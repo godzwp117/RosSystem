@@ -1,0 +1,109 @@
+# 通用验收器真实场景 fixture —— 成员 2（DDS 身份与资源访问权限证据解释器）
+#
+# 用法
+# ----
+#   python3 scripts/check_member_module.py --module identity_trust \
+#       --config config/team_modules.member2.real.yaml \
+#       --real-fixture config/acceptance/real_scenarios.member2.yaml
+#
+# 本 fixture 校验的关键语义
+# ------------------------
+# 当前公共 ModuleInputEnvelope 的候选入口固定为 `/rg/guarded_navigate`，
+# 而归档的 S3/S4 受控实验拒绝的是**执行端** `/rg/nav_execute`。因此：
+#
+#   * S2（`/planner` -> `/rg/guarded_navigate` 授权成功）：历史资源与当前候选
+#     入口一致 -> AUTHORIZED（仍是历史实验结论，不是当前请求的 DDS 认证）。
+#   * S3C（`/gateway` -> `/rg/nav_execute` 对照成功）：资源不同 -> UNKNOWN，
+#     绝不能用执行端的成功放行 guarded Action。
+#   * S3 / S4（原生 DDS 拒绝 `/rg/nav_execute`）：**历史拒绝证据必须保留**
+#     （拒绝资源、拒绝场景、原生权限错误），但资源与当前候选不一致 ->
+#     UNKNOWN，绝不能解释为「当前 guarded 请求被 DDS 拒绝」。
+#
+# 安全约束与 M3 相同：envelope_patch 只能携带数据字段；命令与策略路径只能
+# 来自 --config 的 real_command_profiles。归档证据只读，本 fixture 不修改它。
+schema_version: "1.0.0"
+
+real_scenarios:
+
+  identity_trust:
+
+    # ------------------------------------------------------------------
+    # S2 -> 模块级 AUTHORIZED，但 F0 必须阻断
+    # ------------------------------------------------------------------
+    # 资源一致时，历史受控实验确实支持"该主体当时被允许访问该入口"，
+    # 因此模块级状态是 AUTHORIZED（证据本身必须完整保留）。
+    #
+    # 但它**不证明当前这条请求**来自同一个已认证主体。成员二在拿不到
+    # 中间件身份证据时，extensions.current_request_identity.status 只能是
+    # UNKNOWN；F0 因此必须以 ADAPTER_CURRENT_IDENTITY_UNBOUND 阻断。
+    # 这是"如实失败"，不是回归：历史授权不得冒充当前身份认证。
+    - name: s2-authorized
+      description: 受控实验中 /planner 对候选入口的授权通信成功（历史证据）
+      trigger: 归档 S2 日志 PLANNER_RESULT success=true 且资源与候选入口一致
+      expected_state: AUTHORIZED
+      expected_class: PROCEED
+      request_id: req-real-s2
+      command_profile: case_s2
+      envelope_patch:
+        candidate_action:
+          action_resource: /rg/guarded_navigate
+          operation: NAVIGATE
+      expect:
+        allowed_states: [AUTHORIZED]
+        contains: ["/rg/guarded_navigate"]
+        adapter_decision: ADAPTER_BLOCK
+        adapter_reason: ADAPTER_CURRENT_IDENTITY_UNBOUND
+
+    # ------------------------------------------------------------------
+    # S3C -> UNKNOWN（正向对照成功的是执行端资源）
+    # ------------------------------------------------------------------
+    - name: s3c-positive-control
+      description: 正向对照成功，但其资源是执行端 /rg/nav_execute
+      trigger: 归档 S3C 日志 ROGUE_RESULT success=true，资源 = /rg/nav_execute
+      expected_state: UNKNOWN
+      expected_class: LEGAL_BLOCK
+      request_id: req-real-s3c
+      command_profile: case_s3c
+      envelope_patch:
+        candidate_action:
+          action_resource: /rg/guarded_navigate
+          operation: NAVIGATE
+      expect:
+        allowed_states: [UNKNOWN]
+        contains: ["/rg/nav_execute"]
+
+    # ------------------------------------------------------------------
+    # S3 -> UNKNOWN：原生拒绝证据保留，但拒绝的是另一个资源
+    # ------------------------------------------------------------------
+    - name: s3-native-denial
+      description: 原生 DDS 拒绝（含 ANSI 日志）针对执行端资源，不是当前候选资源
+      trigger: 归档 S3 日志含原生 not found in allow rule，资源 = /rg/nav_execute
+      expected_state: UNKNOWN
+      expected_class: LEGAL_BLOCK
+      request_id: req-real-s3
+      command_profile: case_s3
+      envelope_patch:
+        candidate_action:
+          action_resource: /rg/guarded_navigate
+          operation: NAVIGATE
+      expect:
+        allowed_states: [UNKNOWN]
+        contains: ["rr/rg/nav_execute/_action/send_goalReply", "HISTORICAL_RESOURCE_MISMATCH"]
+
+    # ------------------------------------------------------------------
+    # S4 -> UNKNOWN：同上（未授权主体）
+    # ------------------------------------------------------------------
+    - name: s4-native-denial
+      description: 未授权主体的原生 DDS 拒绝，资源与当前候选资源不同
+      trigger: 归档 S4 日志含原生 not found in allow rule，资源 = /rg/nav_execute
+      expected_state: UNKNOWN
+      expected_class: LEGAL_BLOCK
+      request_id: req-real-s4
+      command_profile: case_s4
+      envelope_patch:
+        candidate_action:
+          action_resource: /rg/guarded_navigate
+          operation: NAVIGATE
+      expect:
+        allowed_states: [UNKNOWN]
+        contains: ["rr/rg/nav_execute/_action/send_goalReply", "HISTORICAL_RESOURCE_MISMATCH"]

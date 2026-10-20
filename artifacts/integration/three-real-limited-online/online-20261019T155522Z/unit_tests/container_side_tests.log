@@ -1,0 +1,4 @@
+fatal: not a git repository: /home/zhangwei/project/RosSystem/.git/worktrees/work-online
+=========================== short test summary info ============================
+FAILED tests/unit/test_interface_contract.py::test_no_key_material_is_committed
+1 failed, 28 passed in 0.27s
