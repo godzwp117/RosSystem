@@ -1,0 +1,13 @@
+{
+  "VERIFIED_CODE_SHA": "4e83f9190596d71f5b887c613d3f509578a9c497",
+  "git_head_at_run_time": "4e83f9190596d71f5b887c613d3f509578a9c497",
+  "git_tree": "525b8b6ed82a2d3036acffe3a5fda83fe0ce79b7",
+  "branch": "fix/f0-trust-boundary-closeout",
+  "worktree_clean_excluding_new_evidence": true,
+  "dirty_entries": [],
+  "base_commit_before_p0": "e18598d78cbdadd3f2166f0dfcc33293eac0d3c5",
+  "base_ref": "integration/three-real-online",
+  "rc2_tag": "demo-2026-10-19-rc2-verified",
+  "rc2_commit": "33cb4f93d5e5fd268878fe83fc040c655d632a70",
+  "note": "All P1 verification ran on VERIFIED_CODE_SHA with a clean tree. Evidence files added afterwards are untracked at run time and contain no source, test or runtime-config changes."
+}

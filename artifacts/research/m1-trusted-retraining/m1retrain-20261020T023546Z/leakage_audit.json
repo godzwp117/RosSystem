@@ -1,0 +1,172 @@
+{
+  "contract": "m1-leakage-audit/1",
+  "sessions_root": "artifacts/research/m1-trusted-retraining/m1retrain-20261020T023546Z/sessions",
+  "sessions_total": 9,
+  "sessions_with_usable_windows": 7,
+  "windows_total": 14,
+  "windows_anomaly": 2,
+  "windows_normal": 12,
+  "forbidden_features_present": [],
+  "feature_names": [
+    "message_count",
+    "frequency_hz",
+    "gap_median_ms",
+    "gap_p95_ms",
+    "gap_max_ms",
+    "gap_cv",
+    "graph_change_count",
+    "distinct_publishers"
+  ],
+  "single_feature_power": {
+    "message_count": {
+      "auc": 1.0,
+      "f1_at_median_threshold": 0.4444,
+      "precision": 0.2857,
+      "recall": 1.0,
+      "usable_windows": 14
+    },
+    "frequency_hz": {
+      "auc": 1.0,
+      "f1_at_median_threshold": 0.4444,
+      "precision": 0.2857,
+      "recall": 1.0,
+      "usable_windows": 14
+    },
+    "gap_median_ms": {
+      "auc": 0.0,
+      "f1_at_median_threshold": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "usable_windows": 14
+    },
+    "gap_p95_ms": {
+      "auc": 0.0,
+      "f1_at_median_threshold": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "usable_windows": 14
+    },
+    "gap_max_ms": {
+      "auc": 0.125,
+      "f1_at_median_threshold": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "usable_windows": 14
+    },
+    "gap_cv": {
+      "auc": 0.6666666666666666,
+      "f1_at_median_threshold": 0.4444,
+      "precision": 0.2857,
+      "recall": 1.0,
+      "usable_windows": 14
+    },
+    "graph_change_count": {
+      "auc": 0.3125,
+      "f1_at_median_threshold": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "usable_windows": 14
+    },
+    "distinct_publishers": {
+      "auc": 0.5,
+      "f1_at_median_threshold": 0.2857,
+      "precision": 0.1667,
+      "recall": 1.0,
+      "usable_windows": 14
+    }
+  },
+  "duplicate_feature_vectors": {
+    "distinct": 14,
+    "max_repeat": 1
+  },
+  "sessions_usable": [
+    "anom-topic-flood",
+    "norm-002hz",
+    "norm-010hz",
+    "norm-050hz",
+    "norm-500hz",
+    "norm-irregular",
+    "norm-restart"
+  ],
+  "evaluation": {
+    "protocol": "leave-one-session-out (variant: single held-out session)",
+    "per_session": [
+      {
+        "held_out_session": "anom-topic-flood",
+        "held_out_label": "anomaly",
+        "status": "SKIPPED_SINGLE_CLASS_TRAINING",
+        "reason": "训练会话中只有一个类别（异常会话唯一），无法训练分类器；说明数据集不足以支撑留一会话评估"
+      },
+      {
+        "held_out_session": "norm-002hz",
+        "held_out_label": "normal",
+        "test_windows": 2,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 2,
+        "recall": null,
+        "fpr": 0.0
+      },
+      {
+        "held_out_session": "norm-010hz",
+        "held_out_label": "normal",
+        "test_windows": 2,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 2,
+        "recall": null,
+        "fpr": 0.0
+      },
+      {
+        "held_out_session": "norm-050hz",
+        "held_out_label": "normal",
+        "test_windows": 2,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 2,
+        "recall": null,
+        "fpr": 0.0
+      },
+      {
+        "held_out_session": "norm-500hz",
+        "held_out_label": "normal",
+        "test_windows": 2,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 2,
+        "recall": null,
+        "fpr": 0.0
+      },
+      {
+        "held_out_session": "norm-irregular",
+        "held_out_label": "normal",
+        "test_windows": 2,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 2,
+        "recall": null,
+        "fpr": 0.0
+      },
+      {
+        "held_out_session": "norm-restart",
+        "held_out_label": "normal",
+        "test_windows": 2,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 2,
+        "recall": null,
+        "fpr": 0.0
+      }
+    ],
+    "sessions_evaluated": 7,
+    "note": "每次只留出一个会话，训练集不含该会话；阈值固定 0.5，未在测试会话上调参。",
+    "generalization_claim": "INSUFFICIENT",
+    "generalization_reason": "可用会话 7 个，低于做泛化结论所需的最小会话数 20；任何平均指标都不具统计意义。"
+  }
+}

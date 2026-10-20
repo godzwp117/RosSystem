@@ -1,0 +1,97 @@
+{
+  "$comment": "故意非法样例清单。测试逐条断言：针对指定 Schema 校验时必须失败，且失败原因类别与 reason 一致。这样负向测试不会退化为『校验器跑成功了』。",
+  "manifest_version": "1.0.0-proposed",
+  "cases": [
+    {
+      "file": "comm_missing_required.json",
+      "schema": "comm_risk_evidence.schema.json",
+      "expect_failure": true,
+      "reason": "缺少必填字段 basis",
+      "category": "missing_required"
+    },
+    {
+      "file": "comm_bad_enum.json",
+      "schema": "comm_risk_evidence.schema.json",
+      "expect_failure": true,
+      "reason": "status 取值 OK 不在允许枚举内",
+      "category": "enum_violation"
+    },
+    {
+      "file": "comm_bad_timestamp.json",
+      "schema": "comm_risk_evidence.schema.json",
+      "expect_failure": true,
+      "reason": "observed_at 不是 RFC 3339 日期时间",
+      "category": "format_violation"
+    },
+    {
+      "file": "comm_extra_field.json",
+      "schema": "comm_risk_evidence.schema.json",
+      "expect_failure": true,
+      "reason": "出现未声明的顶层字段 trust_me（首版严格校验）",
+      "category": "additional_property"
+    },
+    {
+      "file": "comm_bad_version.json",
+      "schema": "comm_risk_evidence.schema.json",
+      "expect_failure": true,
+      "reason": "schema_version 2.0.0 与契约不兼容",
+      "category": "version_incompatible"
+    },
+    {
+      "file": "comm_number_out_of_range.json",
+      "schema": "comm_risk_evidence.schema.json",
+      "expect_failure": true,
+      "reason": "request_count 超出声明上界",
+      "category": "range_violation"
+    },
+    {
+      "file": "comm_wrong_type.json",
+      "schema": "comm_risk_evidence.schema.json",
+      "expect_failure": true,
+      "reason": "request_count 为字符串而非整数",
+      "category": "type_violation"
+    },
+    {
+      "file": "comm_nan_literal.json",
+      "schema": "comm_risk_evidence.schema.json",
+      "expect_failure": true,
+      "reason": "包含 NaN 字面量，不是合法 JSON（必须在解析阶段拒绝）",
+      "category": "non_finite_number"
+    },
+    {
+      "file": "identity_bad_status.json",
+      "schema": "identity_trust_assessment.schema.json",
+      "expect_failure": true,
+      "reason": "status 取值 TRUSTED 不在允许枚举内",
+      "category": "enum_violation"
+    },
+    {
+      "file": "task_execution_target.json",
+      "schema": "task_risk_decision.schema.json",
+      "expect_failure": true,
+      "reason": "candidate_action.action_resource 指向执行端 /rg/nav_execute，违反固定入口约束",
+      "category": "const_violation"
+    },
+    {
+      "file": "task_bad_digest.json",
+      "schema": "task_risk_decision.schema.json",
+      "expect_failure": true,
+      "reason": "policy_digest 不是 64 位小写十六进制摘要",
+      "category": "pattern_violation"
+    },
+    {
+      "file": "input_admin_flag.json",
+      "schema": "module_input.schema.json",
+      "expect_failure": true,
+      "reason": "输入信封出现自报授权开关 is_admin",
+      "category": "additional_property"
+    },
+    {
+      "file": "input_execution_resource.json",
+      "schema": "module_input.schema.json",
+      "expect_failure": true,
+      "reason": "输入信封把候选操作指向执行端 /rg/nav_execute",
+      "category": "const_violation"
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "generated_at": "2026-10-18T16:06:04Z",
+  "model_path": "modules/member1_comm/model/comm_risk_window_model.json",
+  "model_sha256": "a91e166cee8b94d3c49b53322782147a696161d9d8eb8e597d5b97ff8065d1bb",
+  "algorithm": "logistic",
+  "feature_count": 6,
+  "feature_names": [
+    "request_count",
+    "frequency_hz",
+    "gap_median_ms",
+    "gap_p95_ms",
+    "gap_max_ms",
+    "duration_ms"
+  ],
+  "training_data": "windows_0.jsonl",
+  "split": "GroupKFold by segment_index (采集会话分组)",
+  "folds": 5,
+  "fold_f1": [
+    0.9596,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "fold_baseline_f1": [
+    0.6657,
+    0.6301,
+    0.6534,
+    0.6477,
+    0.6087
+  ],
+  "fold_thresholds": [
+    0.05,
+    0.1,
+    0.1,
+    0.1,
+    0.2
+  ],
+  "mean_f1": 0.9919,
+  "worst_fold_f1": 0.9596,
+  "baseline_constant_attack_mean_f1": 0.6411,
+  "deploy_threshold": 0.1,
+  "validation_gate_passed": true,
+  "gate_basis": "会话分组交叉验证平均 F1 0.9919 / 最差折 0.9596 vs 恒预测攻击基线 0.6411（要求平均超过基线 0.05 且最差折仍高于基线）",
+  "numeric_consistency": {
+    "checked_windows": 500,
+    "max_abs_diff": 2.5545210391442197e-10,
+    "tolerance": 1e-09
+  },
+  "provenance_limits": [
+    "窗口数据 windows_0.jsonl 由仓库外脚本从 ROSPaCe_reduced PCAP 派生，生成脚本不在库内；本工作独立审计了其标签分布与特征定义。",
+    "特征在 ROS 2 订阅侧与 PCAP 侧语义等价但采样位置不同，数值不保证逐点相同（见 collector 的 alignment_note）。",
+    "会话分组只能保证不跨采集段泄漏，无法证明段内时间自相关已被完全消除。"
+  ],
+  "not_claimed": [
+    "有效实时 IDS",
+    "对未知攻击的检测能力",
+    "生产环境误报率"
+  ]
+}

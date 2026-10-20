@@ -1,0 +1,35 @@
+[
+  {
+    "session_id": "g3-anom-recon-s02",
+    "scenario": "anomaly-endpoint-recon",
+    "label": "anomaly",
+    "label_basis": "reconnaissance creating visible endpoints continuously",
+    "returncode": 0,
+    "stderr_tail": "",
+    "windows_total": 2,
+    "windows_message_ok": 0,
+    "windows_graph_valid": 1
+  },
+  {
+    "session_id": "g3-anom-recon-s03",
+    "scenario": "anomaly-endpoint-recon",
+    "label": "anomaly",
+    "label_basis": "reconnaissance creating visible endpoints continuously",
+    "returncode": 0,
+    "stderr_tail": "",
+    "windows_total": 2,
+    "windows_message_ok": 0,
+    "windows_graph_valid": 1
+  },
+  {
+    "session_id": "g3-anom-recon-s04",
+    "scenario": "anomaly-endpoint-recon",
+    "label": "anomaly",
+    "label_basis": "reconnaissance creating visible endpoints continuously",
+    "returncode": 0,
+    "stderr_tail": "",
+    "windows_total": 2,
+    "windows_message_ok": 0,
+    "windows_graph_valid": 1
+  }
+]

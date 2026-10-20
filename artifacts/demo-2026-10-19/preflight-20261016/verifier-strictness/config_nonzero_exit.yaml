@@ -1,0 +1,52 @@
+adapter:
+  log_path: logs/member3/adapter.jsonl
+  planner_command:
+  - ros2
+  - run
+  - rg_demo_nodes
+  - planner_node
+modules:
+  comm_risk:
+    allow_fault_injection: false
+    command:
+    - python3
+    - mock_modules/comm_risk_mock.py
+    interface: comm_risk_evidence
+    max_stdout_bytes: 65536
+    mode: mock
+    timeout_sec: 10
+  identity_trust:
+    allow_fault_injection: false
+    command:
+    - python3
+    - mock_modules/identity_trust_mock.py
+    interface: identity_trust_assessment
+    max_stdout_bytes: 65536
+    mode: mock
+    timeout_sec: 10
+  task_risk:
+    allow_fault_injection: false
+    command:
+    - python3
+    - /tmp/nz/nz.py
+    interface: task_risk_decision
+    max_stdout_bytes: 65536
+    mode: external
+    timeout_sec: 10
+real_command_profiles:
+  policy_absent:
+    command:
+    - python3
+    - /tmp/nz/nz.py
+  policy_corrupt:
+    command:
+    - python3
+    - /tmp/nz/nz.py
+  policy_tight_region:
+    command:
+    - python3
+    - /tmp/nz/nz.py
+  policy_valid:
+    command:
+    - python3
+    - /tmp/nz/nz.py

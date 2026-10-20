@@ -1,0 +1,87 @@
+{
+  "model_file": "comm_risk_model.json",
+  "model_sha256": "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df",
+  "model_size_bytes": 1308233,
+  "model_format": "member1-numeric-v1",
+  "algorithm": "extra_trees",
+  "threshold": 0.75,
+  "validation_gate_passed": false,
+  "detector_effectiveness": "NOT_PROVEN",
+  "runtime_monitor": "NOT_READY",
+  "feature_count": 49,
+  "feature_manifest": "modules/member1_comm/features.json",
+  "training_report": "train_report.json",
+  "training_report_sha256": "fc1df96da48e20df2d723aecea5dcda5712f0ee5fb01e8e99f981afc20871ac1",
+  "training_data": {
+    "source": "ROSPaCe_reduced.tar.gz (official Figshare ROSPaCe reduced collection)",
+    "archive_sha256": "f37e17985bcca1a61c25aa626c67ba8b8740a203e83b73b6fd9317bd66822900",
+    "archive_md5": "63d2723577250282361b4c073b4912e5",
+    "official_verification": "SIZE_MD5_PASS",
+    "audited_rows": 30247050,
+    "sampled_rows": 150000,
+    "split": {
+      "train": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "validation": [
+        11,
+        12
+      ],
+      "test": [
+        13,
+        14
+      ]
+    },
+    "split_type": "FILE_DISJOINT_SPLIT",
+    "session_independence": "UNVERIFIED"
+  },
+  "measured_on_test_split": {
+    "f1": 0.13119672690078418,
+    "recall": 0.07020360504998906,
+    "specificity": 1,
+    "balanced_accuracy": 0.5351018025249945,
+    "pr_auc": 0.7424323285204703,
+    "confusion": {
+      "tp": 962,
+      "tn": 6297,
+      "fp": 0,
+      "fn": 12741
+    },
+    "always_attack_f1": 0.8131620330534374
+  },
+  "deployed_numeric_parity": {
+    "status": "PASS",
+    "test_rows": 20000,
+    "max_probability_error": 3.3306690738754696e-16,
+    "classification_mismatches": 0
+  },
+  "reproduction": [
+    "# 官方数据不在版本控制中（/data 已在 .gitignore 排除），需先从 Figshare 取得归档并核验尺寸+MD5",
+    "python3 modules/member1_comm/train.py --archive data/ROSPaCe_reduced/ROSPaCe_reduced.tar.gz --samples data/member1_samples/reduced --output training_runs/member1",
+    "cp training_runs/member1/model.json modules/member1_comm/model/comm_risk_model.json",
+    "sha256sum modules/member1_comm/model/comm_risk_model.json"
+  ],
+  "reproduction_note": "训练依赖 sklearn ExtraTrees 的随机种子与版本；跨环境重训可能得到相同算法/阈值但不同字节的模型，故本仓库同时交付模型本体与 SHA-256，运行时以 SHA-256 为唯一身份。",
+  "provenance": {
+    "source_delivery": "user/RosSystem-member1-delivery/RosSystem",
+    "source_revision_head": "21f528085ebe6d6a9df9e15c6c82c6465c80c84a",
+    "source_revision_branch": "feature/member1-comm-offline-baseline",
+    "adapted_module": "modules/member1_comm/module.py",
+    "adaptation": "package rename modules.my_comm -> modules.member1_comm; model root allowlist; feature manifest check; trusted observation provenance; extensions rename"
+  },
+  "security_notes": [
+    "模型是纯数值 JSON，加载路径不接受 pickle/joblib，避免不安全反序列化。",
+    "validation_gate_passed=false：正常预测默认保留 UNKNOWN，F0 因此不会推进。",
+    "模型在测试集上 F1 0.131 低于恒预测攻击基线 0.813，不得宣称有效实时异常检测。"
+  ]
+}

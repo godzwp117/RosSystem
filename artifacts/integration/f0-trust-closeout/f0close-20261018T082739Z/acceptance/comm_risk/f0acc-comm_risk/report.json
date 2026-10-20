@@ -1,0 +1,1079 @@
+{
+  "baseline_sha": "4e83f9190596d71f5b887c613d3f509578a9c497",
+  "module": "comm_risk",
+  "config": "config/team_modules.member1.real.yaml",
+  "module_command": [
+    "/home/zhangwei/project/RosSystem-worktrees/work-f0/.research-venv/bin/python",
+    "modules/member1_comm/module.py",
+    "--model",
+    "modules/member1_comm/model/comm_risk_model.json",
+    "--model-sha256",
+    "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df",
+    "--features",
+    "modules/member1_comm/features.json",
+    "--observation-provenance",
+    "UNKNOWN"
+  ],
+  "executable": "/home/zhangwei/project/RosSystem-worktrees/work-f0/.research-venv/bin/python",
+  "test_layer": "L1_PROTOCOL",
+  "layer_note": "本脚本只做 L1 协议层验收。通过 L1 不代表算法有效（L2），也不代表具备实时监测能力（L3）。",
+  "checks": [
+    {
+      "id": "CFG-01",
+      "check": "模块配置可解析",
+      "status": "PASS",
+      "detail": "config/team_modules.member1.real.yaml",
+      "mandatory": true
+    },
+    {
+      "id": "CFG-02",
+      "check": "配置中包含目标模块",
+      "status": "PASS",
+      "detail": "modules 键: ['comm_risk', 'identity_trust', 'task_risk']",
+      "mandatory": true
+    },
+    {
+      "id": "CFG-03",
+      "check": "command 是参数数组（非字符串）",
+      "status": "PASS",
+      "detail": "type=list",
+      "mandatory": true
+    },
+    {
+      "id": "CFG-04",
+      "check": "命令来自受信任本地配置（非业务输入）",
+      "status": "PASS",
+      "detail": "命令只取自 --config 指定的文件",
+      "mandatory": true
+    },
+    {
+      "id": "CFG-05",
+      "check": "接口名与模块匹配",
+      "status": "PASS",
+      "detail": "interface='comm_risk_evidence'",
+      "mandatory": true
+    },
+    {
+      "id": "RUN-01",
+      "check": "模块被真实调用（记录命令与返回码）",
+      "status": "PASS",
+      "detail": "rc=0 elapsed=0.07s exceeded=None",
+      "mandatory": true,
+      "returncode": 0,
+      "elapsed_sec": 0.069,
+      "stdout_bytes": 1606,
+      "pgid": 1142638,
+      "exceeded": null,
+      "stderr_head": "status=UNKNOWN; offline advisory only\n"
+    },
+    {
+      "id": "PROTO-01",
+      "check": "stdout 非空",
+      "status": "PASS",
+      "detail": "1606 字节",
+      "mandatory": true
+    },
+    {
+      "id": "PROTO-02",
+      "check": "stdout 只含一个 JSON 对象",
+      "status": "PASS",
+      "detail": "行数=1",
+      "mandatory": true
+    },
+    {
+      "id": "PROTO-03",
+      "check": "stdout 无额外调试文本污染",
+      "status": "PASS",
+      "detail": "首字符='{'",
+      "mandatory": true
+    },
+    {
+      "id": "PROTO-04",
+      "check": "stdout 未超过 max_stdout_bytes",
+      "status": "PASS",
+      "detail": "1606 <= 65536",
+      "mandatory": true
+    },
+    {
+      "id": "PROTO-05",
+      "check": "诊断信息写入 stderr（stdout 依然干净）",
+      "status": "PASS",
+      "detail": "stderr 38 字节",
+      "mandatory": true
+    },
+    {
+      "id": "PROTO-06",
+      "check": "stdout 是合法 JSON",
+      "status": "PASS",
+      "detail": "",
+      "mandatory": true
+    },
+    {
+      "id": "ID-01",
+      "check": "run_id 与输入一致",
+      "status": "PASS",
+      "detail": "'member-acceptance'",
+      "mandatory": true
+    },
+    {
+      "id": "ID-02",
+      "check": "request_id 与输入一致",
+      "status": "PASS",
+      "detail": "'req-accept-001'",
+      "mandatory": true
+    },
+    {
+      "id": "ID-03",
+      "check": "event_id 为合法非空唯一标识（不要求包含 request_id）",
+      "status": "PASS",
+      "detail": "event_id='comm-ce50fe143e874d4983825d8d8983595e' len=37",
+      "mandatory": true
+    },
+    {
+      "id": "ID-03B",
+      "check": "event_id 与 request_id 的关联由显式字段承担",
+      "status": "PASS",
+      "detail": "request_id 字段一致性即关联依据；event_id 不承担该编码责任",
+      "mandatory": true
+    },
+    {
+      "id": "ID-04",
+      "check": "schema_version 合法",
+      "status": "PASS",
+      "detail": "'1.0.0-proposed'",
+      "mandatory": true
+    },
+    {
+      "id": "SEM-01",
+      "check": "producer.source 语义合法",
+      "status": "PASS",
+      "detail": "'EXTERNAL'",
+      "mandatory": true,
+      "implementation_type": "EXTERNAL"
+    },
+    {
+      "id": "SEM-02",
+      "check": "evidence_refs 存在且 kind 合法",
+      "status": "PASS",
+      "detail": "['MOCK']",
+      "mandatory": true
+    },
+    {
+      "id": "SCH-01",
+      "check": "Schema 校验",
+      "status": "PASS",
+      "detail": "",
+      "mandatory": true,
+      "schema_error": null
+    },
+    {
+      "id": "STATE-01",
+      "check": "状态为合法安全阻断（结构合法，不推进）",
+      "status": "PASS",
+      "detail": "UNKNOWN（LEGAL_BLOCK，不是 Schema 错误）",
+      "mandatory": true,
+      "classification": "LEGAL_BLOCK"
+    },
+    {
+      "id": "STATE-NORMAL",
+      "check": "normal 场景真实运行 -> NORMAL（PROCEED）",
+      "status": "FAIL",
+      "detail": "rc=0 state=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True；fixture 的 f0_mock 场景开关对真实模块不适用，该状态由 REAL-STATE-NORMAL 以真实条件校验",
+      "mandatory": false,
+      "scenario": "normal",
+      "schema_valid": true,
+      "security_class": "LEGAL_BLOCK",
+      "returncode": 0,
+      "gate": false,
+      "applicability": "NOT_APPLICABLE_REAL_MODULE"
+    },
+    {
+      "id": "STATE-SUSPICIOUS",
+      "check": "suspicious 场景真实运行 -> SUSPICIOUS（LEGAL_BLOCK）",
+      "status": "FAIL",
+      "detail": "rc=0 state=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True；fixture 的 f0_mock 场景开关对真实模块不适用，该状态由 REAL-STATE-SUSPICIOUS 以真实条件校验",
+      "mandatory": false,
+      "scenario": "suspicious",
+      "schema_valid": true,
+      "security_class": "LEGAL_BLOCK",
+      "returncode": 0,
+      "gate": false,
+      "applicability": "NOT_APPLICABLE_REAL_MODULE"
+    },
+    {
+      "id": "STATE-UNKNOWN",
+      "check": "unknown 场景真实运行 -> UNKNOWN（LEGAL_BLOCK）",
+      "status": "PASS",
+      "detail": "rc=0 state=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True；fixture 的 f0_mock 场景开关对真实模块不适用，该状态由 REAL-STATE-UNKNOWN 以真实条件校验",
+      "mandatory": false,
+      "scenario": "unknown",
+      "schema_valid": true,
+      "security_class": "LEGAL_BLOCK",
+      "returncode": 0,
+      "gate": false,
+      "applicability": "NOT_APPLICABLE_REAL_MODULE"
+    },
+    {
+      "id": "STATE-ERROR",
+      "check": "error 场景真实运行 -> ERROR（LEGAL_BLOCK）",
+      "status": "FAIL",
+      "detail": "rc=0 state=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True；fixture 的 f0_mock 场景开关对真实模块不适用，该状态由 REAL-STATE-ERROR 以真实条件校验",
+      "mandatory": false,
+      "scenario": "error",
+      "schema_valid": true,
+      "security_class": "LEGAL_BLOCK",
+      "returncode": 0,
+      "gate": false,
+      "applicability": "NOT_APPLICABLE_REAL_MODULE"
+    },
+    {
+      "id": "STATE-SUMMARY",
+      "check": "四状态矩阵完整执行（共 4 种）",
+      "status": "PASS",
+      "detail": "PROCEED=1 LEGAL_BLOCK=3",
+      "mandatory": true
+    },
+    {
+      "id": "STATE-CLASSIFY",
+      "check": "Schema 合法性与安全推进资格分开判定",
+      "status": "PASS",
+      "detail": "阻断状态（SUSPICIOUS,UNKNOWN,ERROR）Schema 同样合法，被归类为 LEGAL_BLOCK 而非 Schema 错误",
+      "mandatory": true
+    },
+    {
+      "id": "ADP-SUSPICIOUS",
+      "check": "适配层对 SUSPICIOUS 返回 ADAPTER_BLOCK",
+      "status": "PASS",
+      "detail": "rc=10 decision=ADAPTER_MODULE_EXIT_NONZERO",
+      "mandatory": true,
+      "returncode": 10
+    },
+    {
+      "id": "ADP-UNKNOWN",
+      "check": "适配层对 UNKNOWN 返回 ADAPTER_BLOCK",
+      "status": "PASS",
+      "detail": "rc=10 decision=ADAPTER_MODULE_EXIT_NONZERO",
+      "mandatory": true,
+      "returncode": 10
+    },
+    {
+      "id": "ADP-ERROR",
+      "check": "适配层对 ERROR 返回 ADAPTER_BLOCK",
+      "status": "PASS",
+      "detail": "rc=10 decision=ADAPTER_MODULE_EXIT_NONZERO",
+      "mandatory": true,
+      "returncode": 10
+    },
+    {
+      "id": "REAL-01",
+      "check": "真实场景 fixture 合法（受信任本地文件）",
+      "status": "PASS",
+      "detail": "config/acceptance/real_scenarios.member1.yaml；5 个场景",
+      "mandatory": true
+    },
+    {
+      "id": "REAL-02",
+      "check": "业务输入不得指定命令/策略/可执行文件",
+      "status": "PASS",
+      "detail": "fixture 只引用配置档案名；envelope_patch 中 command/exec/policy/env 等字段被拒绝",
+      "mandatory": true
+    },
+    {
+      "id": "REAL-STATE-SUSPICIOUS",
+      "check": "真实条件 suspicious（shard 13 第 20 行真实特征，模型打分 0.9844 不低于阈值 0.75）-> SUSPICIOUS",
+      "status": "PASS",
+      "detail": "rc=0 rc_ok=True policy=None actual=SUSPICIOUS expected=SUSPICIOUS schema_ok=True class=LEGAL_BLOCK ids_ok=True traceability_ok=True reason_code=ANOMALY_DETECTED",
+      "mandatory": true,
+      "scenario": "suspicious",
+      "trigger": "shard 13 第 20 行真实特征，模型打分 0.9844 不低于阈值 0.75",
+      "expected_state": "SUSPICIOUS",
+      "actual_state": "SUSPICIOUS",
+      "expected_class": "LEGAL_BLOCK",
+      "security_class": "LEGAL_BLOCK",
+      "schema_valid": true,
+      "reason_code": "ANOMALY_DETECTED",
+      "traceable_command": [
+        "/home/zhangwei/project/RosSystem-worktrees/work-f0/.research-venv/bin/python",
+        "modules/member1_comm/module.py",
+        "--model",
+        "modules/member1_comm/model/comm_risk_model.json",
+        "--model-sha256",
+        "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df",
+        "--features",
+        "modules/member1_comm/features.json",
+        "--observation-provenance",
+        "UNKNOWN",
+        "--module",
+        "comm_risk"
+      ],
+      "policy_ref": null,
+      "returncode": 0
+    },
+    {
+      "id": "REAL-STATE-UNKNOWN",
+      "check": "真实条件 unknown（shard 13 第 12882 行真实特征，打分 0.1821 低于阈值 0.75，且 validation_gate_passed=false）-> UNKNOWN",
+      "status": "PASS",
+      "detail": "rc=0 rc_ok=True policy=None actual=UNKNOWN expected=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True traceability_ok=True reason_code=MODEL_NOT_ACCEPTED",
+      "mandatory": true,
+      "scenario": "unknown",
+      "trigger": "shard 13 第 12882 行真实特征，打分 0.1821 低于阈值 0.75，且 validation_gate_passed=false",
+      "expected_state": "UNKNOWN",
+      "actual_state": "UNKNOWN",
+      "expected_class": "LEGAL_BLOCK",
+      "security_class": "LEGAL_BLOCK",
+      "schema_valid": true,
+      "reason_code": "MODEL_NOT_ACCEPTED",
+      "traceable_command": [
+        "/home/zhangwei/project/RosSystem-worktrees/work-f0/.research-venv/bin/python",
+        "modules/member1_comm/module.py",
+        "--model",
+        "modules/member1_comm/model/comm_risk_model.json",
+        "--model-sha256",
+        "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df",
+        "--features",
+        "modules/member1_comm/features.json",
+        "--observation-provenance",
+        "UNKNOWN",
+        "--module",
+        "comm_risk"
+      ],
+      "policy_ref": null,
+      "returncode": 0
+    },
+    {
+      "id": "REAL-STATE-NORMAL-CONTROLLED",
+      "check": "真实条件 normal-controlled（同一真实行；命令档案 model_controlled_test 追加 --controlled-test（受信任配置））-> NORMAL",
+      "status": "PASS",
+      "detail": "rc=0 rc_ok=True policy=None actual=NORMAL expected=NORMAL schema_ok=True class=PROCEED ids_ok=True traceability_ok=True reason_code=CONTROLLED_TEST_BELOW_THRESHOLD",
+      "mandatory": true,
+      "scenario": "normal-controlled",
+      "trigger": "同一真实行；命令档案 model_controlled_test 追加 --controlled-test（受信任配置）",
+      "expected_state": "NORMAL",
+      "actual_state": "NORMAL",
+      "expected_class": "PROCEED",
+      "security_class": "PROCEED",
+      "schema_valid": true,
+      "reason_code": "CONTROLLED_TEST_BELOW_THRESHOLD",
+      "traceable_command": [
+        "/home/zhangwei/project/RosSystem-worktrees/work-f0/.research-venv/bin/python",
+        "modules/member1_comm/module.py",
+        "--model",
+        "modules/member1_comm/model/comm_risk_model.json",
+        "--model-sha256",
+        "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df",
+        "--features",
+        "modules/member1_comm/features.json",
+        "--observation-provenance",
+        "UNKNOWN",
+        "--controlled-test"
+      ],
+      "policy_ref": null,
+      "returncode": 0
+    },
+    {
+      "id": "REAL-STATE-FEATURES-ABSENT",
+      "check": "真实条件 features-absent（observations[0].detail 中没有 rospace_comm.features）-> UNKNOWN",
+      "status": "PASS",
+      "detail": "rc=0 rc_ok=True policy=None actual=UNKNOWN expected=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True traceability_ok=True reason_code=FEATURES_INVALID",
+      "mandatory": true,
+      "scenario": "features-absent",
+      "trigger": "observations[0].detail 中没有 rospace_comm.features",
+      "expected_state": "UNKNOWN",
+      "actual_state": "UNKNOWN",
+      "expected_class": "LEGAL_BLOCK",
+      "security_class": "LEGAL_BLOCK",
+      "schema_valid": true,
+      "reason_code": "FEATURES_INVALID",
+      "traceable_command": [
+        "/home/zhangwei/project/RosSystem-worktrees/work-f0/.research-venv/bin/python",
+        "modules/member1_comm/module.py",
+        "--model",
+        "modules/member1_comm/model/comm_risk_model.json",
+        "--model-sha256",
+        "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df",
+        "--features",
+        "modules/member1_comm/features.json",
+        "--observation-provenance",
+        "UNKNOWN",
+        "--module",
+        "comm_risk"
+      ],
+      "policy_ref": null,
+      "returncode": 0
+    },
+    {
+      "id": "REAL-STATE-ERROR",
+      "check": "真实条件 error（命令档案 model_bad_hash 声明了错误的 --model-sha256）-> ERROR",
+      "status": "PASS",
+      "detail": "rc=0 rc_ok=True policy=None actual=ERROR expected=ERROR schema_ok=True class=LEGAL_BLOCK ids_ok=True traceability_ok=True reason_code=MODEL_INVALID",
+      "mandatory": true,
+      "scenario": "error",
+      "trigger": "命令档案 model_bad_hash 声明了错误的 --model-sha256",
+      "expected_state": "ERROR",
+      "actual_state": "ERROR",
+      "expected_class": "LEGAL_BLOCK",
+      "security_class": "LEGAL_BLOCK",
+      "schema_valid": true,
+      "reason_code": "MODEL_INVALID",
+      "traceable_command": [
+        "/home/zhangwei/project/RosSystem-worktrees/work-f0/.research-venv/bin/python",
+        "modules/member1_comm/module.py",
+        "--model",
+        "modules/member1_comm/model/comm_risk_model.json",
+        "--model-sha256",
+        "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df",
+        "--features",
+        "modules/member1_comm/features.json",
+        "--observation-provenance",
+        "UNKNOWN",
+        "--model-sha256",
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      ],
+      "policy_ref": null,
+      "returncode": 0
+    },
+    {
+      "id": "REAL-STATE-SUMMARY",
+      "check": "真实条件状态矩阵完整执行（共 5 种）",
+      "status": "PASS",
+      "detail": "PROCEED=1 LEGAL_BLOCK=4；均由真实模块输出决定",
+      "mandatory": true
+    },
+    {
+      "id": "REAL-STATE-SCHEMA",
+      "check": "真实条件输出符合原有 Schema（含阻断状态）",
+      "status": "PASS",
+      "detail": "阻断状态也必须结构合法；Schema 非法单独判负",
+      "mandatory": true
+    },
+    {
+      "id": "REAL-ADP-SUSPICIOUS",
+      "check": "F0 对真实 SUSPICIOUS（suspicious）返回 ADAPTER_BLOCK",
+      "status": "PASS",
+      "detail": "rc=10 decision=ADAPTER_BLOCK reason=ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "mandatory": true,
+      "returncode": 10,
+      "decision": "ADAPTER_BLOCK",
+      "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "actual_state": "SUSPICIOUS"
+    },
+    {
+      "id": "REAL-ADP-UNKNOWN",
+      "check": "F0 对真实 UNKNOWN（unknown）返回 ADAPTER_BLOCK",
+      "status": "PASS",
+      "detail": "rc=10 decision=ADAPTER_BLOCK reason=ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "mandatory": true,
+      "returncode": 10,
+      "decision": "ADAPTER_BLOCK",
+      "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "actual_state": "UNKNOWN"
+    },
+    {
+      "id": "REAL-ADP-FEATURES-ABSENT",
+      "check": "F0 对真实 UNKNOWN（features-absent）返回 ADAPTER_BLOCK",
+      "status": "PASS",
+      "detail": "rc=10 decision=ADAPTER_BLOCK reason=ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "mandatory": true,
+      "returncode": 10,
+      "decision": "ADAPTER_BLOCK",
+      "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "actual_state": "UNKNOWN"
+    },
+    {
+      "id": "REAL-ADP-ERROR",
+      "check": "F0 对真实 ERROR（error）返回 ADAPTER_BLOCK",
+      "status": "PASS",
+      "detail": "rc=10 decision=ADAPTER_BLOCK reason=ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "mandatory": true,
+      "returncode": 10,
+      "decision": "ADAPTER_BLOCK",
+      "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "actual_state": "ERROR"
+    },
+    {
+      "id": "REAL-ADP-NORMAL-CONTROLLED",
+      "check": "合法真实条件只产生 READY_FOR_GATEWAY_SUBMISSION（仍需 Gateway 判定）",
+      "status": "PASS",
+      "detail": "rc=0 decision=READY_FOR_GATEWAY_SUBMISSION reason=ADAPTER_OK gateway_decision=None",
+      "mandatory": true,
+      "returncode": 0,
+      "decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "reason_code": "ADAPTER_OK",
+      "actual_state": "NORMAL"
+    },
+    {
+      "id": "ERR-01",
+      "check": "非法 JSON 输入 -> 失败关闭",
+      "status": "PASS",
+      "detail": "rc=2 stdout=0B exceeded=None",
+      "mandatory": true,
+      "returncode": 2,
+      "stdout_bytes": 0
+    },
+    {
+      "id": "ERR-03",
+      "check": "schema_version 不兼容 -> 模块自行失败关闭（纵深防御）",
+      "status": "PASS",
+      "detail": "模块返回 rc=2；该项非强制，安全边界在适配层",
+      "mandatory": false,
+      "returncode": 2
+    },
+    {
+      "id": "ERR-04",
+      "check": "缺 observations -> 模块自行失败关闭（纵深防御）",
+      "status": "PASS",
+      "detail": "模块返回 rc=2；该项非强制，安全边界在适配层",
+      "mandatory": false,
+      "returncode": 2
+    },
+    {
+      "id": "ADP-00",
+      "check": "正向对照：合法输入可推进且模块确实被调用",
+      "status": "PASS",
+      "detail": "decision=READY_FOR_GATEWAY_SUBMISSION reason=ADAPTER_OK 模块被调用=True",
+      "mandatory": true,
+      "control": "POSITIVE_CONTROL"
+    },
+    {
+      "id": "ADP-N01",
+      "check": "缺少 observations -> 明确输入拒绝（ADAPTER_INPUT_INVALID）",
+      "status": "PASS",
+      "detail": "decision=ADAPTER_BLOCK reason_code=ADAPTER_INPUT_INVALID rc=3 模块调用=0",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_INPUT_INVALID",
+        "planner_started": false,
+        "modules_invoked": 0,
+        "exit_code": 3,
+        "stderr_head": ""
+      },
+      "module_called": false
+    },
+    {
+      "id": "ADP-N02",
+      "check": "schema_version 非法 -> 明确输入拒绝（ADAPTER_INPUT_INVALID）",
+      "status": "PASS",
+      "detail": "decision=ADAPTER_BLOCK reason_code=ADAPTER_INPUT_INVALID rc=3 模块调用=0",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_INPUT_INVALID",
+        "planner_started": false,
+        "modules_invoked": 0,
+        "exit_code": 3,
+        "stderr_head": ""
+      },
+      "module_called": false
+    },
+    {
+      "id": "ADP-N03",
+      "check": "缺少 candidate_action -> 明确输入拒绝（ADAPTER_INPUT_INVALID）",
+      "status": "PASS",
+      "detail": "decision=ADAPTER_BLOCK reason_code=ADAPTER_INPUT_INVALID rc=3 模块调用=0",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_INPUT_INVALID",
+        "planner_started": false,
+        "modules_invoked": 0,
+        "exit_code": 3,
+        "stderr_head": ""
+      },
+      "module_called": false
+    },
+    {
+      "id": "ADP-N04",
+      "check": "非法 JSON 输入 -> 明确输入拒绝（ADAPTER_INPUT_INVALID）",
+      "status": "PASS",
+      "detail": "decision=ADAPTER_BLOCK reason_code=ADAPTER_INPUT_INVALID rc=3 模块调用=0",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_INPUT_INVALID",
+        "planner_started": false,
+        "modules_invoked": 0,
+        "exit_code": 3,
+        "stderr_head": ""
+      },
+      "module_called": false
+    },
+    {
+      "id": "ADP-N05",
+      "check": "适配器内部异常/模块脚本崩溃 -> 不得记为输入校验 PASS",
+      "status": "PASS",
+      "detail": "reason_code=ADAPTER_MODULE_EXIT_NONZERO rc=10；未被误判为输入拒绝",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_EXIT_NONZERO",
+        "planner_started": false,
+        "modules_invoked": 1,
+        "exit_code": 10,
+        "stderr_head": ""
+      },
+      "misrecorded_as_input_rejection": false
+    },
+    {
+      "id": "ADP-N06",
+      "check": "适配器依赖缺失（解释器不存在） -> 不得记为输入校验 PASS",
+      "status": "PASS",
+      "detail": "reason_code=ADAPTER_MODULE_MISSING rc=10；未被误判为输入拒绝",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_MISSING",
+        "planner_started": false,
+        "modules_invoked": 1,
+        "exit_code": 10,
+        "stderr_head": ""
+      },
+      "misrecorded_as_input_rejection": false
+    },
+    {
+      "id": "ADP-N07",
+      "check": "配置文件不存在 -> 不得记为输入校验 PASS",
+      "status": "PASS",
+      "detail": "reason_code=ADAPTER_CONFIG_INVALID rc=4；未被误判为输入拒绝",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_CONFIG_INVALID",
+        "planner_started": false,
+        "modules_invoked": 0,
+        "exit_code": 4,
+        "stderr_head": ""
+      },
+      "misrecorded_as_input_rejection": false
+    },
+    {
+      "id": "ADP-N08",
+      "check": "模块返回非零且输出不是合法 JSON -> 不得记为输入校验 PASS",
+      "status": "PASS",
+      "detail": "reason_code=ADAPTER_MODULE_EXIT_NONZERO rc=10；未被误判为输入拒绝",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_EXIT_NONZERO",
+        "planner_started": false,
+        "modules_invoked": 1,
+        "exit_code": 10,
+        "stderr_head": ""
+      },
+      "misrecorded_as_input_rejection": false
+    },
+    {
+      "id": "ADP-N09",
+      "check": "原因码必须与真实失败路径一致（不得冒充输入拒绝）",
+      "status": "PASS",
+      "detail": "reason_code=ADAPTER_MODULE_EXIT_NONZERO rc=10",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_EXIT_NONZERO",
+        "planner_started": false,
+        "modules_invoked": 1,
+        "exit_code": 10,
+        "stderr_head": ""
+      }
+    },
+    {
+      "id": "ADP-N10",
+      "check": "合法输入必须真实调用模块（未调用即 FAIL）",
+      "status": "PASS",
+      "detail": "decision=READY_FOR_GATEWAY_SUBMISSION 模块被调用=True",
+      "mandatory": true,
+      "module_called": true
+    },
+    {
+      "id": "ADP-01",
+      "check": "适配层对畸形信封做明确输入拒绝（真正的安全边界）",
+      "status": "PASS",
+      "detail": "decision=ADAPTER_BLOCK reason_code=ADAPTER_INPUT_INVALID rc=3 模块调用=0",
+      "mandatory": true,
+      "adapter_evidence": {
+        "stdout_is_json": true,
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_INPUT_INVALID",
+        "planner_started": false,
+        "modules_invoked": 0,
+        "exit_code": 3,
+        "stderr_head": ""
+      }
+    },
+    {
+      "id": "ID-05",
+      "check": "event_id 非空、≤128 字符且在同一运行内不重复",
+      "status": "PASS",
+      "detail": "10 次调用 / 10 个不同 event_id / 0 个违规",
+      "mandatory": true,
+      "event_id_audit": {
+        "requests_probed": 10,
+        "distinct_event_ids": 10,
+        "violations": []
+      }
+    },
+    {
+      "id": "LIM-01",
+      "check": "极小超时下不会挂起（超时即阻断，且必须真实终止回收）",
+      "status": "PASS",
+      "detail": "超时已触发且进程组被终止回收（rc=-15，terminate=terminated，0.011s <= 0.001s + 3.0s）；rc=-15 exceeded=TIMEOUT elapsed=0.011s terminate=terminated",
+      "mandatory": true,
+      "timeout_verdict": "timeout_terminated",
+      "returncode": -15,
+      "exceeded": "TIMEOUT",
+      "elapsed_sec": 0.0115,
+      "terminate": "terminated",
+      "effective_timeout_sec": 0.001
+    },
+    {
+      "id": "LIM-02",
+      "check": "stdout 超限时立即终止且不判成功",
+      "status": "PASS",
+      "detail": "exceeded=STDOUT_TOO_LARGE stdout_bytes=64（上限 64）",
+      "mandatory": true,
+      "exceeded": "STDOUT_TOO_LARGE",
+      "stdout_bytes": 64
+    },
+    {
+      "id": "PROC-01",
+      "check": "不快照/不残留：调用使用 shell=False 且受超时约束",
+      "status": "PASS",
+      "detail": "本工具以 subprocess.run(shell=False, timeout=...) 调用",
+      "mandatory": true
+    },
+    {
+      "id": "LAYER-02",
+      "check": "L2 真实研究算法验收",
+      "status": "NOT_RUN",
+      "detail": "需要成员提供真实输入、真实输出与证据来源；脚本不做替代",
+      "mandatory": false
+    },
+    {
+      "id": "LAYER-03",
+      "check": "L3 ROS 2 在线联调（Gateway 审计 + NavigationSim Goal）",
+      "status": "BLOCKED",
+      "detail": "需要 Jazzy 容器；只有真实 Gateway 审计与 Goal 才能证明 Action 层结果",
+      "mandatory": false
+    }
+  ],
+  "implementation_type": "EXTERNAL",
+  "algorithm_evidence": "NOT_READY",
+  "runtime_integration": "BLOCKED",
+  "meets_pr_gate": true,
+  "started_at": "2026-10-18T08:42:18Z",
+  "run_id": "f0acc-comm_risk",
+  "module_command_as_configured": [
+    "python3",
+    "modules/member1_comm/module.py",
+    "--model",
+    "modules/member1_comm/model/comm_risk_model.json",
+    "--model-sha256",
+    "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df",
+    "--features",
+    "modules/member1_comm/features.json",
+    "--observation-provenance",
+    "UNKNOWN"
+  ],
+  "state_matrix": [
+    {
+      "scenario": "normal",
+      "expected_state": "NORMAL",
+      "expected_class": "PROCEED",
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "UNKNOWN",
+      "actual_class": "LEGAL_BLOCK",
+      "ids_ok": true,
+      "event_id": "comm-77cd7b646c524ff695095745ff403727"
+    },
+    {
+      "scenario": "suspicious",
+      "expected_state": "SUSPICIOUS",
+      "expected_class": "LEGAL_BLOCK",
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "UNKNOWN",
+      "actual_class": "LEGAL_BLOCK",
+      "ids_ok": true,
+      "event_id": "comm-e61792e4042a48b599a62a21c38cb617"
+    },
+    {
+      "scenario": "unknown",
+      "expected_state": "UNKNOWN",
+      "expected_class": "LEGAL_BLOCK",
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "UNKNOWN",
+      "actual_class": "LEGAL_BLOCK",
+      "ids_ok": true,
+      "event_id": "comm-ed40d2c829e04cf188837a1714d50ef5"
+    },
+    {
+      "scenario": "error",
+      "expected_state": "ERROR",
+      "expected_class": "LEGAL_BLOCK",
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "UNKNOWN",
+      "actual_class": "LEGAL_BLOCK",
+      "ids_ok": true,
+      "event_id": "comm-2dbf9400b8614cdf8359b56c62b27031"
+    }
+  ],
+  "real_fixture": "config/acceptance/real_scenarios.member1.yaml",
+  "real_state_matrix": [
+    {
+      "scenario": "suspicious",
+      "description": "真实 held-out 攻击行 -> 模型打分过阈值 -> SUSPICIOUS",
+      "trigger": "shard 13 第 20 行真实特征，模型打分 0.9844 不低于阈值 0.75",
+      "expected_state": "SUSPICIOUS",
+      "expected_class": "LEGAL_BLOCK",
+      "expected_reason_code": null,
+      "expect_contains": [
+        "ANOMALY_DETECTED",
+        "\"anomaly_category\": \"UNKNOWN\""
+      ],
+      "expect_allowed_states": [],
+      "command_profile": "model_valid",
+      "policy_ref": null,
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "SUSPICIOUS",
+      "actual_class": "LEGAL_BLOCK",
+      "ids_ok": true,
+      "traceability_ok": true,
+      "actual_reason_code": "ANOMALY_DETECTED",
+      "policy_version": null,
+      "event_id": "comm-6c8d248de8da4df79cad318ff822cc4b",
+      "exceeded": null,
+      "stderr_head": "status=SUSPICIOUS; offline advisory only\n",
+      "stdout_bytes": 1655,
+      "policy_file_state": "UNKNOWN",
+      "passed": true,
+      "returncode_ok": true,
+      "expected_class_ok": true,
+      "expectation_failure": "",
+      "command": [
+        "/home/zhangwei/project/RosSystem-worktrees/work-f0/.research-venv/bin/python",
+        "modules/member1_comm/module.py",
+        "--model",
+        "modules/member1_comm/model/comm_risk_model.json",
+        "--model-sha256",
+        "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df",
+        "--features",
+        "modules/member1_comm/features.json",
+        "--observation-provenance",
+        "UNKNOWN",
+        "--module",
+        "comm_risk"
+      ]
+    },
+    {
+      "scenario": "unknown",
+      "description": "真实 held-out 行低于阈值，但模型未通过验证门槛 -> UNKNOWN",
+      "trigger": "shard 13 第 12882 行真实特征，打分 0.1821 低于阈值 0.75，且 validation_gate_passed=false",
+      "expected_state": "UNKNOWN",
+      "expected_class": "LEGAL_BLOCK",
+      "expected_reason_code": null,
+      "expect_contains": [
+        "MODEL_NOT_ACCEPTED"
+      ],
+      "expect_allowed_states": [],
+      "command_profile": "model_valid",
+      "policy_ref": null,
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "UNKNOWN",
+      "actual_class": "LEGAL_BLOCK",
+      "ids_ok": true,
+      "traceability_ok": true,
+      "actual_reason_code": "MODEL_NOT_ACCEPTED",
+      "policy_version": null,
+      "event_id": "comm-4425a88b2123449f86a5594311a80774",
+      "exceeded": null,
+      "stderr_head": "status=UNKNOWN; offline advisory only\n",
+      "stdout_bytes": 1639,
+      "policy_file_state": "UNKNOWN",
+      "passed": true,
+      "returncode_ok": true,
+      "expected_class_ok": true,
+      "expectation_failure": "",
+      "command": [
+        "/home/zhangwei/project/RosSystem-worktrees/work-f0/.research-venv/bin/python",
+        "modules/member1_comm/module.py",
+        "--model",
+        "modules/member1_comm/model/comm_risk_model.json",
+        "--model-sha256",
+        "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df",
+        "--features",
+        "modules/member1_comm/features.json",
+        "--observation-provenance",
+        "UNKNOWN",
+        "--module",
+        "comm_risk"
+      ]
+    },
+    {
+      "scenario": "normal-controlled",
+      "description": "同一行在受控测试配置下才能得到 NORMAL（显式 CONTROLLED_TEST_ONLY）",
+      "trigger": "同一真实行；命令档案 model_controlled_test 追加 --controlled-test（受信任配置）",
+      "expected_state": "NORMAL",
+      "expected_class": "PROCEED",
+      "expected_reason_code": null,
+      "expect_contains": [
+        "CONTROLLED_TEST_ONLY"
+      ],
+      "expect_allowed_states": [],
+      "command_profile": "model_controlled_test",
+      "policy_ref": null,
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "NORMAL",
+      "actual_class": "PROCEED",
+      "ids_ok": true,
+      "traceability_ok": true,
+      "actual_reason_code": "CONTROLLED_TEST_BELOW_THRESHOLD",
+      "policy_version": null,
+      "event_id": "comm-29befb332ce846c5b8410581386da0dc",
+      "exceeded": null,
+      "stderr_head": "status=NORMAL; offline advisory only\n",
+      "stdout_bytes": 1813,
+      "policy_file_state": "UNKNOWN",
+      "passed": true,
+      "returncode_ok": true,
+      "expected_class_ok": true,
+      "expectation_failure": "",
+      "command": [
+        "/home/zhangwei/project/RosSystem-worktrees/work-f0/.research-venv/bin/python",
+        "modules/member1_comm/module.py",
+        "--model",
+        "modules/member1_comm/model/comm_risk_model.json",
+        "--model-sha256",
+        "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df",
+        "--features",
+        "modules/member1_comm/features.json",
+        "--observation-provenance",
+        "UNKNOWN",
+        "--controlled-test"
+      ]
+    },
+    {
+      "scenario": "features-absent",
+      "description": "缺少特征向量 -> UNKNOWN（不补零、不猜列名）",
+      "trigger": "observations[0].detail 中没有 rospace_comm.features",
+      "expected_state": "UNKNOWN",
+      "expected_class": "LEGAL_BLOCK",
+      "expected_reason_code": null,
+      "expect_contains": [
+        "FEATURES_INVALID",
+        "FEATURE_NAMES_ABSENT_OR_ORDER_MISMATCH"
+      ],
+      "expect_allowed_states": [],
+      "command_profile": "model_valid",
+      "policy_ref": null,
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "UNKNOWN",
+      "actual_class": "LEGAL_BLOCK",
+      "ids_ok": true,
+      "traceability_ok": true,
+      "actual_reason_code": "FEATURES_INVALID",
+      "policy_version": null,
+      "event_id": "comm-6557fbb945c14352818c2f05e7d9756c",
+      "exceeded": null,
+      "stderr_head": "status=UNKNOWN; offline advisory only\n",
+      "stdout_bytes": 1468,
+      "policy_file_state": "UNKNOWN",
+      "passed": true,
+      "returncode_ok": true,
+      "expected_class_ok": true,
+      "expectation_failure": "",
+      "command": [
+        "/home/zhangwei/project/RosSystem-worktrees/work-f0/.research-venv/bin/python",
+        "modules/member1_comm/module.py",
+        "--model",
+        "modules/member1_comm/model/comm_risk_model.json",
+        "--model-sha256",
+        "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df",
+        "--features",
+        "modules/member1_comm/features.json",
+        "--observation-provenance",
+        "UNKNOWN",
+        "--module",
+        "comm_risk"
+      ]
+    },
+    {
+      "scenario": "error",
+      "description": "模型 SHA-256 不符 -> ERROR（失败关闭，不是放行）",
+      "trigger": "命令档案 model_bad_hash 声明了错误的 --model-sha256",
+      "expected_state": "ERROR",
+      "expected_class": "LEGAL_BLOCK",
+      "expected_reason_code": null,
+      "expect_contains": [
+        "MODEL_INVALID",
+        "SHA256"
+      ],
+      "expect_allowed_states": [],
+      "command_profile": "model_bad_hash",
+      "policy_ref": null,
+      "returncode": 0,
+      "structured": true,
+      "schema_ok": true,
+      "actual_state": "ERROR",
+      "actual_class": "LEGAL_BLOCK",
+      "ids_ok": true,
+      "traceability_ok": true,
+      "actual_reason_code": "MODEL_INVALID",
+      "policy_version": null,
+      "event_id": "comm-61294e32a6104f5a9fbeddc892a17daa",
+      "exceeded": null,
+      "stderr_head": "status=ERROR; offline advisory only\n",
+      "stdout_bytes": 1429,
+      "policy_file_state": "UNKNOWN",
+      "passed": true,
+      "returncode_ok": true,
+      "expected_class_ok": true,
+      "expectation_failure": "",
+      "command": [
+        "/home/zhangwei/project/RosSystem-worktrees/work-f0/.research-venv/bin/python",
+        "modules/member1_comm/module.py",
+        "--model",
+        "modules/member1_comm/model/comm_risk_model.json",
+        "--model-sha256",
+        "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df",
+        "--features",
+        "modules/member1_comm/features.json",
+        "--observation-provenance",
+        "UNKNOWN",
+        "--model-sha256",
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      ]
+    }
+  ],
+  "counts": {
+    "PASS": 60,
+    "FAIL": 3,
+    "NOT_RUN": 1,
+    "BLOCKED": 1
+  },
+  "log_dir": "artifacts/integration/f0-trust-closeout/f0close-20261018T082739Z/acceptance/comm_risk/f0acc-comm_risk"
+}

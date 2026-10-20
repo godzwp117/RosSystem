@@ -1,0 +1,31 @@
+{
+  "body": {
+    "contract": "current-identity-attestation/2",
+    "issuer": "issuer:dds-witness",
+    "request_id": "req-p-0001",
+    "resource": "/rg/guarded_navigate",
+    "operation": "NAVIGATE",
+    "request_digest": "e40b84f66757da42f44c662f4f79150dc4dd9d0e7be4eed450a12eecea944e69",
+    "received_at": "2026-10-18T16:08:18.518467Z",
+    "nonce": "0a39018b4ba4617315875d7dfa2afd4a",
+    "evidence_kind": "MIDDLEWARE_IDENTITY_BINDING",
+    "remote_identity": {
+      "security_identity": "/CN=\\/m2_peer",
+      "source": "FASTDDS_IDENTITY_TOKEN",
+      "token_class": "DDS:Auth:PKI-DH:1.0",
+      "cert_algo": "EC-prime256v1",
+      "ca_subject": "/CN=sros2CA",
+      "guid_prefix": "eb.e3.c7.17.12.87.98.cf.05.16.44.78",
+      "participant_name": "m2_identity_witness_m2_peer",
+      "security_attributes": 2147483655
+    },
+    "producer": {
+      "component": "src/m2_witness/m2_identity_witness.cpp",
+      "observation": "on_participant_discovery + ParticipantProxyData::identity_token_"
+    }
+  },
+  "signature": {
+    "alg": "hmac-sha256",
+    "value": "fa97c5e540144169c30bfb641634c9932c67e1fc41089cfbac6e18cfa419a406"
+  }
+}

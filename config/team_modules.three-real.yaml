@@ -1,0 +1,66 @@
+# 三个真实成员模块联合在线运行配置（B1 / 工作 B1 专用，受信任本地文件）
+#
+# 与工作 A 的 config/team_modules.all-real.yaml 的关系
+# ---------------------------------------------------
+# 语义相同（三个模块都是 external），差别只有两点，都是 B1 集成所必需的：
+#
+#   1. 解释器固定。交付配置用裸 `python3`，而系统 python3 的 jsonschema 常为
+#      3.x，无法构造 Draft 2020-12 校验器，三个模块会在输入校验阶段抛
+#      ImportError 并以退出码 2 失败关闭。适配层会如实记录
+#      ADAPTER_MODULE_EXIT_NONZERO —— 安全上正确，但现象会被误读成"模块坏了"。
+#      本配置统一改用 scripts/module_python.sh：它先自检候选解释器确实能构造
+#      Draft 2020-12 校验器，再 exec；全部不合格时失败关闭而非静默降级。
+#
+#   2. 运行产物隔离。审计日志写到 logs/three-real/ 下，与 RC2 的
+#      logs/all-real/ 分开，便于逐次留证。
+#
+# 本配置下会得到什么（必须如实预期）
+# --------------------------------
+# **ADAPTER_BLOCK**，且原因是 ADAPTER_MODULE_STATUS_NOT_PROCEED，不是配置错误：
+#   * comm_risk      : 交付模型 validation_gate_passed=false，且受信任配置未声明
+#                      可信观察来源（--observation-provenance UNKNOWN），
+#                      因此 NORMAL 被扣留 -> UNKNOWN；
+#   * identity_trust : 历史受控实验只解释当时那次运行的授权；「当前请求身份绑定」
+#                      在 ROS 2 Jazzy 上没有可用中间件 API，恒为 UNKNOWN
+#                      -> F0 以 ADAPTER_CURRENT_IDENTITY_UNBOUND 阻断；
+#   * task_risk      : 真实规则引擎，正常给出 ALLOW_RECOMMENDED。
+# 三者只要有一个不满足推进条件，F0 就不提交 Planner。这正是
+#「无可信当前证据必须失败关闭」。真实结论见本工作树报告，不得用受控测试
+# 配置把它改成 READY 再对外宣称在线准入通过。
+adapter:
+  log_path: logs/three-real/adapter.jsonl
+  planner_command: [ros2, run, rg_demo_nodes, planner_node]
+
+modules:
+  comm_risk:
+    mode: external
+    interface: comm_risk_evidence
+    command: [scripts/module_python.sh, modules/member1_comm/module.py,
+              --model, modules/member1_comm/model/comm_risk_model.json,
+              --model-sha256, d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df,
+              --features, modules/member1_comm/features.json,
+              --observation-provenance, UNKNOWN]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+  identity_trust:
+    mode: external
+    interface: identity_trust_assessment
+    command: [scripts/module_python.sh, identity_trust/assessor.py,
+              --experiment-run, "20261009T093144Z",
+              --evidence-root, artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence,
+              --policy, security/policies/minimal_permissions.xml,
+              --keystore, security/keystore,
+              --case, S2,
+              --identity-ledger, logs/three-real/identity_ledger.jsonl]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+  task_risk:
+    mode: external
+    interface: task_risk_decision
+    command: [scripts/module_python.sh, modules/member3_taskrisk/module.py,
+              --policy, config/task_policy.yaml]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false

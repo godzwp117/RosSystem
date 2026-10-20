@@ -1,0 +1,3 @@
+[adapter] 模块 comm_risk stderr: [mock] 场景=normal 状态=NORMAL
+[adapter] 模块 identity_trust stderr: [mock] 场景=authorized 状态=AUTHORIZED
+[adapter] 模块 task_risk stderr: [member3] status=BLOCK_RECOMMENDED

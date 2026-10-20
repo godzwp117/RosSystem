@@ -1,0 +1,96 @@
+{
+  "contract": "m1-graph-session/1",
+  "session_id": "dbg-1",
+  "scenario": "t",
+  "label": "normal",
+  "label_basis": "debug",
+  "label_source": "EXPERIMENT_CONDITION",
+  "model_used_for_labeling": false,
+  "topic": "/m1p6/dbg",
+  "message_type": "std_msgs/msg/String",
+  "domain_id": 69,
+  "window_sec": 30.0,
+  "window_policy": "time-driven, fixed, contiguous, non-overlapping",
+  "graph_poll_interval_sec": 0.2,
+  "graph_feature_semantics": "graph_snapshot_transition_count = 相邻轮询快照的差异次数；不是 DDS Discovery 报文数，两次轮询之间的短时变化会被漏掉",
+  "started_at": "2026-10-20T12:48:30.113Z",
+  "ended_at": "2026-10-20T12:49:08.034Z",
+  "min_samples": 10,
+  "windows": [
+    {
+      "contract": "m1-observation-window/2",
+      "window_start": 0.0,
+      "window_end": 30.0,
+      "window_complete": true,
+      "message_observation": {
+        "status": "INSUFFICIENT",
+        "samples": 0,
+        "features": {},
+        "reason": "样本 0 < 最小样本 10；不给出间隔统计，避免用零样本编造数值",
+        "publisher_count_in_window": 0,
+        "no_publisher_observed": true
+      },
+      "graph_observation": {
+        "status": "VALID",
+        "successful_polls": 131,
+        "failed_polls": 0,
+        "polls_expected": 150,
+        "observed_span_sec": 29.744,
+        "graph_time_coverage_ratio": 0.9915,
+        "features": {
+          "graph_snapshot_transition_count": 0
+        }
+      },
+      "overall_observation_status": "PARTIAL"
+    },
+    {
+      "contract": "m1-observation-window/2",
+      "window_start": 30.0,
+      "window_end": 35.042,
+      "window_complete": false,
+      "message_observation": {
+        "status": "INSUFFICIENT",
+        "samples": 0,
+        "features": {},
+        "reason": "样本 0 < 最小样本 10；不给出间隔统计，避免用零样本编造数值",
+        "publisher_count_in_window": 0,
+        "no_publisher_observed": true
+      },
+      "graph_observation": {
+        "status": "DEGRADED",
+        "successful_polls": 23,
+        "failed_polls": 0,
+        "polls_expected": 150,
+        "observed_span_sec": 5.0,
+        "graph_time_coverage_ratio": 0.1667,
+        "features": {
+          "graph_snapshot_transition_count": 0
+        },
+        "reason": "图观测仅覆盖 17% 的窗口（成功轮询 23 次，期望约 150 次）；不能据此断言该窗口没有拓扑变化"
+      },
+      "overall_observation_status": "INSUFFICIENT"
+    }
+  ],
+  "summary": {
+    "session_sec": 35.042,
+    "windows_total": 2,
+    "windows_complete": 1,
+    "windows_incomplete": 1,
+    "windows_message_ok": 0,
+    "windows_graph_valid": 1,
+    "windows_overall_full": 0,
+    "late_ticks": 0,
+    "graph_coverage_degraded_windows": 0,
+    "uncovered_sec": 0.0,
+    "dropped_timestamps": 0,
+    "late_messages_dropped": 0
+  },
+  "tick_lateness_samples": [],
+  "raw_events": {
+    "messages": [],
+    "graph_transitions": [],
+    "polls": [],
+    "messages_truncated": 0
+  },
+  "collector": "scripts/m1_graph_collector.py"
+}

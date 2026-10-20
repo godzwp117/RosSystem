@@ -1,0 +1,99 @@
+{
+  "contract": "m1-phase5-collection/1",
+  "generated_at": "2026-10-20T08:56:38Z",
+  "group": "g2",
+  "container": "rg_m1g",
+  "domain": "69",
+  "window_sec": 30.0,
+  "duration_sec": 40.0,
+  "sessions": [
+    {
+      "session_id": "g2-01-stable",
+      "scenario": "graph-stable-normal",
+      "label": "normal",
+      "label_basis": "stable legitimate publisher and subscriber; no topology change expected",
+      "returncode": 0,
+      "stderr_tail": "",
+      "windows_total": 2,
+      "windows_message_ok": 1,
+      "windows_graph_valid": 1
+    },
+    {
+      "session_id": "g2-02-join",
+      "scenario": "node-join-normal",
+      "label": "normal",
+      "label_basis": "a legitimate node joins the graph and stays",
+      "returncode": 0,
+      "stderr_tail": "",
+      "windows_total": 2,
+      "windows_message_ok": 0,
+      "windows_graph_valid": 1
+    },
+    {
+      "session_id": "g2-03-churn",
+      "scenario": "node-churn-anomaly",
+      "label": "anomaly",
+      "label_basis": "abnormal discovery behaviour: nodes created and destroyed repeatedly",
+      "returncode": 0,
+      "stderr_tail": "",
+      "windows_total": 2,
+      "windows_message_ok": 0,
+      "windows_graph_valid": 1
+    },
+    {
+      "session_id": "g2-04-endpoint-recon",
+      "scenario": "endpoint-recon-anomaly",
+      "label": "anomaly",
+      "label_basis": "reconnaissance that creates visible endpoints on the graph",
+      "returncode": 0,
+      "stderr_tail": "",
+      "windows_total": 2,
+      "windows_message_ok": 0,
+      "windows_graph_valid": 1
+    },
+    {
+      "session_id": "g2-05-pure-query",
+      "scenario": "pure-query-anomaly",
+      "label": "anomaly",
+      "label_basis": "graph queries only; topology expected unchanged (observability test)",
+      "returncode": 0,
+      "stderr_tail": "",
+      "windows_total": 2,
+      "windows_message_ok": 0,
+      "windows_graph_valid": 1
+    },
+    {
+      "session_id": "g2-06-high-rate",
+      "scenario": "high-rate-normal",
+      "label": "normal",
+      "label_basis": "legitimate 500 Hz publisher; high rate is not a violation",
+      "returncode": 0,
+      "stderr_tail": "",
+      "windows_total": 2,
+      "windows_message_ok": 1,
+      "windows_graph_valid": 1
+    },
+    {
+      "session_id": "g2-07-graph-only",
+      "scenario": "graph-only-no-messages",
+      "label": "anomaly",
+      "label_basis": "churn with zero business messages; graph channel must still work",
+      "returncode": 0,
+      "stderr_tail": "",
+      "windows_total": 2,
+      "windows_message_ok": 0,
+      "windows_graph_valid": 1
+    },
+    {
+      "session_id": "g2-08-blip",
+      "scenario": "short-lived-endpoints",
+      "label": "normal",
+      "label_basis": "endpoints shorter than the poll interval (miss observability test)",
+      "returncode": 0,
+      "stderr_tail": "",
+      "windows_total": 2,
+      "windows_message_ok": 0,
+      "windows_graph_valid": 1
+    }
+  ]
+}
