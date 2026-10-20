@@ -1,0 +1,39 @@
+{
+  "run_id": "int-20261019T143527Z",
+  "branch": "integration/three-real-limited-verification",
+  "common_base": "be47ccd6c1b19460b65abc0ea8004706383d01d4",
+  "m1_merged": "d5f03af47df6aac90157d5e86817732fb2c8e691",
+  "m2_merged": "a1d699674204543afc8b15c88bd6df8c7da794de",
+  "git_head_at_run": "b0bf9cf002d36682966af66b81845101f30dc5bc",
+  "environment": {
+    "container": "rg_int",
+    "domain": 63,
+    "rmw": "rmw_fastrtps_cpp",
+    "fastdds": "2.14.6"
+  },
+  "verdict": "LIMITED_INTEGRATION_CONDITIONAL",
+  "items": {
+    "1_contracts_and_unit": "PASS",
+    "2_f0_p0_security": "PASS (38)",
+    "3_three_real_external_schema": "PASS (75 passed / 5 skipped)",
+    "4_m1_unknown_fail_closed": "PASS",
+    "5_m2_no_trusted_identity_block": "PASS",
+    "6_m3_rules": "PASS (allow/block)",
+    "7_f0_strict_adapter_block": "PASS",
+    "8_blocked_not_forwarded": "PASS (0 leaked / 4 blocked)",
+    "9_ros2_downstream": "NOT_RUN",
+    "10_m3_online_six_scenarios": "NOT_RUN",
+    "11_dds_enforce": "PASS (positive+negative)",
+    "12_m2_does_not_change_gateway": "PASS"
+  },
+  "defect_found_and_fixed": {
+    "description": "M2 Writer GUID serialization read 8 bytes past EntityId_t (size=4)",
+    "detected_by": "integration review (ASan does NOT catch intra-object overread)",
+    "asan_note": "ASan only reported a 124-byte leak, no overread",
+    "fix_commit": "b0bf9cf",
+    "regression_test": "tests/unit/test_m2_witness_guid_safety.py",
+    "evidence_before": "entity segment 24 hex chars (12 bytes)",
+    "evidence_after": "entity segment 8 hex chars (4 bytes)"
+  },
+  "m2_trust_root_status": "NOT a production identity trust root (symmetric HMAC, same UID, no approval, action capture unwired)"
+}

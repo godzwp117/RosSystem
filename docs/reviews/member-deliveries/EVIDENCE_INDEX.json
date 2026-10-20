@@ -1,0 +1,1122 @@
+{
+  "schema": "rossystem.member-delivery-review.evidence-index/1",
+  "generated_at_utc": "2026-10-15T13:17:15Z",
+  "review_snapshot": {
+    "branch": "chore/member-deliveries",
+    "commit": "3ce820258c69b89e2ad9291e16c44dc7d2b99150",
+    "commit_date": "2026-10-15T00:42:09+08:00",
+    "commit_subject": "feat(deliveries): archive member 1/2/3 research deliveries"
+  },
+  "public_baseline": {
+    "ref": "origin/baseline",
+    "sha": "a4c597161d254192b662ee7b8f4d17f76a89cc16",
+    "verified_this_round": true,
+    "verification": "git ls-remote --heads origin  (2026-10-14)",
+    "note": "SHA 与本轮复核前一致，未发生新提交"
+  },
+  "review_branch": "docs/member-delivery-review",
+  "other_refs": {
+    "origin/main": "838f66f41821edf0421612a205d162ae8e9eb955",
+    "feature/rospace-dataset-adapter": "470cd4b3be8d3fa4aa2ad9690b1976aacaab93ce",
+    "feature/m3-dynamic-policy": "04cc5c46761502b3e7db6c1e94d4f7e2a997db8a",
+    "merged_into_baseline": false,
+    "note": "feature/m3-dynamic-policy 未合入 baseline；与 baseline 差异 146 个文件。不得自动认定其为成员三最终实现。"
+  },
+  "members_as_expected_branches": {
+    "feature/member1-comm": "DOES_NOT_EXIST_ON_REMOTE",
+    "feature/member2-identity": "DOES_NOT_EXIST_ON_REMOTE",
+    "feature/member3-taskrisk": "DOES_NOT_EXIST_ON_REMOTE",
+    "note": "成员一 REVISION.txt 自述 branch=feature/member1-comm-offline-baseline、remote_push=DELEGATED_TO_MEMBER4，该分支在远端同样不存在；成员交付经 chore/member-deliveries 归档。"
+  },
+  "evidence_levels": {
+    "A": "实际源码与原始运行日志相互支持，且本轮已独立复现",
+    "B": "存在真实源码和可核对的运行记录，但本轮未独立复现",
+    "C": "有实现代码及单元测试或合成实验支持，尚无真实系统运行证据",
+    "D": "仅有成员描述或报告声明",
+    "N": "无证据、尚未实现或无法判断"
+  },
+  "layer_status": {
+    "M1_comm_risk": {
+      "L1_PROTOCOL": "PASS",
+      "L2_REAL_ALGORITHM": "FAIL",
+      "L3_ROS_INTEGRATION": "NOT_READY"
+    },
+    "M2_identity_trust": {
+      "L1_PROTOCOL": "PARTIAL",
+      "L2_REAL_ALGORITHM": "PARTIAL",
+      "L3_ROS_INTEGRATION": "NOT_READY"
+    },
+    "M3_task_risk": {
+      "L1_PROTOCOL": "PASS",
+      "L2_REAL_ALGORITHM": "PARTIAL",
+      "L3_ROS_INTEGRATION": "BLOCKED"
+    }
+  },
+  "conclusions": [
+    {
+      "id": "C-01",
+      "module": "member1-comm",
+      "statement": "通信风险模块实现为 member1-numeric-v1：纯 JSON 数值模型 + 纯 Python 推理，训练侧可选 LogisticRegression / ExtraTreesClassifier，两数据集均选中 extra_trees、阈值 0.75。",
+      "level": "A",
+      "paths": [
+        "deliveries/member1-comm/modules/my_comm/module.py",
+        "deliveries/member1-comm/modules/my_comm/train.py"
+      ]
+    },
+    {
+      "id": "C-02",
+      "module": "member1-comm",
+      "statement": "reduced 数据集留出测试集指标：F1 0.1312 / Recall 0.0702 / BalancedAcc 0.5351 / FPR 0.0 / PR-AUC 0.7442；恒预测攻击基线 F1 0.8132，模型低于基线 0.682。",
+      "level": "A",
+      "paths": [
+        "deliveries/member1-comm/artifacts/member1/offline_experiments/reduced.report.json",
+        "deliveries/member1-comm/artifacts/member1/offline_experiments/summary.json"
+      ],
+      "reproduced_this_round": true
+    },
+    {
+      "id": "C-03",
+      "module": "member1-comm",
+      "statement": "noperiodicity 数据集留出测试集指标：F1 0.6346 / Recall 0.4648 / BalancedAcc 0.7324 / FPR 0.0；恒预测攻击基线 F1 0.8719，模型低于基线 0.237。本轮独立重跑得到逐位一致的混淆矩阵与 F1。",
+      "level": "A",
+      "paths": [
+        "deliveries/member1-comm/artifacts/member1/offline_experiments/noperiodicity.report.json"
+      ],
+      "reproduced_this_round": true
+    },
+    {
+      "id": "C-04",
+      "module": "member1-comm",
+      "statement": "两个数据集的留出测试集只包含 1 类攻击（metasploit SYN flood）与 observe；其余 5 类攻击 count=0 且状态为 NOT_EVALUATED。测试分片取按序号末两片。",
+      "level": "A",
+      "paths": [
+        "deliveries/member1-comm/modules/my_comm/train.py",
+        "deliveries/member1-comm/artifacts/member1/offline_experiments/reduced.report.json"
+      ]
+    },
+    {
+      "id": "C-05",
+      "module": "member1-comm",
+      "statement": "模型产物未交付：交付包与仓库中均不存在 training_runs/member1/model.json；无该模型则模块以 rc=3 失败关闭。",
+      "level": "A",
+      "paths": [
+        "deliveries/member1-comm/modules/my_comm/module.py"
+      ],
+      "artifact_present": false
+    },
+    {
+      "id": "C-06",
+      "module": "member1-comm",
+      "statement": "ROS 受控协议联调通过，但使用的是 CONTROLLED_NUMERIC_FIXTURE_NOT_TRAINED_MODEL 与 source_kind=MOCK，不构成在线检测能力证据。",
+      "level": "B",
+      "paths": [
+        "deliveries/member1-comm/artifacts/member1/ros_controlled_protocol/report.json"
+      ]
+    },
+    {
+      "id": "C-07",
+      "module": "member1-comm",
+      "statement": "成员一单元测试 36 项在仓库布局下全部通过（本轮复测）。",
+      "level": "A",
+      "paths": [
+        "deliveries/member1-comm/modules/my_comm/test_module.py"
+      ]
+    },
+    {
+      "id": "C-08",
+      "module": "member2-identity",
+      "statement": "identity_trust 是离线受控实验证据解释器，不认证当前请求；输出自述 historical_only=true 且不填充 authenticated_identity。",
+      "level": "A",
+      "paths": [
+        "deliveries/member2-identity/identity_trust/assessor.py"
+      ]
+    },
+    {
+      "id": "C-09",
+      "module": "member2-identity",
+      "statement": "S2 场景在本轮实测中返回 AUTHORIZED（证据根为被追踪的 artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence，run 20261009T093144Z）。",
+      "level": "A",
+      "paths": [
+        "deliveries/member2-identity/identity_trust/assessor.py"
+      ]
+    },
+    {
+      "id": "C-10",
+      "module": "member2-identity",
+      "statement": "缺陷：DENIAL_RE 不匹配带 ANSI 颜色的真实 Fast DDS 日志，S3/S4 在真实证据上返回 UNKNOWN 而非 DENIED。缺陷已定位并复现。",
+      "level": "A",
+      "paths": [
+        "deliveries/member2-identity/identity_trust/assessor.py"
+      ],
+      "defect": "P1-1",
+      "reproduced_this_round": true
+    },
+    {
+      "id": "C-11",
+      "module": "member2-identity",
+      "statement": "单元测试 22 项通过，但其拒绝日志 fixture 为无颜色纯文本，与真实产物不一致。",
+      "level": "A",
+      "paths": [
+        "deliveries/member2-identity/tests/unit/test_identity_trust_assessor.py"
+      ]
+    },
+    {
+      "id": "C-12",
+      "module": "member2-identity",
+      "statement": "既有 SROS 2 Enforce 基础实验（S1/S2/S3/S3C/S4/S5/S6）7/7 PASS，secure_domain=43；属历史运行记录，本轮未复跑。",
+      "level": "B",
+      "paths": [
+        "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence/20261009T093144Z/summary.json",
+        "tests/evidence/20261012T041401Z/summary.json"
+      ]
+    },
+    {
+      "id": "C-13",
+      "module": "member2-identity",
+      "statement": "tests/evidence/ 与 security/keystore/ 均被 .gitignore 忽略；模块默认证据根在新克隆环境中不存在。",
+      "level": "A",
+      "paths": [
+        "deliveries/member2-identity/identity_trust/assessor.py"
+      ]
+    },
+    {
+      "id": "C-14",
+      "module": "member3-taskrisk",
+      "statement": "task_risk 为确定性可解释规则引擎 TASK_CONSTRAINT_RULES_V1，无机器学习成分；自述 authority=ADVISORY_ONLY、dynamic_state_model=NOT_INTEGRATED、runtime_monitor=NOT_READY。",
+      "level": "A",
+      "paths": [
+        "deliveries/member3-taskrisk/modules/member3_taskrisk/risk_model.py"
+      ]
+    },
+    {
+      "id": "C-15",
+      "module": "member3-taskrisk",
+      "statement": "静态条款与 Gateway 权威判定同源：共用 rg_policy.task_policy.parse_task_policy 与 rg_policy.reason_codes，6 条静态条款一一对应。",
+      "level": "A",
+      "paths": [
+        "deliveries/member3-taskrisk/modules/member3_taskrisk/risk_model.py",
+        "src/rg_policy/rg_policy/policy_engine.py"
+      ]
+    },
+    {
+      "id": "C-16",
+      "module": "member3-taskrisk",
+      "statement": "受控离线实验 87/87 符合预期（81 组边界网格 + 6 个异常条件）；比较器为进程内 rg_policy.policy_engine.evaluate，非运行中的 Gateway；场景由本地策略合成，非采集流量。",
+      "level": "B",
+      "paths": [
+        "deliveries/member3-taskrisk/reports/offline_report.json"
+      ]
+    },
+    {
+      "id": "C-17",
+      "module": "member3-taskrisk",
+      "statement": "八个原因码覆盖：5 个 CONTROLLED_STATIC、2 个 UNIT_TEST_HISTORY_ONLY（DUPLICATE_REQUEST / RATE_LIMIT）、1 个 NOT_READY（EXECUTION_TIMEOUT）。",
+      "level": "B",
+      "paths": [
+        "deliveries/member3-taskrisk/reports/offline_report.json"
+      ]
+    },
+    {
+      "id": "C-18",
+      "module": "member3-taskrisk",
+      "statement": "通用验收 33 PASS / 3 FAIL / 1 NOT_RUN / 1 BLOCKED，本轮精确复现；3 项 FAIL 根因为验收脚本以 f0_mock 驱动四状态，真实模块正确地忽略该通道。以基线 Mock 作对照组可得 34 PASS 且门槛为 True。",
+      "level": "A",
+      "paths": [
+        "deliveries/member3-taskrisk/reports/generic_acceptance_report.json",
+        "scripts/check_member_module.py"
+      ],
+      "reproduced_this_round": true
+    },
+    {
+      "id": "C-19",
+      "module": "member3-taskrisk",
+      "statement": "单元测试 95 项在仓库布局下全部通过（本轮复测）。",
+      "level": "A",
+      "paths": [
+        "deliveries/member3-taskrisk/tests/unit/test_member3_taskrisk.py"
+      ]
+    },
+    {
+      "id": "C-20",
+      "module": "member3-taskrisk",
+      "statement": "缺陷：jsonschema<4 时 validate_team_contracts 抛 RuntimeError，module.py 未捕获，进程以 rc=1 带 traceback 退出且无受控 ERROR 文档。失败方向安全（适配层阻断）。",
+      "level": "A",
+      "paths": [
+        "deliveries/member3-taskrisk/modules/member3_taskrisk/module.py",
+        "scripts/validate_team_contracts.py"
+      ],
+      "defect": "P2-1",
+      "reproduced_this_round": true
+    },
+    {
+      "id": "C-21",
+      "module": "baseline",
+      "statement": "基线契约校验 scripts/validate_team_contracts.py --all 本轮 PASS（4 Schema 自检、10 有效样例、13 非法样例按预期类别被拒）。",
+      "level": "A",
+      "paths": [
+        "scripts/validate_team_contracts.py"
+      ],
+      "reproduced_this_round": true
+    },
+    {
+      "id": "C-22",
+      "module": "integration",
+      "statement": "本轮跑通的最完整形态：identity_trust(external) + task_risk(external) + comm_risk(mock) 经 scripts/team_demo.py 得到 READY_FOR_GATEWAY_SUBMISSION / ADAPTER_OK，三者 schema_ok=true。",
+      "level": "A",
+      "paths": [
+        "scripts/team_demo.py"
+      ],
+      "reproduced_this_round": true
+    },
+    {
+      "id": "C-23",
+      "module": "integration",
+      "statement": "越界目标 (999,999) 时 task_risk 返回 BLOCK_RECOMMENDED，适配层 ADAPTER_BLOCK。未在 Gateway 层复现最终阻断（需 ROS 2 运行时）。",
+      "level": "A",
+      "paths": [
+        "scripts/team_demo.py"
+      ],
+      "reproduced_this_round": true
+    },
+    {
+      "id": "C-24",
+      "module": "integration",
+      "statement": "三模块全部为真实模块的联合运行不存在：成员一模型产物缺失。",
+      "level": "A",
+      "paths": [
+        "deliveries/member1-comm/modules/my_comm/module.py"
+      ]
+    }
+  ],
+  "acceptance": {
+    "SOURCE_DISCOVERY": "PARTIAL",
+    "MEMBER1_CODE_AUDIT": "PASS",
+    "MEMBER2_CODE_AUDIT": "PARTIAL",
+    "MEMBER3_CODE_AUDIT": "PASS",
+    "MEMBER1_ALGORITHM_EVIDENCE": "FAIL",
+    "MEMBER2_SECURITY_EVIDENCE": "PARTIAL",
+    "MEMBER3_TASK_EVIDENCE": "PARTIAL",
+    "MODULE_CONTRACTS": "PASS",
+    "L1_PROTOCOL": "PARTIAL",
+    "L2_ALGORITHMS": "FAIL",
+    "L3_F0_INTEGRATION": "NOT_RUN",
+    "DDS_SECURITY": "PARTIAL",
+    "GATEWAY_AUTHORITY": "PARTIAL",
+    "CROSS_MODULE_COMPATIBILITY": "PARTIAL",
+    "RESEARCH_REPRODUCIBILITY": "PARTIAL",
+    "CRITICAL_ISSUES": "NO_CONFIRMED_P0",
+    "CHATGPT_HANDOFF_REPORT": "PASS"
+  },
+  "resource_availability": {
+    "ROSPaCe_reduced.tar.gz": {
+      "present_locally": true,
+      "bytes": 920868855,
+      "official_size_match": true
+    },
+    "ROSPaCe_reduced_noperiodicity.tar.gz": {
+      "present_locally": true,
+      "bytes": 697155970,
+      "official_size_match": true
+    },
+    "training_runs/member1/model.json": {
+      "present": false,
+      "needed_by": "member1-comm",
+      "effect": "module exits rc=3 MODEL_ABSENT"
+    },
+    "security/keystore/": {
+      "git_tracked": false,
+      "gitignored": true,
+      "regenerate_with": "scripts/setup_sros2.sh"
+    },
+    "tests/evidence/": {
+      "git_tracked": false,
+      "gitignored": true,
+      "tracked_copy": "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence/"
+    }
+  },
+  "files": [
+    {
+      "path": "deliveries/README.md",
+      "module": "archive",
+      "bytes": 4514,
+      "type": "DOC",
+      "sha256": "f52385d3e68799d64b4ac75cfa5efe059c3577ecec90665b85d5f7f58bd6e21b",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member1-comm/.github/workflows/member1-comm.yml",
+      "module": "member1-comm",
+      "bytes": 747,
+      "type": "CONFIG",
+      "sha256": "c3ed1a71fe80ae28d33ae2771da22d7e43802cc4953d4c55077aa7d6bbe32dd1",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/REVISION.txt",
+      "module": "member1-comm",
+      "bytes": 475,
+      "type": "RAW_LOG",
+      "sha256": "284444ae027e96f59f47f6959c52181e552acce32919302a10bc1c58d6947550",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member1-comm/RosSystem-member1-changes.patch",
+      "module": "member1-comm",
+      "bytes": 448154,
+      "type": "PATCH",
+      "sha256": "f419ec8be00271b15cdb8dc5ad45a250432d4b43257f7217fa76b29027a0dae6",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/baseline_checker.stderr.txt",
+      "module": "member1-comm",
+      "bytes": 0,
+      "type": "RAW_LOG",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/baseline_checker.stdout.txt",
+      "module": "member1-comm",
+      "bytes": 3092,
+      "type": "RAW_LOG",
+      "sha256": "73c27852f3d8a7928ff9e06b43308be156de39dcfe7b16a722bf550e29751163",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/error.adapter.json",
+      "module": "member1-comm",
+      "bytes": 3048,
+      "type": "REPORT_JSON",
+      "sha256": "3cc63055f4ab0087d008543bc145ed29a9ff48e72d8f815252acdb0523d9d5a0",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/error.input.json",
+      "module": "member1-comm",
+      "bytes": 1285,
+      "type": "REPORT_JSON",
+      "sha256": "41509539171c17f4ff614843f19e355db90bec8a77ed0948e8904bd13423a2a5",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/error.output.json",
+      "module": "member1-comm",
+      "bytes": 1356,
+      "type": "REPORT_JSON",
+      "sha256": "8f5391664e4b7d7f7597e25919ec12a3a1b0335e2f315562c99dcaf3cd02f51f",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/jazzy_build.log",
+      "module": "member1-comm",
+      "bytes": 33363,
+      "type": "RAW_LOG",
+      "sha256": "1ade9286c18a45a09df36854c86ade56c25c640ab3e2f3eaf0c2c9c44241dd37",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/jazzy_pytest.txt",
+      "module": "member1-comm",
+      "bytes": 260,
+      "type": "RAW_LOG",
+      "sha256": "f541d896248d0721deba61ba575a59271916bea83e0a8d5ed6074d1975c33cda",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/linux_pytest.txt",
+      "module": "member1-comm",
+      "bytes": 272,
+      "type": "RAW_LOG",
+      "sha256": "8cf9623676e8ba7573ca9eea5ed4cd53fbb73a141a532a69ca6fc34387cbf516",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/main_archive_members.json",
+      "module": "member1-comm",
+      "bytes": 1883,
+      "type": "REPORT_JSON",
+      "sha256": "77f8eb24dc9b2164be2f7184c50f172c308df23c7fba5a4cf57c8c28ad26c26c",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/normal.adapter.json",
+      "module": "member1-comm",
+      "bytes": 2971,
+      "type": "REPORT_JSON",
+      "sha256": "0958247cf3d9350b0daece6dc8b513d6cc641b7fa20ea557c49b1be334d9786e",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/normal.input.json",
+      "module": "member1-comm",
+      "bytes": 1286,
+      "type": "REPORT_JSON",
+      "sha256": "f61e07a83395c1963a8744262b1ef4a2a246fbdd50636b8350e1b19668c1b3cf",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/normal.output.json",
+      "module": "member1-comm",
+      "bytes": 1582,
+      "type": "REPORT_JSON",
+      "sha256": "262d68b57451469b85673b2425d3300d6a47935875d77e86f102b02c943940d3",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/report.json",
+      "module": "member1-comm",
+      "bytes": 2371,
+      "type": "REPORT_JSON",
+      "sha256": "bb1710e05d62ff7fd90a0778fa50667cc9efa6cee11d1d87e8d7372d19c1ccc9",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/schema_validation.txt",
+      "module": "member1-comm",
+      "bytes": 1511,
+      "type": "RAW_LOG",
+      "sha256": "d37ceb7000cfa6924617551346dc5b6784cc050d2a2f5dfc363bdcbc93ddd188",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/suspicious.adapter.json",
+      "module": "member1-comm",
+      "bytes": 3058,
+      "type": "REPORT_JSON",
+      "sha256": "e85de179c349cb597344aa8942c4b012df3b5bf9007628a24b0932f8491fb658",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/suspicious.input.json",
+      "module": "member1-comm",
+      "bytes": 1285,
+      "type": "REPORT_JSON",
+      "sha256": "41509539171c17f4ff614843f19e355db90bec8a77ed0948e8904bd13423a2a5",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/suspicious.output.json",
+      "module": "member1-comm",
+      "bytes": 1579,
+      "type": "REPORT_JSON",
+      "sha256": "8fd102774af81da0322825b2d017899e0e2dcdf6d30a46d2a3a7531b9bbb6bca",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/unknown.adapter.json",
+      "module": "member1-comm",
+      "bytes": 3052,
+      "type": "REPORT_JSON",
+      "sha256": "3f941c2a222353ba2ec1865d9f6a42f1e777cc341b82e5661a77f71c57e88145",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/unknown.input.json",
+      "module": "member1-comm",
+      "bytes": 1091,
+      "type": "REPORT_JSON",
+      "sha256": "b6efe6c3e751cb9fd99a1e2c7bea4fe2a6f181a53d49f42885b6e90535d13062",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/local_evidence/unknown.output.json",
+      "module": "member1-comm",
+      "bytes": 1478,
+      "type": "REPORT_JSON",
+      "sha256": "526e66785785eba4fd4c1a65bf9369c45eee20c9355a78479c43c004057dc55a",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/offline_experiments/noperiodicity.report.json",
+      "module": "member1-comm",
+      "bytes": 71758,
+      "type": "REPORT_JSON",
+      "sha256": "b9d96d3ce16c048b0edeb167683ce65fe4c9d5ca88a99c7f573d685a850ebfcd",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/offline_experiments/noperiodicity.training.log",
+      "module": "member1-comm",
+      "bytes": 3375,
+      "type": "RAW_LOG",
+      "sha256": "1fe110a0658d8a3295c3e56f404e4f1d29f8082ebf953eeb0f36c5ef66a49bf6",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/offline_experiments/reduced.report.json",
+      "module": "member1-comm",
+      "bytes": 100664,
+      "type": "REPORT_JSON",
+      "sha256": "d583cccda4775cbf62062dccb617f63a1b691945fdbc5bf8259a841210ef6694",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/offline_experiments/reduced.training.log",
+      "module": "member1-comm",
+      "bytes": 3712,
+      "type": "RAW_LOG",
+      "sha256": "0e68d2cc2c319da8bf85eb9245f8b6b57a1d861f0a885ef1b9d75d3c202ceb2b",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/offline_experiments/summary.json",
+      "module": "member1-comm",
+      "bytes": 970,
+      "type": "REPORT_JSON",
+      "sha256": "6363675d42167b3463054f971819af664315148caf2fdc72e1e337b9e6e17074",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/ros_controlled_protocol/audit.jsonl",
+      "module": "member1-comm",
+      "bytes": 1166,
+      "type": "RAW_LOG",
+      "sha256": "aafd8ae10fd862f7a6018e3c7e48306ca5072d6b8a307aed9f63f314e5ac0d84",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/ros_controlled_protocol/error.adapter.json",
+      "module": "member1-comm",
+      "bytes": 2778,
+      "type": "REPORT_JSON",
+      "sha256": "ba68ac5e5fa06a1157fa9c8b9c47387000d2db4a050dc5bc234c777f16513422",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/ros_controlled_protocol/navsim_goals.jsonl",
+      "module": "member1-comm",
+      "bytes": 303,
+      "type": "RAW_LOG",
+      "sha256": "6e5fd91cf549200e2419731f1e35c15d17493f48acc98d0243850d90bfd77e04",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/ros_controlled_protocol/normal.adapter.json",
+      "module": "member1-comm",
+      "bytes": 4297,
+      "type": "REPORT_JSON",
+      "sha256": "4c1ea61f348a83183df36671b44c6d128c15349b1e038f84c8ff8d77099d8957",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/ros_controlled_protocol/report.json",
+      "module": "member1-comm",
+      "bytes": 1882,
+      "type": "REPORT_JSON",
+      "sha256": "c0cfd9c3d4518cb67f64b68726ee7c3bae9dc64155c14ada779737bcb1679ad4",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/ros_controlled_protocol/suspicious.adapter.json",
+      "module": "member1-comm",
+      "bytes": 2794,
+      "type": "REPORT_JSON",
+      "sha256": "757a27543263ea20a5e8e2ad97ef09c6c79863ea58624c9e32e86edc4688a5ee",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/ros_controlled_protocol/unknown.adapter.json",
+      "module": "member1-comm",
+      "bytes": 2785,
+      "type": "REPORT_JSON",
+      "sha256": "0e05e97a36d7dda172f978fa10935f9ff00373e041e410bc612556fc1d78eaa7",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/secure_system_smoke/audit.jsonl",
+      "module": "member1-comm",
+      "bytes": 1748,
+      "type": "RAW_LOG",
+      "sha256": "52f6bb75e948f3d8d39969c0636e235c3f843b4d2cc4c8caa7287d3d1d173f4b",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/secure_system_smoke/navsim_goals.jsonl",
+      "module": "member1-comm",
+      "bytes": 270,
+      "type": "RAW_LOG",
+      "sha256": "25d68cdf64d6fde56446aca5e07e748af93f2af68873ae0eb93e95bb691b04d4",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/artifacts/member1/secure_system_smoke/summary.json",
+      "module": "member1-comm",
+      "bytes": 6171,
+      "type": "REPORT_JSON",
+      "sha256": "aa068a881a3fc5452740680862882ba0a53ddcf369b5fa1b2ea9441c0eda303a",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/modules/my_comm/README.md",
+      "module": "member1-comm",
+      "bytes": 9387,
+      "type": "DOC",
+      "sha256": "87474fe47eeac1c54f34a6763d53567547f06cf2bc4012965d5c100f4887fa4c",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/modules/my_comm/__init__.py",
+      "module": "member1-comm",
+      "bytes": 59,
+      "type": "SOURCE",
+      "sha256": "badbec103188b36292001bb97df9d689a16eb7dad765a3137eae94d05341b4e3",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member1-comm/modules/my_comm/data.py",
+      "module": "member1-comm",
+      "bytes": 7319,
+      "type": "SOURCE",
+      "sha256": "86724dfaeacc0d14459268350126fb12cb98b46dcdd6a50b70e4e18c46347897",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member1-comm/modules/my_comm/download_data.py",
+      "module": "member1-comm",
+      "bytes": 5023,
+      "type": "SOURCE",
+      "sha256": "5ebd27a93858265241523f4d839e71178e6d5f11ce8f6a1aaa22da55c8163223",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member1-comm/modules/my_comm/example_config.yaml",
+      "module": "member1-comm",
+      "bytes": 491,
+      "type": "CONFIG",
+      "sha256": "b2efb9550e737bb5045c23fb3a510d24b36c4bd9be58c45b9858324845bd4406",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/modules/my_comm/features.json",
+      "module": "member1-comm",
+      "bytes": 1648,
+      "type": "REPORT_JSON",
+      "sha256": "55907932184efebb3df15f8aae05d5409060ee5e2026720d6986d66d2de0da23",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member1-comm/modules/my_comm/metrics.py",
+      "module": "member1-comm",
+      "bytes": 2455,
+      "type": "SOURCE",
+      "sha256": "91a528d3594710874b5f5d3c6d466ec26c96ec88f40ea342f52a58d26b10bbbd",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member1-comm/modules/my_comm/module.py",
+      "module": "member1-comm",
+      "bytes": 12694,
+      "type": "SOURCE",
+      "sha256": "f2513ccace14d6b01ff965e70c8ff40cc6d9c6ee54270ab5892a1564114d2a3a",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member1-comm/modules/my_comm/requirements.txt",
+      "module": "member1-comm",
+      "bytes": 153,
+      "type": "RAW_LOG",
+      "sha256": "4bccdbcf6a7fba8a730bc3d51e54b312e6265c688a9d8f6deeb402eb0b097772",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member1-comm/modules/my_comm/run_controlled_protocol.py",
+      "module": "member1-comm",
+      "bytes": 4899,
+      "type": "SOURCE",
+      "sha256": "ac21213e89e830622d26e9d856f41dd0e9208df6ca1848705f7ee00385707e68",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member1-comm/modules/my_comm/run_ros_controlled_protocol.py",
+      "module": "member1-comm",
+      "bytes": 7662,
+      "type": "SOURCE",
+      "sha256": "81a07fc1b1aa7881a18ee9d4e6f0a3746ad893a41b92c24b97ad1f1384e30c21",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member1-comm/modules/my_comm/test_integration.py",
+      "module": "member1-comm",
+      "bytes": 3726,
+      "type": "SOURCE",
+      "sha256": "3839270146bcd0cce711c3db1e4457fdd97f876d553c025d19785451358ee586",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member1-comm/modules/my_comm/test_module.py",
+      "module": "member1-comm",
+      "bytes": 13975,
+      "type": "SOURCE",
+      "sha256": "d9201cfcd3472d8edf7a134c5b2e71f0ce803c67cfc3bcd8784434dde3984c10",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member1-comm/modules/my_comm/train.py",
+      "module": "member1-comm",
+      "bytes": 10057,
+      "type": "SOURCE",
+      "sha256": "01b4e3d3af07b0588fcde85230ba080f842f2958c141af493c32524a3ed02af2",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member1-comm/modules/my_comm/write_config.py",
+      "module": "member1-comm",
+      "bytes": 1452,
+      "type": "SOURCE",
+      "sha256": "411bf08d427721f8366fc8840c5bbcfa65889e0ead511bcb4bbaf8ae045d9bff",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member2-identity/config/team_modules.member2.example.yaml",
+      "module": "member2-identity",
+      "bytes": 1084,
+      "type": "CONFIG",
+      "sha256": "530c334e115beaa986ff753f49e73b24dfc92fe7af5e7a78ce42c9f6a1b2bef6",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member2-identity/docs/MEMBER2_IMPLEMENTATION.md",
+      "module": "member2-identity",
+      "bytes": 7372,
+      "type": "DOC",
+      "sha256": "45a2f8642b34bfa060a794bc87c8743b48b23d428263f457488aa5e07486e40c",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member2-identity/docs/MEMBER2_UNIT_TEST_RESULT.txt",
+      "module": "member2-identity",
+      "bytes": 99,
+      "type": "RAW_LOG",
+      "sha256": "bd96e3a888ae46708e7a403f544cee39089089b284a2656d232099c1f613df13",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member2-identity/identity_trust/__init__.py",
+      "module": "member2-identity",
+      "bytes": 73,
+      "type": "SOURCE",
+      "sha256": "5750b73974cca1fe1815fd07ab6be3110ae6a80ea3de4decbf8b53de8b5ccd4e",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member2-identity/identity_trust/assessor.py",
+      "module": "member2-identity",
+      "bytes": 17269,
+      "type": "SOURCE",
+      "sha256": "b287822efc107b99723b22b290cc0e4d0456688951829ba6123bcd26d9609069",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member2-identity/scripts/member2_adapter_check.py",
+      "module": "member2-identity",
+      "bytes": 4264,
+      "type": "SOURCE",
+      "sha256": "3ecedc4f0986ec4073512f15f4757e9835004f21d15b73d61da8473f777530d2",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member2-identity/tests/unit/test_identity_trust_assessor.py",
+      "module": "member2-identity",
+      "bytes": 10274,
+      "type": "SOURCE",
+      "sha256": "1c835290824460014dbe1855575cf7031348687b24465c2718b348fcb7bc3c78",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member3-taskrisk/MANIFEST.json",
+      "module": "member3-taskrisk",
+      "bytes": 2326,
+      "type": "REPORT_JSON",
+      "sha256": "0c49802c7212fbaf239950df0e9ee9e01f1d704afd6f72979336ef76f64aa10f",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member3-taskrisk/START_HERE.md",
+      "module": "member3-taskrisk",
+      "bytes": 5581,
+      "type": "DOC",
+      "sha256": "c0fd262500b1a3fc45dfe2424cb128cfe94153fc274c395bd3fb7c913318eefb",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member3-taskrisk/config/team_modules.member3.yaml",
+      "module": "member3-taskrisk",
+      "bytes": 914,
+      "type": "CONFIG",
+      "sha256": "d8335bc922269c1c1c515c93b6be8f66388bf8bd3d1e114ddac1c7ee27704257",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member3-taskrisk/docs/member3/IMPLEMENTATION_REPORT.md",
+      "module": "member3-taskrisk",
+      "bytes": 6699,
+      "type": "DOC",
+      "sha256": "aed3d779823a27778eaad8420a61f99afc51b696f578ba4ab577db6da3beff13",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member3-taskrisk/docs/member3/PR_DRAFT.md",
+      "module": "member3-taskrisk",
+      "bytes": 2075,
+      "type": "DOC",
+      "sha256": "af64083b25ba601a8ddbab4436f9b1e4d02d80818196dee8c608af4ece5e1e5b",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member3-taskrisk/member3.patch",
+      "module": "member3-taskrisk",
+      "bytes": 75606,
+      "type": "PATCH",
+      "sha256": "ad0007ec6a1d8093ed2d87721847350562c9fbeb13a248a521af18931f5e2947",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member3-taskrisk/modules/member3_taskrisk/README.md",
+      "module": "member3-taskrisk",
+      "bytes": 8232,
+      "type": "DOC",
+      "sha256": "e20055e4aafa2f88d8021cc3e4f7472c5879cc4640bf88af1b7fe1b57a868577",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member3-taskrisk/modules/member3_taskrisk/example_config.yaml",
+      "module": "member3-taskrisk",
+      "bytes": 377,
+      "type": "CONFIG",
+      "sha256": "e02baa573e7a3df5d520eaa691d839e535425665415ff099b8142a64aa668c7b",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member3-taskrisk/modules/member3_taskrisk/experiments.py",
+      "module": "member3-taskrisk",
+      "bytes": 9996,
+      "type": "SOURCE",
+      "sha256": "aa1873cf2ba46c3aa410d560849621cd5cf89df884ae9b6036f2c30f484ac505",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member3-taskrisk/modules/member3_taskrisk/module.py",
+      "module": "member3-taskrisk",
+      "bytes": 5327,
+      "type": "SOURCE",
+      "sha256": "5150cf2b547a8e6377f494fbb8a023ffb5043bc74a32446954781de163cae2ee",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member3-taskrisk/modules/member3_taskrisk/online_check.py",
+      "module": "member3-taskrisk",
+      "bytes": 10060,
+      "type": "SOURCE",
+      "sha256": "294184150b2baa34342e3654bd72824bcf3767a000db42d7b0499b68b2559789",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member3-taskrisk/modules/member3_taskrisk/requirements.txt",
+      "module": "member3-taskrisk",
+      "bytes": 40,
+      "type": "RAW_LOG",
+      "sha256": "44ce25e9e470c654f3708a9cecf1c353e7e5dcb200bc4827159b7cb46562f560",
+      "read_this_round": false
+    },
+    {
+      "path": "deliveries/member3-taskrisk/modules/member3_taskrisk/risk_model.py",
+      "module": "member3-taskrisk",
+      "bytes": 15161,
+      "type": "SOURCE",
+      "sha256": "db724fcd754853688dbe2b44022d3e77e2d704562631c7ae6b5c2b07fe686d2c",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member3-taskrisk/modules/member3_taskrisk/test_module.py",
+      "module": "member3-taskrisk",
+      "bytes": 359,
+      "type": "SOURCE",
+      "sha256": "02fbb2b5281cdee2edfec9ae747d320c6d197bd39ce66a8e3ab05b60c52e3f91",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member3-taskrisk/reports/generic_acceptance_report.json",
+      "module": "member3-taskrisk",
+      "bytes": 10695,
+      "type": "REPORT_JSON",
+      "sha256": "0b1c931b4ac33b994276f39fd75ef0739e8430be1c83da3b324f6fcc7af1236b",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member3-taskrisk/reports/offline_report.json",
+      "module": "member3-taskrisk",
+      "bytes": 379780,
+      "type": "REPORT_JSON",
+      "sha256": "5121289f59e5fd59a317dee18ed488fc2be9c066b84baeaeb44d43b68632bdaa",
+      "read_this_round": true
+    },
+    {
+      "path": "deliveries/member3-taskrisk/tests/unit/test_member3_taskrisk.py",
+      "module": "member3-taskrisk",
+      "bytes": 12518,
+      "type": "SOURCE",
+      "sha256": "f1f23e3c6d60b3559e5ee4124d339438e4c1b177ba82547d2f1924442b9ee0a0",
+      "read_this_round": true
+    }
+  ],
+  "independent_reproduction": {
+    "performed_this_round": true,
+    "where": "/tmp/rg-review (detached Git worktree at 3ce820258c69b89e2ad9291e16c44dc7d2b99150) + /tmp/mr",
+    "interpreter": "<repo>/.research-venv/bin/python (3.10.12, jsonschema 4.26.0)",
+    "member1_offline_experiment": {
+      "command": "python3 modules/my_comm/train.py --archive data/ROSPaCe_reduced/ROSPaCe_reduced[_noperiodicity].tar.gz --samples <dir> --output <dir>",
+      "official_archive_md5_verified": true,
+      "results": {
+        "reduced": {
+          "delivered": {
+            "confusion": {
+              "tp": 962,
+              "tn": 6297,
+              "fp": 0,
+              "fn": 12741
+            },
+            "f1": 0.13119672690078418,
+            "recall": 0.07020360504998906,
+            "balanced_accuracy": 0.5351018025249945,
+            "pr_auc": 0.7442155754267716,
+            "algorithm": "extra_trees",
+            "threshold": 0.75,
+            "gate": false
+          },
+          "reproduced": {
+            "confusion": {
+              "tp": 962,
+              "tn": 6297,
+              "fp": 0,
+              "fn": 12741
+            },
+            "f1": 0.13119672690078418,
+            "recall": 0.07020360504998906,
+            "balanced_accuracy": 0.5351018025249945,
+            "pr_auc": 0.7424323285204703,
+            "algorithm": "extra_trees",
+            "threshold": 0.75,
+            "gate": false
+          },
+          "verdict": "BIT_IDENTICAL_EXCEPT_PR_AUC",
+          "pr_auc_delta": -0.0017832469063013
+        },
+        "noperiodicity": {
+          "delivered": {
+            "confusion": {
+              "tp": 7184,
+              "tn": 4543,
+              "fp": 0,
+              "fn": 8273
+            },
+            "f1": 0.6346009451879334,
+            "recall": 0.4647732418968752,
+            "balanced_accuracy": 0.7323866209484375,
+            "pr_auc": 0.9234355456012058,
+            "algorithm": "extra_trees",
+            "threshold": 0.75,
+            "gate": false
+          },
+          "reproduced": {
+            "confusion": {
+              "tp": 7184,
+              "tn": 4543,
+              "fp": 0,
+              "fn": 8273
+            },
+            "f1": 0.6346009451879334,
+            "recall": 0.4647732418968752,
+            "balanced_accuracy": 0.7323866209484375,
+            "pr_auc": 0.9229604601185579,
+            "algorithm": "extra_trees",
+            "threshold": 0.75,
+            "gate": false
+          },
+          "verdict": "BIT_IDENTICAL_EXCEPT_PR_AUC",
+          "pr_auc_delta": -0.0004750854826479
+        }
+      },
+      "note": "各分片 full= 行数与标签分布亦逐个分片与交付 *.training.log 完全一致；PR-AUC 差异归因于 sklearn 版本实现细节，样本集合相同。"
+    },
+    "member_tests": {
+      "member1": {
+        "command": "pytest modules/my_comm/test_module.py -q",
+        "result": "36 passed",
+        "matches_claim": null
+      },
+      "member2": {
+        "command": "pytest tests/unit/test_identity_trust_assessor.py -q",
+        "result": "22 passed",
+        "matches_claim": true
+      },
+      "member3": {
+        "command": "pytest tests/unit/test_member3_taskrisk.py -q",
+        "result": "95 passed",
+        "matches_claim": true
+      }
+    },
+    "generic_acceptance": {
+      "mock_control": {
+        "config": "config/team_modules.example.yaml",
+        "result": "34 PASS / 3 NOT_RUN / 1 BLOCKED",
+        "meets_pr_gate": true
+      },
+      "member3_external": {
+        "config": "config/team_modules.member3.yaml",
+        "result": "33 PASS / 3 FAIL / 1 NOT_RUN / 1 BLOCKED",
+        "meets_pr_gate": false,
+        "matches_delivered_report": true
+      },
+      "member3_fail_ids": [
+        "STATE-BLOCK",
+        "STATE-UNKNOWN",
+        "STATE-ERROR"
+      ],
+      "member2_external": {
+        "config": "config/team_modules.member2.example.yaml",
+        "result": "32 PASS / 4 FAIL / 1 NOT_RUN / 1 BLOCKED",
+        "meets_pr_gate": false,
+        "fail_ids": [
+          "ID-03",
+          "STATE-AUTHORIZED",
+          "STATE-DENIED",
+          "STATE-ERROR"
+        ]
+      }
+    },
+    "baseline_contract_validation": {
+      "command": "python3 scripts/validate_team_contracts.py --all",
+      "result": "CONTRACT VALIDATION: PASS",
+      "exit_code": 0
+    },
+    "joint_integration": {
+      "config": "comm_risk=mock, identity_trust=external(evidence-root=artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence, run 20261009T093144Z, case S2), task_risk=external(config/task_policy.yaml)",
+      "in_policy_target": {
+        "decision": "READY_FOR_GATEWAY_SUBMISSION",
+        "reason_code": "ADAPTER_OK",
+        "statuses": {
+          "comm_risk": "NORMAL",
+          "identity_trust": "AUTHORIZED",
+          "task_risk": "ALLOW_RECOMMENDED"
+        }
+      },
+      "out_of_region_target": {
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+        "statuses": {
+          "comm_risk": "NORMAL",
+          "identity_trust": "AUTHORIZED",
+          "task_risk": "BLOCK_RECOMMENDED"
+        }
+      },
+      "gateway_layer_observed": false,
+      "downstream_goal_observed": false
+    },
+    "not_executed": {
+      "L3_ros2_integration": "宿主无 ROS 2；存在已停止的 rg_jazzy 容器，按任务书不得干扰其他成员容器，本轮未启动",
+      "member3_87_scenario_rerun": "未重跑 experiments.py；仅逐字段核对交付的 offline_report.json",
+      "member2_enforce_rerun": "未复跑 sros2_check.py；引用历史 run 20261012T041401Z 与 20261009T093144Z 的原始日志"
+    }
+  }
+}

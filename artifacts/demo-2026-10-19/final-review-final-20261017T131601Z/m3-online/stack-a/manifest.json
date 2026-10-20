@@ -1,0 +1,23 @@
+{
+  "run_id": "rc2-final-20261017T131601Z",
+  "scenarios": [
+    {
+      "cid": "ON01",
+      "request_id": "on01-legal-allow-rc2-final-20261017T131601Z",
+      "run_id": "rc2-final-20261017T131601Z",
+      "expected": "ALLOW_AND_EXECUTE"
+    },
+    {
+      "cid": "ON02",
+      "request_id": "on02-oor-block-rc2-final-20261017T131601Z",
+      "run_id": "rc2-final-20261017T131601Z",
+      "expected": "M3_BLOCK_NO_SUBMIT"
+    },
+    {
+      "cid": "ON05",
+      "request_id": "on05-gateway-authority-rc2-final-20261017T131601Z",
+      "run_id": "rc2-final-20261017T131601Z",
+      "expected": "M3_ALLOW_GATEWAY_BLOCK"
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "contract": "m1-session-observation/1",
+  "session_id": "norm-002hz",
+  "scenario": "normal-low-rate",
+  "label": "normal",
+  "label_basis": "authorized 2 Hz publisher, within expected load, no policy violation",
+  "label_source": "EXPERIMENT_CONDITION",
+  "model_used_for_labeling": false,
+  "topic": "/m1r/norm_002hz",
+  "message_type": "std_msgs/msg/String",
+  "domain_id": 68,
+  "window_sec": 30.0,
+  "window_policy": "fixed, contiguous, non-overlapping",
+  "started_at": "2026-10-20T02:37:39.196Z",
+  "ended_at": "2026-10-20T02:38:50.149Z",
+  "min_samples": 10,
+  "windows": [
+    {
+      "window_start": 0.0,
+      "window_end": 30.0,
+      "features": {
+        "message_count": 60,
+        "frequency_hz": 2.0,
+        "gap_median_ms": 500.0124,
+        "gap_p95_ms": 500.4692,
+        "gap_max_ms": 500.9267,
+        "gap_cv": 0.1211,
+        "graph_change_count": 2,
+        "distinct_publishers": 1
+      },
+      "samples": 60,
+      "status": "OK"
+    },
+    {
+      "window_start": 30.0,
+      "window_end": 60.0,
+      "features": {
+        "message_count": 61,
+        "frequency_hz": 2.0333,
+        "gap_median_ms": 500.0012,
+        "gap_p95_ms": 500.6821,
+        "gap_max_ms": 500.9936,
+        "gap_cv": 0.1176,
+        "graph_change_count": 0,
+        "distinct_publishers": 1
+      },
+      "samples": 61,
+      "status": "OK"
+    }
+  ],
+  "insufficient_windows": 0,
+  "collector": "scripts/m1_session_collector.py"
+}

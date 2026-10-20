@@ -1,0 +1,541 @@
+# 成员模块交接清单（机器可读）——工作 A 的正式接口输入
+#
+# 用途
+# ----
+# 工作 B1（联合运行器与系统级联调）以本文件为唯一接口事实来源；
+# 人类可读版本见 docs/integration/MEMBER_MODULE_HANDOFF.md。
+#
+# 约定
+# ----
+# * 所有 sha256 都是**仓库内文件**的真实哈希，可用 `sha256sum <path>` 复核。
+# * `readiness` 四项的取值只能是 PASS / FAIL / NOT_RUN / BLOCKED，且必须与
+#   `readiness_evidence` 里的证据一致。任何一项都不得"大概通过"。
+# * `not_claimed` 是**明确否认**的能力清单。B1 不得据此宣称系统具备这些能力。
+schema_version: "1.0.0"
+generated_by: "WORK_A / member-module-adaptation"
+generated_at: "2026-10-17"
+#: 第二阶段（真实模块可信化）对本文件的增量。历史字段保持原义，第二阶段结论以
+#: phase2 段与 docs/integration/WORK_A_PHASE2_SECURITY_REVIEW.md 为准。
+phase: 2
+phase2_base_commit: "f51bab800d7bb3fe325d7e096bb15438178f5122"
+branch: "integration/member-module-adaptation"
+base_ref: "demo-2026-10-19-rc2-verified"
+base_commit: "33cb4f93d5e5fd268878fe83fc040c655d632a70"
+python:
+  interpreter_requirement: ">=3.10，且必须安装 jsonschema>=4.0（Draft 2020-12）"
+  note: >-
+    交付配置里的命令首部是裸 python3。若该 python3 的 jsonschema < 4.0，
+    三个模块都会失败关闭（退出码非 0 或 ERROR），适配层记录
+    ADAPTER_MODULE_EXIT_NONZERO —— 不会静默放行，但会让人误以为模块坏了。
+    B1 必须显式固定解释器（例如 tests/evidence/research-venv 或容器内解释器）。
+  verified_interpreter: "tests/evidence/research-venv/bin/python (3.10.12 + numpy 2.2.6 + scikit-learn 1.7.2 + jsonschema 4.26.0)"
+
+common:
+  workdir: "仓库根目录（所有命令中的相对路径都相对它解析）"
+  protocol: "stdin 恰好一个 JSON 对象；stdout 恰好一个 JSON 对象；诊断只写 stderr"
+  contract_version: "1.0.0-proposed"
+  adapter: "scripts/team_demo.py"
+  adapter_may_decide_allow: false
+  note: >-
+    适配层 READY_FOR_GATEWAY_SUBMISSION 不是 Gateway ALLOW；三个模块的
+    ALLOW/NORMAL/AUTHORIZED 也都不是执行许可。唯一准入权威是 SecurityGateway。
+
+modules:
+
+  comm_risk:
+    display_name: "M1 通信风险证据"
+    source_delivery:
+      path: "user/RosSystem-member1-delivery/RosSystem/modules/my_comm"
+      revision_branch: "feature/member1-comm-offline-baseline"
+      revision_head: "21f528085ebe6d6a9df9e15c6c82c6465c80c84a"
+      revision_baseline: "a4c597161d254192b662ee7b8f4d17f76a89cc16"
+      note: >-
+        交付包是**整个 RosSystem 的旧快照** + 成员模块。只吸收 modules/my_comm；
+        其余文件（旧 scripts/、旧 docs/interfaces/schemas、旧 src/、mock_modules、
+        security/ 等）一律不覆盖主线，见 files[].status=REJECT。
+    integrated_path: "modules/member1_comm"
+    files:
+      - path: "modules/member1_comm/module.py"
+        sha256: "2154f03a1d77553ab57a57966ecbe6bc7d6fcea37e2031446d0c20c0f5ef914a"
+        source: "modules/my_comm/module.py"
+        source_sha256: "f2513ccace14d6b01ff965e70c8ff40cc6d9c6ee54270ab5892a1564114d2a3a"
+        status: ADAPT
+        changes:
+          - "包路径 modules.my_comm -> modules.member1_comm"
+          - "模型根目录改为受信任白名单：training_runs/ 与 modules/member1_comm/model/"
+          - "新增 --features 特征清单校验（模型 feature_names 必须与 features.json 一致）"
+          - "NORMAL 增加受信任来源条件 --observation-provenance（业务 JSON 自报的 kind 不再被采信）"
+          - "extensions.my_comm -> extensions.member1_comm，并加入 reason_code/trusted_provenance"
+      - path: "modules/member1_comm/data.py"
+        sha256: "f1ec4553006297e58da416d78b1f772e2c102d28db6b9be8de7216bf4d2293d1"
+        source: "modules/my_comm/data.py"
+        source_sha256: "86724dfaeacc0d14459268350126fb12cb98b46dcdd6a50b70e4e18c46347897"
+        status: ADAPT
+        changes: ["仅改包内 import 路径；采样/标签审计/流式解压逻辑未改"]
+      - path: "modules/member1_comm/train.py"
+        sha256: "2a8f492073d5a97fc9e777dec7f8a2309e411849dd928c96b4fee87bd9f3acaf"
+        source: "modules/my_comm/train.py"
+        source_sha256: "01b4e3d3af07b0588fcde85230ba080f842f2958c141af493c32524a3ed02af2"
+        status: ADAPT
+        changes: ["仅改包内 import 路径；算法/划分/门槛逻辑未改"]
+      - path: "modules/member1_comm/metrics.py"
+        sha256: "91a528d3594710874b5f5d3c6d466ec26c96ec88f40ea342f52a58d26b10bbbd"
+        status: REUSE
+        note: "与交付字节一致"
+      - path: "modules/member1_comm/features.json"
+        sha256: "55907932184efebb3df15f8aae05d5409060ee5e2026720d6986d66d2de0da23"
+        status: REUSE
+        note: "49 维特征清单，与交付字节一致"
+      - path: "modules/member1_comm/test_module.py"
+        sha256: "fac911e66dccefe1633b1a211018662d812de9e1dcb6665e4e3bce8662764801"
+        status: ADAPT
+        changes: ["import 路径"]
+      - path: "modules/member1_comm/test_integration.py"
+        sha256: "01639bd0dd91c145db45c80758ffe840c16d31201be9ba65de6b1123de83a03a"
+        status: ADAPT
+        changes: ["import 路径", "受控模型测试补 --features（否则被特征清单校验正确拒绝）"]
+      - path: "modules/member1_comm/model/comm_risk_model.json"
+        sha256: "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df"
+        status: ADAPT
+        note: "本次用交付训练代码 + 官方 ROSPaCe_reduced 归档重新训练得到；纯数值 JSON，非 pickle"
+      - path: "modules/member1_comm/model/train_report.json"
+        sha256: "fc1df96da48e20df2d723aecea5dcda5712f0ee5fb01e8e99f981afc20871ac1"
+        status: ADAPT
+        note: "训练/验证/测试报告（含门槛判定与数值一致性校验）"
+      - path: "modules/member1_comm/model/model_manifest.json"
+        sha256: "0849422a42c7f8c7a4657bffb43831076209313ea86cffadee20c45436cc858b"
+        status: ADAPT
+        note: "模型身份清单：SHA-256 / 算法 / 阈值 / 门槛 / 数据来源 / 复现命令"
+      - path: "modules/member1_comm/export_probe_rows.py"
+        sha256: "753c747926e217180e65ad67552f4523f7d7ae001025e989e6eefe8c54200f32"
+        status: ADAPT
+        note: "新增工具：从 held-out 分片导出真实数据行作为协议可达性 fixtures"
+      - path: "tests/fixtures/member1/rospace_comm_rows.json"
+        sha256: "098634df324b279a7f0f9df232aca8ad575c60787ffd87c8f9cfff6c5d0b754a"
+        status: ADAPT
+        note: "3 条真实 held-out 行（分片/原始行号/标签/打分可追溯），用于协议层测试"
+      - path: "modules/member1_comm/download_data.py"
+        sha256: "5ebd27a93858265241523f4d839e71178e6d5f11ce8f6a1aaa22da55c8163223"
+        status: DEFER
+        note: "研究用下载工具；运行时不使用，保留以便复现数据获取"
+      - path: "modules/member1_comm/run_controlled_protocol.py"
+        sha256: "591850d8b5c95e021db7e7124e4db826dfc4683a65c987a34c9eb294fa3842bf"
+        status: DEFER
+        note: "需要 ROS 2 Jazzy + SROS2 容器；本环境无 ROS，未执行"
+    executable:
+      command: ["python3", "modules/member1_comm/module.py",
+                "--model", "modules/member1_comm/model/comm_risk_model.json",
+                "--model-sha256", "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df",
+                "--features", "modules/member1_comm/features.json",
+                "--observation-provenance", "UNKNOWN"]
+      #: 第二阶段新增：只用 Linux /proc 可真实采集的 24 维（离线训练，门槛 FAIL）。
+      runtime_subset_command:
+        ["python3", "modules/member1_comm/module.py",
+         "--model", "modules/member1_comm/model/comm_risk_model_runtime_subset.json",
+         "--model-sha256", "9de89b7a96928c5fc1b5f1d0a24870d3ac9e091e179ea2988454e820097ce588",
+         "--features", "modules/member1_comm/features_runtime_subset.json",
+         "--observation-provenance", "RUNTIME_LOG"]
+      collector_command:
+        ["python3", "-m", "modules.member1_comm.collector.emit_observation",
+         "--duration", "1.0", "--interval", "0.25",
+         "--out", "/tmp/m1_snapshot.json",
+         "--observation-out", "/tmp/m1_observation.json"]
+      workdir: "仓库根目录"
+      dependencies: ["jsonschema>=4.20", "PyYAML>=6", "numpy>=1.26（仅训练/导出工具需要）",
+                     "scikit-learn>=1.5（仅训练需要）"]
+      ros_required: false
+      stdin: "ModuleInputEnvelope（docs/interfaces/schemas/module_input.schema.json）"
+      stdout_schema: "docs/interfaces/schemas/comm_risk_evidence.schema.json"
+      exit_codes:
+        "0": "产出合法 CommRiskEvidence（status 可能是 NORMAL/SUSPICIOUS/UNKNOWN/ERROR）"
+        "2": "输入非法（JSON 非法/重复键/非有限数/Schema 不符）"
+        "3": "模型缺失（MODEL_ABSENT）"
+        "4": "无法形成通信映射（缺 f0_runtime / 窗口不自洽 / 观察不在窗口内）"
+      timeout_sec: 10
+      max_stdout_bytes: 65536
+    model_or_policy:
+      kind: "纯数值 JSON 模型（member1-numeric-v1）"
+      path: "modules/member1_comm/model/comm_risk_model.json"
+      sha256: "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df"
+      algorithm: "extra_trees (48 trees, max_depth 12)"
+      threshold: 0.75
+      validation_gate_passed: false
+      feature_manifest: "modules/member1_comm/features.json"
+      training_data: "ROSPaCe_reduced.tar.gz（官方归档，SIZE_MD5_PASS，SHA-256 f37e1798...）"
+      unsafe_deserialization: "不使用 pickle/joblib；仅 json.loads + SHA-256 校验"
+    evidence:
+      kinds:
+        - MOCK
+        - RUNTIME_LOG
+        - CONTROLLED_SECURITY_EXPERIMENT
+      observed_sources: "offline_dataset（ROSPaCe CSV 行）用于 L1 协议测试；无实时采集"
+      treats_business_json_as_trust: false
+      provenance_control: "受信任配置 --observation-provenance；业务 JSON 自报 kind 仅用于一致性比对"
+    readiness:
+      CALLABLE_REAL: PASS
+      SCHEMA_VALID: PASS
+      EVIDENCE_VALID: PASS
+      ONLINE_PROCEED_READY: FAIL
+    readiness_evidence:
+      CALLABLE_REAL: >-
+        真实子进程 + 真实交付模型 + 真实 held-out 数据行跑通四状态；
+        tests/unit/test_member1_comm_real.py（21 项）与
+        tests/unit/test_member1_adapter_integration.py（6 项）全部通过；
+        验收器 --module comm_risk 达 L1 门槛（60 PASS / 3 条 STATE-* 标记
+        NOT_APPLICABLE_REAL_MODULE）。
+      SCHEMA_VALID: >-
+        输出经 Draft 2020-12 校验通过（模块内部 + 独立验收器 + 单测三重）；
+        非法输入/坏模型/缺特征均给出合法阻断状态或非零退出。
+      EVIDENCE_VALID: >-
+        证据种类、来源与限制均写入输出：model_sha256、trusted_provenance、
+        envelope_provenance、window/request_count、reason_code；
+        模型与训练数据可追溯（train_report.json + model_manifest.json）。
+        证据"有效"仅指可追溯与未伪造，不代表检测有效。
+      ONLINE_PROCEED_READY: >-
+        模型 validation_gate_passed=false，生产语义下低于阈值只能 UNKNOWN；
+        且 ROSPaCe 49 维特征在 ROS 2 Jazzy 运行时没有等价实时采集器，
+        观测与模型输入之间的映射未建立。两个独立原因都足以阻断。
+    tests:
+      commands:
+        - "python3 -m pytest modules/member1_comm/test_module.py modules/member1_comm/test_integration.py -q"
+        - "python3 -m pytest tests/unit/test_member1_comm_real.py tests/unit/test_member1_adapter_integration.py tests/unit/test_member1_real_acceptance.py -q"
+        - "python3 scripts/check_member_module.py --module comm_risk --config config/team_modules.member1.real.yaml --real-fixture config/acceptance/real_scenarios.member1.yaml --out-dir /tmp/m1 --run-id m1-real"
+      results:
+        delivered_module_tests: "44 passed"
+        real_model_tests: "21 passed"
+        adapter_integration_tests: "6 passed"
+        acceptance_regression_tests: "2 passed"
+        acceptance_checker: "meets_pr_gate=True, PASS=60 FAIL=3（3 条为 STATE-* NOT_APPLICABLE_REAL_MODULE）, algorithm_evidence=NOT_READY, runtime_integration=BLOCKED"
+    not_claimed:
+      - "有效实时异常检测 / 在线 IDS"
+      - "对 ROS 2 运行时通信特征的实时采集"
+      - "对具体攻击类型的识别（异常类别恒为 UNKNOWN）"
+      - "DDS 身份或权限的任何证明"
+
+  identity_trust:
+    display_name: "M2 DDS 身份与权限证据"
+    source_delivery:
+      path: "user/RosSystem_Member2_DDS_Identity_Delivery"
+      archived_copy: "deliveries/member2-identity"
+      note: >-
+        交付文件 identity_trust/assessor.py（sha256 b287822e...）是**较旧**版本；
+        主线 identity_trust/assessor.py 已包含 ANSI 规范化、原生拒绝行内匹配、
+        非 DDS 结果排除等修复（这些修复不得回退）。本工作在其上做语义重构。
+    integrated_path: "identity_trust"
+    files:
+      - path: "identity_trust/assessor.py"
+        sha256: "27efa0ca6f7d9a218f07db5d346a3666c6820098b49e9c8177cf81d4ddfbfae2"
+        source: "user/RosSystem_Member2_DDS_Identity_Delivery/identity_trust/assessor.py (b287822e...)"
+        status: REFACTOR
+        changes:
+          - "新增 extensions.current_request_identity（当前请求身份绑定），与历史证据解释分离"
+          - "新增 --identity-witness / --identity-witness-key / --identity-ledger（仅来自受信任配置）"
+          - "新增历史授权复用检测（同一 case+experiment_run+request_id+resource 只能解释一次）"
+          - "保留并继续使用主线的 ANSI 规范化与原生拒绝证据能力"
+      - path: "identity_trust/current_identity.py"
+        sha256: "73ef6ae6aac48ac9f6bb25f4ad2fdb4bdd62d840578bcb01e9b3da4d66c2a454"
+        status: REFACTOR
+        note: >-
+          新增：可信证据契约 + HMAC-SHA256 核验 + 新鲜度/串单/跨资源/重放检查。
+          当前**没有**产生该证据的组件（ROS 2 没有可用的"订阅端对端主体身份" API），
+          所以默认路径恒为 UNKNOWN。
+      - path: "config/team_modules.member2.real.yaml"
+        sha256: "cd078eff44f0d71640441d48f6ebda43852b392466ef78b6fe6a8777c1f72d2c"
+        status: REUSE
+        note: "通用验收配置；本工作未改其 profile 语义"
+      - path: "config/acceptance/real_scenarios.member2.yaml"
+        sha256: "8f0a65b6652cf2a57a2fd79918b166267570673fd6d5fb5071ecdb388fa6e4ab"
+        status: ADAPT
+        changes:
+          - "S2 场景新增 expect.adapter_decision=ADAPTER_BLOCK / adapter_reason=ADAPTER_CURRENT_IDENTITY_UNBOUND"
+          - "说明：模块级 AUTHORIZED 合法，但历史授权不得冒充当前请求身份"
+      - path: "docs/MEMBER2_IMPLEMENTATION.md"
+        status: REUSE
+        note: "已在 deliveries/member2-identity/docs/ 归档，不重复入库"
+    executable:
+      command: ["python3", "identity_trust/assessor.py",
+                "--experiment-run", "20261009T093144Z",
+                "--evidence-root", "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence",
+                "--policy", "security/policies/minimal_permissions.xml",
+                "--keystore", "security/keystore",
+                "--case", "S2",
+                "--identity-ledger", "logs/all-real/identity_ledger.jsonl"]
+      workdir: "仓库根目录"
+      dependencies: ["Python 标准库（xml.etree/json/hmac）；无第三方运行时依赖"]
+      ros_required: false
+      stdin: "ModuleInputEnvelope"
+      stdout_schema: "docs/interfaces/schemas/identity_trust_assessment.schema.json"
+      exit_codes:
+        "0": "产出合法 IdentityTrustAssessment"
+        "2": "输入非法"
+      timeout_sec: 10
+      max_stdout_bytes: 65536
+    model_or_policy:
+      policy: "security/policies/minimal_permissions.xml（只读权威策略，未修改）"
+      keystore: "security/keystore（本地生成、已 gitignore，绝不入库）"
+      evidence_archive: "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence/20261009T093144Z"
+    evidence:
+      kinds:
+        - CONTROLLED_SECURITY_EXPERIMENT
+        - RUNTIME_LOG
+        - PERMISSION_FILE_ANALYSIS
+      historical_only: true
+      current_request_identity_available: false
+      why_not_available: >-
+        ROS 2 Jazzy / rclpy 不向订阅端暴露"该样本发布者已完成 DDS 认证的身份"；
+        DDS-Security 的认证发生在参与者建链阶段，不随消息传递；Fast DDS 的
+        DataReaderListener 也不携带身份且未经 rclpy 暴露。
+      binding_contract: "identity_trust/current_identity.py: contract_description()"
+    readiness:
+      CALLABLE_REAL: PASS
+      SCHEMA_VALID: PASS
+      EVIDENCE_VALID: PASS
+      ONLINE_PROCEED_READY: FAIL
+    readiness_evidence:
+      CALLABLE_REAL: >-
+        真实评估器在归档的 S2/S3/S3C/S4 证据上真实运行；
+        tests/unit/test_identity_trust_real_logs.py（56 项）全部通过；
+        验收器 --module identity_trust 达 L1 门槛（58 PASS / 3 条 STATE-* 非强制）。
+      SCHEMA_VALID: >-
+        输出通过 identity_trust_assessment Schema（Draft 2020-12）校验；
+        extensions 为 Schema 预留扩展位，不改变任何既有字段含义。
+      EVIDENCE_VALID: >-
+        历史证据（实验运行 ID、拒绝资源、原生 Permissions.cpp 行号、正向对照）
+        全部保留并可追溯到归档日志；当前身份状态与其证据/缺失原因一并输出。
+      ONLINE_PROCEED_READY: >-
+        真实模块对当前请求只能给出 current_request_identity=UNKNOWN，
+        适配层因此以 ADAPTER_CURRENT_IDENTITY_UNBOUND 阻断。
+        "可信当前身份绑定"是未完成条件，不得用历史 AUTHORIZED 代替。
+    tests:
+      commands:
+        - "python3 -m pytest tests/unit/test_identity_trust_assessor.py tests/unit/test_identity_trust_real_logs.py -q"
+        - "python3 -m pytest tests/unit/test_identity_current_binding.py -q"
+        - "python3 scripts/check_member_module.py --module identity_trust --config config/team_modules.member2.real.yaml --real-fixture config/acceptance/real_scenarios.member2.yaml --out-dir /tmp/m2 --run-id m2-real"
+      results:
+        assessor_and_real_logs: "56 passed"
+        current_binding_semantics: "14 passed"
+        acceptance_checker: "meets_pr_gate=True, PASS=58 FAIL=3（STATE-* 对真实模块不适用）, 全部 REAL-ADP-* 均为 ADAPTER_BLOCK"
+        local_only_requirement: "需要本地 security/keystore（gitignore），缺失时相关测试 skip"
+    not_claimed:
+      - "当前请求的 DDS 身份认证"
+      - "AUTHORIZED 等于身份可信"
+      - "从 request_id / declared_enclave / 节点名推断身份"
+      - "替代 Gateway 的准入判定"
+
+  task_risk:
+    display_name: "M3 任务风险决策（确定性规则引擎）"
+    source_delivery:
+      path: "user/RosSystem_member3_taskrisk_source_v0.1.0/RosSystem_member3_taskrisk_source_v0.1.0"
+      archived_copy: "deliveries/member3-taskrisk"
+      packaging_change_only: true
+      manifest: "deliveries/member3-taskrisk/MANIFEST.json"
+      note: "module.py / risk_model.py / tests/unit/test_member3_taskrisk.py 与交付字节完全一致（REUSE）"
+    integrated_path: "modules/member3_taskrisk"
+    files:
+      - path: "modules/member3_taskrisk/module.py"
+        sha256: "5150cf2b547a8e6377f494fbb8a023ffb5043bc74a32446954781de163cae2ee"
+        status: REUSE
+      - path: "modules/member3_taskrisk/risk_model.py"
+        sha256: "db724fcd754853688dbe2b44022d3e77e2d704562631c7ae6b5c2b07fe686d2c"
+        status: REUSE
+      - path: "tests/unit/test_member3_taskrisk.py"
+        sha256: "f1f23e3c6d60b3559e5ee4124d339438e4c1b177ba82547d2f1924442b9ee0a0"
+        status: REUSE
+      - path: "config/team_modules.member3.yaml"
+        sha256: "d8335bc922269c1c1c515c93b6be8f66388bf8bd3d1e114ddac1c7ee27704257"
+        status: REUSE
+      - path: "modules/member3_taskrisk/experiments.py"
+        status: DEFER
+        note: "交付内的离线实验驱动；联合运行不需要，未纳入主线（与 RC2 决定一致）"
+      - path: "modules/member3_taskrisk/online_check.py"
+        status: DEFER
+        note: "交付内的在线检查脚本；已由 scripts/m3_online_* 与归档证据替代"
+      - path: "modules/member3_taskrisk/test_module.py"
+        status: DEFER
+        note: "交付内的 shim 测试入口；主线使用 tests/unit/test_member3_taskrisk.py"
+    executable:
+      command: ["python3", "modules/member3_taskrisk/module.py", "--policy", "config/task_policy.yaml"]
+      workdir: "仓库根目录"
+      dependencies: ["jsonschema>=4.0", "PyYAML>=6"]
+      ros_required: false
+      stdin: "ModuleInputEnvelope"
+      stdout_schema: "docs/interfaces/schemas/task_risk_decision.schema.json"
+      exit_codes:
+        "0": "产出合法 TaskRiskDecision（ALLOW_RECOMMENDED 不等于 Gateway 允许）"
+        "2": "输入/配置非法（含策略缺失或损坏时的输入层拒绝）"
+        "4": "内部异常且无法构造合法输出"
+      timeout_sec: 10
+      max_stdout_bytes: 65536
+    model_or_policy:
+      policy: "config/task_policy.yaml（权威 TaskPolicy，未修改、未放宽）"
+      policy_version: "1.0"
+      engine: "确定性规则引擎（非神经网络、非动态状态机）"
+    evidence:
+      kinds:
+        - CONTROLLED_SECURITY_EXPERIMENT
+        - RUNTIME_LOG
+        - UNKNOWN
+      treats_business_json_as_trust: false
+      note: "可选 --audit-log 可信历史审计；未给出时按规则+策略判定"
+    readiness:
+      CALLABLE_REAL: PASS
+      SCHEMA_VALID: PASS
+      EVIDENCE_VALID: PASS
+      ONLINE_PROCEED_READY: PASS
+    readiness_evidence:
+      CALLABLE_REAL: >-
+        真实规则引擎在四个真实条件（合法/越界/缺策略/坏策略）下产出四状态；
+        tests/unit/test_member3_taskrisk.py 与
+        tests/unit/test_member3_real_acceptance.py 全部通过；
+        RC2 的 ON-01..ON-06 在线链路以相同模块与策略为基准。
+      SCHEMA_VALID: >-
+        输出经 task_risk_decision Schema 校验（模块内部 + 验收器）。
+      EVIDENCE_VALID: >-
+        规则依据、策略版本、命中规则均写入 rule_basis / extensions.member3，
+        策略文件本身可追溯且未改动。
+      ONLINE_PROCEED_READY: >-
+        M3 是三者中唯一能在真实条件下给出 ALLOW_RECOMMENDED 的模块；
+        "可推进"指它的规则引擎可用，不表示整条链路能通过
+        （M1/M2 的真实结论会阻断）。ALLOW_RECOMMENDED 仍不是 Gateway 准入。
+    tests:
+      commands:
+        - "python3 -m pytest tests/unit/test_member3_taskrisk.py tests/unit/test_member3_real_acceptance.py -q"
+        - "python3 -m pytest tests/unit/test_joint_three_modules.py -q"
+      results:
+        reference: "RC2 已记录（657 passed / 3 skipped 全仓）"
+        joint: "5 passed（三模块真实调用/关联/隔离/交付配置）"
+    not_claimed:
+      - "把 ALLOW_RECOMMENDED 当作 Gateway 允许"
+      - "把规则引擎包装成神经网络或未知攻击预测"
+      - "MN 在线链路在没有 M1/M2 真实证据的情况下被判为 READY"
+
+system_level:
+  adapter_changes:
+    - path: "scripts/team_demo.py"
+      sha256: "785195be37dc976b7cd1492c06fbd5db27dcfb1471aa6b26c48d69e39e10e6ac"
+      changes:
+        - "新增 REQUIRED_CURRENT_IDENTITY：身份位置必须给出 AUTHENTICATED 当前身份"
+        - "新增原因码 ADAPTER_CURRENT_IDENTITY_UNBOUND"
+        - "历史授权（AUTHORIZED）不再单独构成推进条件"
+  acceptance_harness_changes:
+    - path: "scripts/check_member_module.py"
+      sha256: "5be88371a38c1e292885f1c5346c7c3b44d44f3c7bf3e17ef38f647bf3748188"
+      changes:
+        - "build_envelope 注入真实通信观测块（来自已提交的真实 held-out 行）"
+        - "真实 fixture 支持 expect.adapter_decision / adapter_reason"
+        - "reason_code 读取 extensions.member1_comm"
+        - "正向对照替身为身份模块补充 current_request_identity（MOCK_FIXTURE）"
+  new_configs:
+    - "config/team_modules.member1.real.yaml"
+    - "config/team_modules.all-real.yaml"
+    - "config/team_modules.all-real.controlled-test.yaml"
+    - "config/acceptance/real_scenarios.member1.yaml"
+  b1_required_changes:
+    - id: P0-2
+      severity: HIGH
+      file: scripts/team_demo.py
+      requirement: >-
+        身份位置的判定必须从"比较 extensions.current_request_identity.status
+        字符串"改为调用 identity_trust.current_identity.f0_accepts(current)。
+        当前实现允许一个只自报 status 的模块通过（已实测 READY_FOR_GATEWAY_SUBMISSION）。
+      one_line_patch: |
+        from identity_trust.current_identity import f0_accepts
+        current = (outputs['identity_trust'].get('extensions') or {}).get('current_request_identity')
+        if not f0_accepts(current):
+            raise AdapterBlock(REASON_CURRENT_IDENTITY_UNBOUND, '当前身份未通过受信任核验')
+      tripwire_tests:
+        - tests/unit/test_phase2_security_boundaries.py::test_f0_rejects_bare_status_self_report
+        - tests/unit/test_phase2_security_boundaries.py::test_f0_rejects_mock_fixture_identity
+      note: 两个用例当前是 xfail（断言 F0 应阻断、而实际放行）。B1 修好后改成普通断言。
+    - id: P0-2b
+      severity: MEDIUM
+      requirement: >-
+        真实模式下应拒绝 evidence_kind == "MOCK_FIXTURE" 的身份对象；Mock 演示保留在
+        mode: mock 的配置里。
+  compatibility_notes_for_B1:
+    - >-
+      F0 会先调用**全部**三个模块再做推进判定；只有进程/协议级故障
+      （超时、非零退出、Schema 非法）才会立即中断。因此一次 F0 调用即可拿到
+      三个模块的真实证据。
+    - >-
+      身份位置新增硬性要求：缺少 extensions.current_request_identity 或状态不是
+      AUTHENTICATED，一律 ADAPTER_CURRENT_IDENTITY_UNBOUND。Mock/替身必须显式
+      给出该字段（MOCK_FIXTURE），真实模块给 UNKNOWN —— 这是刻意的。
+    - >-
+      --identity-ledger 是运行时状态。重复使用同一 request_id 的第二次联合运行
+      会被正确判定为"历史授权复用"-> UNKNOWN。做可重复验收时要么每次清理账本，
+      要么每次使用新的 request_id。
+    - >-
+      交付配置使用裸 python3；解释器必须装有 jsonschema>=4.0。B1 应显式固定解释器。
+    - >-
+      公共 Schema 未改动、契约版本仍为 1.0.0-proposed；新增内容全部位于
+      extensions（兼容扩展）或适配层规则（见 docs/interfaces/CONTRACT_VERSION.md 规则九）。
+    - >-
+      【第二阶段】M2 的当前身份契约升级为 current-identity-attestation/2：
+      新增 checks 五元组与 f0_accepts()；AUTHENTICATED 必须同时满足签名有效、
+      签发者被受信任清单标记为 VERIFIED_IDENTITY_SOURCE、请求摘要匹配、新鲜、
+      nonce 原子预留。仓库不交付该清单，因此真实路径恒 UNKNOWN。
+    - >-
+      【第二阶段】--identity-issuers 为新增受信任参数；未配置时永不 AUTHENTICATED。
+      --identity-ledger 从"可选"变为 AUTHENTICATED 的必要条件。
+
+phase2:
+  evidence_bundle: docs/integration/evidence/PHASE2_EVIDENCE.json
+  documents:
+    - docs/integration/WORK_A_PHASE2_SECURITY_REVIEW.md
+    - docs/integration/M1_RUNTIME_FEATURE_FEASIBILITY.md
+    - docs/integration/M2_CURRENT_IDENTITY_TRUST_BOUNDARY.md
+    - docs/integration/m1_feature_feasibility.json
+  m1_runtime_observation:
+    provenance: REAL_RUNTIME
+    collector: modules/member1_comm/collector/proc_runtime.py
+    features_collectable: 24
+    features_missing_on_host: 1        # pgalloc_dma
+    features_requiring_pcap: 22
+    features_requiring_ros_graph: 2
+    semantic_equivalence: UNVERIFIED
+    request_count_available: false
+    module_result_without_request_count: "exit 4 (MAPPING_BLOCKED)"
+    online_detection: NOT_READY
+  m1_runtime_subset_model:
+    provenance: OFFLINE_RESEARCH
+    path: modules/member1_comm/model/comm_risk_model_runtime_subset.json
+    sha256: "9de89b7a96928c5fc1b5f1d0a24870d3ac9e091e179ea2988454e820097ce588"
+    features: 24
+    threshold: 0.90
+    validation_gate_passed: false
+    test_f1: 0.0891089108910891
+    always_attack_f1: 0.8131620330534374
+  m2_trust_boundary:
+    verifier_contract: current-identity-attestation/2
+    authenticated_requires:
+      - signature_valid
+      - issuer_listed_as_VERIFIED_IDENTITY_SOURCE
+      - request_digest_match
+      - fresh_within_30s
+      - nonce_reserved_atomically
+    trusted_issuer_file_shipped: false
+    real_issuer_exists: false
+    test_issuer: identity_trust/test_issuer.py        # TEST_ONLY
+    outputs_possible: [UNKNOWN, DENIED, AUTHENTICATED_TEST_ONLY, AUTHENTICATED]
+  tests:
+    full_suite: "734 passed, 3 skipped, 2 xfailed in 532.64s (0:08:52)"
+    new_or_rewritten:
+      - tests/unit/test_identity_current_binding.py: 27 passed
+      - tests/unit/test_phase2_security_boundaries.py: 9 passed, 2 xfailed
+      - tests/unit/test_member1_runtime_observation.py: 7 passed
+  can_b1_merge:
+    functional_commit: "c6f6755e3c5b21febf23d3f8a0f5ce57e5957715"
+    verdict: MERGEABLE_WITH_B1_FOLLOWUP
+    condition: >-
+      模块与证据侧可直接合入；F0 身份判定（P0-2）必须在 B1 侧同期或随后修正，
+      否则 identity 自报仍可绕过。合入前请先跑两个 xfail 用例确认现状。
+  open_blockers:
+    - A-1 no ROS 2 runtime on this host
+    - A-2 no business request count
+    - A-3 24 of 49 features unavailable online (22 pcap + 2 ros graph + 1 host)
+    - A-4 both models fail the validation gate
+    - A-5 feature semantic equivalence UNVERIFIED
+    - A-6 no real identity issuer
+    - A-7 F0 trusts bare status string (owner B1)
+    - A-8 key and verifier share uid (no hard isolation)

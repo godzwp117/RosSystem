@@ -1,0 +1,311 @@
+{
+  "run_id": "f0close-20261018T082739Z",
+  "verified_code_sha": "4e83f9190596d71f5b887c613d3f509578a9c497",
+  "results": [
+    {
+      "id": "CONTRACTS",
+      "layer": "L1_PROTOCOL",
+      "check": "团队公共契约与 Schema 校验",
+      "commands": [
+        "python3 scripts/validate_team_contracts.py --all"
+      ],
+      "log_path": "logs/contracts.log",
+      "returncode": 0,
+      "verdict": "PASS",
+      "counts": null,
+      "tail": [
+        "  [OK] input_execution_resource.json (const_violation)",
+        "CONTRACT VALIDATION: PASS",
+        "EXIT=0"
+      ]
+    },
+    {
+      "id": "P0_SECURITY_REGRESSION",
+      "layer": "L1_PROTOCOL",
+      "check": "P0 安全反例（原两项 xfail 已转为强制断言 + 新增 27 项矩阵）",
+      "commands": [
+        "python3 -m pytest tests/unit/test_phase2_security_boundaries.py tests/unit/test_f0_identity_trust_boundary.py -q"
+      ],
+      "log_path": "logs/p0_security.log",
+      "returncode": 0,
+      "verdict": "PASS",
+      "counts": {
+        "passed": 38,
+        "skipped": 0,
+        "xfailed": 0
+      },
+      "tail": [
+        "......................................                                   [100%]",
+        "38 passed in 3.27s",
+        "EXIT=0"
+      ]
+    },
+    {
+      "id": "IDENTITY_AND_REAL_MODULE",
+      "layer": "L1_PROTOCOL",
+      "check": "身份绑定与真实模块回归",
+      "commands": [
+        "python3 -m pytest tests/unit/test_identity_current_binding.py tests/unit/test_member1_comm_real.py tests/unit/test_member1_runtime_observation.py tests/unit/test_joint_three_modules.py -q"
+      ],
+      "log_path": "logs/identity_and_real.log",
+      "returncode": 0,
+      "verdict": "PASS",
+      "counts": {
+        "passed": 60,
+        "skipped": 0,
+        "xfailed": 0
+      },
+      "tail": [
+        "............................................................             [100%]",
+        "60 passed in 4.52s",
+        "EXIT=0"
+      ]
+    },
+    {
+      "id": "THREE_REAL_JOINT_REGRESSION",
+      "layer": "L2_ALGORITHM",
+      "check": "三真实模块联合回归 T1–T5",
+      "commands": [
+        "python3 -m pytest tests/integration/three_real_online_check.py -q"
+      ],
+      "log_path": "logs/three_real_check.log",
+      "returncode": 0,
+      "verdict": "PASS",
+      "counts": {
+        "passed": 11,
+        "skipped": 0,
+        "xfailed": 0
+      },
+      "tail": [
+        "...........                                                              [100%]",
+        "11 passed in 6.16s",
+        "EXIT=0"
+      ]
+    },
+    {
+      "id": "UNIT_FULL",
+      "layer": "L1_PROTOCOL",
+      "check": "全仓单元测试",
+      "commands": [
+        "python3 -m pytest tests/unit -q"
+      ],
+      "log_path": "logs/unit_full.log",
+      "returncode": 0,
+      "verdict": "PASS",
+      "counts": {
+        "passed": 763,
+        "skipped": 3,
+        "xfailed": 0
+      },
+      "tail": [
+        ".............................................                            [100%]",
+        "763 passed, 3 skipped in 530.27s (0:08:50)",
+        "EXIT=0"
+      ]
+    },
+    {
+      "id": "MODULE_ACCEPTANCE",
+      "layer": "L2_ALGORITHM",
+      "check": "M1/M2/M3 模块级真实验收",
+      "commands": [
+        "python3 scripts/check_member_module.py --module <m> --config <real> --real-fixture <real_scenarios>"
+      ],
+      "returncode": 0,
+      "verdict": "PASS",
+      "modules": {
+        "comm_risk": {
+          "counts": {
+            "PASS": 60,
+            "FAIL": 3,
+            "NOT_RUN": 1,
+            "BLOCKED": 1
+          },
+          "meets_pr_gate": true,
+          "algorithm_evidence": "NOT_READY",
+          "report_path": "acceptance/comm_risk/f0acc-comm_risk/report.json",
+          "log_path": "logs/acceptance_comm_risk.log",
+          "non_gating_fail_note": "3 条 STATE-* FAIL 为 \"Mock 场景开关对真实模块不适用\"，mandatory=False / gate=False，保留可见未删除"
+        },
+        "identity_trust": {
+          "counts": {
+            "PASS": 58,
+            "FAIL": 3,
+            "NOT_RUN": 1,
+            "BLOCKED": 1
+          },
+          "meets_pr_gate": true,
+          "algorithm_evidence": "NOT_READY",
+          "report_path": "acceptance/identity_trust/f0acc-identity_trust/report.json",
+          "log_path": "logs/acceptance_identity_trust.log",
+          "non_gating_fail_note": "3 条 STATE-* FAIL 为 \"Mock 场景开关对真实模块不适用\"，mandatory=False / gate=False，保留可见未删除"
+        },
+        "task_risk": {
+          "counts": {
+            "PASS": 58,
+            "FAIL": 3,
+            "NOT_RUN": 1,
+            "BLOCKED": 1
+          },
+          "meets_pr_gate": true,
+          "algorithm_evidence": "NOT_READY",
+          "report_path": "acceptance/task_risk/f0acc-task_risk/report.json",
+          "log_path": "logs/acceptance_task_risk.log",
+          "non_gating_fail_note": "3 条 STATE-* FAIL 为 \"Mock 场景开关对真实模块不适用\"，mandatory=False / gate=False，保留可见未删除"
+        }
+      }
+    },
+    {
+      "id": "THREE_REAL_LEVELS",
+      "layer": "L3_ROS2",
+      "check": "三真实模块联合运行等级（离线，无 ROS 下游）",
+      "verdict": "BLOCKED",
+      "levels": {
+        "THREE_EXTERNAL_CALLED": "PASS",
+        "THREE_EXTERNAL_VALIDATED": "PASS",
+        "THREE_EXTERNAL_ONLINE_PROCEED": "BLOCKED"
+      },
+      "overall": "B1_INTEGRATED_BLOCKING",
+      "modules": {
+        "comm_risk": {
+          "mode": "external",
+          "returncode": 0,
+          "schema_ok": true,
+          "status": "UNKNOWN"
+        },
+        "identity_trust": {
+          "mode": "external",
+          "returncode": 0,
+          "schema_ok": true,
+          "status": "AUTHORIZED"
+        },
+        "task_risk": {
+          "mode": "external",
+          "returncode": 0,
+          "schema_ok": true,
+          "status": "ALLOW_RECOMMENDED"
+        }
+      },
+      "f0": {
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED"
+      },
+      "blockers": [
+        "comm_risk: status='UNKNOWN'，推进需要 'NORMAL'",
+        "identity_trust: current_request_identity.status='UNKNOWN'，本轮没有可信的当前请求身份绑定",
+        "F0 决策为 'ADAPTER_BLOCK'（ADAPTER_MODULE_STATUS_NOT_PROCEED），未提交 Planner"
+      ],
+      "note": "离线运行：未启动 Planner/Gateway/NavigationSim，因此不得声称已从 Gateway 审计观察下游；下游结论为 0 提交，来自 F0 自身决策记录"
+    },
+    {
+      "id": "M3_ONLINE",
+      "layer": "L3_ROS2",
+      "check": "M3 真实在线六场景（域 55 普通模式）",
+      "verdict": "PASS",
+      "checks": 39,
+      "failures": 0,
+      "run_id": null,
+      "scenarios": [
+        {
+          "cid": "ON01",
+          "request_id": "on01-legal-allow-f0close-20261018T082739Z-m3",
+          "m3_status": "ALLOW_RECOMMENDED",
+          "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+          "planner_outcome": "PLANNER_RESULT_RECEIVED",
+          "gateway_arrivals": 1,
+          "gateway_decisions": [
+            {
+              "decision": "ALLOW",
+              "reason_code": "ALLOW_IN_POLICY"
+            }
+          ],
+          "gateway_executions": 1,
+          "navsim_goals": 1
+        },
+        {
+          "cid": "ON02",
+          "request_id": "on02-oor-block-f0close-20261018T082739Z-m3",
+          "m3_status": "BLOCK_RECOMMENDED",
+          "adapter_decision": "ADAPTER_BLOCK",
+          "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+          "gateway_arrivals": 0,
+          "gateway_decisions": [],
+          "gateway_executions": 0,
+          "navsim_goals": 0
+        },
+        {
+          "cid": "ON03",
+          "request_id": "on03-f0close-20261018T082739Z-m3",
+          "m3_status": "UNKNOWN",
+          "adapter_decision": "ADAPTER_BLOCK",
+          "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+          "gateway_arrivals": 0,
+          "gateway_decisions": [],
+          "gateway_executions": 0,
+          "navsim_goals": 0
+        },
+        {
+          "cid": "ON04",
+          "request_id": "on04-f0close-20261018T082739Z-m3",
+          "m3_status": "ERROR",
+          "adapter_decision": "ADAPTER_BLOCK",
+          "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+          "gateway_arrivals": 0,
+          "gateway_decisions": [],
+          "gateway_executions": 0,
+          "navsim_goals": 0
+        },
+        {
+          "cid": "ON05",
+          "request_id": "on05-gateway-authority-f0close-20261018T082739Z-m3",
+          "m3_status": "ALLOW_RECOMMENDED",
+          "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+          "planner_outcome": "PLANNER_RESULT_RECEIVED",
+          "gateway_arrivals": 1,
+          "gateway_decisions": [
+            {
+              "decision": "BLOCK",
+              "reason_code": "OUT_OF_REGION"
+            }
+          ],
+          "gateway_executions": 0,
+          "navsim_goals": 0
+        },
+        {
+          "cid": "ON06",
+          "request_id": "on06-f0close-20261018T082739Z-m3",
+          "m3_status": "ALLOW_RECOMMENDED",
+          "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+          "planner_outcome": "PLANNER_RESULT_TIMEOUT",
+          "gateway_arrivals": 1,
+          "gateway_decisions": [
+            {
+              "decision": "ALLOW",
+              "reason_code": "ALLOW_IN_POLICY"
+            }
+          ],
+          "gateway_executions": 1,
+          "navsim_goals": 1
+        }
+      ],
+      "log_path": "m3_online/merged/verification.json"
+    },
+    {
+      "id": "DDS_ENFORCE",
+      "layer": "L4_DDS",
+      "check": "DDS-Security Enforce S1/S2/S3/S3C/S4/S5/S6（域 43）",
+      "verdict": "PASS",
+      "passed": 7,
+      "failed": 0,
+      "total": 7,
+      "domain": 43,
+      "log_path": "dds_enforce/summary.json",
+      "note": "与 M3 在线不是同一次运行：在线为域 55 普通模式"
+    }
+  ],
+  "summary": {
+    "PASS": 8,
+    "BLOCKED": 1,
+    "NOT_RUN": 0,
+    "FAIL": 0
+  }
+}

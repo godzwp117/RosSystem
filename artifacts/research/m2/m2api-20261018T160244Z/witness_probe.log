@@ -1,0 +1,3 @@
+{"event":"participant_created","role":"m2_probe","domain":58,"security":true,"guid_prefix":"e9.67.4e.14.cc.b2.bd.48.67.d5.cc.b0"}
+{"event":"participant_discovered","observer_role":"m2_probe","guid_prefix":"eb.e3.c7.17.12.87.98.cf.05.16.44.78","name":"m2_identity_witness_m2_peer","has_identity":true,"security_attributes":2147483655,"permissions_token_properties":2,"identity_token":{"class_id":"DDS:Auth:PKI-DH:1.0","properties":{"dds.cert.sn":"/CN=\\/m2_peer","dds.cert.algo":"EC-prime256v1","dds.ca.sn":"/CN=sros2CA","dds.ca.algo":"EC-prime256v1"},"property_count":4}}
+{"event":"witness_exit"}

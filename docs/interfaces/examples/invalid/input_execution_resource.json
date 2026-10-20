@@ -1,0 +1,6 @@
+{ "schema_version":"1.0.0-proposed","run_id":"run-f0c-0001","request_id":"req-f0c-0001",
+  "created_at":"2026-10-10T12:00:00Z",
+  "candidate_action":{"action_resource":"/rg/nav_execute","operation":"NAVIGATE",
+    "task_id":"patrol_a_001","target":{"frame_id":"map","x":1.5,"y":1.5}},
+  "observations":[{"source":"s","kind":"MOCK","observed_at":"2026-10-10T12:00:00Z"}],
+  "evidence_refs":[{"ref":"x","kind":"MOCK"}] }

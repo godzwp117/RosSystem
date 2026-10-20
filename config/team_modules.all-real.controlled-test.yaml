@@ -1,0 +1,56 @@
+# 三个真实成员模块联合运行配置 —— **受控测试**版本（受信任本地文件）
+#
+# 与 config/team_modules.all-real.yaml 的唯一区别
+# ------------------------------------------------
+# comm_risk 的命令多一个 --controlled-test。它让"未通过验证门槛的模型"
+# 在低于阈值时也能给出 NORMAL，从而让整条链路走到
+# READY_FOR_GATEWAY_SUBMISSION，用来**演示/验证协议链路**。
+#
+# 限制（必须原样保留，不得删除）
+# ------------------------------
+# * 该 flag 只能出现在受信任本地配置里；业务 JSON 无法打开它。
+# * 模块输出里会带 `CONTROLLED_TEST_ONLY` 依据与
+#   extensions.member1_comm.controlled_test=true；审计日志一并保存。
+# * 因此本配置下得到的 READY / Gateway ALLOW / NavigationSim 执行**不构成**
+#   任何"检测有效"或"身份已认证"的结论。真实链路结论见 all-real.yaml。
+# * identity_trust 仍然只能给出 `current_request_identity = UNKNOWN`，
+#   所以本配置同样会被 F0 阻断——这是刻意保留的：历史授权不得冒充当前身份。
+#   若要演示 READY，只能把 identity_trust 换回明确标注的 Mock
+#   （见 config/team_modules.member1.real.yaml / 相关验收测试）。
+adapter:
+  log_path: logs/all-real-controlled/adapter.jsonl
+  planner_command: [ros2, run, rg_demo_nodes, planner_node]
+
+modules:
+  comm_risk:
+    mode: external
+    interface: comm_risk_evidence
+    command: [python3, modules/member1_comm/module.py,
+              --model, modules/member1_comm/model/comm_risk_model.json,
+              --model-sha256, d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df,
+              --features, modules/member1_comm/features.json,
+              --controlled-test]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+  identity_trust:
+    mode: external
+    interface: identity_trust_assessment
+    command: [python3, identity_trust/assessor.py,
+              --experiment-run, "20261009T093144Z",
+              --evidence-root, artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence,
+              --policy, security/policies/minimal_permissions.xml,
+              --keystore, security/keystore,
+              --case, S2,
+              --identity-ledger, logs/all-real-controlled/identity_ledger.jsonl]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+  task_risk:
+    mode: external
+    interface: task_risk_decision
+    command: [python3, modules/member3_taskrisk/module.py,
+              --policy, config/task_policy.yaml]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
