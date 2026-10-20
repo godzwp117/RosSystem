@@ -1,10 +1,11 @@
 # RosSystem —— ROS 2 Jazzy 多模块风险评估与分层安全准入原型系统
 
-> **最终交付分支：`integration/final-deliverable-2026-10-22`**
-> 受测代码 SHA：`0563fe7cc8aab6901bb7a91d6ece3b9cdd960a04`
+> **最终交付分支：`integration/final-acceptance-hardening-2026-10-22`**
+> 受测代码 SHA：`ba16e7f39261bd5898a186d29561170a46c950d5`
+> 上一版稳定回退：`integration/final-deliverable-2026-10-22` @ `70fefa47a4333cf2bb3e1631525366897a3cbc81`
 > 交付日期：2026-10-22
-> 验收结论：**`FINAL_CONTROLLED_SYSTEM_PASS`**（受控系统交付通过）
-> 三真实 LEVEL 3：**`BLOCKED`**（原因见 §2.4 与 §9）
+> 验收结论：**`FINAL_CONTROLLED_SYSTEM_PASS`**（受控系统交付通过，验收器已加固）
+> 三真实 LEVEL 3：**`BLOCKED`**（原因见 §0.1 与 §9）
 
 ---
 
@@ -48,18 +49,20 @@ scripts/final_system.sh --mode acceptance          # 全量验收
 | 项目 | 结果 | 证据 |
 | --- | --- | --- |
 | 公共契约 | **PASS** | `contracts.log` |
-| 全仓单元测试 | **826 passed, 1 skipped** | `unit_tests.log` |
+| 全仓单元测试 | **847 passed, 1 skipped** | `unit_tests.log` |
 | F0 P0 安全反例 | **38 passed** | `f0_p0.log` |
 | 三真实 External | 调用 PASS / Schema PASS / **F0 BLOCK（预期）** | `three_real/` |
-| 受控在线正向 | Gateway 审计 5 行 / NavSim Goal **1** | `controlled_online/` |
+| 受控在线正向 | **request_id 级严格验收 PASS**（40 checks），Gateway ALLOW / NavSim Goal **1** | `controlled_online/controlled_verification.json` |
 | Gateway 独立阻断 | **BLOCK，Goal 0** | `controlled_online/` |
-| M3 在线六场景 | **19 checks / 0 failures / PASS** | `m3_online/merged/verification.json` |
+| M3 在线六场景 | **39 checks / 0 failures / PASS**，`claims_checked=true` | `m3_online/merged/verification.json` |
 | 正式 DDS Enforce | **7/7 PASS** | `dds_enforce/` |
+| 验收器反例测试 | **21 项全部被正确拒绝** | `tests/unit/test_final_controlled_verifier.py` |
 | 全量验收 | **`ACCEPTANCE=PASS`** | `summary.txt` |
 
 证据根目录：
-`artifacts/integration/final-deliverable-2026-10-22/final-20261020T160207Z-v3/`
-（含 `SHA256SUMS.txt`，可 `sha256sum -c` 复核）
+`artifacts/integration/final-deliverable-2026-10-22/harden-20261020T171740Z/`
+（含 `SHA256SUMS.txt`，可 `sha256sum -c` 复核；
+首轮失败证据保留在 `harden-20261020T170655Z/`）
 
 ### 0.4 两种运行模式的本质区别
 
@@ -71,6 +74,20 @@ scripts/final_system.sh --mode acceptance          # 全量验收
 **严格模式的 BLOCK 是正确安全行为，不是系统故障。**
 正式 DDS Enforce 是**第三类独立实验**，运行在正式权限绑定的域上，
 不能与在线模式拼成"同次安全通信链路"。
+
+### 0.5 两个容易误解的事实（务必区分）
+
+**Planner TIMEOUT ≠ Gateway BLOCK，也 ≠ 未执行。**
+本轮 ON-06 实测：Planner 超时，但 Gateway **到达 1、ALLOW、执行 1、NavSim Goal 1**。
+上一轮同一场景是「到达 0 / Goal 0」。两种都真实出现过，
+因此任何"超时即阻断"的推断都是错的。
+没有 Action 取消协议证据，**不得声明请求已取消**。
+
+**`--check` ≠ 正式验收预检。**
+`--check` 是诊断模式，允许 WARN，`CHECK_RESULT=PASS` 只表示列出的条件通过；
+`--mode acceptance` 启用严格预检，SHA 不完整、工作树脏、ROS 未 source、
+colcon 缺失、包未构建、jsonschema 缺失或有残留节点，都会直接
+`PREFLIGHT_FAIL` 并非零退出。
 
 ---
 

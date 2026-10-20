@@ -1,0 +1,36 @@
+{
+  "scenarios": {
+    "ON01": {
+      "gateway_arrival": 1,
+      "navsim_goals": 1,
+      "gateway_decision": "ALLOW",
+      "gateway_reason_code": "ALLOW_IN_POLICY",
+      "gateway_execution": 1
+    },
+    "ON02": {
+      "gateway_arrival": 0,
+      "navsim_goals": 0
+    },
+    "ON05": {
+      "gateway_arrival": 1,
+      "navsim_goals": 0,
+      "gateway_decision": "BLOCK",
+      "gateway_reason_code": "OUT_OF_REGION"
+    },
+    "ON03": {
+      "gateway_arrival": 0,
+      "navsim_goals": 0
+    },
+    "ON04": {
+      "gateway_arrival": 0,
+      "navsim_goals": 0
+    },
+    "ON06": {
+      "gateway_arrival": 1,
+      "navsim_goals": 1,
+      "gateway_decision": "ALLOW",
+      "gateway_reason_code": "ALLOW_IN_POLICY",
+      "gateway_execution": 1
+    }
+  }
+}

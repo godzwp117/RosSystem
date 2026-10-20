@@ -1,0 +1,37 @@
+{
+  "hardened_tested_code_sha": "ba16e7f39261bd5898a186d29561170a46c950d5",
+  "code_commit_sha": "d0c6450035f0156a111e7c6c632cf77253789613",
+  "start_point": "70fefa47a4333cf2bb3e1631525366897a3cbc81",
+  "run_id": "harden-20261020T171740Z",
+  "environment": {
+    "container": "rg_harden",
+    "online_domain": 75,
+    "formal_domains": [
+      42,
+      43
+    ]
+  },
+  "results": {
+    "contracts": "PASS",
+    "f0_p0": "38 passed",
+    "unit_full": "847 passed, 1 skipped",
+    "controlled_verifier": {
+      "verdict": "PASS",
+      "checks": 40,
+      "failures": 0
+    },
+    "m3_online": {
+      "verdict": "PASS",
+      "checks": 39,
+      "failures": 0,
+      "claims_checked": true
+    },
+    "dds_enforce": "7/7 PASS",
+    "three_real": "BLOCK (expected)",
+    "acceptance": "PASS"
+  },
+  "notes": [
+    "首轮因缺少本地 security/keystore fixture 导致 DDS Enforce 失败；",
+    "补齐后整轮重跑通过，失败轮证据保留在 harden-20261020T170655Z。"
+  ]
+}
