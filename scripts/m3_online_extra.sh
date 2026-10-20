@@ -31,17 +31,49 @@ JOURNAL="$OUT/navsim_goals.jsonl"
 : > "$JOURNAL"
 
 PIDS=()
+trap cleanup EXIT
+trap 'on_signal INT' INT
+trap 'on_signal TERM' TERM
 cleanup() {
-  local p
+  # 幂等：重复调用不能报错，也不能杀死别人的进程。
+  # 只作用于本脚本记录过的进程组。
+  local p rc=0
   for p in "${PIDS[@]:-}"; do
-    [ -n "$p" ] && { kill -TERM "-$p" 2>/dev/null || true; }
+    [ -n "$p" ] && { kill -TERM "-$p" 2>/dev/null || kill -TERM "$p" 2>/dev/null || true; }
   done
   sleep 2
   for p in "${PIDS[@]:-}"; do
     if [ -n "$p" ] && kill -0 "-$p" 2>/dev/null; then
       kill -KILL "-$p" 2>/dev/null || true
+      rc=1
     fi
   done
+  wait 2>/dev/null || true
+  return ${rc}
+}
+
+check_stray() {
+  # 只统计**仍存活且非僵尸**的进程组。
+  # 为什么不用 `kill -0 -$p`：进程组在成员被回收前会短暂存在，
+  # 且组内可能只剩僵尸（Z），直接判存活会产生误报。
+  # 也不用 `pgrep -f pattern`：它会匹配到调用者自身的命令行。
+  local n=0 p live
+  for p in "${PIDS[@]:-}"; do
+    [ -z "$p" ] && continue
+    live=$(ps -o stat= -g "$p" 2>/dev/null | grep -vc '^Z' || true)
+    if [ "${live:-0}" -gt 0 ]; then
+      n=$((n + 1))
+    fi
+  done
+  echo "STRAY_GROUPS=${n}"
+  [ "${n}" -eq 0 ]
+}
+
+on_signal() {
+  echo "收到 $1，执行清理"
+  cleanup || true
+  trap - EXIT
+  exit 130
 }
 trap cleanup EXIT
 
@@ -99,7 +131,15 @@ echo
 echo "=== 关闭 ==="
 cleanup
 trap - EXIT
+trap - INT
+trap - TERM
 sleep 1
-echo "STRAY=$(ps -eo cmd | grep -E 'rg_gateway|rg_demo_nodes' | grep -v grep | wc -l)"
-echo "audit 行数: $(wc -l < "$AUDIT")  journal 行数: $(wc -l < "$JOURNAL")"
-echo "DONE_EXTRA"
+if check_stray; then
+  echo "audit 行数: $(wc -l < "$AUDIT")  journal 行数: $(wc -l < "$JOURNAL")"
+  echo "DONE_EXTRA"
+  exit 0
+else
+  echo "ERROR: 本轮仍有残留进程组；清理未完全成功" >&2
+  echo "audit 行数: $(wc -l < "$AUDIT")  journal 行数: $(wc -l < "$JOURNAL")"
+  exit 1
+fi
