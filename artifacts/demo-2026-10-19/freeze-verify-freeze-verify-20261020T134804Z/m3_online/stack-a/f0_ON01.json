@@ -1,0 +1,147 @@
+{
+  "adapter_version": "0.1.0",
+  "contract_version": "1.0.0-proposed",
+  "invocation_id": "e5b95d5d34a0",
+  "checked_at": "2026-10-20T13:48:32Z",
+  "decision": "READY_FOR_GATEWAY_SUBMISSION",
+  "reason_code": "ADAPTER_OK",
+  "detail": "三个模块状态均为推进状态（受控身份模式，非真实身份认证）",
+  "run_id": "freeze-verify-20261020T134804Z",
+  "request_id": "on01-legal-allow-freeze-verify-20261020T134804Z",
+  "modules": [
+    {
+      "invocation_id": "e5b95d5d34a0",
+      "module": "comm_risk",
+      "mode": "mock",
+      "interface": "comm_risk_evidence",
+      "command": [
+        "python3",
+        "mock_modules/comm_risk_mock.py"
+      ],
+      "timeout_sec": 10.0,
+      "max_stdout_bytes": 65536,
+      "pid": 639,
+      "pgid": 639,
+      "exit_code": 0,
+      "duration_ms": 15,
+      "stdout_bytes": 912,
+      "status": "NORMAL",
+      "schema_ok": true,
+      "cleanup": "not_needed",
+      "stderr_bytes_kept": 35
+    },
+    {
+      "invocation_id": "e5b95d5d34a0",
+      "module": "identity_trust",
+      "mode": "mock",
+      "interface": "identity_trust_assessment",
+      "command": [
+        "python3",
+        "mock_modules/identity_trust_mock.py"
+      ],
+      "timeout_sec": 10.0,
+      "max_stdout_bytes": 65536,
+      "pid": 640,
+      "pgid": 640,
+      "exit_code": 0,
+      "duration_ms": 15,
+      "stdout_bytes": 1264,
+      "status": "AUTHORIZED",
+      "schema_ok": true,
+      "cleanup": "not_needed",
+      "stderr_bytes_kept": 43
+    },
+    {
+      "invocation_id": "e5b95d5d34a0",
+      "module": "task_risk",
+      "mode": "external",
+      "interface": "task_risk_decision",
+      "command": [
+        "python3",
+        "modules/member3_taskrisk/module.py"
+      ],
+      "timeout_sec": 10.0,
+      "max_stdout_bytes": 65536,
+      "pid": 641,
+      "pgid": 641,
+      "exit_code": 0,
+      "duration_ms": 71,
+      "stdout_bytes": 1806,
+      "status": "ALLOW_RECOMMENDED",
+      "schema_ok": true,
+      "cleanup": "not_needed",
+      "stderr_bytes_kept": 35
+    }
+  ],
+  "adapter_peak_rss_kb": 29248,
+  "note": "本结果仅表示适配层的候选输入检查结论；READY_FOR_GATEWAY_SUBMISSION 不代表 Gateway 已允许，也不代表下游已执行。本层不提交真实 Action。",
+  "identity_attestation": {
+    "mode": "CONTROLLED_TEST_ONLY",
+    "controlled_reason": "RC2 受控演示：identity_trust 为 MOCK，身份结论来自模块自报，不构成真实 DDS 身份认证",
+    "verified": false,
+    "verified_by": "MODULE_SELF_REPORT",
+    "caveat": "受控身份模式：身份结论来自模块自报，不构成真实 DDS 身份认证"
+  },
+  "audit_written": true,
+  "online": {
+    "enabled": true,
+    "submitted": true,
+    "workdir": "/ws",
+    "run_id": "freeze-verify-20261020T134804Z",
+    "request_id": "on01-legal-allow-freeze-verify-20261020T134804Z",
+    "planner_command": [
+      "ros2",
+      "run",
+      "rg_demo_nodes",
+      "planner_node",
+      "--ros-args",
+      "-p",
+      "task_id:=patrol_a_001",
+      "-p",
+      "request_id:=on01-legal-allow-freeze-verify-20261020T134804Z",
+      "-p",
+      "frame_id:=map",
+      "-p",
+      "target_x:=1.5",
+      "-p",
+      "target_y:=1.5",
+      "-p",
+      "target_z:=0.0"
+    ],
+    "planner_timeout_sec": 30.0,
+    "planner_pid": 642,
+    "planner_pgid": 642,
+    "duration_ms": 612,
+    "stderr_tail": "",
+    "planner_exit_code": 0,
+    "planner_result": {
+      "request_id": "on01-legal-allow-freeze-verify-20261020T134804Z",
+      "task_id": "patrol_a_001",
+      "frame_id": "map",
+      "target": {
+        "x": 1.5,
+        "y": 1.5,
+        "z": 0.0
+      },
+      "egress_action": "/rg/guarded_navigate",
+      "goal_id": "ccccda5c6a3642929c6dec8baf2e5bf1",
+      "outcome": "RESULT",
+      "accepted": true,
+      "goal_status": "STATUS_SUCCEEDED",
+      "success": true,
+      "status_code": "EXECUTED",
+      "detail": "recorded target (1.5, 1.5, 0.0) in frame map; no path planning performed",
+      "feedback_seen": {
+        "progress": 0.5,
+        "phase": "DOWNSTREAM:EXECUTING"
+      }
+    },
+    "outcome": "PLANNER_RESULT_RECEIVED",
+    "detail": "recorded target (1.5, 1.5, 0.0) in frame map; no path planning performed",
+    "status_code": "EXECUTED",
+    "success": true,
+    "goal_id": "ccccda5c6a3642929c6dec8baf2e5bf1",
+    "goal_status": "STATUS_SUCCEEDED",
+    "accepted": true
+  }
+}
