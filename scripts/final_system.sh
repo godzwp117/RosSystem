@@ -115,6 +115,37 @@ check_env() {
     docker inspect "$CONTAINER" >/dev/null 2>&1 || { echo "  [FAIL] 容器 $CONTAINER 不存在" >&2; fail=1; }
   fi
 
+  # 正式验收的**强制**预检：这些条件不满足就直接 PREFLIGHT_FAIL。
+  # 与 --check 的诊断模式不同：诊断允许 WARN，正式验收不允许。
+  if [ "${STRICT_PREFLIGHT:-0}" = "1" ]; then
+    local sha; sha="$(git rev-parse HEAD 2>/dev/null || echo '')"
+    if ! printf '%s' "$sha" | grep -qE '^[0-9a-f]{40}$'; then
+      echo "  [PREFLIGHT_FAIL] 无法取得完整 40 位 SHA" >&2; fail=1
+    fi
+    if [ "$DIFFTY" -ne 0 ]; then
+      echo "  [PREFLIGHT_FAIL] 正式验收要求工作树干净，当前 $DIFFTY 项未提交" >&2; fail=1
+    fi
+    if [ -z "${ROS_DISTRO:-}" ]; then
+      echo "  [PREFLIGHT_FAIL] ROS 2 环境未 source（ROS_DISTRO 为空）" >&2; fail=1
+    fi
+    if ! command -v colcon >/dev/null 2>&1; then
+      echo "  [PREFLIGHT_FAIL] colcon 不可用" >&2; fail=1
+    fi
+    for pkg in rg_interfaces rg_demo_nodes rg_gateway; do
+      if ! ros2 pkg prefix "$pkg" >/dev/null 2>&1; then
+        echo "  [PREFLIGHT_FAIL] 找不到已构建的 ROS 2 包 $pkg" >&2; fail=1
+      fi
+    done
+    if ! python3 -c 'import jsonschema' >/dev/null 2>&1; then
+      echo "  [PREFLIGHT_FAIL] python3 缺少 jsonschema" >&2; fail=1
+    fi
+    local stray
+    stray=$(pgrep -fc 'rg_gateway|rg_demo_nodes' 2>/dev/null || echo 0)
+    if [ "${stray:-0}" -gt 0 ]; then
+      echo "  [PREFLIGHT_FAIL] 检测到 ${stray} 个残留 ROS 节点，可能干扰验收" >&2; fail=1
+    fi
+  fi
+
   record "check_env" "$fail" "final_system.sh --check"
   if [ "$fail" -eq 0 ]; then
     log "自检通过"
@@ -185,18 +216,21 @@ run_controlled() {
   record "controlled_online" "$rc" "m3_online_drive.sh (domain $ONLINE_DOMAIN)"
   [ "$rc" -ne 0 ] && { echo "  [FAIL] 受控在线" >&2; tail -10 "$ev/drive.log" >&2; return 1; }
 
-  local audit="$ev/stack-a/gateway_audit.jsonl"
-  local journal="$ev/stack-a/navsim_goals.jsonl"
-  local n_audit n_goal
-  n_audit=$(wc -l < "$audit" 2>/dev/null || echo 0)
-  n_goal=$(wc -l < "$journal" 2>/dev/null || echo 0)
-  echo "  Gateway 审计 $n_audit 行 / NavSim journal $n_goal 行"
-  if [ "$n_audit" -lt 2 ] || [ "$n_goal" -lt 1 ]; then
-    echo "  [FAIL] 受控在线证据不足（期望至少 2 条审计、1 个 Goal）" >&2
+  # 行数断言不足以证明每个 request 的决策正确（两个都 BLOCK 加一条无关 Goal
+  # 也能过），改用 request_id 级严格验证器逐场景核对不变量。
+  python3 scripts/verify_final_controlled_online.py \
+      --run-dir "$ev/stack-a" \
+      --json-out "$ev/controlled_verification.json" \
+      --md-out "$ev/controlled_verification.md" \
+      > "$ev/verifier.log" 2>&1
+  local rc_v=$?
+  record "controlled_verifier" "$rc_v" "verify_final_controlled_online.py"
+  cat "$ev/verifier.log"
+  if [ "$rc_v" -ne 0 ]; then
+    echo "  [FAIL] request_id 级受控在线验收未通过" >&2
     return 1
   fi
-  echo "  [PASS] 受控在线（合法执行 + Gateway 独立阻断）"
-  return 0
+  echo "  [PASS] 受控在线 request_id 级严格验收"
 }
 
 # ---------------------------------------------------------------- M3 六场景
@@ -236,7 +270,57 @@ for stack in ('stack-a', 'stack-b'):
 json.dump({'scenarios': rows}, open(os.path.join(ev, 'merged', 'manifest.json'), 'w'),
           ensure_ascii=False, indent=2)
 PY
+  # 由**原始日志**生成 claims（不是从报告文案反填），再交由验证器比对
+  python3 - "$ev/merged" <<'PYCLAIMS'
+import json, os, sys
+merged = sys.argv[1]
+
+def load(name):
+    path = os.path.join(merged, name)
+    if not os.path.exists(path):
+        return []
+    rows = []
+    with open(path, encoding='utf-8') as fh:
+        for line in fh:
+            line = line.strip()
+            if line:
+                try:
+                    rows.append(json.loads(line))
+                except ValueError:
+                    pass
+    return rows
+
+audit = load('gateway_audit.jsonl')
+journal = load('navsim_goals.jsonl')
+manifest = json.load(open(os.path.join(merged, 'manifest.json'), encoding='utf-8'))
+claims = {}
+for entry in manifest.get('scenarios') or []:
+    cid = entry.get('cid')
+    rid = entry.get('request_id')
+    if not cid or not rid:
+        continue
+    decisions = [r for r in audit if r.get('request_id') == rid
+                 and r.get('event_type') == 'DecisionEvent']
+    goals = [g for g in journal if g.get('request_id') == rid]
+    row = {
+        'gateway_arrival': len([r for r in audit if r.get('request_id') == rid
+                                and r.get('event_type') == 'RosCommEvent']),
+        'navsim_goals': len(goals),
+    }
+    if decisions:
+        row['gateway_decision'] = decisions[0].get('decision')
+        if decisions[0].get('reason_code'):
+            row['gateway_reason_code'] = decisions[0].get('reason_code')
+    if goals:
+        row['gateway_execution'] = 1
+    claims[cid] = row
+json.dump({'scenarios': claims}, open(os.path.join(merged, 'claims.json'), 'w'),
+          ensure_ascii=False, indent=2)
+print('claims 已从原始日志生成:', ', '.join(sorted(claims)))
+PYCLAIMS
+
   python3 scripts/verify_m3_online_evidence.py --run-dir "$ev/merged" \
+      --claims "$ev/merged/claims.json" \
       --json-out "$ev/merged/verification.json" --md-out "$ev/merged/verification.md" \
       > "$ev/verify.log" 2>&1
   local rc_v=$?
@@ -291,7 +375,7 @@ case "$MODE" in
     ;;
   acceptance)
     rc_all=0
-    check_env || rc_all=1
+    STRICT_PREFLIGHT=1 check_env || rc_all=1
     run_host_tests || rc_all=1
     run_three_real || rc_all=1
     run_controlled || rc_all=1
