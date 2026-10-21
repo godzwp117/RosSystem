@@ -8,10 +8,10 @@
 
 | 包 | 文件 | 大小 | SHA-256 |
 | --- | --- | --- | --- |
-| 离线回放包 | `RosSystem-creative-work-1.1.0.tar.gz` | 68417 B | `d606ce793283cb42515053ce48f6a59a81934a1f27c10d2e2cce064651f91c65` |
-| **完整在线包** | `RosSystem-CreativeWork-Full-1.1.0.tar.gz` | 2177850 B | `82c2f0ff31d20276986937326fcb685d5397b8554003a559c47ef24cd41f8982` |
+| 离线回放包 | `RosSystem-creative-work-1.1.0.tar.gz` | 69628 B | `45026b057643e80262a2ba82c05b3ab781e201d80e08be0c5323081f9a2a5057` |
+| **完整在线包** | `RosSystem-CreativeWork-Full-1.1.0.tar.gz` | 2179249 B | `c47b7a5b6bc933d22cd3fd6cf023f360648f200f94e2b740f4a3e1d1244aa9e0` |
 
-构建来源：`artifact_commit=dac01935df4503d683dd66256a05940dacf87f44`，
+构建来源：`artifact_commit=d50604452603ea3dbd5cd7d067f6eef967fb48c1`，
 构建时工作树干净（`source_tree_dirty_entries=0`）。1.0.3 标签与旧包保持不变。
 
 ### 1.1.0 变更
