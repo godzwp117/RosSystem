@@ -41,6 +41,7 @@ for item in dashboard replay tests docs run.sh stop.sh verify_package.sh README.
   cp -a "$HERE/$item" "$ROOT/"
 done
 cp -a "$HERE/package_full.sh" "$ROOT/"
+if [ -d "$HERE/reports" ]; then cp -a "$HERE/reports" "$ROOT/"; fi
 
 echo "== 2) 运行源码（白名单，保持仓库相对布局） =="
 mkdir -p "$ROOT/runtime"
@@ -68,6 +69,17 @@ cp -a "$REPO/docs/interfaces" "$ROOT/runtime/docs/"
 for f in README.md environment.md requirements.md; do
   if [ -f "$REPO/$f" ]; then cp -a "$REPO/$f" "$ROOT/runtime/"; fi
 done
+
+echo "== 2b) 1.1.0 研究证据（只含非秘密材料） =="
+mkdir -p "$ROOT/evidence"
+for d in m2_sros2_enforce_v110 m2_sros2_enforce_v110_negative m2_lab_identity_v110 m2_gateway_identity_v110 research_v110; do
+  src="$REPO/artifacts/acceptance/exports/$d"
+  [ -d "$src" ] || { echo "ERROR: 缺少研究证据目录 $d" >&2; exit 1; }
+  cp -a "$src" "$ROOT/evidence/"
+done
+if find "$ROOT/evidence" -type f \( -name '*.pem' -o -name '*.key' -o -name '*.p7s' \) | grep -q .; then
+  echo "ERROR: 研究证据中包含密钥/证书材料，拒绝打包" >&2; exit 1
+fi
 
 echo "== 3) Docker 运行环境 =="
 cp -a "$HERE/docker" "$ROOT/"
@@ -136,6 +148,8 @@ REQUIRED=(
   runtime/src/rg_gateway/package.xml
   runtime/identity_trust/assessor.py
   runtime/BUILD_INFO.json
+  reports/ROSYSTEM_1_1_0_RESEARCH_AND_SECURITY_VALIDATION_REPORT.md
+  evidence/research_v110/p01_p12_matrix.json
   dashboard/server.py
   dashboard/docker_runtime.py
   dashboard/evidence_loader.py

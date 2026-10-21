@@ -3,7 +3,7 @@
 ## 1. 只看法则（评委 60 秒路径）
 
 ```bash
-tar -xzf RosSystem-creative-work-1.0.0.tar.gz && cd RosSystem-creative-work-1.0.0
+tar -xzf RosSystem-creative-work-1.1.0.tar.gz && cd RosSystem-creative-work-1.1.0
 ./run.sh
 ```
 浏览器打开 `http://127.0.0.1:8787/` → 点击 **离线回放** → 依次查看：
@@ -29,7 +29,7 @@ tar -xzf RosSystem-creative-work-1.0.0.tar.gz && cd RosSystem-creative-work-1.0.
 ## 4. 重新打包与校验
 
 ```bash
-./package.sh 1.0.0
+./package.sh 1.1.0
 ./verify_package.sh
 ```
 `verify_package.sh` 会解包、真实启动、请求页面与接口，并检查包内不含密钥材料。
@@ -38,11 +38,11 @@ tar -xzf RosSystem-creative-work-1.0.0.tar.gz && cd RosSystem-creative-work-1.0.
 ## 5. 完整在线包（需要 Docker）
 
 ```bash
-tar -xzf RosSystem-CreativeWork-Full-1.0.1.tar.gz
+tar -xzf RosSystem-CreativeWork-Full-1.1.0.tar.gz
 cd RosSystem-CreativeWork-Full
 python3 dashboard/docker_runtime.py "$PWD"   # 先看在线条件是否齐备
 ./docker/build-runtime.sh                    # 构建运行镜像（需联网拉 ros:jazzy 一次）
-export ROS_IMAGE=rosystem-jazzy:1.0.0
+export ROS_IMAGE=rosystem-jazzy:1.1.0
 ./run.sh                                     # 界面应显示 ONLINE READY
 ```
 

@@ -12,7 +12,7 @@ mkdir -p "$OUT"
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 
-for item in dashboard replay tests docs run.sh stop.sh package.sh package_full.sh verify_package.sh README.md; do
+for item in dashboard replay tests docs reports run.sh stop.sh package.sh package_full.sh verify_package.sh README.md; do
   [ -e "$HERE/$item" ] || { echo "ERROR: 缺少 $item" >&2; exit 1; }
   cp -a "$HERE/$item" "$STAGE/"
 done
@@ -25,6 +25,7 @@ if [ -n "$BAD" ]; then
 fi
 
 REQUIRED=(run.sh stop.sh dashboard/server.py dashboard/evidence_loader.py \
+          reports/ROSYSTEM_1_1_0_RESEARCH_AND_SECURITY_VALIDATION_REPORT.md \
           dashboard/run_controller.py dashboard/docker_runtime.py \
           dashboard/static/index.html dashboard/static/app.js \
           dashboard/static/style.css replay/replay_manifest.json README.md)

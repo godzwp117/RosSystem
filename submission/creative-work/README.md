@@ -3,7 +3,7 @@
 > **作品名称**：RosSystem —— 面向 ROS 2 机器人任务执行的多源可信证据融合与可审计分层安全准入系统
 > **受测代码 SHA**：`2f3de257c9eac873093201292f6b2a9571da4f03`
 > **正式提交分支**：`release/final-submission-closeout-2026-10-22` @ `c5556e4be7008029c5a2b2b7b5fb752aa4b12c62`
-> **作品包版本**：1.0.0
+> **作品包版本**：1.1.0（研究分支，非 1.0.3 冻结提交）
 
 本包把已完成工程与安全验收的 RosSystem 转化为**评委可实际运行**的参赛作品。
 
@@ -13,8 +13,8 @@
 
 | 包 | 内容 | 用途 |
 | --- | --- | --- |
-| `RosSystem-creative-work-1.0.1.tar.gz`（约 42 KB） | 控制台 + 回放快照 + 文档 | **离线回放**，无需 Docker/ROS 2 |
-| `RosSystem-CreativeWork-Full-1.0.1.tar.gz`（约 1.5 MB） | 上述 + `runtime/`（ROS 2 源码/脚本/配置/接口）+ `docker/` | **在线演示**，需 Docker + ROS 2 Jazzy |
+| `RosSystem-creative-work-1.1.0.tar.gz`（约 42 KB） | 控制台 + 回放快照 + 文档 | **离线回放**，无需 Docker/ROS 2 |
+| `RosSystem-CreativeWork-Full-1.1.0.tar.gz`（约 1.5 MB） | 上述 + `runtime/`（ROS 2 源码/脚本/配置/接口）+ `docker/` | **在线演示**，需 Docker + ROS 2 Jazzy |
 
 完整包内的 `runtime/` 已包含 `scripts/final_system.sh`、`src/`、`modules/`、`config/`、
 `docs/interfaces/`、`identity_trust/`、`security/policies`；
@@ -23,7 +23,7 @@
 ## 立即运行（无需 ROS 2）
 
 ```bash
-tar -xzf RosSystem-creative-work-1.0.0.tar.gz
+tar -xzf RosSystem-creative-work-1.1.0.tar.gz
 cd <解包目录>
 ./run.sh              # 默认 http://127.0.0.1:8787/
 # 浏览器打开后点击「离线回放」
