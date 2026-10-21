@@ -1,0 +1,2 @@
+PLANNER_RESULT {"request_id": "req-gw-lab-003", "task_id": "patrol_a_001", "frame_id": "map", "target": {"x": 1.5, "y": 1.5, "z": 0.0}, "egress_action": "/rg/guarded_navigate", "goal_id": "9063ab7fdb514b34be124b8cc43f4189", "outcome": "RESULT", "accepted": true, "goal_status": "STATUS_ABORTED", "success": false, "status_code": "IDENTITY_ATTESTATION_REJECTED", "detail": "证据与当前请求不匹配：request_digest", "feedback_seen": null}
+[INFO] [1792604788.642656433] [rcl]: Found security directory: /ws/artifacts/research/v110/m2-ingress/keystore/enclaves/planner

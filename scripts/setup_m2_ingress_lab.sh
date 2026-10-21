@@ -20,7 +20,7 @@ POLICY_CTR="${RG_CONTAINER_WS}/security/policies/research/m2_ingress_lab.xml"
 KEYSTORE_HOST="${RG_WS_HOST}/artifacts/research/v110/m2-ingress/keystore"
 KEYSTORE_CTR="${RG_CONTAINER_WS}/artifacts/research/v110/m2-ingress/keystore"
 DOMAIN="${RG_M2_INGRESS_DOMAIN:-45}"
-ENCLAVES="/witness /planner /operator /rogue"
+ENCLAVES="/witness /planner /operator /gateway /navsim /rogue"
 
 if [ ! -f "${POLICY_HOST}" ]; then
   echo "ERROR: research policy missing: ${POLICY_HOST}" >&2
@@ -51,8 +51,18 @@ keystore = pathlib.Path(sys.argv[1])
 domain = sys.argv[2]
 expected = {
     'witness': ('CN=/witness', {'subscribe': {'rt/m2/candidate_task'}}, set()),
-    'planner': ('CN=/planner', {'publish': {'rt/m2/candidate_task'}}, set()),
+    'planner': ('CN=/planner', {
+        'publish': {'rt/m2/candidate_task',
+                    'rq/rg/guarded_navigate/_action/send_goalRequest'},
+        'subscribe': {'rr/rg/guarded_navigate/_action/send_goalReply'}}, set()),
     'operator': ('CN=/operator', {'publish': {'rt/m2/candidate_task'}}, set()),
+    'gateway': ('CN=/gateway', {
+        'publish': {'rq/rg/nav_execute/_action/send_goalRequest',
+                    'rr/rg/guarded_navigate/_action/send_goalReply'},
+        'subscribe': {'rr/rg/nav_execute/_action/send_goalReply'}}, set()),
+    'navsim': ('CN=/navsim', {
+        'subscribe': {'rq/rg/nav_execute/_action/send_goalRequest'},
+        'publish': {'rr/rg/nav_execute/_action/send_goalReply'}}, set()),
     'rogue': ('CN=/rogue', {'publish': {'rt/m2/not_the_ingress'}}, set()),
 }
 errors = []

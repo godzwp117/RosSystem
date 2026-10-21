@@ -80,3 +80,4 @@ artifacts/research/**/keystore/
 # LAB-ONLY identity issuer keys (TEST_ONLY, never committed)
 /security/lab/
 /artifacts/research/**/m2-ingress/keystore/
+/artifacts/research/**/keystore/

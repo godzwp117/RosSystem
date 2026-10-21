@@ -1,0 +1,67 @@
+{
+  "contract": "gateway-identity-lab/1",
+  "run_id": "v110gwlab-20261021T192500Z",
+  "scope": "TEST_ONLY_LAB",
+  "secure_domain": 45,
+  "checks": [
+    {
+      "check": "G1 planner gets EXECUTED through the gateway",
+      "result": "PASS",
+      "detail": "EXECUTED"
+    },
+    {
+      "check": "G1 NavigationSim receives exactly 1 Goal",
+      "result": "PASS",
+      "detail": "1"
+    },
+    {
+      "check": "G1 Gateway TaskPolicy decision is ALLOW",
+      "result": "PASS",
+      "detail": "1"
+    },
+    {
+      "check": "G1 Gateway independently verified the identity attestation",
+      "result": "PASS",
+      "detail": "{'event_type': 'GatewayIdentityCheck', 'observed_at': '2026-10-21T17:46:09.560Z', 'enabled': True, 'request_id': 'req-gw-lab-001', 'decision': 'ALLOW', 'verified': True, 'status': 'AUTHENTICATED_LAB', 'scope': 'LAB', 'reason_code': None, 'reason': 'attestation verified at the gateway (LAB scope)', 'checks': {'signature': 'VALID', 'issuer': 'VERIFIED_LAB_IDENTITY_SOURCE', 'request_binding': 'MATCH', 'freshness': 'OK', 'replay': 'RESERVED'}, 'binding': 'CURRENT_REQUEST_BOUND_TO_LAB_DDS_OBSERVED_SUBJECT', 'attestation_sha256': 'a2c07f14a0b92e532578de4097a262244733eeda351c70358c6fb9328b60f288'}"
+    },
+    {
+      "check": "G2 missing attestation blocks at the gateway",
+      "result": "PASS",
+      "detail": "{'event_type': 'DecisionEvent', 'event_id': '117f65f492b349c1bc86df3866b79990', 'request_id': 'req-gw-lab-002', 'task_id': 'patrol_a_001', 'policy_version': '1.0', 'decision': 'BLOCK', 'reason_code': 'IDENTITY_ATTESTATION_REJECTED', 'detail': 'no attestation for this request_id', 'decision_at': '2026-10-21T17:46:10.152Z'}"
+    },
+    {
+      "check": "G2 no downstream Goal",
+      "result": "PASS",
+      "detail": "0"
+    },
+    {
+      "check": "G2 planner does not get EXECUTED",
+      "result": "PASS",
+      "detail": "IDENTITY_ATTESTATION_REJECTED"
+    },
+    {
+      "check": "G3 attestation bound to a different target is rejected",
+      "result": "PASS",
+      "detail": "{'event_type': 'DecisionEvent', 'event_id': '5e34b0eff7904e5a90910909c61bbb87', 'request_id': 'req-gw-lab-003', 'task_id': 'patrol_a_001', 'policy_version': '1.0', 'decision': 'BLOCK', 'reason_code': 'IDENTITY_ATTESTATION_REJECTED', 'detail': '证据与当前请求不匹配：request_digest', 'decision_at': '2026-10-21T17:46:28.924Z'}"
+    },
+    {
+      "check": "G3 no downstream Goal",
+      "result": "PASS",
+      "detail": "0"
+    },
+    {
+      "check": "G3 planner does not get EXECUTED",
+      "result": "PASS",
+      "detail": "IDENTITY_ATTESTATION_REJECTED"
+    },
+    {
+      "check": "private issuer key removed",
+      "result": "PASS",
+      "detail": ""
+    }
+  ],
+  "finished_at": "2026-10-21T17:46:30Z",
+  "total": 11,
+  "passed": 11,
+  "failed": 0
+}

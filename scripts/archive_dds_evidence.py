@@ -132,7 +132,7 @@ def main(argv=None):
     summary = json.loads(summary_path.read_text(encoding='utf-8'))
     run_id = summary.get('run_id')
     contract = summary.get('contract') or 'sros2'
-    if contract in ('dds-lab-negative/1', 'm2-lab-identity/1'):
+    if contract in ('dds-lab-negative/1', 'm2-lab-identity/1', 'gateway-identity-lab/1'):
         # Negative suite: every case is paired with a same-stack positive control;
         # the suite is only archivable when all cases pass.
         if summary.get('failed') != 0 or summary.get('passed') != summary.get('total'):

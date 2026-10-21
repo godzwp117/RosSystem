@@ -1,0 +1,196 @@
+{
+  "contract": "dds-lab-evidence/1",
+  "scope": "TEST_ONLY_LAB",
+  "run_id": "v110gwlab-20261021T192500Z",
+  "archived_at": "2026-10-21T17:46:45Z",
+  "command": "docker exec rg_v110 bash -lc 'cd /ws && source /opt/ros/jazzy/setup.bash && source install/setup.bash && python3 tests/integration/gateway_identity_lab.py --run-id v110gwlab-20261021T192500Z'",
+  "exit_code": 0,
+  "normal_domain": null,
+  "secure_domain": 45,
+  "secure_domain_matches_expected": true,
+  "total": 11,
+  "passed": 11,
+  "failed": 0,
+  "policy": {
+    "path": "security/policies/research/m2_ingress_lab.xml",
+    "sha256": "6d5a0ed471aea2f57b131454b2544c6bc10f967bfc15054f69eafc9dd5414b15"
+  },
+  "ca_certificate": {
+    "subject": "CN = sros2CA",
+    "sha256_fingerprint": "BD:B2:73:92:C8:73:35:BC:B7:E1:40:B7:A1:EB:09:B5:62:04:01:B6:83:3E:B4:4A:C0:DA:C7:2F:8C:7E:4F:E2"
+  },
+  "enclaves": {
+    "gateway": {
+      "permissions_sha256": "b976c28050bcb156b3916e86b5833242bdd2df65396c24d5b057d852e7785c84",
+      "permissions_path": "keystore_permissions/gateway/permissions.xml",
+      "default_deny": true,
+      "domain_43": false,
+      "certificate": {
+        "subject": "CN = /gateway",
+        "sha256_fingerprint": "55:6A:5F:5A:66:04:A7:2F:2C:C7:D8:A3:1D:7C:BC:7F:4F:ED:04:2E:66:56:3E:EE:28:4D:B7:65:36:85:F8:8D"
+      }
+    },
+    "navsim": {
+      "permissions_sha256": "4b179f36c1cb5836da22ab93d059cd9640d26755bafe16ededfe48545bb8981f",
+      "permissions_path": "keystore_permissions/navsim/permissions.xml",
+      "default_deny": true,
+      "domain_43": false,
+      "certificate": {
+        "subject": "CN = /navsim",
+        "sha256_fingerprint": "E5:81:97:50:08:6A:E5:86:CB:5A:91:32:99:57:31:12:03:75:4A:72:A6:56:9D:B1:91:CD:68:AF:15:43:E0:B9"
+      }
+    },
+    "operator": {
+      "permissions_sha256": "2983548f9b97a035e35ae7fb4ffe45b3011d257805d635518c21984e49298232",
+      "permissions_path": "keystore_permissions/operator/permissions.xml",
+      "default_deny": true,
+      "domain_43": false,
+      "certificate": {
+        "subject": "CN = /operator",
+        "sha256_fingerprint": "25:E8:C4:04:1C:A7:4A:93:80:AC:6C:FE:DE:B0:7E:55:3C:FC:C5:7F:B7:80:88:BF:B3:5E:D1:97:DF:30:3D:2F"
+      }
+    },
+    "planner": {
+      "permissions_sha256": "b643b6133477e5405ef9278fe0fa42445591680229d252e42faa02450e2b3b5e",
+      "permissions_path": "keystore_permissions/planner/permissions.xml",
+      "default_deny": true,
+      "domain_43": false,
+      "certificate": {
+        "subject": "CN = /planner",
+        "sha256_fingerprint": "A8:17:C7:29:BC:A3:AC:67:FC:06:3B:7F:7D:67:98:D5:19:9E:43:CD:18:2E:10:79:24:54:FD:8C:FB:00:59:7D"
+      }
+    },
+    "rogue": {
+      "permissions_sha256": "f78aa0f067b346a2ed3d9b9fad2cd9489519ebea3e22e3b602f93397f2860dd4",
+      "permissions_path": "keystore_permissions/rogue/permissions.xml",
+      "default_deny": true,
+      "domain_43": false,
+      "certificate": {
+        "subject": "CN = /rogue",
+        "sha256_fingerprint": "03:6E:0A:5A:73:CE:56:72:F9:B8:49:1F:02:4E:82:2E:6E:0C:61:25:D1:20:42:48:9D:84:87:D3:B6:12:F7:24"
+      }
+    },
+    "witness": {
+      "permissions_sha256": "8e2caa256dd1fd3c62ef7d4e0a90f0fafb5fb623504f372ce6690f881b91099c",
+      "permissions_path": "keystore_permissions/witness/permissions.xml",
+      "default_deny": true,
+      "domain_43": false,
+      "certificate": {
+        "subject": "CN = /witness",
+        "sha256_fingerprint": "D2:42:5D:CA:78:AC:23:13:B4:D7:ED:3A:AB:54:73:74:BA:61:8D:27:25:A3:53:0E:14:6E:B8:5B:23:2B:82:5B"
+      }
+    }
+  },
+  "secrets_included": false,
+  "certificates_are_public_only": true,
+  "private_key_policy": "keystore private keys are never copied; the archive is not usable to impersonate any participant",
+  "git_head": "8c37ce974e3d51d9456dc8463a8318165d5d5eca",
+  "git_worktree_dirty": true,
+  "host": {
+    "uname": "Linux 6.18.54.1-microsoft-standard-WSL2"
+  },
+  "image": {
+    "name": "rosystem-verify-1.0.3:latest",
+    "digest": "rosystem-verify-1.0.3@sha256:ad4e6d2703b72c6fe09470e191edd569f6470077ddedde7ae41c8e7fc356fa75"
+  },
+  "run_stdout": null,
+  "files": {
+    "keystore_permissions/gateway/permissions.xml": {
+      "sha256": "b976c28050bcb156b3916e86b5833242bdd2df65396c24d5b057d852e7785c84",
+      "bytes": 3281
+    },
+    "keystore_permissions/navsim/permissions.xml": {
+      "sha256": "4b179f36c1cb5836da22ab93d059cd9640d26755bafe16ededfe48545bb8981f",
+      "bytes": 2669
+    },
+    "keystore_permissions/operator/permissions.xml": {
+      "sha256": "2983548f9b97a035e35ae7fb4ffe45b3011d257805d635518c21984e49298232",
+      "bytes": 1035
+    },
+    "keystore_permissions/planner/permissions.xml": {
+      "sha256": "b643b6133477e5405ef9278fe0fa42445591680229d252e42faa02450e2b3b5e",
+      "bytes": 2779
+    },
+    "keystore_permissions/rogue/permissions.xml": {
+      "sha256": "f78aa0f067b346a2ed3d9b9fad2cd9489519ebea3e22e3b602f93397f2860dd4",
+      "bytes": 1030
+    },
+    "keystore_permissions/witness/permissions.xml": {
+      "sha256": "8e2caa256dd1fd3c62ef7d4e0a90f0fafb5fb623504f372ce6690f881b91099c",
+      "bytes": 1037
+    },
+    "v110gwlab-20261021T192500Z/_gateway_stack/gateway.log": {
+      "sha256": "9d136e7ff29959848595b9598709d96622069aaffddc99f7e296015edd797f37",
+      "bytes": 2750
+    },
+    "v110gwlab-20261021T192500Z/_gateway_stack/navsim.log": {
+      "sha256": "137a120f1cb2410ab8d278415046a11ecfd25379db32a8bc1e17dfced3bf83b5",
+      "bytes": 1053
+    },
+    "v110gwlab-20261021T192500Z/_gateway_stack/navsim_goals.jsonl": {
+      "sha256": "6c67cf73ed874b6d7b43f6cc2b849c5076fa82d881d000e3b79d79d4ab276d5b",
+      "bytes": 275
+    },
+    "v110gwlab-20261021T192500Z/_gateway_stack/planner.log": {
+      "sha256": "f05cf81f2d1dd7d738ec1fa498613aa1f18d2de4547381ab6c9e16a7015aca96",
+      "bytes": 574
+    },
+    "v110gwlab-20261021T192500Z/attestation_g1.json": {
+      "sha256": "a2c07f14a0b92e532578de4097a262244733eeda351c70358c6fb9328b60f288",
+      "bytes": 1553
+    },
+    "v110gwlab-20261021T192500Z/attestation_g3.json": {
+      "sha256": "3aa5590c1eaf6938b029df1a9fcf5ae7aa4465b2d9754d0a8a265218dcf50abd",
+      "bytes": 1553
+    },
+    "v110gwlab-20261021T192500Z/attestations/req-gw-lab-001.json": {
+      "sha256": "a2c07f14a0b92e532578de4097a262244733eeda351c70358c6fb9328b60f288",
+      "bytes": 1553
+    },
+    "v110gwlab-20261021T192500Z/attestations/req-gw-lab-003.json": {
+      "sha256": "3aa5590c1eaf6938b029df1a9fcf5ae7aa4465b2d9754d0a8a265218dcf50abd",
+      "bytes": 1553
+    },
+    "v110gwlab-20261021T192500Z/audit.jsonl": {
+      "sha256": "6f30c8840615104462439c16f44883612d7dfa3d9e7bdbcf31471dd9c0cd014e",
+      "bytes": 2383
+    },
+    "v110gwlab-20261021T192500Z/envelope_g1.json": {
+      "sha256": "d69e1085c12a489bceac173cdb129612a0538e91ec18a8dad06bda4ed3d8df09",
+      "bytes": 528
+    },
+    "v110gwlab-20261021T192500Z/envelope_g3.json": {
+      "sha256": "354571890ebee194446666658be2ec0c639827da54e64daa723745b8646108c2",
+      "bytes": 528
+    },
+    "v110gwlab-20261021T192500Z/gateway_nonce.jsonl": {
+      "sha256": "77b41ed98523d5d6e310abeaf264e5c18dcf3f6a644955a117482b59ed6da359",
+      "bytes": 184
+    },
+    "v110gwlab-20261021T192500Z/identity_audit.jsonl": {
+      "sha256": "83e7261451e11be833ca668e13d3d0be62348759af50cda0745e3f14216343ab",
+      "bytes": 1513
+    },
+    "v110gwlab-20261021T192500Z/ingress_g1.log": {
+      "sha256": "ea34b8cb5153e3b80741d2666f57c585c7249cbe77b4ddf61c44ee807e2b1c46",
+      "bytes": 407
+    },
+    "v110gwlab-20261021T192500Z/ingress_g3.log": {
+      "sha256": "629c99d5dda2310309d8bb774a10f697ba1797972fbf513e067d258faa4c2a38",
+      "bytes": 9646
+    },
+    "v110gwlab-20261021T192500Z/intent_g1.jsonl": {
+      "sha256": "cbc2e9a01efd6428aa2d3ec439e53af00bd2e460c1312dc3c281ab35e018fbcb",
+      "bytes": 1787
+    },
+    "v110gwlab-20261021T192500Z/intent_g3.jsonl": {
+      "sha256": "8bdbb1122890a209485da835a9709fe13b421a0580932cec3ea47f790070085e",
+      "bytes": 3168
+    },
+    "v110gwlab-20261021T192500Z/summary.json": {
+      "sha256": "532aa7517a1192d79e26a69d775b806692ca061e0208611805ecc810d315ff06",
+      "bytes": 2803
+    }
+  },
+  "note": "permissions.xml are policy-derived, non-secret artifacts included so the run can be interpreted without the wiped keystore; they are NOT the 2026-10-09 historical evidence"
+}
