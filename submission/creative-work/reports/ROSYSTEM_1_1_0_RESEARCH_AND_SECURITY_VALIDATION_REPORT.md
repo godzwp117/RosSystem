@@ -74,7 +74,7 @@
 | DDS Security | 历史 7/7；1.0.3 NOT_RUN | 新 CA 实跑 7/7 + 6 负向 | **LAB VERIFIED** |
 | NavigationSim | Goal recorded_only | 未扩展状态机；继续如实标注 recorded_only | NOT_RUN（增强） |
 | Web 控制台 | 历史展示 | 未改；1.1.0 证据尚未接入控制台 | NOT_RUN |
-| 独立复现 | 受控在线已通过 | 本环境内复现；新压缩包独立部署未执行 | PARTIAL |
+| 独立复现 | 受控在线已通过 | 新压缩包 → 新目录/新容器 → colcon → 7/7 DDS → 121 测试 | **PASS（同宿主）** |
 
 ## 3. 总体架构
 
@@ -437,9 +437,22 @@ Baseline A 未在本轮全量重跑，因此**不做**逐项同难度统计对�
 8. 30 次组件重复；
 9. 单测全量回归。
 
-**未完成**：从新压缩包在独立目录/独立容器中完成“下载 → 校验 → 解压 → 构建 →
-全链实验 → Web 展示 → 清理”的第三方式复现；也未在新的 host/CI 上复跑。
-因此独立复现状态是 **PARTIAL**，不能写成 PASS。
+### 14.1 新压缩包的独立目录/独立容器复现（本轮实际完成）
+
+- 新目录 `/tmp/v110pkg-verify2/`，新容器 `rg_pkgdds`（镜像 `rosystem-jazzy:1.1.0`，
+  由包内 `docker/build-runtime.sh` 构建）；
+- `sha256sum -c` OK；
+- 全新 `colcon build --symlink-install`：4 包，0 失败；
+- `setup_sros2.sh`：新 CA、权限复核 PASS；
+- `sros2_check.py`：**7/7 PASS**（domain 43，正负向齐全）；
+- 6 个关键测试文件：**121 passed**；
+- `run_three_real_online.py`：LEVEL1 PASS、LEVEL2 PASS、LEVEL3 BLOCKED。
+
+证据：`artifacts/acceptance/exports/package_v110_verification/`
+（含 `package_verification.json` 与逐文件 SHA-256；不含私钥/证书）。
+
+**仍未完成**：第三方主机/CI 的复现，以及 Web 控制台在线展示的包内验证。
+因此独立复现状态是 **PASS（同宿主、独立目录/容器）**，不是“第三方独立复现”。
 
 ## 15. 发布与证据溯源
 
@@ -454,6 +467,9 @@ Baseline A 未在本轮全量重跑，因此**不做**逐项同难度统计对�
 | M2 链 manifest | `m2_lab_identity_v110/evidence_manifest.json` |
 | Gateway manifest | `m2_gateway_identity_v110/evidence_manifest.json`，SHA-256 `d16f732cb07f51d65660764ad10cc1d87e111586546258589ecfc81817aef86f` |
 | P01–P12 矩阵 | `research_v110/p01_p12_matrix.json` |
+| 完整包 SHA-256 | `RosSystem-CreativeWork-Full-1.1.0.tar.gz` = `16e74ea0cb02e34a9cccb003eaa16ede859ccc88fce3d318d560f07ce9247359` |
+| 离线包 SHA-256 | `RosSystem-creative-work-1.1.0.tar.gz` = `4a3d094d8a8c155cd82d91b6c2ee16df9625743734635bd6ca5828548c1735b7` |
+| 包复现证据 | `package_v110_verification/package_verification.json` |
 
 1.0.3 标签、发布压缩包与历史证据未被修改；历史归档仍缺 `permissions.xml` 这一事实
 由测试**断言保留**，没有追溯改写。
@@ -480,7 +496,7 @@ Baseline A 未在本轮全量重跑，因此**不做**逐项同难度统计对�
 4. **M1 观测盲区**：被 DDS 拒绝的发送方无样本；缺观测必须是 UNKNOWN。
 5. **P02/P09**：无真实 M1 SUSPICIOUS；Planner TIMEOUT/取消未在 1.1.0 重跑。
 6. **Web 控制台**：1.1.0 证据尚未接入可视化。
-7. **独立部署**：新压缩包未做独立目录/主机复现。
+7. **独立部署**：同宿主独立目录/容器已复现；第三方主机/CI 与 Web 在线展示未做。
 8. **生产密钥管理**：无 HSM、无吊销、无轮换、无独立 UID。
 9. **DDS 负向覆盖**：未覆盖跨主机/跨 RMW/跨 DDS 实现。
 

@@ -61,6 +61,9 @@ rg_ros() {
     native)
       (
         cd "${RG_WS_HOST}" || exit 3
+        # ROS 2 setup scripts reference unset variables; the caller may have set
+        # `set -u` (setup_sros2.sh does). Disable it only while sourcing.
+        set +u
         # shellcheck disable=SC1090
         source "/opt/ros/${ROS_DISTRO}/setup.bash"
         if [ -f install/setup.bash ]; then
