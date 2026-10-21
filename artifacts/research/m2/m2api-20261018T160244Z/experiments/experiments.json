@@ -1,0 +1,80 @@
+{
+  "total": 9,
+  "pass": 9,
+  "fail": 0,
+  "results": [
+    {
+      "id": "M2-01b",
+      "description": "F0 严格核验真实 DDS 身份凭据",
+      "expected": "READY_FOR_GATEWAY_SUBMISSION",
+      "actual": "READY_FOR_GATEWAY_SUBMISSION",
+      "verdict": "PASS",
+      "detail": "{\"mode\": \"STRICT\", \"verified\": true, \"status\": \"AUTHENTICATED\", \"verified_by\": \"F0_LOCAL_VERIFIER\", \"reason_code\": null, \"detail_code\": null, \"reason\": \"受信任签发者证明当前请求主体已通过 DDS 身份认证\", \"checks\": {\"signature\": \"VALID\", \"issuer\": \"VERIFIED_IDENTITY_SOURCE\", \"request_binding\": \"MATCH\", \"freshness\": \"OK\", "
+    },
+    {
+      "id": "M2-05",
+      "description": "nonce 重放被拒绝",
+      "expected": "ADAPTER_IDENTITY_ATTESTATION_REJECTED",
+      "actual": "ADAPTER_IDENTITY_ATTESTATION_REJECTED",
+      "verdict": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "M2-07",
+      "description": "请求内容变化导致凭据不可复用",
+      "expected": "ADAPTER_IDENTITY_ATTESTATION_REJECTED",
+      "actual": "ADAPTER_IDENTITY_ATTESTATION_REJECTED",
+      "verdict": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "M2-03",
+      "description": "资源错配不能复用凭据",
+      "expected": "BLOCK",
+      "actual": "ADAPTER_INPUT_INVALID",
+      "verdict": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "M2-10a",
+      "description": "未列入受信任清单的签发者被拒绝",
+      "expected": "ADAPTER_IDENTITY_ATTESTATION_REJECTED",
+      "actual": "ADAPTER_IDENTITY_ATTESTATION_REJECTED",
+      "verdict": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "M2-10b",
+      "description": "TEST_ONLY 签发者不能作为在线身份授权依据",
+      "expected": "AUTHENTICATED_TEST_ONLY",
+      "actual": "AUTHENTICATED_TEST_ONLY",
+      "verdict": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "M2-09",
+      "description": "过期证据被拒绝",
+      "expected": "freshness=STALE",
+      "actual": "STALE",
+      "verdict": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "M2-11",
+      "description": "账本不可用时失败关闭",
+      "expected": "LEDGER_UNAVAILABLE",
+      "actual": "LEDGER_UNAVAILABLE",
+      "verdict": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "M2-04",
+      "description": "模块自报 AUTHENTICATED 不能绕过严格核验",
+      "expected": "ADAPTER_BLOCK",
+      "actual": "ADAPTER_BLOCK",
+      "verdict": "PASS",
+      "detail": ""
+    }
+  ],
+  "semantics_note": "M2-01b 证明的是 TRUSTED_INGRESS_AUTHORIZED：已认证 DDS 主体由原生 token 证实，请求与该主体的绑定发生在受保护入口一侧；不等于 DDS_REQUEST_ORIGIN_BOUND。"
+}

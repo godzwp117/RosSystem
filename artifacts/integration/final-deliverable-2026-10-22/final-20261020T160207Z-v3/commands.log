@@ -1,0 +1,61 @@
+=== check_env ===
+command: final_system.sh --check
+exit_code: 0
+at: 2026-10-20T16:14:50Z
+code_sha: 0563fe7cc8aab6901bb7a91d6ece3b9cdd960a04
+run_id: final-20261020T160207Z-v3
+=== contracts ===
+command: validate_team_contracts.py --all
+exit_code: 0
+at: 2026-10-20T16:14:50Z
+code_sha: 0563fe7cc8aab6901bb7a91d6ece3b9cdd960a04
+run_id: final-20261020T160207Z-v3
+=== f0_p0 ===
+command: pytest phase2 + f0_identity_trust_boundary
+exit_code: 0
+at: 2026-10-20T16:14:54Z
+code_sha: 0563fe7cc8aab6901bb7a91d6ece3b9cdd960a04
+run_id: final-20261020T160207Z-v3
+=== unit_tests ===
+command: pytest tests/unit
+exit_code: 0
+at: 2026-10-20T16:25:21Z
+code_sha: 0563fe7cc8aab6901bb7a91d6ece3b9cdd960a04
+run_id: final-20261020T160207Z-v3
+=== three_real ===
+command: run_three_real_online.py --expect-block
+exit_code: 0
+at: 2026-10-20T16:25:23Z
+code_sha: 0563fe7cc8aab6901bb7a91d6ece3b9cdd960a04
+run_id: final-20261020T160207Z-v3
+=== controlled_online ===
+command: m3_online_drive.sh (domain 74)
+exit_code: 0
+at: 2026-10-20T16:25:33Z
+code_sha: 0563fe7cc8aab6901bb7a91d6ece3b9cdd960a04
+run_id: final-20261020T160207Z-v3
+=== m3_online_drive ===
+command: m3_online_drive.sh
+exit_code: 0
+at: 2026-10-20T16:25:44Z
+code_sha: 0563fe7cc8aab6901bb7a91d6ece3b9cdd960a04
+run_id: final-20261020T160207Z-v3
+=== m3_online_extra ===
+command: m3_online_extra.sh
+exit_code: 0
+at: 2026-10-20T16:25:44Z
+code_sha: 0563fe7cc8aab6901bb7a91d6ece3b9cdd960a04
+run_id: final-20261020T160207Z-v3
+=== m3_verify ===
+command: verify_m3_online_evidence.py
+exit_code: 0
+at: 2026-10-20T16:25:44Z
+code_sha: 0563fe7cc8aab6901bb7a91d6ece3b9cdd960a04
+run_id: final-20261020T160207Z-v3
+=== dds_enforce ===
+command: sros2_check.py
+exit_code: 0
+at: 2026-10-20T16:25:52Z
+code_sha: 0563fe7cc8aab6901bb7a91d6ece3b9cdd960a04
+run_id: final-20261020T160207Z-v3
+ACCEPTANCE=PASS

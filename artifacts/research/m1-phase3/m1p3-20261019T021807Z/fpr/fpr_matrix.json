@@ -1,0 +1,203 @@
+{
+  "generated_at": "2026-10-19T02:28:09Z",
+  "container": "rg_m1p3",
+  "domain": "59",
+  "window_seconds": 30.0,
+  "scenarios": [
+    {
+      "scenario": "normal_2hz",
+      "label": "normal",
+      "topic": "/m1p3/normal_2hz",
+      "window_seconds": 30.0,
+      "returncode": 0,
+      "stderr_tail": "",
+      "verdict": {
+        "status": "SCORED",
+        "windows_scored": 1,
+        "score_max": 0.013662,
+        "score_mean": 0.013662,
+        "score_min": 0.013662
+      },
+      "contract": {
+        "training_window_ms": 30000.0,
+        "observed_window_ms": 30000.0,
+        "relative_deviation": 0.0,
+        "tolerance": 0.2,
+        "compliant": true,
+        "why": "窗口时长是模型输入的量纲之一；训练用 30 秒窗口时，1 秒窗口会让 duration_ms 偏离训练分布约 30 倍，导致正常流量被判为攻击（已实测归因）。"
+      },
+      "windows": 1,
+      "samples": [
+        60
+      ],
+      "features": [
+        {
+          "request_count": 60,
+          "duration_ms": 30032.139,
+          "frequency_hz": 1.99786,
+          "gap_median_ms": 500.0113,
+          "gap_p95_ms": 500.4487,
+          "gap_max_ms": 502.6631
+        }
+      ]
+    },
+    {
+      "scenario": "normal_10hz",
+      "label": "normal",
+      "topic": "/m1p3/normal_10hz",
+      "window_seconds": 30.0,
+      "returncode": 0,
+      "stderr_tail": "",
+      "verdict": {
+        "status": "SCORED",
+        "windows_scored": 1,
+        "score_max": 0.008623,
+        "score_mean": 0.008623,
+        "score_min": 0.008623
+      },
+      "contract": {
+        "training_window_ms": 30000.0,
+        "observed_window_ms": 30000.0,
+        "relative_deviation": 0.0,
+        "tolerance": 0.2,
+        "compliant": true,
+        "why": "窗口时长是模型输入的量纲之一；训练用 30 秒窗口时，1 秒窗口会让 duration_ms 偏离训练分布约 30 倍，导致正常流量被判为攻击（已实测归因）。"
+      },
+      "windows": 1,
+      "samples": [
+        302
+      ],
+      "features": [
+        {
+          "request_count": 302,
+          "duration_ms": 30045.641,
+          "frequency_hz": 10.051375,
+          "gap_median_ms": 99.996,
+          "gap_p95_ms": 100.2583,
+          "gap_max_ms": 106.8502
+        }
+      ]
+    },
+    {
+      "scenario": "normal_50hz",
+      "label": "normal",
+      "topic": "/m1p3/normal_50hz",
+      "window_seconds": 30.0,
+      "returncode": 0,
+      "stderr_tail": "",
+      "verdict": {
+        "status": "SCORED",
+        "windows_scored": 1,
+        "score_max": 0.008032,
+        "score_mean": 0.008032,
+        "score_min": 0.008032
+      },
+      "contract": {
+        "training_window_ms": 30000.0,
+        "observed_window_ms": 30000.0,
+        "relative_deviation": 0.0,
+        "tolerance": 0.2,
+        "compliant": true,
+        "why": "窗口时长是模型输入的量纲之一；训练用 30 秒窗口时，1 秒窗口会让 duration_ms 偏离训练分布约 30 倍，导致正常流量被判为攻击（已实测归因）。"
+      },
+      "windows": 1,
+      "samples": [
+        1501
+      ],
+      "features": [
+        {
+          "request_count": 1501,
+          "duration_ms": 30004.29,
+          "frequency_hz": 50.02618,
+          "gap_median_ms": 20.006,
+          "gap_p95_ms": 20.4219,
+          "gap_max_ms": 33.003
+        }
+      ]
+    },
+    {
+      "scenario": "normal_100hz",
+      "label": "normal",
+      "topic": "/m1p3/normal_100hz",
+      "window_seconds": 30.0,
+      "returncode": 0,
+      "stderr_tail": "",
+      "verdict": {
+        "status": "SCORED",
+        "windows_scored": 1,
+        "score_max": 0.007096,
+        "score_mean": 0.007096,
+        "score_min": 0.007096
+      },
+      "contract": {
+        "training_window_ms": 30000.0,
+        "observed_window_ms": 30000.0,
+        "relative_deviation": 0.0,
+        "tolerance": 0.2,
+        "compliant": true,
+        "why": "窗口时长是模型输入的量纲之一；训练用 30 秒窗口时，1 秒窗口会让 duration_ms 偏离训练分布约 30 倍，导致正常流量被判为攻击（已实测归因）。"
+      },
+      "windows": 1,
+      "samples": [
+        3000
+      ],
+      "features": [
+        {
+          "request_count": 3000,
+          "duration_ms": 30002.236,
+          "frequency_hz": 99.992547,
+          "gap_median_ms": 10.0107,
+          "gap_p95_ms": 10.3079,
+          "gap_max_ms": 13.9434
+        }
+      ]
+    },
+    {
+      "scenario": "anomaly_storm_500hz",
+      "label": "anomaly",
+      "topic": "/m1p3/anomaly_storm_500hz",
+      "window_seconds": 30.0,
+      "returncode": 0,
+      "stderr_tail": "",
+      "verdict": {
+        "status": "SCORED",
+        "windows_scored": 1,
+        "score_max": 0.006592,
+        "score_mean": 0.006592,
+        "score_min": 0.006592
+      },
+      "contract": {
+        "training_window_ms": 30000.0,
+        "observed_window_ms": 30000.0,
+        "relative_deviation": 0.0,
+        "tolerance": 0.2,
+        "compliant": true,
+        "why": "窗口时长是模型输入的量纲之一；训练用 30 秒窗口时，1 秒窗口会让 duration_ms 偏离训练分布约 30 倍，导致正常流量被判为攻击（已实测归因）。"
+      },
+      "windows": 1,
+      "samples": [
+        14959
+      ],
+      "features": [
+        {
+          "request_count": 14959,
+          "duration_ms": 30000.004,
+          "frequency_hz": 498.633264,
+          "gap_median_ms": 1.9972,
+          "gap_p95_ms": 2.1265,
+          "gap_max_ms": 3.0379
+        }
+      ]
+    }
+  ],
+  "aggregate": {
+    "normal_scenarios": 4,
+    "normal_effective": 4,
+    "normal_scored_as_attack": 0,
+    "normal_unknown": 0,
+    "anomaly_scenarios": 1,
+    "anomaly_effective": 1,
+    "anomaly_scored_as_attack": 0,
+    "note": "normal 场景被判 attack 即误报；anomaly 场景被判 attack 即检出。UNKNOWN 计为\"未给结论\"，不能算作正确判定。"
+  }
+}

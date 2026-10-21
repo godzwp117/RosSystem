@@ -1,0 +1,1274 @@
+{
+  "contract": "m1-phase5-evaluation/1",
+  "sessions_total": 30,
+  "sessions_unreadable": [],
+  "normal_sessions": 15,
+  "anomaly_sessions": 15,
+  "anomaly_classes": {
+    "anomaly-churn": 5,
+    "anomaly-endpoint-recon": 5,
+    "anomaly-flood": 5
+  },
+  "complete_windows": 30,
+  "forbidden_features_present": [],
+  "sample_target": {
+    "normal_required": 20,
+    "normal_actual": 15,
+    "anomaly_per_class_required": 5,
+    "anomaly_per_class_actual": {
+      "anomaly-churn": 5,
+      "anomaly-endpoint-recon": 5,
+      "anomaly-flood": 5
+    }
+  },
+  "gates": {
+    "normal_fpr": 0.1,
+    "class_recall": 0.8,
+    "unknown_ratio": 0.2,
+    "worst_session_f1": 0.6
+  },
+  "label_provenance": {
+    "sources": [
+      "EXPERIMENT_CONDITION"
+    ],
+    "all_from_experiment_condition": true
+  },
+  "single_feature_auc": {
+    "message_count": {
+      "auc": 1.0,
+      "n": 15
+    },
+    "frequency_hz": {
+      "auc": 1.0,
+      "n": 15
+    },
+    "gap_median_ms": {
+      "auc": 0.0,
+      "n": 15
+    },
+    "gap_p95_ms": {
+      "auc": 0.0,
+      "n": 15
+    },
+    "gap_max_ms": {
+      "auc": 0.16,
+      "n": 15
+    },
+    "gap_cv": {
+      "auc": 1.0,
+      "n": 15
+    },
+    "publisher_count_in_window": {
+      "auc": 0.5,
+      "n": 15
+    },
+    "graph_snapshot_transition_count": {
+      "auc": 0.7777777777777778,
+      "n": 30
+    }
+  },
+  "ablations": {
+    "message_only": {
+      "features": [
+        "message_count",
+        "frequency_hz",
+        "gap_median_ms",
+        "gap_p95_ms",
+        "gap_max_ms",
+        "gap_cv",
+        "publisher_count_in_window"
+      ],
+      "summary": {
+        "sessions_scored": 30,
+        "skipped": 0,
+        "normal_sessions": 15,
+        "anomaly_sessions": 15,
+        "normal_fpr_mean": 0.1333,
+        "normal_fpr_worst": 1.0,
+        "anomaly_recall_mean": 0.3333,
+        "worst_session_f1": 0.0,
+        "per_class": {
+          "anomaly-churn": {
+            "sessions": 5,
+            "recall": 0.0,
+            "detected": 0
+          },
+          "anomaly-endpoint-recon": {
+            "sessions": 5,
+            "recall": 0.0,
+            "detected": 0
+          },
+          "anomaly-flood": {
+            "sessions": 5,
+            "recall": 1.0,
+            "detected": 5
+          }
+        }
+      },
+      "per_session": [
+        {
+          "session_id": "g3-anom-churn-s00",
+          "label": "anomaly",
+          "scenario": "anomaly-churn",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-anom-churn-s01",
+          "label": "anomaly",
+          "scenario": "anomaly-churn",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-anom-churn-s02",
+          "label": "anomaly",
+          "scenario": "anomaly-churn",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-anom-churn-s03",
+          "label": "anomaly",
+          "scenario": "anomaly-churn",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-anom-churn-s04",
+          "label": "anomaly",
+          "scenario": "anomaly-churn",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-anom-flood-s00",
+          "label": "anomaly",
+          "scenario": "anomaly-flood",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-flood-s01",
+          "label": "anomaly",
+          "scenario": "anomaly-flood",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-flood-s02",
+          "label": "anomaly",
+          "scenario": "anomaly-flood",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-flood-s03",
+          "label": "anomaly",
+          "scenario": "anomaly-flood",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-flood-s04",
+          "label": "anomaly",
+          "scenario": "anomaly-flood",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-recon-s00",
+          "label": "anomaly",
+          "scenario": "anomaly-endpoint-recon",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-anom-recon-s01",
+          "label": "anomaly",
+          "scenario": "anomaly-endpoint-recon",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-anom-recon-s02",
+          "label": "anomaly",
+          "scenario": "anomaly-endpoint-recon",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-anom-recon-s03",
+          "label": "anomaly",
+          "scenario": "anomaly-endpoint-recon",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-anom-recon-s04",
+          "label": "anomaly",
+          "scenario": "anomaly-endpoint-recon",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0001hz-s00",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0002hz-s01",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0005hz-s02",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0010hz-s03",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0020hz-s04",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0050hz-s05",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0100hz-s06",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0200hz-s07",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0500hz-s08",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 1,
+          "fn": 0,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": 1.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-1000hz-s09",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 1,
+          "fn": 0,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": 1.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-restart-s00",
+          "label": "normal",
+          "scenario": "normal-restart",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-restart-s01",
+          "label": "normal",
+          "scenario": "normal-restart",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-restart-s02",
+          "label": "normal",
+          "scenario": "normal-restart",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-restart-s03",
+          "label": "normal",
+          "scenario": "normal-restart",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-restart-s04",
+          "label": "normal",
+          "scenario": "normal-restart",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        }
+      ]
+    },
+    "graph_only": {
+      "features": [
+        "graph_snapshot_transition_count"
+      ],
+      "summary": {
+        "sessions_scored": 30,
+        "skipped": 0,
+        "normal_sessions": 15,
+        "anomaly_sessions": 15,
+        "normal_fpr_mean": 0.0,
+        "normal_fpr_worst": 0.0,
+        "anomaly_recall_mean": 0.6667,
+        "worst_session_f1": 0.0,
+        "per_class": {
+          "anomaly-churn": {
+            "sessions": 5,
+            "recall": 1.0,
+            "detected": 5
+          },
+          "anomaly-endpoint-recon": {
+            "sessions": 5,
+            "recall": 1.0,
+            "detected": 5
+          },
+          "anomaly-flood": {
+            "sessions": 5,
+            "recall": 0.0,
+            "detected": 0
+          }
+        }
+      },
+      "per_session": [
+        {
+          "session_id": "g3-anom-churn-s00",
+          "label": "anomaly",
+          "scenario": "anomaly-churn",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-churn-s01",
+          "label": "anomaly",
+          "scenario": "anomaly-churn",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-churn-s02",
+          "label": "anomaly",
+          "scenario": "anomaly-churn",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-churn-s03",
+          "label": "anomaly",
+          "scenario": "anomaly-churn",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-churn-s04",
+          "label": "anomaly",
+          "scenario": "anomaly-churn",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-flood-s00",
+          "label": "anomaly",
+          "scenario": "anomaly-flood",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-anom-flood-s01",
+          "label": "anomaly",
+          "scenario": "anomaly-flood",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-anom-flood-s02",
+          "label": "anomaly",
+          "scenario": "anomaly-flood",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-anom-flood-s03",
+          "label": "anomaly",
+          "scenario": "anomaly-flood",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-anom-flood-s04",
+          "label": "anomaly",
+          "scenario": "anomaly-flood",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-anom-recon-s00",
+          "label": "anomaly",
+          "scenario": "anomaly-endpoint-recon",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-recon-s01",
+          "label": "anomaly",
+          "scenario": "anomaly-endpoint-recon",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-recon-s02",
+          "label": "anomaly",
+          "scenario": "anomaly-endpoint-recon",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-recon-s03",
+          "label": "anomaly",
+          "scenario": "anomaly-endpoint-recon",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-recon-s04",
+          "label": "anomaly",
+          "scenario": "anomaly-endpoint-recon",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-norm-0001hz-s00",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0002hz-s01",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0005hz-s02",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0010hz-s03",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0020hz-s04",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0050hz-s05",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0100hz-s06",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0200hz-s07",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0500hz-s08",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-1000hz-s09",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-restart-s00",
+          "label": "normal",
+          "scenario": "normal-restart",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-restart-s01",
+          "label": "normal",
+          "scenario": "normal-restart",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-restart-s02",
+          "label": "normal",
+          "scenario": "normal-restart",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-restart-s03",
+          "label": "normal",
+          "scenario": "normal-restart",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-restart-s04",
+          "label": "normal",
+          "scenario": "normal-restart",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        }
+      ]
+    },
+    "both": {
+      "features": [
+        "message_count",
+        "frequency_hz",
+        "gap_median_ms",
+        "gap_p95_ms",
+        "gap_max_ms",
+        "gap_cv",
+        "publisher_count_in_window",
+        "graph_snapshot_transition_count"
+      ],
+      "summary": {
+        "sessions_scored": 30,
+        "skipped": 0,
+        "normal_sessions": 15,
+        "anomaly_sessions": 15,
+        "normal_fpr_mean": 0.0667,
+        "normal_fpr_worst": 1.0,
+        "anomaly_recall_mean": 0.6667,
+        "worst_session_f1": 0.0,
+        "per_class": {
+          "anomaly-churn": {
+            "sessions": 5,
+            "recall": 1.0,
+            "detected": 5
+          },
+          "anomaly-endpoint-recon": {
+            "sessions": 5,
+            "recall": 0.0,
+            "detected": 0
+          },
+          "anomaly-flood": {
+            "sessions": 5,
+            "recall": 1.0,
+            "detected": 5
+          }
+        }
+      },
+      "per_session": [
+        {
+          "session_id": "g3-anom-churn-s00",
+          "label": "anomaly",
+          "scenario": "anomaly-churn",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-churn-s01",
+          "label": "anomaly",
+          "scenario": "anomaly-churn",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-churn-s02",
+          "label": "anomaly",
+          "scenario": "anomaly-churn",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-churn-s03",
+          "label": "anomaly",
+          "scenario": "anomaly-churn",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-churn-s04",
+          "label": "anomaly",
+          "scenario": "anomaly-churn",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-flood-s00",
+          "label": "anomaly",
+          "scenario": "anomaly-flood",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-flood-s01",
+          "label": "anomaly",
+          "scenario": "anomaly-flood",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-flood-s02",
+          "label": "anomaly",
+          "scenario": "anomaly-flood",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-flood-s03",
+          "label": "anomaly",
+          "scenario": "anomaly-flood",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-flood-s04",
+          "label": "anomaly",
+          "scenario": "anomaly-flood",
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "tn": 0,
+          "recall": 1.0,
+          "fpr": null,
+          "f1": 1.0
+        },
+        {
+          "session_id": "g3-anom-recon-s00",
+          "label": "anomaly",
+          "scenario": "anomaly-endpoint-recon",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-anom-recon-s01",
+          "label": "anomaly",
+          "scenario": "anomaly-endpoint-recon",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-anom-recon-s02",
+          "label": "anomaly",
+          "scenario": "anomaly-endpoint-recon",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-anom-recon-s03",
+          "label": "anomaly",
+          "scenario": "anomaly-endpoint-recon",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-anom-recon-s04",
+          "label": "anomaly",
+          "scenario": "anomaly-endpoint-recon",
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": null,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0001hz-s00",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0002hz-s01",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0005hz-s02",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0010hz-s03",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0020hz-s04",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0050hz-s05",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0100hz-s06",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0200hz-s07",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-0500hz-s08",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-1000hz-s09",
+          "label": "normal",
+          "scenario": "normal-rate",
+          "tp": 0,
+          "fp": 1,
+          "fn": 0,
+          "tn": 0,
+          "recall": 0.0,
+          "fpr": 1.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-restart-s00",
+          "label": "normal",
+          "scenario": "normal-restart",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-restart-s01",
+          "label": "normal",
+          "scenario": "normal-restart",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-restart-s02",
+          "label": "normal",
+          "scenario": "normal-restart",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-restart-s03",
+          "label": "normal",
+          "scenario": "normal-restart",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        },
+        {
+          "session_id": "g3-norm-restart-s04",
+          "label": "normal",
+          "scenario": "normal-restart",
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 1,
+          "recall": 0.0,
+          "fpr": 0.0,
+          "f1": 0.0
+        }
+      ]
+    }
+  },
+  "gate_verdicts": {
+    "normal_fpr": "FAIL",
+    "attack_recall": "FAIL",
+    "worst_session": "FAIL"
+  },
+  "sample_target_met": false,
+  "overall": "INSUFFICIENT_EVIDENCE"
+}

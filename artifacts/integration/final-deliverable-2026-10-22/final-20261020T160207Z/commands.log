@@ -1,0 +1,61 @@
+=== check_env ===
+command: final_system.sh --check
+exit_code: 0
+at: 2026-10-20T16:02:55Z
+code_sha: UNKNOWN
+run_id: final-20261020T160207Z
+=== contracts ===
+command: validate_team_contracts.py --all
+exit_code: 0
+at: 2026-10-20T16:02:55Z
+code_sha: UNKNOWN
+run_id: final-20261020T160207Z
+=== f0_p0 ===
+command: pytest phase2 + f0_identity_trust_boundary
+exit_code: 0
+at: 2026-10-20T16:03:02Z
+code_sha: UNKNOWN
+run_id: final-20261020T160207Z
+=== unit_tests ===
+command: pytest tests/unit
+exit_code: 1
+at: 2026-10-20T16:13:09Z
+code_sha: UNKNOWN
+run_id: final-20261020T160207Z
+=== three_real ===
+command: run_three_real_online.py --expect-block
+exit_code: 0
+at: 2026-10-20T16:13:10Z
+code_sha: UNKNOWN
+run_id: final-20261020T160207Z
+=== controlled_online ===
+command: m3_online_drive.sh (domain 74)
+exit_code: 0
+at: 2026-10-20T16:13:17Z
+code_sha: UNKNOWN
+run_id: final-20261020T160207Z
+=== m3_online_drive ===
+command: m3_online_drive.sh
+exit_code: 0
+at: 2026-10-20T16:13:32Z
+code_sha: UNKNOWN
+run_id: final-20261020T160207Z
+=== m3_online_extra ===
+command: m3_online_extra.sh
+exit_code: 0
+at: 2026-10-20T16:13:32Z
+code_sha: UNKNOWN
+run_id: final-20261020T160207Z
+=== m3_verify ===
+command: verify_m3_online_evidence.py
+exit_code: 0
+at: 2026-10-20T16:13:32Z
+code_sha: UNKNOWN
+run_id: final-20261020T160207Z
+=== dds_enforce ===
+command: sros2_check.py
+exit_code: 0
+at: 2026-10-20T16:13:43Z
+code_sha: UNKNOWN
+run_id: final-20261020T160207Z
+ACCEPTANCE=FAIL

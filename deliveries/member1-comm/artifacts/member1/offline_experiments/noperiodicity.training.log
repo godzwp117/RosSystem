@@ -1,0 +1,73 @@
+ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_3.csv: full=2632570 sampled=10000 labels={'nmap SYN flood': 2485699, 'observe': 146871}
+ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_9.csv: full=1747427 sampled=10000 labels={'observe': 637357, 'metasploit SYN flood': 1110070}
+ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_7.csv: full=2119585 sampled=10000 labels={'metasploit SYN flood': 2096794, 'observe': 22791}
+ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_5.csv: full=2110565 sampled=10000 labels={'metasploit SYN flood': 2073613, 'observe': 36952}
+ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_1.csv: full=1761838 sampled=10000 labels={'ros2 reconnaissance': 134910, 'observe': 1622309, 'ros2 reflection': 3753, 'ros2 node crashing': 866}
+ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_8.csv: full=2003540 sampled=10000 labels={'metasploit SYN flood': 1827886, 'observe': 175654}
+ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_6.csv: full=2122717 sampled=10000 labels={'metasploit SYN flood': 2108220, 'observe': 14497}
+ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_4.csv: full=2596105 sampled=10000 labels={'nmap SYN flood': 2443160, 'observe': 132718, 'metasploit SYN flood': 20227}
+ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_2.csv: full=1948514 sampled=10000 labels={'observe': 1479669, 'ros2 node crashing': 4876, 'nmap SYN flood': 463969}
+ROSPaCe_reduced_noperiodicity/rospace_reduced_noperiodicity_0.csv: full=1808190 sampled=10000 labels={'observe': 1061746, 'nmap discovery': 540042, 'ros2 reconnaissance': 206402}
+{
+  "output": "C:\\Users\\YOGA\\Documents\\Codex\\2026-09-17\\referenced-chatgpt-conversation-this-is-an\\outputs\\RosSystem\\training_runs\\member1_noperiodicity",
+  "algorithm": "extra_trees",
+  "gate": false,
+  "test": {
+    "confusion": {
+      "tp": 7184,
+      "tn": 4543,
+      "fp": 0,
+      "fn": 8273
+    },
+    "precision": 1.0,
+    "recall": 0.4647732418968752,
+    "specificity": 1.0,
+    "fpr": 0.0,
+    "f1": 0.6346009451879334,
+    "balanced_accuracy": 0.7323866209484375,
+    "binary_macro_recall": 0.7323866209484375,
+    "macro_attack_detection_recall": 0.4647732418968752,
+    "class_counts": {
+      "metasploit SYN flood": 15457,
+      "observe": 4543
+    },
+    "class_proportions": {
+      "metasploit SYN flood": 0.77285,
+      "observe": 0.22715
+    },
+    "attack_class_recall": {
+      "metasploit SYN flood": {
+        "count": 15457,
+        "recall": 0.4647732418968752,
+        "status": "EVALUATED"
+      },
+      "nmap SYN flood": {
+        "count": 0,
+        "recall": null,
+        "status": "NOT_EVALUATED"
+      },
+      "nmap discovery": {
+        "count": 0,
+        "recall": null,
+        "status": "NOT_EVALUATED"
+      },
+      "ros2 reconnaissance": {
+        "count": 0,
+        "recall": null,
+        "status": "NOT_EVALUATED"
+      },
+      "ros2 node crashing": {
+        "count": 0,
+        "recall": null,
+        "status": "NOT_EVALUATED"
+      },
+      "ros2 reflection": {
+        "count": 0,
+        "recall": null,
+        "status": "NOT_EVALUATED"
+      }
+    },
+    "pr_auc": 0.9234355456012058,
+    "pr_auc_definition": "average_precision (stepwise area), not trapezoidal PR area"
+  }
+}

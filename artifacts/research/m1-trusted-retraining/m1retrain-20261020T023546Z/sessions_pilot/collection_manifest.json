@@ -1,0 +1,28 @@
+{
+  "contract": "m1-collection-manifest/1",
+  "generated_at": "2026-10-20T02:35:53Z",
+  "container": "rg_m1r",
+  "domain": "68",
+  "window_sec": 30.0,
+  "duration_sec": 35.0,
+  "sessions": [
+    {
+      "session_id": "norm-050hz",
+      "scenario": "normal-high-rate",
+      "label": "normal",
+      "label_basis": "authorized 50 Hz publisher, within expected load, no policy violation",
+      "returncode": 1,
+      "stderr_tail": "^^^^\n  File \"/ws/scripts/m1_session_collector.py\", line 97, in __init__\n    self.publishers = set()\n    ^^^^^^^^^^^^^^^\nAttributeError: property 'publishers' of 'SessionObserver' object has no setter\n",
+      "error": "FileNotFoundError: [Errno 2] No such file or directory: '/home/zhangwei/project/RosSystem-worktrees/work-m1-retraining/artifacts/research/m1-trusted-retraining/m1retrain-20261020T023546Z/sessions_pilot/norm-050hz.json'"
+    },
+    {
+      "session_id": "norm-500hz",
+      "scenario": "normal-very-high-rate",
+      "label": "normal",
+      "label_basis": "authorized 500 Hz publisher; high rate alone is not a violation",
+      "returncode": 1,
+      "stderr_tail": "^^^^\n  File \"/ws/scripts/m1_session_collector.py\", line 97, in __init__\n    self.publishers = set()\n    ^^^^^^^^^^^^^^^\nAttributeError: property 'publishers' of 'SessionObserver' object has no setter\n",
+      "error": "FileNotFoundError: [Errno 2] No such file or directory: '/home/zhangwei/project/RosSystem-worktrees/work-m1-retraining/artifacts/research/m1-trusted-retraining/m1retrain-20261020T023546Z/sessions_pilot/norm-500hz.json'"
+    }
+  ]
+}

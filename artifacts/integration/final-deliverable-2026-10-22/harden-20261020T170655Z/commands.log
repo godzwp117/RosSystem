@@ -1,0 +1,67 @@
+=== check_env ===
+command: final_system.sh --check
+exit_code: 0
+at: 2026-10-20T17:07:41Z
+code_sha: d0c6450035f0156a111e7c6c632cf77253789613
+run_id: harden-20261020T170655Z
+=== contracts ===
+command: validate_team_contracts.py --all
+exit_code: 0
+at: 2026-10-20T17:07:41Z
+code_sha: d0c6450035f0156a111e7c6c632cf77253789613
+run_id: harden-20261020T170655Z
+=== f0_p0 ===
+command: pytest phase2 + f0_identity_trust_boundary
+exit_code: 0
+at: 2026-10-20T17:07:45Z
+code_sha: d0c6450035f0156a111e7c6c632cf77253789613
+run_id: harden-20261020T170655Z
+=== unit_tests ===
+command: pytest tests/unit
+exit_code: 1
+at: 2026-10-20T17:17:01Z
+code_sha: d0c6450035f0156a111e7c6c632cf77253789613
+run_id: harden-20261020T170655Z
+=== three_real ===
+command: run_three_real_online.py --expect-block
+exit_code: 0
+at: 2026-10-20T17:17:02Z
+code_sha: d0c6450035f0156a111e7c6c632cf77253789613
+run_id: harden-20261020T170655Z
+=== controlled_online ===
+command: m3_online_drive.sh (domain 75)
+exit_code: 0
+at: 2026-10-20T17:17:10Z
+code_sha: d0c6450035f0156a111e7c6c632cf77253789613
+run_id: harden-20261020T170655Z
+=== controlled_verifier ===
+command: verify_final_controlled_online.py
+exit_code: 0
+at: 2026-10-20T17:17:10Z
+code_sha: d0c6450035f0156a111e7c6c632cf77253789613
+run_id: harden-20261020T170655Z
+=== m3_online_drive ===
+command: m3_online_drive.sh
+exit_code: 0
+at: 2026-10-20T17:17:23Z
+code_sha: d0c6450035f0156a111e7c6c632cf77253789613
+run_id: harden-20261020T170655Z
+=== m3_online_extra ===
+command: m3_online_extra.sh
+exit_code: 0
+at: 2026-10-20T17:17:23Z
+code_sha: d0c6450035f0156a111e7c6c632cf77253789613
+run_id: harden-20261020T170655Z
+=== m3_verify ===
+command: verify_m3_online_evidence.py
+exit_code: 0
+at: 2026-10-20T17:17:23Z
+code_sha: d0c6450035f0156a111e7c6c632cf77253789613
+run_id: harden-20261020T170655Z
+=== dds_enforce ===
+command: sros2_check.py
+exit_code: 1
+at: 2026-10-20T17:17:28Z
+code_sha: d0c6450035f0156a111e7c6c632cf77253789613
+run_id: harden-20261020T170655Z
+ACCEPTANCE=FAIL

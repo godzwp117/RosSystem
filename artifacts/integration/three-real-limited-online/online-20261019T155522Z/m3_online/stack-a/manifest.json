@@ -1,0 +1,23 @@
+{
+  "run_id": "online-20261019T155522Z",
+  "scenarios": [
+    {
+      "cid": "ON01",
+      "request_id": "on01-legal-allow-online-20261019T155522Z",
+      "run_id": "online-20261019T155522Z",
+      "expected": "ALLOW_AND_EXECUTE"
+    },
+    {
+      "cid": "ON02",
+      "request_id": "on02-oor-block-online-20261019T155522Z",
+      "run_id": "online-20261019T155522Z",
+      "expected": "M3_BLOCK_NO_SUBMIT"
+    },
+    {
+      "cid": "ON05",
+      "request_id": "on05-gateway-authority-online-20261019T155522Z",
+      "run_id": "online-20261019T155522Z",
+      "expected": "M3_ALLOW_GATEWAY_BLOCK"
+    }
+  ]
+}

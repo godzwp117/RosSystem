@@ -1,0 +1,2 @@
+{"event":"participant_created","role":"ingress","domain":60,"security":true,"guid_prefix":"c9.91.58.0d.f4.da.1d.e8.90.16.a3.84","resource":"rt/m2/candidate_task"}
+{"event":"ingress_exit","received":5}

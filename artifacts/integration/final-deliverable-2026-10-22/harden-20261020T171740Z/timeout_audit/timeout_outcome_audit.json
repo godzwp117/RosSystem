@@ -1,0 +1,52 @@
+{
+  "contract": "timeout-outcome-audit/1",
+  "scenario": "ON06",
+  "request_id": "on06-harden-20261020T171740Z-six",
+  "f0_decision": "READY_FOR_GATEWAY_SUBMISSION",
+  "planner_outcome": "PLANNER_RESULT_TIMEOUT",
+  "planner_result": null,
+  "gateway_arrivals": 1,
+  "gateway_decisions": [
+    "ALLOW"
+  ],
+  "gateway_executions": 1,
+  "navsim_goals": 1,
+  "events": [
+    {
+      "source": "gateway_audit",
+      "event_type": "RosCommEvent",
+      "decision": null,
+      "reason_code": null,
+      "outcome": null,
+      "at": "2026-10-20T17:27:22.516Z"
+    },
+    {
+      "source": "gateway_audit",
+      "event_type": "DecisionEvent",
+      "decision": "ALLOW",
+      "reason_code": "ALLOW_IN_POLICY",
+      "outcome": null,
+      "at": "2026-10-20T17:27:22.516Z"
+    },
+    {
+      "source": "gateway_audit",
+      "event_type": "ExecutionEvent",
+      "decision": null,
+      "reason_code": null,
+      "outcome": null,
+      "at": null
+    },
+    {
+      "source": "navsim_journal",
+      "event_type": "Goal",
+      "goal_id": "0d8c17b676114e6ea453f09a40aea210",
+      "at": "2026-10-20T17:27:22.522Z"
+    }
+  ],
+  "semantics": {
+    "timeout_is_not_block": true,
+    "cancel_not_claimed": "没有 Action 取消协议证据，因此不声明请求已取消",
+    "post_timeout_facts_reported": true
+  },
+  "note": "Planner TIMEOUT 只描述客户端等待结果超时，不描述 Gateway 决策或执行状态。本次 Gateway/Goal 事实完全来自上面的原始事件。"
+}

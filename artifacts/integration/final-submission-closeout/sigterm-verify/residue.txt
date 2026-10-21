@@ -1,0 +1,4 @@
+   1442    1442 Ss   bash -lc set +u; source /opt/ros/jazzy/setup.bash; source /ws/install/setup.bash; set -u; cd /ws && export ROS_DOMAIN_ID=76; bash tests/integration/test_sigterm_cleanup.sh /ws sigterm-verify > /tmp/sigterm_test.log 2>&1; echo "RC=$?"
+   1465    1442 S    bash tests/integration/test_sigterm_cleanup.sh /ws sigterm-verify
+   2005    1442 R    ps -eo pid=,pgid=,stat=,args=
+   2006    1442 S    awk -v g=1442 $2==g

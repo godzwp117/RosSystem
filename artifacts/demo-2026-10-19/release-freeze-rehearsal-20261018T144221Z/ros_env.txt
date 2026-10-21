@@ -1,0 +1,5 @@
+ROS_DISTRO=jazzy
+RMW=rmw_fastrtps_cpp
+rg_pkgs=4
+python=3.12.3
+jsonschema=4.10.3

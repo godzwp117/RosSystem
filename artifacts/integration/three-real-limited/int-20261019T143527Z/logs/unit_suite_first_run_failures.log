@@ -1,0 +1,383 @@
+........................................................................ [  9%]
+........................................................................ [ 18%]
+.........................FFFFFF...............F.FFF...........F.FF...... [ 28%]
+.......s..s.....sssss.s................................................. [ 37%]
+........................................................................ [ 46%]
+........................................................................ [ 56%]
+........................................................................ [ 65%]
+........................................................................ [ 74%]
+........................................................................ [ 84%]
+........................................................................ [ 93%]
+..................................................                       [100%]
+=================================== FAILURES ===================================
+___________ test_real_evidence_reaches_denied_at_evidence_layer[S3] ____________
+
+case = 'S3'
+
+    @pytest.mark.parametrize('case', ['S3', 'S4'])
+    def test_real_evidence_reaches_denied_at_evidence_layer(case):
+        """证据层（资源一致）必须给出 DENIED，而不是失败关闭。"""
+>       detail = examine(POLICY, KEYSTORE, ARCHIVE, RUN_ID, case)
+
+tests/unit/test_identity_trust_real_logs.py:216: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+identity_trust/assessor.py:363: in examine
+    generated_allowed = permission_permits(permission, service)
+identity_trust/assessor.py:174: in permission_permits
+    root = tree(path)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/home/zhangwei/project/RosSystem-worktrees/work-int/security/keystore/enclaves/planner/permissions.xml')
+
+    def tree(path):
+        if not path.is_file() or path.is_symlink():
+>           raise ValueError('missing or unsafe XML: ' + str(path))
+E           ValueError: missing or unsafe XML: /home/zhangwei/project/RosSystem-worktrees/work-int/security/keystore/enclaves/planner/permissions.xml
+
+identity_trust/assessor.py:134: ValueError
+___________ test_real_evidence_reaches_denied_at_evidence_layer[S4] ____________
+
+case = 'S4'
+
+    @pytest.mark.parametrize('case', ['S3', 'S4'])
+    def test_real_evidence_reaches_denied_at_evidence_layer(case):
+        """证据层（资源一致）必须给出 DENIED，而不是失败关闭。"""
+>       detail = examine(POLICY, KEYSTORE, ARCHIVE, RUN_ID, case)
+
+tests/unit/test_identity_trust_real_logs.py:216: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+identity_trust/assessor.py:363: in examine
+    generated_allowed = permission_permits(permission, service)
+identity_trust/assessor.py:174: in permission_permits
+    root = tree(path)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/home/zhangwei/project/RosSystem-worktrees/work-int/security/keystore/enclaves/unauthorized/permissions.xml')
+
+    def tree(path):
+        if not path.is_file() or path.is_symlink():
+>           raise ValueError('missing or unsafe XML: ' + str(path))
+E           ValueError: missing or unsafe XML: /home/zhangwei/project/RosSystem-worktrees/work-int/security/keystore/enclaves/unauthorized/permissions.xml
+
+identity_trust/assessor.py:134: ValueError
+_____________ test_real_evidence_current_request_stays_unknown[S3] _____________
+
+case = 'S3'
+
+    @pytest.mark.parametrize('case', ['S3', 'S4'])
+    def test_real_evidence_current_request_stays_unknown(case):
+        """当前候选入口是 /rg/guarded_navigate：历史 /rg/nav_execute 判定不得搬用。"""
+        out = assessment(envelope(), opts(case=case))
+        assert out['status'] == 'UNKNOWN'
+>       assert out['extensions']['current_request_binding'] == 'HISTORICAL_RESOURCE_MISMATCH'
+E       AssertionError: assert 'UNBOUND_NO_C...QUEST_SUBJECT' == 'HISTORICAL_RESOURCE_MISMATCH'
+E         
+E         - HISTORICAL_RESOURCE_MISMATCH
+E         + UNBOUND_NO_CURRENT_REQUEST_SUBJECT
+
+tests/unit/test_identity_trust_real_logs.py:229: AssertionError
+----------------------------- Captured stderr call -----------------------------
+[identity_trust] 证据不足或不可核验，失败关闭：missing or unsafe XML: /home/zhangwei/project/RosSystem-worktrees/work-int/security/keystore/enclaves/planner/permissions.xml
+_____________ test_real_evidence_current_request_stays_unknown[S4] _____________
+
+case = 'S4'
+
+    @pytest.mark.parametrize('case', ['S3', 'S4'])
+    def test_real_evidence_current_request_stays_unknown(case):
+        """当前候选入口是 /rg/guarded_navigate：历史 /rg/nav_execute 判定不得搬用。"""
+        out = assessment(envelope(), opts(case=case))
+        assert out['status'] == 'UNKNOWN'
+>       assert out['extensions']['current_request_binding'] == 'HISTORICAL_RESOURCE_MISMATCH'
+E       AssertionError: assert 'UNBOUND_NO_C...QUEST_SUBJECT' == 'HISTORICAL_RESOURCE_MISMATCH'
+E         
+E         - HISTORICAL_RESOURCE_MISMATCH
+E         + UNBOUND_NO_CURRENT_REQUEST_SUBJECT
+
+tests/unit/test_identity_trust_real_logs.py:229: AssertionError
+----------------------------- Captured stderr call -----------------------------
+[identity_trust] 证据不足或不可核验，失败关闭：missing or unsafe XML: /home/zhangwei/project/RosSystem-worktrees/work-int/security/keystore/enclaves/unauthorized/permissions.xml
+___________ test_real_s3c_control_is_not_promoted_to_current_request ___________
+
+    def test_real_s3c_control_is_not_promoted_to_current_request():
+        out = assessment(envelope(), opts(case='S3C'))
+        assert out['status'] == 'UNKNOWN'
+>       assert out['extensions']['positive_control_verified'] is True
+E       KeyError: 'positive_control_verified'
+
+tests/unit/test_identity_trust_real_logs.py:239: KeyError
+----------------------------- Captured stderr call -----------------------------
+[identity_trust] 证据不足或不可核验，失败关闭：missing or unsafe XML: /home/zhangwei/project/RosSystem-worktrees/work-int/security/keystore/enclaves/gateway/permissions.xml
+_____________ test_real_s2_authorizes_only_matching_entry_resource _____________
+
+    def test_real_s2_authorizes_only_matching_entry_resource():
+        out = assessment(envelope(), opts(case='S2'))
+>       assert out['status'] == 'AUTHORIZED'
+E       AssertionError: assert 'UNKNOWN' == 'AUTHORIZED'
+E         
+E         - AUTHORIZED
+E         + UNKNOWN
+
+tests/unit/test_identity_trust_real_logs.py:245: AssertionError
+----------------------------- Captured stderr call -----------------------------
+[identity_trust] 证据不足或不可核验，失败关闭：missing or unsafe XML: /home/zhangwei/project/RosSystem-worktrees/work-int/security/keystore/enclaves/planner/permissions.xml
+__________________ test_missing_positive_control_fails_closed __________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-9/test_missing_positive_control_0')
+
+    def test_missing_positive_control_fails_closed(tmp_path):
+        """S3/S4 必须依赖同 run 的 S3C 正向对照。"""
+        copy = EvidenceCopy(tmp_path)
+        copy.write_log('S3C', 'ROGUE_RESULT ' + json.dumps({
+            'node_name': 'security_gateway', 'target_action': '/rg/nav_execute',
+            'outcome': 'RESULT', 'success': False}) + '\n')
+        out = assessment(envelope(), copy.options('S3'))
+        assert out['status'] == 'UNKNOWN'
+>       assert '正向对照' in out['reason'] or 'control' in out['reason']
+E       AssertionError: assert ('正向对照' in '证据不足或不可核验，失败关闭：missing or unsafe XML: /home/zhangwei/project/RosSystem-worktrees/work-int/security/keystore/enclaves/planner/permissions.xml' or 'control' in '证据不足或不可核验，失败关闭：missing or unsafe XML: /home/zhangwei/project/RosSystem-worktrees/work-int/security/keystore/enclaves/planner/permissions.xml')
+
+tests/unit/test_identity_trust_real_logs.py:327: AssertionError
+----------------------------- Captured stderr call -----------------------------
+[identity_trust] 证据不足或不可核验，失败关闭：missing or unsafe XML: /home/zhangwei/project/RosSystem-worktrees/work-int/security/keystore/enclaves/planner/permissions.xml
+__________________ test_denial_resource_mismatch_fails_closed __________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-9/test_denial_resource_mismatch_0')
+
+    def test_denial_resource_mismatch_fails_closed(tmp_path):
+        """日志中的拒绝资源与场景期望资源不一致 -> 不得 DENIED。"""
+        copy = EvidenceCopy(tmp_path)
+        copy.write_log('S3', (
+            '2026-10-09 [SECURITY Error] rr/rg/other_action/_action/send_goalReply '
+            'topic not found in allow rule. '
+            '(./src/cpp/security/accesscontrol/Permissions.cpp:1246)\n'
+            'ROGUE_RESULT ' + json.dumps({
+                'node_name': 'planner_node', 'target_action': '/rg/nav_execute',
+                'outcome': 'ACTION_CLIENT_CREATION_DENIED'}) + '\n'))
+        out = assessment(envelope(), copy.options('S3'))
+        assert out['status'] == 'UNKNOWN'
+>       assert 'does not match expected resource' in out['reason']
+E       AssertionError: assert 'does not match expected resource' in '证据不足或不可核验，失败关闭：missing or unsafe XML: /home/zhangwei/project/RosSystem-worktrees/work-int/security/keystore/enclaves/planner/permissions.xml'
+
+tests/unit/test_identity_trust_real_logs.py:349: AssertionError
+----------------------------- Captured stderr call -----------------------------
+[identity_trust] 证据不足或不可核验，失败关闭：missing or unsafe XML: /home/zhangwei/project/RosSystem-worktrees/work-int/security/keystore/enclaves/planner/permissions.xml
+_____________ test_denial_resource_mismatch_with_ansi_fails_closed _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-9/test_denial_resource_mismatch_1')
+
+    def test_denial_resource_mismatch_with_ansi_fails_closed(tmp_path):
+        copy = EvidenceCopy(tmp_path)
+        copy.write_log('S3', (
+            '\x1b[31;1m[\x1b[37;1mSECURITY\x1b[31;1m Error] \x1b[37m'
+            'rr/rg/wrong_action/_action/send_goalReply topic not found in allow rule. '
+            '(./src/cpp/security/accesscontrol/Permissions.cpp:1246)\x1b[m\n'
+            'ROGUE_RESULT ' + json.dumps({
+                'node_name': 'planner_node', 'target_action': '/rg/nav_execute',
+                'outcome': 'ACTION_CLIENT_CREATION_DENIED'}) + '\n'))
+        out = assessment(envelope(), copy.options('S3'))
+        assert out['status'] == 'UNKNOWN'
+>       assert 'does not match expected resource' in out['reason']
+E       AssertionError: assert 'does not match expected resource' in '证据不足或不可核验，失败关闭：missing or unsafe XML: /home/zhangwei/project/RosSystem-worktrees/work-int/security/keystore/enclaves/planner/permissions.xml'
+
+tests/unit/test_identity_trust_real_logs.py:363: AssertionError
+----------------------------- Captured stderr call -----------------------------
+[identity_trust] 证据不足或不可核验，失败关闭：missing or unsafe XML: /home/zhangwei/project/RosSystem-worktrees/work-int/security/keystore/enclaves/planner/permissions.xml
+___________ test_permission_file_contradicting_runtime_fails_closed ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-9/test_permission_file_contradic0')
+
+    def test_permission_file_contradicting_runtime_fails_closed(tmp_path):
+        """权限文件与运行证据矛盾 -> 失败关闭（不得沿用历史拒绝）。
+    
+        构造方式：源策略仍不允许 planner 访问 /rg/nav_execute，但把**生成的**
+        DDS permissions.xml 改成允许。两者不一致必须导致失败关闭，而不是
+        因为「运行日志里确实有拒绝」就接受这个被篡改的配置。
+        """
+        copy = EvidenceCopy(tmp_path)
+        keystore = tmp_path / 'keystore'
+>       shutil.copytree(KEYSTORE, keystore)
+
+tests/unit/test_identity_trust_real_logs.py:375: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/home/zhangwei/project/RosSystem-worktrees/work-int/security/keystore')
+dst = PosixPath('/tmp/pytest-of-root/pytest-9/test_permission_file_contradic0/keystore')
+symlinks = False, ignore = None
+copy_function = <function copy2 at 0x78feb6e2f010>
+ignore_dangling_symlinks = False, dirs_exist_ok = False
+
+    def copytree(src, dst, symlinks=False, ignore=None, copy_function=copy2,
+                 ignore_dangling_symlinks=False, dirs_exist_ok=False):
+        """Recursively copy a directory tree and return the destination directory.
+    
+        If exception(s) occur, an Error is raised with a list of reasons.
+    
+        If the optional symlinks flag is true, symbolic links in the
+        source tree result in symbolic links in the destination tree; if
+        it is false, the contents of the files pointed to by symbolic
+        links are copied. If the file pointed by the symlink doesn't
+        exist, an exception will be added in the list of errors raised in
+        an Error exception at the end of the copy process.
+    
+        You can set the optional ignore_dangling_symlinks flag to true if you
+        want to silence this exception. Notice that this has no effect on
+        platforms that don't support os.symlink.
+    
+        The optional ignore argument is a callable. If given, it
+        is called with the `src` parameter, which is the directory
+        being visited by copytree(), and `names` which is the list of
+        `src` contents, as returned by os.listdir():
+    
+            callable(src, names) -> ignored_names
+    
+        Since copytree() is called recursively, the callable will be
+        called once for each directory that is copied. It returns a
+        list of names relative to the `src` directory that should
+        not be copied.
+    
+        The optional copy_function argument is a callable that will be used
+        to copy each file. It will be called with the source path and the
+        destination path as arguments. By default, copy2() is used, but any
+        function that supports the same signature (like copy()) can be used.
+    
+        If dirs_exist_ok is false (the default) and `dst` already exists, a
+        `FileExistsError` is raised. If `dirs_exist_ok` is true, the copying
+        operation will continue if it encounters existing directories, and files
+        within the `dst` tree will be overwritten by corresponding files from the
+        `src` tree.
+        """
+        sys.audit("shutil.copytree", src, dst)
+>       with os.scandir(src) as itr:
+E       FileNotFoundError: [Errno 2] No such file or directory: '/home/zhangwei/project/RosSystem-worktrees/work-int/security/keystore'
+
+/usr/lib/python3.10/shutil.py:557: FileNotFoundError
+______________ test_self_declared_identity_cannot_change_binding _______________
+
+    def test_self_declared_identity_cannot_change_binding():
+        """业务 JSON 自报身份不得被当作 DDS 已认证身份。"""
+        env = envelope()
+        env['observations'][0]['detail'] = {
+            'authenticated': True, 'enclave': '/gateway', 'role': 'gateway',
+            'dds_identity': 'CN=/gateway'}
+        env['extensions'] = {'authenticated_identity': 'CN=/gateway',
+                             'experiment_run': 'attacker-chosen-run'}
+        out = assessment(env, opts(case='S2'))
+        # 结论只由受信任配置 + 归档证据决定
+>       assert out['status'] == 'AUTHORIZED'
+E       AssertionError: assert 'UNKNOWN' == 'AUTHORIZED'
+E         
+E         - AUTHORIZED
+E         + UNKNOWN
+
+tests/unit/test_identity_trust_real_logs.py:487: AssertionError
+----------------------------- Captured stderr call -----------------------------
+[identity_trust] 证据不足或不可核验，失败关闭：missing or unsafe XML: /home/zhangwei/project/RosSystem-worktrees/work-int/security/keystore/enclaves/planner/permissions.xml
+______________________ test_m2_real_fixture_reaches_gate _______________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-9/test_m2_real_fixture_reaches_g0')
+
+    def test_m2_real_fixture_reaches_gate(tmp_path):
+        """真实评估器在真实 fixture 下的四场景状态必须正确。
+    
+        注意（WORK_A / A2 语义收紧）
+        ---------------------------
+        历史实现曾断言 `meets_pr_gate is True`，因为 S2 的历史 `AUTHORIZED` 被视为
+        足以让适配层推进。这在语义上是错的：历史受控实验只证明**当时那次运行**中
+        某个已认证主体访问成功，不证明当前这条候选请求的发送方身份。
+        现在 F0 额外要求 `extensions.current_request_identity.status ==
+        AUTHENTICATED`；真实模块在拿不到中间件身份证据时只能给 UNKNOWN，
+        因此**没有任何一条真实路径能让适配层推进**（下面逐条断言）。
+    
+        L1 协议门槛仍然通过：四场景状态、Schema、可追溯性、ID 关联、失败关闭。
+        "通过 L1 门槛"与"能证明当前请求身份"是两条不同的轴，后者见交接文件里
+        的 ONLINE_PROCEED_READY = FAIL。
+        """
+        proc = _run_m2_checker(tmp_path, 'm2-gate')
+>       assert proc.returncode == 0, proc.stdout[-3000:] + proc.stderr[-2000:]
+E       AssertionError: -STATE-S3C-POSITIVE-CONTROL 真实条件 s3c-positive-control（归档 S3C 日志 ROGUE_RESULT success=true，资源 = /rg/nav_execute）-> UNKNOWN
+E                      rc=0 rc_ok=True policy=security/policies/minimal_permissions.xml actual=UNKNOWN expected=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True traceabi
+E           [FAIL    ] REAL-STATE-S3-NATIVE-DENIAL 真实条件 s3-native-denial（归档 S3 日志含原生 not found in allow rule，资源 = /rg/nav_execute）-> UNKNOWN
+E                      rc=0 rc_ok=True policy=security/policies/minimal_permissions.xml actual=UNKNOWN expected=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True traceabi
+E           [FAIL    ] REAL-STATE-S4-NATIVE-DENIAL 真实条件 s4-native-denial（归档 S4 日志含原生 not found in allow rule，资源 = /rg/nav_execute）-> UNKNOWN
+E                      rc=0 rc_ok=True policy=security/policies/minimal_permissions.xml actual=UNKNOWN expected=UNKNOWN schema_ok=True class=LEGAL_BLOCK ids_ok=True traceabi
+E           [FAIL    ] REAL-STATE-SUMMARY 真实条件状态矩阵完整执行（共 4 种）
+E                      PROCEED=1 LEGAL_BLOCK=3；均由真实模块输出决定
+E           [PASS    ] REAL-STATE-SCHEMA 真实条件输出符合原有 Schema（含阻断状态）
+E           [PASS    ] REAL-ADP-S3C-POSITIVE-CONTROL F0 对真实 UNKNOWN（s3c-positive-control）返回 ADAPTER_BLOCK
+E           [PASS    ] REAL-ADP-S3-NATIVE-DENIAL F0 对真实 UNKNOWN（s3-native-denial）返回 ADAPTER_BLOCK
+E           [PASS    ] REAL-ADP-S4-NATIVE-DENIAL F0 对真实 UNKNOWN（s4-native-denial）返回 ADAPTER_BLOCK
+E           [FAIL    ] REAL-ADP-S2-AUTHORIZED 合法模块结论仍被 F0 阻断（期望 ADAPTER_CURRENT_IDENTITY_UNBOUND）
+E                      rc=10 decision=ADAPTER_BLOCK reason=ADAPTER_MODULE_STATUS_NOT_PROCEED gateway_decision=None
+E           [PASS    ] ERR-01     非法 JSON 输入 -> 失败关闭
+E           [PASS    ] ERR-03     schema_version 不兼容 -> 模块自行失败关闭（纵深防御）
+E           [PASS    ] ERR-04     缺 observations -> 模块自行失败关闭（纵深防御）
+E           [PASS    ] ADP-00     正向对照：合法输入可推进且模块确实被调用
+E           [PASS    ] ADP-N01    缺少 observations -> 明确输入拒绝（ADAPTER_INPUT_INVALID）
+E           [PASS    ] ADP-N02    schema_version 非法 -> 明确输入拒绝（ADAPTER_INPUT_INVALID）
+E           [PASS    ] ADP-N03    缺少 candidate_action -> 明确输入拒绝（ADAPTER_INPUT_INVALID）
+E           [PASS    ] ADP-N04    非法 JSON 输入 -> 明确输入拒绝（ADAPTER_INPUT_INVALID）
+E           [PASS    ] ADP-N05    适配器内部异常/模块脚本崩溃 -> 不得记为输入校验 PASS
+E           [PASS    ] ADP-N06    适配器依赖缺失（解释器不存在） -> 不得记为输入校验 PASS
+E           [PASS    ] ADP-N07    配置文件不存在 -> 不得记为输入校验 PASS
+E           [PASS    ] ADP-N08    模块返回非零且输出不是合法 JSON -> 不得记为输入校验 PASS
+E           [PASS    ] ADP-N09    原因码必须与真实失败路径一致（不得冒充输入拒绝）
+E           [PASS    ] ADP-N10    合法输入必须真实调用模块（未调用即 FAIL）
+E           [PASS    ] ADP-01     适配层对畸形信封做明确输入拒绝（真正的安全边界）
+E           [PASS    ] ID-05      event_id 非空、≤128 字符且在同一运行内不重复
+E           [PASS    ] LIM-01     极小超时下不会挂起（超时即阻断，且必须真实终止回收）
+E           [PASS    ] LIM-02     stdout 超限时立即终止且不判成功
+E           [PASS    ] PROC-01    不快照/不残留：调用使用 shell=False 且受超时约束
+E           [NOT_RUN ] LAYER-02   L2 真实研究算法验收
+E                      需要成员提供真实输入、真实输出与证据来源；脚本不做替代
+E           [BLOCKED ] LAYER-03   L3 ROS 2 在线联调（Gateway 审计 + NavigationSim Goal）
+E                      需要 Jazzy 容器；只有真实 Gateway 审计与 Goal 才能证明 Action 层结果
+E         
+E           计数: {'PASS': 52, 'FAIL': 9, 'NOT_RUN': 1, 'BLOCKED': 1}
+E           达到 PR 合入门槛: False
+E           L2 算法证据: NOT_READY | L3 在线联调: BLOCKED
+E           报告: ../../../../../tmp/pytest-of-root/pytest-9/test_m2_real_fixture_reaches_g0/m2-gate/report.json
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['/home/zhangwei/project/RosSystem-worktrees/work-int/.research-venv/bin/python', '/home/zhangwe...ED\n  报告: ../../../../../tmp/pytest-of-root/pytest-9/test_m2_real_fixture_reaches_g0/m2-gate/report.json\n", stderr='').returncode
+
+tests/unit/test_identity_trust_real_logs.py:535: AssertionError
+_________ test_m2_real_fixture_blocks_and_never_authorizes_nav_execute _________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-9/test_m2_real_fixture_blocks_an0')
+
+    def test_m2_real_fixture_blocks_and_never_authorizes_nav_execute(tmp_path):
+        """S3/S4 的历史拒绝不得被提升为当前 guarded 请求的结论。"""
+        _run_m2_checker(tmp_path, 'm2-block')
+        report = json.loads((tmp_path / 'm2-block' / 'report.json')
+                            .read_text(encoding='utf-8'))
+        checks = {c['id']: c for c in report['checks']}
+        for name in ('S3C-POSITIVE-CONTROL', 'S3-NATIVE-DENIAL', 'S4-NATIVE-DENIAL'):
+            entry = checks['REAL-ADP-{0}'.format(name)]
+            assert entry['status'] == 'PASS', entry
+            assert entry['decision'] == 'ADAPTER_BLOCK'
+        # S2 的历史资源与当前候选入口一致，模块级结论是 AUTHORIZED，
+        # 但**当前请求身份未绑定**，适配层必须阻断在 ADAPTER_CURRENT_IDENTITY_UNBOUND。
+        s2 = checks['REAL-ADP-S2-AUTHORIZED']
+>       assert s2['status'] == 'PASS', s2
+E       AssertionError: {'id': 'REAL-ADP-S2-AUTHORIZED', 'check': '合法模块结论仍被 F0 阻断（期望 ADAPTER_CURRENT_IDENTITY_UNBOUND）', 'status': 'FAIL', 'detail': 'rc=10 decision=ADAPTER_BLOCK reason=ADAPTER_MODULE_STATUS_NOT_PROCEED gateway_decision=None', ...}
+E       assert 'FAIL' == 'PASS'
+E         
+E         - PASS
+E         + FAIL
+
+tests/unit/test_identity_trust_real_logs.py:569: AssertionError
+=========================== short test summary info ============================
+FAILED tests/unit/test_identity_trust_real_logs.py::test_real_evidence_reaches_denied_at_evidence_layer[S3]
+FAILED tests/unit/test_identity_trust_real_logs.py::test_real_evidence_reaches_denied_at_evidence_layer[S4]
+FAILED tests/unit/test_identity_trust_real_logs.py::test_real_evidence_current_request_stays_unknown[S3]
+FAILED tests/unit/test_identity_trust_real_logs.py::test_real_evidence_current_request_stays_unknown[S4]
+FAILED tests/unit/test_identity_trust_real_logs.py::test_real_s3c_control_is_not_promoted_to_current_request
+FAILED tests/unit/test_identity_trust_real_logs.py::test_real_s2_authorizes_only_matching_entry_resource
+FAILED tests/unit/test_identity_trust_real_logs.py::test_missing_positive_control_fails_closed
+FAILED tests/unit/test_identity_trust_real_logs.py::test_denial_resource_mismatch_fails_closed
+FAILED tests/unit/test_identity_trust_real_logs.py::test_denial_resource_mismatch_with_ansi_fails_closed
+FAILED tests/unit/test_identity_trust_real_logs.py::test_permission_file_contradicting_runtime_fails_closed
+FAILED tests/unit/test_identity_trust_real_logs.py::test_self_declared_identity_cannot_change_binding
+FAILED tests/unit/test_identity_trust_real_logs.py::test_m2_real_fixture_reaches_gate
+FAILED tests/unit/test_identity_trust_real_logs.py::test_m2_real_fixture_blocks_and_never_authorizes_nav_execute
+13 failed, 749 passed, 9 skipped in 530.15s (0:08:50)
+EXIT=1

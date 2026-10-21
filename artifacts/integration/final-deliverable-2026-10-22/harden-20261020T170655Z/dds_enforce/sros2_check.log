@@ -1,0 +1,22 @@
+
+=== S1 普通模式合法 A 区请求 ===
+
+=== 启动 Enforce 安全栈（domain 43）===
+  WARN: Enforce 安全栈未就绪，相关场景已记为 FAIL
+
+======================================================================
+SROS2 SUMMARY (1 passed / 7 total)
+  [PASS] S1_normal_mode_a_zone      普通模式合法 A 区请求（domain 42，未启用安全）
+  [FAIL] S2                         依赖 Enforce 安全栈的场景
+        FAIL: Enforce 安全栈就绪（前置条件） -- 安全栈未能就绪，本场景记 FAIL 而非跳过
+  [FAIL] S5                         依赖 Enforce 安全栈的场景
+        FAIL: Enforce 安全栈就绪（前置条件） -- 安全栈未能就绪，本场景记 FAIL 而非跳过
+  [FAIL] S3                         依赖 Enforce 安全栈的场景
+        FAIL: Enforce 安全栈就绪（前置条件） -- 安全栈未能就绪，本场景记 FAIL 而非跳过
+  [FAIL] S3C                        依赖 Enforce 安全栈的场景
+        FAIL: Enforce 安全栈就绪（前置条件） -- 安全栈未能就绪，本场景记 FAIL 而非跳过
+  [FAIL] S4                         依赖 Enforce 安全栈的场景
+        FAIL: Enforce 安全栈就绪（前置条件） -- 安全栈未能就绪，本场景记 FAIL 而非跳过
+  [FAIL] S6                         依赖 Enforce 安全栈的场景
+        FAIL: Enforce 安全栈就绪（前置条件） -- 安全栈未能就绪，本场景记 FAIL 而非跳过
+evidence: tests/evidence/enforce-harden-20261020T170655Z

@@ -1,0 +1,225 @@
+{
+  "contract": "limited-three-real-verification/1",
+  "cases": 9,
+  "pass": 9,
+  "fail": 0,
+  "scope_note": "本证据只覆盖三真实调用、Schema、严格失败关闭与 M2 惰性；不包含 ROS 2 下游、M3 在线六场景、DDS Enforce，因此不得据此宣称 LEVEL 3 通过。",
+  "results": [
+    {
+      "item": "0-baseline",
+      "case": "受控基线（三模块正常）",
+      "expectation": "READY_FOR_GATEWAY_SUBMISSION",
+      "decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "reason_code": "ADAPTER_OK",
+      "downstream": {
+        "decision": "READY_FOR_GATEWAY_SUBMISSION",
+        "reason_code": "ADAPTER_OK",
+        "gateway_submission": null,
+        "submitted_to_gateway": null
+      },
+      "module_statuses": [
+        [
+          "comm_risk",
+          "NORMAL"
+        ],
+        [
+          "identity_trust",
+          "AUTHORIZED"
+        ],
+        [
+          "task_risk",
+          "ALLOW_RECOMMENDED"
+        ]
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "item": "4",
+      "case": "M1 UNKNOWN 必须失败关闭",
+      "expectation": "ADAPTER_BLOCK",
+      "decision": "ADAPTER_BLOCK",
+      "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "downstream": {
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+        "gateway_submission": null,
+        "submitted_to_gateway": null
+      },
+      "module_statuses": [
+        [
+          "comm_risk",
+          "UNKNOWN"
+        ],
+        [
+          "identity_trust",
+          "AUTHORIZED"
+        ],
+        [
+          "task_risk",
+          "ALLOW_RECOMMENDED"
+        ]
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "item": "5",
+      "case": "M2 当前身份 UNKNOWN 必须阻断",
+      "expectation": "ADAPTER_BLOCK",
+      "decision": "ADAPTER_BLOCK",
+      "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "downstream": {
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+        "gateway_submission": null,
+        "submitted_to_gateway": null
+      },
+      "module_statuses": [
+        [
+          "comm_risk",
+          "NORMAL"
+        ],
+        [
+          "identity_trust",
+          "UNKNOWN"
+        ],
+        [
+          "task_risk",
+          "ALLOW_RECOMMENDED"
+        ]
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "item": "6a",
+      "case": "M3 规则 allow（真实模块执行）",
+      "expectation": "READY_FOR_GATEWAY_SUBMISSION",
+      "decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "reason_code": "ADAPTER_OK",
+      "downstream": {
+        "decision": "READY_FOR_GATEWAY_SUBMISSION",
+        "reason_code": "ADAPTER_OK",
+        "gateway_submission": null,
+        "submitted_to_gateway": null
+      },
+      "module_statuses": [
+        [
+          "comm_risk",
+          "NORMAL"
+        ],
+        [
+          "identity_trust",
+          "AUTHORIZED"
+        ],
+        [
+          "task_risk",
+          "ALLOW_RECOMMENDED"
+        ]
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "item": "6b",
+      "case": "M3 规则 block 必须阻断",
+      "expectation": "ADAPTER_BLOCK",
+      "decision": "ADAPTER_BLOCK",
+      "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "downstream": {
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+        "gateway_submission": null,
+        "submitted_to_gateway": null
+      },
+      "module_statuses": [
+        [
+          "comm_risk",
+          "NORMAL"
+        ],
+        [
+          "identity_trust",
+          "AUTHORIZED"
+        ],
+        [
+          "task_risk",
+          "BLOCK_RECOMMENDED"
+        ]
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "item": "7",
+      "case": "STRICT 无真实凭据必须 ADAPTER_BLOCK",
+      "expectation": "ADAPTER_BLOCK",
+      "decision": "ADAPTER_BLOCK",
+      "reason_code": "ADAPTER_CURRENT_IDENTITY_UNBOUND",
+      "downstream": {
+        "decision": "ADAPTER_BLOCK",
+        "reason_code": "ADAPTER_CURRENT_IDENTITY_UNBOUND",
+        "gateway_submission": null,
+        "submitted_to_gateway": null
+      },
+      "module_statuses": [
+        [
+          "comm_risk",
+          "NORMAL"
+        ],
+        [
+          "identity_trust",
+          "AUTHORIZED"
+        ],
+        [
+          "task_risk",
+          "ALLOW_RECOMMENDED"
+        ]
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "item": "8",
+      "case": "被阻断请求未进入 Planner/Gateway",
+      "expectation": "所有 ADAPTER_BLOCK 结果不得带下游提交标记",
+      "decision": "4 blocked / 0 leaked",
+      "reason_code": null,
+      "downstream": null,
+      "module_statuses": [],
+      "verdict": "PASS"
+    },
+    {
+      "item": "12",
+      "case": "M2 组件存在不改变 F0 决策（重复判定一致）",
+      "expectation": "两次判定完全一致",
+      "decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "reason_code": "ADAPTER_OK",
+      "downstream": {
+        "decision": "READY_FOR_GATEWAY_SUBMISSION",
+        "reason_code": "ADAPTER_OK",
+        "gateway_submission": null,
+        "submitted_to_gateway": null
+      },
+      "module_statuses": [
+        [
+          "comm_risk",
+          "NORMAL"
+        ],
+        [
+          "identity_trust",
+          "AUTHORIZED"
+        ],
+        [
+          "task_risk",
+          "ALLOW_RECOMMENDED"
+        ]
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "item": "12b",
+      "case": "F0 适配器不导入 M2 研究脚本",
+      "expectation": "team_demo.py 不得引用 M2 研究组件",
+      "decision": "not imported",
+      "reason_code": null,
+      "downstream": null,
+      "module_statuses": [],
+      "verdict": "PASS"
+    }
+  ]
+}

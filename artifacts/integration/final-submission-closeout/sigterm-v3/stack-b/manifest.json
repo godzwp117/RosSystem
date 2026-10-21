@@ -1,0 +1,23 @@
+{
+  "run_id": "sigterm-v3",
+  "scenarios": [
+    {
+      "cid": "ON03",
+      "request_id": "on03-sigterm-v3",
+      "run_id": "sigterm-v3",
+      "expected": "UNKNOWN_BLOCK"
+    },
+    {
+      "cid": "ON04",
+      "request_id": "on04-sigterm-v3",
+      "run_id": "sigterm-v3",
+      "expected": "ERROR_BLOCK"
+    },
+    {
+      "cid": "ON06",
+      "request_id": "on06-sigterm-v3",
+      "run_id": "sigterm-v3",
+      "expected": "TIMEOUT_NOT_BLOCK"
+    }
+  ]
+}
