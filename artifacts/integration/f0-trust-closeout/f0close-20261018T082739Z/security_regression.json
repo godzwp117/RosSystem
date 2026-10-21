@@ -1,0 +1,52 @@
+{
+  "verified_code_sha": "4e83f9190596d71f5b887c613d3f509578a9c497",
+  "p0_vulnerability_reproduced_before_fix": {
+    "method": "module fabricates entire extensions.current_request_identity.checks",
+    "observed_before_fix": {
+      "decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "reason_code": "ADAPTER_OK",
+      "returncode": 0
+    },
+    "observed_after_fix": {
+      "decision": "ADAPTER_BLOCK",
+      "reason_code": "ADAPTER_CURRENT_IDENTITY_UNBOUND",
+      "detail_code": "ADAPTER_IDENTITY_ATTESTATION_UNVERIFIED",
+      "returncode": 10
+    }
+  },
+  "strict_mode_rejections": {
+    "bare_status_self_report": "BLOCK",
+    "forged_full_checks": "BLOCK",
+    "forged_checks_over_broken_signature": "BLOCK (ADAPTER_IDENTITY_ATTESTATION_REJECTED)",
+    "mock_fixture_identity": "BLOCK",
+    "self_declared_enclave": "BLOCK",
+    "historical_only": "BLOCK",
+    "no_raw_credential": "BLOCK",
+    "missing_witness_file": "BLOCK",
+    "missing_key_material": "BLOCK (CONFIG_INVALID)",
+    "relative_path": "BLOCK (CONFIG_INVALID)",
+    "bad_signature": "BLOCK (REJECTED)",
+    "issuer_not_listed": "BLOCK (REJECTED)",
+    "test_only_issuer": "BLOCK (REJECTED)",
+    "request_digest_mismatch": "BLOCK (REJECTED)",
+    "resource_mismatch": "BLOCK (REJECTED)",
+    "stale_evidence": "BLOCK (REJECTED)",
+    "replayed_nonce": "BLOCK (REJECTED)",
+    "unavailable_ledger": "BLOCK (REJECTED)",
+    "corrupt_ledger": "BLOCK (REJECTED)",
+    "world_readable_key": "BLOCK (REJECTED)",
+    "world_readable_issuer_list": "BLOCK (REJECTED)",
+    "shared_witness_between_m2_and_f0": "BLOCK (CONFIG_INVALID)",
+    "controlled_mode_without_reason": "BLOCK (CONFIG_INVALID)",
+    "unknown_mode": "BLOCK (CONFIG_INVALID)"
+  },
+  "positive_path": {
+    "verdict": "PASS",
+    "caveat": "使用人工构造的合成受信任签发者清单验证核验代码；系统仍无生产 DDS 身份签发者，故该 PASS 不代表生产身份认证能力"
+  },
+  "test_counts": {
+    "p0_security_files": "38 passed",
+    "new_matrix_file": "27 passed",
+    "former_xfails": "2 passed as hard assertions (0 xfailed remain)"
+  }
+}

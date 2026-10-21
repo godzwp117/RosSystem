@@ -1,0 +1,158 @@
+{
+  "with_duration": [
+    {
+      "n_test": 21735,
+      "labels": [
+        "nmap discovery",
+        "observe"
+      ],
+      "logistic": 0,
+      "extra_trees": 0,
+      "baseline": 0.6657
+    },
+    {
+      "n_test": 237,
+      "labels": [
+        "observe",
+        "ros2 reconnaissance"
+      ],
+      "logistic": 1.0,
+      "extra_trees": 1.0,
+      "baseline": 0.6301
+    },
+    {
+      "n_test": 237,
+      "labels": [
+        "observe",
+        "ros2 reconnaissance"
+      ],
+      "logistic": 1.0,
+      "extra_trees": 1.0,
+      "baseline": 0.6534
+    },
+    {
+      "n_test": 190,
+      "labels": [
+        "observe",
+        "ros2 reconnaissance"
+      ],
+      "logistic": 1.0,
+      "extra_trees": 1.0,
+      "baseline": 0.6477
+    },
+    {
+      "n_test": 192,
+      "labels": [
+        "observe",
+        "ros2 reconnaissance"
+      ],
+      "logistic": 1.0,
+      "extra_trees": 1.0,
+      "baseline": 0.6087
+    }
+  ],
+  "without_duration": [
+    {
+      "n_test": 21735,
+      "labels": [
+        "nmap discovery",
+        "observe"
+      ],
+      "logistic": 0.3203,
+      "extra_trees": 0.5733,
+      "baseline": 0.6657
+    },
+    {
+      "n_test": 237,
+      "labels": [
+        "observe",
+        "ros2 reconnaissance"
+      ],
+      "logistic": 0.7649,
+      "extra_trees": 0.8803,
+      "baseline": 0.6301
+    },
+    {
+      "n_test": 237,
+      "labels": [
+        "observe",
+        "ros2 reconnaissance"
+      ],
+      "logistic": 0.8014,
+      "extra_trees": 0.8987,
+      "baseline": 0.6534
+    },
+    {
+      "n_test": 190,
+      "labels": [
+        "observe",
+        "ros2 reconnaissance"
+      ],
+      "logistic": 0.8125,
+      "extra_trees": 0.8729,
+      "baseline": 0.6477
+    },
+    {
+      "n_test": 192,
+      "labels": [
+        "observe",
+        "ros2 reconnaissance"
+      ],
+      "logistic": 0.7925,
+      "extra_trees": 0.869,
+      "baseline": 0.6087
+    }
+  ],
+  "gap_only": [
+    {
+      "n_test": 21735,
+      "labels": [
+        "nmap discovery",
+        "observe"
+      ],
+      "logistic": 0.435,
+      "extra_trees": 0.6601,
+      "baseline": 0.6657
+    },
+    {
+      "n_test": 237,
+      "labels": [
+        "observe",
+        "ros2 reconnaissance"
+      ],
+      "logistic": 0.2683,
+      "extra_trees": 0.3333,
+      "baseline": 0.6301
+    },
+    {
+      "n_test": 237,
+      "labels": [
+        "observe",
+        "ros2 reconnaissance"
+      ],
+      "logistic": 0.1926,
+      "extra_trees": 0.2797,
+      "baseline": 0.6534
+    },
+    {
+      "n_test": 190,
+      "labels": [
+        "observe",
+        "ros2 reconnaissance"
+      ],
+      "logistic": 0.1698,
+      "extra_trees": 0.2364,
+      "baseline": 0.6477
+    },
+    {
+      "n_test": 192,
+      "labels": [
+        "observe",
+        "ros2 reconnaissance"
+      ],
+      "logistic": 0.12,
+      "extra_trees": 0.2264,
+      "baseline": 0.6087
+    }
+  ]
+}

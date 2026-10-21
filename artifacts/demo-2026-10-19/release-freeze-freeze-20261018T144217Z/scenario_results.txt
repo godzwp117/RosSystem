@@ -1,0 +1,5 @@
+PASS  工作区干净，SHA 已记录
+PASS  ROS 2 Jazzy / rmw_fastrtps_cpp / 4 包可加载 / jsonschema 4.10.3
+PASS  Domain 56 空闲
+PASS  keystore 可用（6 个 permissions.xml，只读挂载）
+PASS  TaskPolicy 与 DDS 最小权限均未改动

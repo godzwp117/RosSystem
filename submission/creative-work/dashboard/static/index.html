@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RosSystem · 跨层安全决策控制台</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">R</span>
+    <div>
+      <h1>RosSystem</h1>
+      <p class="sub">面向 ROS 2 机器人任务执行的多源可信证据融合与可审计分层安全准入系统</p>
+    </div>
+  </div>
+  <div class="badges">
+    <span id="mode-badge" class="badge badge-unknown">检测中…</span>
+    <span id="env-badge" class="badge badge-unknown">环境…</span>
+  </div>
+</header>
+
+<main>
+  <section class="panel" id="status-panel">
+    <h2>运行状态</h2>
+    <div class="grid-4">
+      <div class="stat"><label>运行模式</label><strong id="s-mode">—</strong></div>
+      <div class="stat"><label>受测代码 SHA</label><strong class="mono" id="s-sha">—</strong></div>
+      <div class="stat"><label>run_id</label><strong class="mono" id="s-run">—</strong></div>
+      <div class="stat"><label>Gateway / NavSim</label><strong id="s-stack">—</strong></div>
+    </div>
+    <p class="note" id="s-note"></p>
+  </section>
+
+  <section class="panel">
+    <h2>跨层安全架构</h2>
+    <div class="arch">
+      <div class="arch-row">
+        <div class="node" id="n-m1"><h3>M1 通信风险</h3><p>—</p></div>
+        <div class="node" id="n-m2"><h3>M2 身份可信</h3><p>—</p></div>
+        <div class="node" id="n-m3"><h3>M3 任务风险</h3><p>—</p></div>
+      </div>
+      <div class="arrow">↓ 三路证据</div>
+      <div class="arch-row"><div class="node wide" id="n-f0"><h3>F0 可信证据核验（STRICT）</h3><p>—</p></div></div>
+      <div class="arrow">↓ READY / BLOCK</div>
+      <div class="arch-row"><div class="node wide" id="n-planner"><h3>Planner</h3><p>—</p></div></div>
+      <div class="arrow">↓ /rg/guarded_navigate</div>
+      <div class="arch-row"><div class="node wide" id="n-gateway"><h3>SecurityGateway · TaskPolicy（权威）</h3><p>—</p></div></div>
+      <div class="arrow">↓ ALLOW only · /rg/nav_execute</div>
+      <div class="arch-row"><div class="node wide" id="n-navsim"><h3>NavigationSim（recorded_only）</h3><p>—</p></div></div>
+      <p class="dds">DDS-Security：独立的通信身份与资源权限控制（域绑定，独立实验）</p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>操作</h2>
+    <div class="controls">
+      <label>证据 run
+        <select id="run-select"></select>
+      </label>
+      <button id="btn-load">装载证据</button>
+      <button id="btn-replay">离线回放</button>
+    </div>
+    <div class="controls" id="online-controls">
+      <label>实验模式
+        <select id="mode-select">
+          <option value="controlled">controlled（受控正向在线）</option>
+          <option value="three-real-strict">three-real-strict（三真实严格）</option>
+          <option value="enforce">enforce（正式 DDS Enforce）</option>
+          <option value="acceptance">acceptance（全量验收）</option>
+        </select>
+      </label>
+      <button id="btn-start">启动实验</button>
+      <button id="btn-stop" class="danger">停止</button>
+    </div>
+    <pre id="run-log" class="log"></pre>
+    <p class="warn" id="online-warn"></p>
+  </section>
+
+  <section class="panel">
+    <h2>M3 六场景矩阵 <span class="muted" id="m3-meta"></span></h2>
+    <table id="m3-table">
+      <thead><tr><th>场景</th><th>F0 决策</th><th>Planner</th><th>Gateway 到达</th><th>决策</th><th>Goal</th><th>结论</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>Planner TIMEOUT 证据比较</h2>
+    <div class="grid-2" id="timeout-compare"></div>
+    <p class="note">TIMEOUT 不是 BLOCK，也不是请求取消的证据。现有日志无可严格比较的时间戳，
+    因此不宣称 Goal 发生在超时之后。</p>
+  </section>
+
+  <section class="panel">
+    <h2>能力边界</h2>
+    <ul class="limits">
+      <li>M1 生产级 IDS <b>未通过</b>验收；研究模型未导出。</li>
+      <li>M2 生产身份签发者 <b>未就绪</b>；历史 AUTHORIZED ≠ 当前请求身份。</li>
+      <li>真实 Action SendGoal 请求级身份 <b>未证明</b>；无可信速率授权基线。</li>
+      <li><b>THREE_REAL_LEVEL3_READY = BLOCKED</b>。</li>
+      <li>NavigationSim 为 <code>recorded_only</code> 存根，不代表实体机器人完成导航。</li>
+      <li>DDS Enforce 与普通在线模式是<b>不同域、不同 run</b> 的独立实验。</li>
+    </ul>
+  </section>
+</main>
+<footer><span id="footer-src"></span></footer>
+<script src="/static/app.js"></script>
+</body>
+</html>

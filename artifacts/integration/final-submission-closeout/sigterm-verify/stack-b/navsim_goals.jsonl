@@ -1,0 +1,1 @@
+{"received_at": "2026-10-21T02:29:23.988Z", "action": "/rg/nav_execute", "goal_id": "d19f2c60a5eb4cfd9392ed99f2b78d1f", "request_id": "on06-sigterm-verify", "task_id": "patrol_a_001", "frame_id": "map", "x": 1.5, "y": 1.5, "z": 0.0, "recorded_only": true, "path_planning": false}

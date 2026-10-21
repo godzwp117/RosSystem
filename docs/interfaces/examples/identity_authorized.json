@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0.0-proposed",
+  "run_id": "run-f0c-0001", "request_id": "req-f0c-0001", "event_id": "evt-id-0001",
+  "producer": { "name": "identity_trust_mock", "module_version": "0.1.0", "source": "MOCK" },
+  "observed_at": "2026-10-10T12:00:05Z", "status": "AUTHORIZED",
+  "reason": "依据权限文件推导该主体对目标资源具有请求权限（理论授权，非运行时认证）",
+  "subject": { "observed_name": "planner_node", "declared_enclave": "/planner" },
+  "requested_resource": { "resource": "/rg/guarded_navigate", "operation": "SERVICE_REQUEST" },
+  "authorization": { "result_status": "AUTHORIZED", "denial_layer": "NONE" },
+  "identity_evidence": { "kind": "PERMISSION_FILE_DERIVED",
+    "detail": "由授权策略文件推导，未经过运行时访问控制日志确认" },
+  "access_control_evidence": { "kind": "NONE", "detail": "本次未观察到访问控制判定日志" },
+  "evidence_refs": [{ "ref": "security/policies/minimal_permissions.xml", "kind": "PERMISSION_FILE_ANALYSIS",
+    "note": "配置推导证据；不能作为 DDS 认证证明" }]
+}

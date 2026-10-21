@@ -1,0 +1,226 @@
+{
+  "run_id": "final-20261017T131601Z",
+  "generated_for": "2026-10-19 演示候选最终复验",
+  "git_sha": "f6574acbf51062a96a918ac3096e7aecf83371c6",
+  "branch": "demo/2026-10-19-rc2",
+  "inheritance": {
+    "baseline": "a4c597161d254192b662ee7b8f4d17f76a89cc16",
+    "member_deliveries": "3ce820258c69b89e2ad9291e16c44dc7d2b99150",
+    "fix_branch": "19f6a256e71db7270de88e5b76b9ac2d87668cc6",
+    "old_demo": "df5a0f0d3a12286b3dc3861fb104987cf10d21d3"
+  },
+  "environment": {
+    "container": {
+      "ROS_DISTRO": "jazzy",
+      "RMW": "rmw_fastrtps_cpp",
+      "DOMAIN": "42",
+      "PY": "Python 3.12.3",
+      "PKGS": "4",
+      "NODES": "0",
+      "_returncode": 0
+    },
+    "dds_security_mode_l3": "disabled (domain 42, normal mode)",
+    "dds_security_mode_l4": "enforce (domain 43)",
+    "module_config_l3": {
+      "comm_risk": "MOCK",
+      "identity_trust": "MOCK",
+      "task_risk": "EXTERNAL"
+    }
+  },
+  "layers": {
+    "PASS": 17
+  },
+  "checks": [
+    {
+      "layer": "L0_GIT",
+      "id": "GIT-01",
+      "verdict": "PASS",
+      "returncode": 0
+    },
+    {
+      "layer": "L0_GIT",
+      "id": "GIT-02",
+      "verdict": "PASS",
+      "returncode": 0
+    },
+    {
+      "layer": "L1_PROTOCOL",
+      "id": "L1-01",
+      "verdict": "PASS",
+      "returncode": 0
+    },
+    {
+      "layer": "L1_PROTOCOL",
+      "id": "L1-02",
+      "verdict": "PASS",
+      "returncode": 0
+    },
+    {
+      "layer": "L1_PROTOCOL",
+      "id": "L1-03",
+      "verdict": "PASS",
+      "returncode": 0
+    },
+    {
+      "layer": "L1_PROTOCOL",
+      "id": "L1-04",
+      "verdict": "PASS",
+      "returncode": 0
+    },
+    {
+      "layer": "L1_PROTOCOL",
+      "id": "L1-05",
+      "verdict": "PASS",
+      "returncode": 0
+    },
+    {
+      "layer": "L1_PROTOCOL",
+      "id": "L1-06",
+      "verdict": "PASS",
+      "returncode": 0
+    },
+    {
+      "layer": "L2_ALGORITHM",
+      "id": "L2-01",
+      "verdict": "PASS",
+      "returncode": 0
+    },
+    {
+      "layer": "L2_ALGORITHM",
+      "id": "L2-02",
+      "verdict": "PASS",
+      "returncode": 0
+    },
+    {
+      "layer": "L1_PROTOCOL",
+      "id": "L1-00",
+      "verdict": "PASS",
+      "returncode": 0
+    },
+    {
+      "layer": "L3_ROS2",
+      "id": "L3-01",
+      "verdict": "PASS",
+      "returncode": 0
+    },
+    {
+      "layer": "L3_ROS2",
+      "id": "L3-02",
+      "verdict": "PASS",
+      "returncode": 0
+    },
+    {
+      "layer": "L3_ROS2",
+      "id": "L3-03",
+      "verdict": "PASS",
+      "returncode": 0
+    },
+    {
+      "layer": "L3_ROS2",
+      "id": "L3-04",
+      "verdict": "PASS",
+      "returncode": 0
+    },
+    {
+      "layer": "L3_ROS2",
+      "id": "L3-05",
+      "verdict": "PASS",
+      "returncode": 0
+    },
+    {
+      "layer": "L4_DDS",
+      "id": "L4-01",
+      "verdict": "PASS",
+      "returncode": 0
+    }
+  ],
+  "online_scenarios": [
+    {
+      "cid": "ON01",
+      "request_id": "on01-legal-allow-rc2-final-20261017T131601Z",
+      "m3_status": "ALLOW_RECOMMENDED",
+      "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "planner_outcome": "PLANNER_RESULT_RECEIVED",
+      "gateway_arrivals": 1,
+      "gateway_decisions": [
+        {
+          "decision": "ALLOW",
+          "reason_code": "ALLOW_IN_POLICY"
+        }
+      ],
+      "gateway_executions": 1,
+      "navsim_goals": 1
+    },
+    {
+      "cid": "ON02",
+      "request_id": "on02-oor-block-rc2-final-20261017T131601Z",
+      "m3_status": "BLOCK_RECOMMENDED",
+      "adapter_decision": "ADAPTER_BLOCK",
+      "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+      "gateway_arrivals": 0,
+      "gateway_decisions": [],
+      "gateway_executions": 0,
+      "navsim_goals": 0
+    },
+    {
+      "cid": "ON03",
+      "request_id": "on03-rc2b-final-20261017T131601Z",
+      "m3_status": "UNKNOWN",
+      "adapter_decision": "ADAPTER_BLOCK",
+      "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+      "gateway_arrivals": 0,
+      "gateway_decisions": [],
+      "gateway_executions": 0,
+      "navsim_goals": 0
+    },
+    {
+      "cid": "ON04",
+      "request_id": "on04-rc2b-final-20261017T131601Z",
+      "m3_status": "ERROR",
+      "adapter_decision": "ADAPTER_BLOCK",
+      "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+      "gateway_arrivals": 0,
+      "gateway_decisions": [],
+      "gateway_executions": 0,
+      "navsim_goals": 0
+    },
+    {
+      "cid": "ON05",
+      "request_id": "on05-gateway-authority-rc2-final-20261017T131601Z",
+      "m3_status": "ALLOW_RECOMMENDED",
+      "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "planner_outcome": "PLANNER_RESULT_RECEIVED",
+      "gateway_arrivals": 1,
+      "gateway_decisions": [
+        {
+          "decision": "BLOCK",
+          "reason_code": "OUT_OF_REGION"
+        }
+      ],
+      "gateway_executions": 0,
+      "navsim_goals": 0
+    },
+    {
+      "cid": "ON06",
+      "request_id": "on06-rc2b-final-20261017T131601Z",
+      "m3_status": "ALLOW_RECOMMENDED",
+      "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "planner_outcome": "PLANNER_RESULT_TIMEOUT",
+      "gateway_arrivals": 1,
+      "gateway_decisions": [
+        {
+          "decision": "ALLOW",
+          "reason_code": "ALLOW_IN_POLICY"
+        }
+      ],
+      "gateway_executions": 1,
+      "navsim_goals": 1
+    }
+  ],
+  "online_verification": {
+    "verdict": "PASS",
+    "checks": 46,
+    "failures": 0,
+    "claims_checked": true
+  }
+}

@@ -1,0 +1,2 @@
+[adapter] 模块 comm_risk stderr: status=UNKNOWN; offline advisory only
+[adapter] 模块 task_risk stderr: [member3] status=ALLOW_RECOMMENDED

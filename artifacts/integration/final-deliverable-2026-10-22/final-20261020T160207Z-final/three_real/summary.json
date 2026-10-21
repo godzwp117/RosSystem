@@ -1,0 +1,120 @@
+{
+  "run_id": "three-final-20261020T160207Z-final",
+  "request_id": "legal-three-final-20261020T160207Z-final",
+  "case": "legal",
+  "generated_at": "2026-10-20T16:13:54Z",
+  "config": "config/team_modules.three-real.yaml",
+  "levels": {
+    "THREE_EXTERNAL_CALLED": "FAIL",
+    "THREE_EXTERNAL_VALIDATED": "BLOCKED",
+    "THREE_EXTERNAL_ONLINE_PROCEED": "BLOCKED"
+  },
+  "blockers": [
+    "comm_risk: 未被成功调用（rc=2 timeout=False err=None）",
+    "identity_trust: 未被成功调用（rc=2 timeout=False err=None）",
+    "task_risk: 未被成功调用（rc=2 timeout=False err=None）",
+    "LEVEL 3 依赖 LEVEL 2 通过；当前 LEVEL 2=BLOCKED"
+  ],
+  "notes": [],
+  "modules": {
+    "comm_risk": {
+      "module": "comm_risk",
+      "mode": "external",
+      "command": [
+        "/ws/scripts/module_python.sh",
+        "modules/member1_comm/module.py",
+        "--model",
+        "modules/member1_comm/model/comm_risk_model.json",
+        "--model-sha256",
+        "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df",
+        "--features",
+        "modules/member1_comm/features.json",
+        "--observation-provenance",
+        "UNKNOWN"
+      ],
+      "returncode": 2,
+      "duration_ms": 11,
+      "timed_out": false,
+      "stdout_bytes": 0,
+      "stderr_bytes": 237,
+      "schema_ok": false,
+      "schema_errors": [],
+      "status": null
+    },
+    "identity_trust": {
+      "module": "identity_trust",
+      "mode": "external",
+      "command": [
+        "/ws/scripts/module_python.sh",
+        "identity_trust/assessor.py",
+        "--experiment-run",
+        "20261009T093144Z",
+        "--evidence-root",
+        "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence",
+        "--policy",
+        "security/policies/minimal_permissions.xml",
+        "--keystore",
+        "security/keystore",
+        "--case",
+        "S2",
+        "--identity-ledger",
+        "/ws/artifacts/integration/final-deliverable-2026-10-22/final-20261020T160207Z-final/three_real/identity_ledger.probe.jsonl"
+      ],
+      "returncode": 2,
+      "duration_ms": 10,
+      "timed_out": false,
+      "stdout_bytes": 0,
+      "stderr_bytes": 237,
+      "schema_ok": false,
+      "schema_errors": [],
+      "status": null
+    },
+    "task_risk": {
+      "module": "task_risk",
+      "mode": "external",
+      "command": [
+        "/ws/scripts/module_python.sh",
+        "modules/member3_taskrisk/module.py",
+        "--policy",
+        "config/task_policy.yaml"
+      ],
+      "returncode": 2,
+      "duration_ms": 10,
+      "timed_out": false,
+      "stdout_bytes": 0,
+      "stderr_bytes": 237,
+      "schema_ok": false,
+      "schema_errors": [],
+      "status": null
+    }
+  },
+  "f0": {
+    "command": [
+      "/usr/bin/python3",
+      "scripts/team_demo.py",
+      "--input",
+      "/ws/artifacts/integration/final-deliverable-2026-10-22/final-20261020T160207Z-final/three_real/envelope.json",
+      "--config",
+      "config/team_modules.three-real.yaml",
+      "--log",
+      "/ws/artifacts/integration/final-deliverable-2026-10-22/final-20261020T160207Z-final/three_real/adapter.jsonl"
+    ],
+    "returncode": 4,
+    "duration_ms": 26,
+    "decision": "ADAPTER_BLOCK",
+    "reason_code": "ADAPTER_DEPENDENCY_MISSING",
+    "detail": "缺少 jsonschema>=4.0（Draft 2020-12 需要）。安装方式：\n    apt-get update && apt-get install -y python3-jsonschema\n或由 scripts/container_up.sh 在新建容器时自动安装。",
+    "modules": [],
+    "stderr_tail": "[adapter] 缺少 jsonschema>=4.0（Draft 2020-12 需要）。安装方式：\n    apt-get update && apt-get install -y python3-jsonschema\n或由 scripts/container_up.sh 在新建容器时自动安装。\n"
+  },
+  "gateway": {
+    "checked": false,
+    "note": "Gateway 判定在在线阶段单独验证，不由本工具代填"
+  },
+  "verdict": {
+    "level1": "FAIL",
+    "level2": "BLOCKED",
+    "level3": "BLOCKED",
+    "overall": "B1_PARTIAL"
+  }
+}
