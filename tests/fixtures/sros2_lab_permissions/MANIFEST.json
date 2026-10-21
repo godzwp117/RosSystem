@@ -1,0 +1,24 @@
+{
+  "fixture": "sros2_lab_permissions",
+  "purpose": "permissions-only lab fixture for interpreting archived SROS2 evidence",
+  "scope": "TEST_ONLY",
+  "contains_private_keys": false,
+  "generated_by": "ros2 security create_keystore + ros2 security generate_artifacts (sros2 0.13.6)",
+  "generated_at_utc": "2026-10-21T17:23:03Z",
+  "secure_domain_id": 43,
+  "policy": "security/policies/minimal_permissions.xml",
+  "policy_sha256": "13313fc15e9b6fe8b3ddc14cced5900570c7cf39bd589117707f62724ef9781f",
+  "toolchain": {
+    "ros_distro": "jazzy",
+    "sros2": "0.13.6",
+    "rmw": "rmw_fastrtps_cpp"
+  },
+  "files": {
+    "enclaves/gateway/permissions.xml": "a318bae7fdce90389bab8b13d97c060de5bc8b5e9342804286eed91692039673",
+    "enclaves/navsim/permissions.xml": "f108738e4169b38dcc46306975172374c95906a407ca448f7e78451461588f29",
+    "enclaves/operator/permissions.xml": "32b37f07204fd5fcbe7a17bbd56adce9a90564911fb82855b6ddb92e35286ed4",
+    "enclaves/planner/permissions.xml": "a61ab158dc77b001813c6a6cf8e8dab1560b3d8e94a8155019baa72a4f47e1b8",
+    "enclaves/unauthorized/permissions.xml": "1fc8bc6cc5f46a69764fdd9e9695820443d9e5e3494962cd2db6ed2adf356264"
+  },
+  "note": "This fixture contains permissions.xml only. It is NOT the keystore used by the 2026-10-09 historical run, and it is NOT valid for starting an Enforce stack: certificates and private keys are intentionally absent. Regenerate the full keystore with scripts/setup_sros2.sh for real Enforce experiments."
+}

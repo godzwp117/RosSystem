@@ -1,0 +1,193 @@
+{
+  "contract": "dds-lab-evidence/1",
+  "scope": "TEST_ONLY_LAB",
+  "run_id": "v110ddsneg-20261021T180500Z",
+  "archived_at": "2026-10-21T17:28:27Z",
+  "command": "docker exec rg_v110 bash -lc 'cd /ws && source /opt/ros/jazzy/setup.bash && source install/setup.bash && RG_NEG_RUN_ID=v110ddsneg-20261021T180500Z python3 tests/integration/dds_lab_negative.py'",
+  "exit_code": 0,
+  "normal_domain": null,
+  "secure_domain": 43,
+  "total": 6,
+  "passed": 6,
+  "failed": 0,
+  "policy": {
+    "path": "security/policies/minimal_permissions.xml",
+    "sha256": "13313fc15e9b6fe8b3ddc14cced5900570c7cf39bd589117707f62724ef9781f"
+  },
+  "ca_certificate": {
+    "subject": "CN = sros2CA",
+    "sha256_fingerprint": "79:56:09:02:73:CC:1E:4E:CB:78:C3:EF:60:69:7A:74:10:3D:9C:9C:49:C8:89:71:75:1F:B5:11:3A:4C:40:96"
+  },
+  "enclaves": {
+    "gateway": {
+      "permissions_sha256": "a318bae7fdce90389bab8b13d97c060de5bc8b5e9342804286eed91692039673",
+      "permissions_path": "keystore_permissions/gateway/permissions.xml",
+      "default_deny": true,
+      "domain_43": true,
+      "certificate": {
+        "subject": "CN = /gateway",
+        "sha256_fingerprint": "8C:66:EF:E8:BF:94:D0:08:39:FB:79:0F:6A:5E:9F:41:9D:CE:DA:33:3B:4E:D9:59:FA:14:50:F7:05:7F:33:C5"
+      }
+    },
+    "navsim": {
+      "permissions_sha256": "f108738e4169b38dcc46306975172374c95906a407ca448f7e78451461588f29",
+      "permissions_path": "keystore_permissions/navsim/permissions.xml",
+      "default_deny": true,
+      "domain_43": true,
+      "certificate": {
+        "subject": "CN = /navsim",
+        "sha256_fingerprint": "2D:5C:51:7F:FE:5D:A2:D0:57:BB:21:3D:B2:17:79:F1:C3:29:A3:EC:A9:A2:A6:32:5A:29:24:91:DA:4F:94:DA"
+      }
+    },
+    "operator": {
+      "permissions_sha256": "32b37f07204fd5fcbe7a17bbd56adce9a90564911fb82855b6ddb92e35286ed4",
+      "permissions_path": "keystore_permissions/operator/permissions.xml",
+      "default_deny": true,
+      "domain_43": true,
+      "certificate": {
+        "subject": "CN = /operator",
+        "sha256_fingerprint": "95:EA:39:FA:BC:F6:75:6E:36:D8:34:1D:16:D9:C6:34:59:1A:C5:FF:8D:CA:24:A1:32:C1:BD:B5:27:E7:4D:27"
+      }
+    },
+    "planner": {
+      "permissions_sha256": "a61ab158dc77b001813c6a6cf8e8dab1560b3d8e94a8155019baa72a4f47e1b8",
+      "permissions_path": "keystore_permissions/planner/permissions.xml",
+      "default_deny": true,
+      "domain_43": true,
+      "certificate": {
+        "subject": "CN = /planner",
+        "sha256_fingerprint": "84:30:D0:53:C3:C0:1A:61:68:CF:14:54:D8:9C:01:F1:4D:57:1D:93:74:CD:B4:C5:0E:15:91:12:D1:68:80:85"
+      }
+    },
+    "unauthorized": {
+      "permissions_sha256": "1fc8bc6cc5f46a69764fdd9e9695820443d9e5e3494962cd2db6ed2adf356264",
+      "permissions_path": "keystore_permissions/unauthorized/permissions.xml",
+      "default_deny": true,
+      "domain_43": true,
+      "certificate": {
+        "subject": "CN = /unauthorized",
+        "sha256_fingerprint": "F0:37:F0:2F:04:FA:88:17:AC:DC:9B:BB:B0:97:EC:4D:22:39:8F:50:B6:BE:78:41:F9:F8:7D:AA:8E:3F:D2:AD"
+      }
+    }
+  },
+  "secrets_included": false,
+  "certificates_are_public_only": true,
+  "private_key_policy": "keystore private keys are never copied; the archive is not usable to impersonate any participant",
+  "git_head": "0a5389821f8cafab242435b698c5918ce1f74108",
+  "git_worktree_dirty": true,
+  "host": {
+    "uname": "Linux 6.18.54.1-microsoft-standard-WSL2"
+  },
+  "image": {
+    "name": "rosystem-verify-1.0.3:latest",
+    "digest": "rosystem-verify-1.0.3@sha256:ad4e6d2703b72c6fe09470e191edd569f6470077ddedde7ae41c8e7fc356fa75"
+  },
+  "run_stdout": null,
+  "files": {
+    "keystore_permissions/gateway/permissions.xml": {
+      "sha256": "a318bae7fdce90389bab8b13d97c060de5bc8b5e9342804286eed91692039673",
+      "bytes": 3281
+    },
+    "keystore_permissions/navsim/permissions.xml": {
+      "sha256": "f108738e4169b38dcc46306975172374c95906a407ca448f7e78451461588f29",
+      "bytes": 2669
+    },
+    "keystore_permissions/operator/permissions.xml": {
+      "sha256": "32b37f07204fd5fcbe7a17bbd56adce9a90564911fb82855b6ddb92e35286ed4",
+      "bytes": 2160
+    },
+    "keystore_permissions/planner/permissions.xml": {
+      "sha256": "a61ab158dc77b001813c6a6cf8e8dab1560b3d8e94a8155019baa72a4f47e1b8",
+      "bytes": 2683
+    },
+    "keystore_permissions/unauthorized/permissions.xml": {
+      "sha256": "1fc8bc6cc5f46a69764fdd9e9695820443d9e5e3494962cd2db6ed2adf356264",
+      "bytes": 2111
+    },
+    "v110ddsneg-20261021T180500Z/N0_positive_control/control_allow.log": {
+      "sha256": "419a3592e81b9e3fc35941a380005a840527c4187c15823817df5b187c50cd78",
+      "bytes": 382
+    },
+    "v110ddsneg-20261021T180500Z/N1_trust_root_mismatch/control_after_wrong_ca.log": {
+      "sha256": "182a18abd1ebc1740974627930f1a6af9e7499d48420ecace7fa663680e6de31",
+      "bytes": 382
+    },
+    "v110ddsneg-20261021T180500Z/N1_trust_root_mismatch/wrong_ca_gateway.log": {
+      "sha256": "36c788d3c7c2398eeb9265618bd5fad5d19fae21fc286c89473b982efef8d1a8",
+      "bytes": 394
+    },
+    "v110ddsneg-20261021T180500Z/N2_tampered_permissions_p7s/planner_control.log": {
+      "sha256": "d0bdb6696a071fcc9833129eac0082c4d8cc7723f8f6d4d5c54d16f712ae158a",
+      "bytes": 604
+    },
+    "v110ddsneg-20261021T180500Z/N2_tampered_permissions_p7s/planner_tampered_p7s.log": {
+      "sha256": "81718867f3c5d62abaff322e1d76e418b6eda6cdd6598e6140524d0f7adb85b0",
+      "bytes": 2060
+    },
+    "v110ddsneg-20261021T180500Z/N3_enforce_disabled_control/enforce_off_unauthorized.log": {
+      "sha256": "64322e2a1ac2b67cd019fa31696fcfb606eb576b9effa98e0f30a4b3deb082c3",
+      "bytes": 325
+    },
+    "v110ddsneg-20261021T180500Z/N4_cert_enclave_mismatch/cert_mismatch_gateway.log": {
+      "sha256": "2b51959163252740590daf2980a2f0303540adfe234ccc84f1f04f2f78eb0b0e",
+      "bytes": 1540
+    },
+    "v110ddsneg-20261021T180500Z/N4_cert_enclave_mismatch/control_after_cert_mismatch.log": {
+      "sha256": "a30ee8461f5ac916bd4ae7863749652f06d4e3c6abd7df7d753c3fa0991b0ce0",
+      "bytes": 382
+    },
+    "v110ddsneg-20261021T180500Z/N5_tampered_permissions_xml/planner_tampered_xml.log": {
+      "sha256": "92e90283bae252f28f733e3956a97b987517b9e8a7952644cc261a716f3be96e",
+      "bytes": 634
+    },
+    "v110ddsneg-20261021T180500Z/N5_tampered_permissions_xml/rogue_planner_tampered_xml.log": {
+      "sha256": "7cdb97210c7c28999ee245605e2626df43722d7b9d4fc5726479aa98552a0681",
+      "bytes": 1416
+    },
+    "v110ddsneg-20261021T180500Z/_neg_stack/audit.jsonl": {
+      "sha256": "3f265cd057845eaf16a8ced8914d8723dbf404f016fb6a0c69d205709ce2270b",
+      "bytes": 2209
+    },
+    "v110ddsneg-20261021T180500Z/_neg_stack/gateway.log": {
+      "sha256": "a9932197953647d2e6bd494c97dc5d8930f84525ca30ddfc43036773851e1ae3",
+      "bytes": 2390
+    },
+    "v110ddsneg-20261021T180500Z/_neg_stack/navsim.log": {
+      "sha256": "11da25017cb23ee12aa6c86867d117d236b8ee12b74f555878e37afe3292aa22",
+      "bytes": 2147
+    },
+    "v110ddsneg-20261021T180500Z/_neg_stack/navsim_goals.jsonl": {
+      "sha256": "886b635a65436341d41d6c9b2f52b2993a9e708db34969728c8153f3cdc57fd1",
+      "bytes": 1381
+    },
+    "v110ddsneg-20261021T180500Z/_neg_stack/operator.log": {
+      "sha256": "16be835f4e4fd0272d6797cb4287c5a74f0c114511323111f0fbacd23c70d6df",
+      "bytes": 3782
+    },
+    "v110ddsneg-20261021T180500Z/_open_stack/audit.jsonl": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "v110ddsneg-20261021T180500Z/_open_stack/gateway.log": {
+      "sha256": "77961e6531871df0ff346b695c3df22f4a53667a91e042d9483bb53a32449da5",
+      "bytes": 1335
+    },
+    "v110ddsneg-20261021T180500Z/_open_stack/navsim.log": {
+      "sha256": "4393515778eae515800c03a23fba236fb1ddb199fe5543dab4246ed8feb8b874",
+      "bytes": 923
+    },
+    "v110ddsneg-20261021T180500Z/_open_stack/navsim_goals.jsonl": {
+      "sha256": "2e70805c1a619e09b8c51005fc89bc3f175ffcee52bd9c450c82c549a6b9544a",
+      "bytes": 276
+    },
+    "v110ddsneg-20261021T180500Z/_open_stack/operator.log": {
+      "sha256": "80d4d1b12fdf3e5f2183ae55f1c098d698385a87509380cefc35ae360fb5bc65",
+      "bytes": 802
+    },
+    "v110ddsneg-20261021T180500Z/summary.json": {
+      "sha256": "c4db7193aa3a417f778303af83d7ceba142a02b72d2d198bfb3a78a3ce644fea",
+      "bytes": 6031
+    }
+  },
+  "note": "permissions.xml are policy-derived, non-secret artifacts included so the run can be interpreted without the wiped keystore; they are NOT the 2026-10-09 historical evidence"
+}

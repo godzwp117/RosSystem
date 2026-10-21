@@ -1,0 +1,143 @@
+{
+  "contract": "dds-lab-negative/1",
+  "run_id": "v110ddsneg-20261021T180500Z",
+  "secure_domain": 43,
+  "open_domain": 44,
+  "total": 6,
+  "passed": 6,
+  "failed": 0,
+  "results": [
+    {
+      "case_id": "N1_trust_root_mismatch",
+      "description": "different CA cannot join",
+      "result": "PASS",
+      "checks": [
+        {
+          "check": "不同 CA 的 /gateway 参与者无法加入 domain-43 安全域（未执行）",
+          "result": "PASS",
+          "detail": "outcome=NO_ACTION_SERVER goals=0 exit=-6"
+        },
+        {
+          "check": "正向对照：同一栈、同一窗口内 /gateway 身份直连成功（1 Goal）",
+          "result": "PASS",
+          "detail": "outcome=RESULT goals=1"
+        },
+        {
+          "check": "拒绝来自认证/信任根，而非服务缺失：同一栈的正向对照成功",
+          "result": "PASS",
+          "detail": "see control"
+        }
+      ],
+      "notes": [
+        "wrong-CA keystore generated in temp; certificates not archived"
+      ],
+      "evidence_dir": "tests/evidence/v110ddsneg-20261021T180500Z/N1_trust_root_mismatch"
+    },
+    {
+      "case_id": "N2_tampered_permissions_p7s",
+      "description": "tampered signature rejected",
+      "result": "PASS",
+      "checks": [
+        {
+          "check": "permissions.p7s 被篡改后 /planner 不能完成执行",
+          "result": "PASS",
+          "detail": "status=None goals=0 exit=1"
+        },
+        {
+          "check": "失败暴露安全/权限错误而不是静默成功",
+          "result": "PASS",
+          "detail": "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/ws/build/rg_demo_nodes/rg_demo_nodes/planner_node.py\", line 206, in main\n    node = PlannerNode()\n           ^^^^^^^^^^^^^\n  File \"/ws/build/rg_demo_nodes/rg_demo_nodes/planner_node.py\", line 64, in __init__\n    super().__init__('planner_node')\n  File \"/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/node.py\", line 188, in __init__\n    self.__node = _rclpy.Node(\n                  ^^^^^^^^^^^^\nrclpy._rclpy_pybind11.RCLError: error creating node: __create_participant failed to create participant, at ./src/participant.cpp:107, at ./src/rcl/node.c:252\n"
+        },
+        {
+          "check": "正向对照：未篡改的 /planner 在同一栈上成功（1 Goal）",
+          "result": "PASS",
+          "detail": "status=EXECUTED goals=1"
+        }
+      ],
+      "notes": [],
+      "evidence_dir": "tests/evidence/v110ddsneg-20261021T180500Z/N2_tampered_permissions_p7s"
+    },
+    {
+      "case_id": "N5_tampered_permissions_xml",
+      "description": "post-signing edit rejected",
+      "result": "PASS",
+      "checks": [
+        {
+          "check": "签名后往 permissions.xml 添加 /rg/nav_execute 权限不生效",
+          "result": "PASS",
+          "detail": "outcome=ACTION_CLIENT_CREATION_DENIED goals=0"
+        },
+        {
+          "check": "拒绝来自 DDS 访问控制层的原生证据",
+          "result": "PASS",
+          "detail": "['_action/send_goalReply topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1246)\\x1b[34;1m -> Function \\x1b[36mcheck_create_datareader\\x1b[m', 'king creation of local reader  (rr/rg/nav_execute/_action/send_goalReply topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1246))']"
+        },
+        {
+          "check": "同一被篡改 XML 的参与者仍按已签名的基线权限工作（正向对照）",
+          "result": "PASS",
+          "detail": "status=EXECUTED goals=1"
+        }
+      ],
+      "notes": [
+        "Measured: Fast DDS consumes the CMS-signed permissions.p7s; an unsigned edit of permissions.xml is inert. Re-signing would require the permissions CA private key, which is not available to a participant."
+      ],
+      "evidence_dir": "tests/evidence/v110ddsneg-20261021T180500Z/N5_tampered_permissions_xml"
+    },
+    {
+      "case_id": "N4_cert_enclave_mismatch",
+      "description": "cert/dir mismatch rejected",
+      "result": "PASS",
+      "checks": [
+        {
+          "check": "把 /unauthorized 证书放进 /gateway 目录不能继承 gateway 权限",
+          "result": "PASS",
+          "detail": "outcome=NODE_CREATION_FAILED goals=0"
+        },
+        {
+          "check": "正向对照：同一栈、同一窗口内 /gateway 身份直连成功（1 Goal）",
+          "result": "PASS",
+          "detail": "outcome=RESULT goals=1"
+        },
+        {
+          "check": "拒绝后同一栈正向对照仍成功（排除服务不可用）",
+          "result": "PASS",
+          "detail": "see control"
+        }
+      ],
+      "notes": [],
+      "evidence_dir": "tests/evidence/v110ddsneg-20261021T180500Z/N4_cert_enclave_mismatch"
+    },
+    {
+      "case_id": "N0_positive_control",
+      "description": "gateway direct access",
+      "result": "PASS",
+      "checks": [
+        {
+          "check": "正向对照：同一栈、同一窗口内 /gateway 身份直连成功（1 Goal）",
+          "result": "PASS",
+          "detail": "outcome=RESULT goals=1"
+        }
+      ],
+      "notes": [],
+      "evidence_dir": "tests/evidence/v110ddsneg-20261021T180500Z/N0_positive_control"
+    },
+    {
+      "case_id": "N3_enforce_disabled_control",
+      "description": "unsecured control condition",
+      "result": "PASS",
+      "checks": [
+        {
+          "check": "Enforce 关闭时，同一未授权客户端确实能执行（1 Goal）",
+          "result": "PASS",
+          "detail": "outcome=RESULT goals=1"
+        }
+      ],
+      "notes": [
+        "N3 is a control condition, not a security pass: it proves the domain-43 denial is caused by DDS security rather than an absent server."
+      ],
+      "evidence_dir": "tests/evidence/v110ddsneg-20261021T180500Z/N3_enforce_disabled_control"
+    }
+  ],
+  "scope": "TEST_ONLY_LAB",
+  "note": "negative cases are paired with same-stack positive controls; N3 is a control condition showing what happens without Enforce, not a security pass"
+}
