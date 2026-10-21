@@ -1,0 +1,37 @@
+{
+  "contract": "m1-session-observation/1",
+  "session_id": "norm-050hz",
+  "scenario": "normal-high-rate",
+  "label": "normal",
+  "label_basis": "authorized 50 Hz publisher, within expected load, no policy violation",
+  "label_source": "EXPERIMENT_CONDITION",
+  "model_used_for_labeling": false,
+  "topic": "/m1r/norm_050hz",
+  "message_type": "std_msgs/msg/String",
+  "domain_id": 68,
+  "window_sec": 30.0,
+  "window_policy": "fixed, contiguous, non-overlapping",
+  "started_at": "2026-10-20T02:36:10.194Z",
+  "ended_at": "2026-10-20T02:36:48.141Z",
+  "min_samples": 10,
+  "windows": [
+    {
+      "window_start": 0.0,
+      "window_end": 30.0,
+      "features": {
+        "message_count": 1496,
+        "frequency_hz": 49.8667,
+        "gap_median_ms": 20.0048,
+        "gap_p95_ms": 20.4058,
+        "gap_max_ms": 21.1648,
+        "gap_cv": 0.0242,
+        "graph_change_count": 1,
+        "distinct_publishers": 2
+      },
+      "samples": 1496,
+      "status": "OK"
+    }
+  ],
+  "insufficient_windows": 0,
+  "collector": "scripts/m1_session_collector.py"
+}

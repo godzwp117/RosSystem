@@ -1,0 +1,23 @@
+{
+  "run_id": "harden-20261020T170655Z-six",
+  "scenarios": [
+    {
+      "cid": "ON01",
+      "request_id": "on01-legal-allow-harden-20261020T170655Z-six",
+      "run_id": "harden-20261020T170655Z-six",
+      "expected": "ALLOW_AND_EXECUTE"
+    },
+    {
+      "cid": "ON02",
+      "request_id": "on02-oor-block-harden-20261020T170655Z-six",
+      "run_id": "harden-20261020T170655Z-six",
+      "expected": "M3_BLOCK_NO_SUBMIT"
+    },
+    {
+      "cid": "ON05",
+      "request_id": "on05-gateway-authority-harden-20261020T170655Z-six",
+      "run_id": "harden-20261020T170655Z-six",
+      "expected": "M3_ALLOW_GATEWAY_BLOCK"
+    }
+  ]
+}

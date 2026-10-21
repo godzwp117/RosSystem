@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0.0-proposed",
+  "run_id": "three-final-20261020T160207Z-v3",
+  "request_id": "legal-three-final-20261020T160207Z-v3",
+  "event_id": "m3-legal-three-final-20261020T160207Z-v3-6f28f176ca1a4221bf077df988474c18",
+  "producer": {
+    "name": "member3_taskrisk",
+    "source": "EXTERNAL",
+    "module_version": "0.1.0"
+  },
+  "observed_at": "2026-10-20T16:25:22.491Z",
+  "status": "ALLOW_RECOMMENDED",
+  "task_id": "patrol_a_001",
+  "candidate_action": {
+    "action_resource": "/rg/guarded_navigate",
+    "operation": "NAVIGATE"
+  },
+  "target": {
+    "frame_id": "map",
+    "x": 2.0,
+    "y": 2.0,
+    "z": 0.0
+  },
+  "risk_level": "NONE",
+  "reason": "ALLOW_IN_POLICY: 已检查条款未发现冲突，仍须 Gateway 准入",
+  "rule_basis": [
+    "任务 ID、坐标系及目标满足本次读取的 TaskPolicy",
+    "允许区域边界为闭区间；边界接近仅是距离提示，不新增拒绝规则",
+    "未检查项与并发状态由 Gateway 最终判定；建议不是执行许可"
+  ],
+  "evidence_refs": [
+    {
+      "ref": "modules/member3_taskrisk/risk_model.py",
+      "kind": "UNKNOWN",
+      "note": "deterministic advisory implementation; no DDS authentication"
+    },
+    {
+      "ref": "config/task_policy.yaml",
+      "kind": "UNKNOWN",
+      "note": "trusted local configuration selection, not DDS authorization"
+    }
+  ],
+  "extensions": {
+    "member3": {
+      "algorithm": "TASK_CONSTRAINT_RULES_V1",
+      "authority": "ADVISORY_ONLY",
+      "violations": [],
+      "features": {
+        "policy_active": true,
+        "task_matches": true,
+        "frame_matches": true,
+        "target_finite": true,
+        "region_inside": true,
+        "signed_boundary_margin_m": 2.0
+      },
+      "reason_code": "ALLOW_IN_POLICY",
+      "pending_gateway_checks": [
+        "DUPLICATE_REQUEST",
+        "RATE_LIMIT",
+        "EXECUTION_TIMEOUT",
+        "AUDIT_UNAVAILABLE"
+      ],
+      "runtime_monitor": "NOT_READY",
+      "dynamic_state_model": "NOT_INTEGRATED",
+      "policy_content_sha256": "0d13b8402e014db4e395dbbaa89ddfb1a591a5b8424804152009c7c79ff82e89",
+      "checked_policy_version": "1.0"
+    }
+  },
+  "policy_ref": {
+    "policy_version": "1.0"
+  }
+}

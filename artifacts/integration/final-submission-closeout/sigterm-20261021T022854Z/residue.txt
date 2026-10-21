@@ -1,0 +1,5 @@
+    867     867 Ss   bash -lc set +u; source /opt/ros/jazzy/setup.bash; source /ws/install/setup.bash; set -u; cd /ws && export ROS_DOMAIN_ID=76; bash tests/integration/test_sigterm_cleanup.sh /ws "sigterm-$(date -u +%Y%m%dT%H%M%SZ)" 2>&1 | tail -16
+    890     867 S    bash tests/integration/test_sigterm_cleanup.sh /ws sigterm-20261021T022854Z
+    891     867 S    tail -16
+   1439     867 R    ps -eo pid=,pgid=,stat=,args=
+   1440     867 S    awk -v g=867 $2==g

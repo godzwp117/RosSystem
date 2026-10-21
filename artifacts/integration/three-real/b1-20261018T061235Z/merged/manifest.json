@@ -1,0 +1,41 @@
+{
+  "run_id": "b1-20261018T061235Z",
+  "scenarios": [
+    {
+      "cid": "ON01",
+      "request_id": "on01-legal-allow-b1-20261018T061235Z",
+      "run_id": "b1-20261018T061235Z",
+      "expected": "ALLOW_AND_EXECUTE"
+    },
+    {
+      "cid": "ON02",
+      "request_id": "on02-oor-block-b1-20261018T061235Z",
+      "run_id": "b1-20261018T061235Z",
+      "expected": "M3_BLOCK_NO_SUBMIT"
+    },
+    {
+      "cid": "ON05",
+      "request_id": "on05-gateway-authority-b1-20261018T061235Z",
+      "run_id": "b1-20261018T061235Z",
+      "expected": "M3_ALLOW_GATEWAY_BLOCK"
+    },
+    {
+      "cid": "ON03",
+      "request_id": "on03-b1-20261018T061235Z",
+      "run_id": "b1-20261018T061235Z",
+      "expected": "UNKNOWN_BLOCK"
+    },
+    {
+      "cid": "ON04",
+      "request_id": "on04-b1-20261018T061235Z",
+      "run_id": "b1-20261018T061235Z",
+      "expected": "ERROR_BLOCK"
+    },
+    {
+      "cid": "ON06",
+      "request_id": "on06-b1-20261018T061235Z",
+      "run_id": "b1-20261018T061235Z",
+      "expected": "TIMEOUT_NOT_BLOCK"
+    }
+  ]
+}

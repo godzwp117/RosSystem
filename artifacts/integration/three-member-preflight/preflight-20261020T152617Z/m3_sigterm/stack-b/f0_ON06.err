@@ -1,0 +1,3 @@
+[adapter] 缺少 jsonschema>=4.0（Draft 2020-12 需要）。安装方式：
+    apt-get update && apt-get install -y python3-jsonschema
+或由 scripts/container_up.sh 在新建容器时自动安装。

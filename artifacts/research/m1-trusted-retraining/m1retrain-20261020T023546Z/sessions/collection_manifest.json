@@ -1,0 +1,100 @@
+{
+  "contract": "m1-collection-manifest/1",
+  "generated_at": "2026-10-20T02:48:48Z",
+  "container": "rg_m1r",
+  "domain": "68",
+  "window_sec": 30.0,
+  "duration_sec": 65.0,
+  "sessions": [
+    {
+      "session_id": "norm-002hz",
+      "scenario": "normal-low-rate",
+      "label": "normal",
+      "label_basis": "authorized 2 Hz publisher, within expected load, no policy violation",
+      "returncode": 0,
+      "stderr_tail": "",
+      "windows": 2,
+      "insufficient": 0
+    },
+    {
+      "session_id": "norm-010hz",
+      "scenario": "normal-mid-rate",
+      "label": "normal",
+      "label_basis": "authorized 10 Hz publisher, within expected load, no policy violation",
+      "returncode": 0,
+      "stderr_tail": "",
+      "windows": 2,
+      "insufficient": 0
+    },
+    {
+      "session_id": "norm-050hz",
+      "scenario": "normal-high-rate",
+      "label": "normal",
+      "label_basis": "authorized 50 Hz publisher, within expected load, no policy violation",
+      "returncode": 0,
+      "stderr_tail": "",
+      "windows": 2,
+      "insufficient": 0
+    },
+    {
+      "session_id": "norm-500hz",
+      "scenario": "normal-very-high-rate",
+      "label": "normal",
+      "label_basis": "authorized 500 Hz publisher; high rate alone is not a violation",
+      "returncode": 0,
+      "stderr_tail": "",
+      "windows": 2,
+      "insufficient": 0
+    },
+    {
+      "session_id": "norm-irregular",
+      "scenario": "normal-irregular",
+      "label": "normal",
+      "label_basis": "authorized publisher with jittered intervals; timing noise is not a violation",
+      "returncode": 0,
+      "stderr_tail": "",
+      "windows": 2,
+      "insufficient": 0
+    },
+    {
+      "session_id": "norm-restart",
+      "scenario": "normal-restart",
+      "label": "normal",
+      "label_basis": "authorized publisher restarts mid-session; a restart is not a violation",
+      "returncode": 0,
+      "stderr_tail": "",
+      "windows": 2,
+      "insufficient": 0
+    },
+    {
+      "session_id": "anom-topic-flood",
+      "scenario": "anomaly-flood",
+      "label": "anomaly",
+      "label_basis": "unbounded topic flood at 2000 Hz, far beyond any authorized workload",
+      "returncode": 0,
+      "stderr_tail": "",
+      "windows": 2,
+      "insufficient": 0
+    },
+    {
+      "session_id": "anom-discovery-churn",
+      "scenario": "anomaly-discovery-churn",
+      "label": "anomaly",
+      "label_basis": "abnormal discovery behavior: repeatedly creating and destroying nodes",
+      "returncode": 0,
+      "stderr_tail": "",
+      "windows": 2,
+      "insufficient": 2
+    },
+    {
+      "session_id": "anom-recon",
+      "scenario": "anomaly-recon",
+      "label": "anomaly",
+      "label_basis": "ROS graph reconnaissance: sustained enumeration plus transient endpoints",
+      "returncode": 0,
+      "stderr_tail": "",
+      "windows": 2,
+      "insufficient": 2
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "model_file": "comm_risk_model_runtime_subset.json",
+  "model_sha256": "9de89b7a96928c5fc1b5f1d0a24870d3ac9e091e179ea2988454e820097ce588",
+  "model_size_bytes": 1443231,
+  "model_format": "member1-numeric-v1",
+  "algorithm": "extra_trees",
+  "threshold": 0.9,
+  "validation_gate_passed": false,
+  "detector_effectiveness": "NOT_PROVEN",
+  "runtime_monitor": "NOT_READY",
+  "feature_count": 24,
+  "feature_manifest": "modules/member1_comm/features_runtime_subset.json",
+  "training_report": "train_report_runtime_subset.json",
+  "training_report_sha256": "d7d3a5b5ec19e63c963c16f0b1a676ba9d358e97dfa46a47172f4564a976bd8b",
+  "purpose": "运行时子集模型：只用 Linux /proc 可真实采集的 24 个 OS Monitor 特征，用于验证真实采集到模型推理的链路；不得宣称在线检测有效",
+  "feature_selection": {
+    "method": "columns projected from the audited 49-feature sampling (no re-sampling)",
+    "source_feature_count": 49,
+    "retained": 24,
+    "dropped_tshark": 22,
+    "dropped_ros_graph": [
+      "subscribers_count",
+      "publishers_count"
+    ],
+    "dropped_missing_on_host": [
+      "pgalloc_dma"
+    ],
+    "projection_tool": "modules/member1_comm/export_runtime_subset_samples.py",
+    "collector": "modules/member1_comm/collector/proc_runtime.py",
+    "semantic_equivalence": "UNVERIFIED"
+  },
+  "training_data": {
+    "source": "ROSPaCe_reduced.tar.gz (official archive, SIZE_MD5_PASS)",
+    "archive_md5": "63d2723577250282361b4c073b4912e5",
+    "audited_rows": 30247050,
+    "sampled_rows": 150000,
+    "split": {
+      "train": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "validation": [
+        11,
+        12
+      ],
+      "test": [
+        13,
+        14
+      ]
+    },
+    "split_type": "FILE_DISJOINT_SPLIT",
+    "session_independence": "UNVERIFIED"
+  },
+  "measured_on_test_split": {
+    "f1": 0.0891089108910891,
+    "recall": 0.046632124352331605,
+    "specificity": 1,
+    "balanced_accuracy": 0.5233160621761658,
+    "pr_auc": 0.7525640218838998,
+    "confusion": {
+      "tp": 639,
+      "tn": 6297,
+      "fp": 0,
+      "fn": 13064
+    },
+    "always_attack_f1": 0.8131620330534374
+  },
+  "comparison_with_49_feature_model": {
+    "f1": {
+      "runtime_subset_24": 0.0891089108910891,
+      "full_49": 0.13119672690078418
+    },
+    "recall": {
+      "runtime_subset_24": 0.046632124352331605,
+      "full_49": 0.07020360504998906
+    },
+    "verdict": "子集模型在 held-out 测试分片上更差：去掉 22 个逐包字段后检测能力进一步下降。这与主机级计数器只能弱区分攻击的解释一致，但不构成因果证明"
+  },
+  "reproduction": [
+    "python3 modules/member1_comm/export_runtime_subset_samples.py --samples data/member1_samples/reduced --features modules/member1_comm/features_runtime_subset.json --out data/member1_samples/reduced_runtime_subset",
+    "python3 modules/member1_comm/train.py --samples data/member1_samples/reduced_runtime_subset --output training_runs/member1_runtime_subset"
+  ],
+  "security_notes": [
+    "纯数值 JSON，无 pickle/joblib。",
+    "validation_gate_passed=false：生产语义下正常预测保留 UNKNOWN。",
+    "采集器只能提供主机级、窗口级的量；无法归因到单条任务请求。",
+    "request_count 无法从 /proc 获得，缺少它时模块必须失败关闭（退出码 4）。"
+  ]
+}

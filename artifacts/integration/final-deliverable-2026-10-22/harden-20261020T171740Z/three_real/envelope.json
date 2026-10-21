@@ -1,0 +1,171 @@
+{
+  "schema_version": "1.0.0-proposed",
+  "run_id": "three-harden-20261020T171740Z",
+  "created_at": "2026-10-12T12:00:00Z",
+  "request_id": "legal-three-harden-20261020T171740Z",
+  "candidate_action": {
+    "action_resource": "/rg/guarded_navigate",
+    "operation": "NAVIGATE",
+    "task_id": "patrol_a_001",
+    "target": {
+      "frame_id": "map",
+      "x": 2.0,
+      "y": 2.0,
+      "z": 0.0
+    }
+  },
+  "observations": [
+    {
+      "source": "/rg/guarded_navigate",
+      "kind": "RUNTIME_LOG",
+      "observed_at": "2026-10-12T12:00:00Z",
+      "detail": {
+        "f0_mock": {
+          "comm_risk": {
+            "scenario": "normal"
+          },
+          "identity_trust": {
+            "scenario": "authorized"
+          },
+          "task_risk": {
+            "scenario": "allow"
+          }
+        },
+        "rospace_comm": {
+          "features": {
+            "feature_names": [
+              "layers.sll.sll.pkttype",
+              "layers.sll.sll.hatype",
+              "layers.ip.ip.version",
+              "layers.ip.ip.dsfield_tree.ip.dsfield.ecn",
+              "layers.ip.ip.flags_tree.ip.flags.rb",
+              "layers.ip.ip.flags_tree.ip.flags.df",
+              "layers.ip.ip.checksum.status",
+              "layers.tcp.tcp.stream",
+              "layers.tcp.tcp.ack",
+              "layers.tcp.tcp.flags_tree.tcp.flags.ack",
+              "layers.tcp.tcp.flags_tree.tcp.flags.syn",
+              "layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.severity",
+              "layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.group",
+              "layers.tcp.tcp.window_size_value",
+              "layers.tcp.tcp.window_size",
+              "layers.tcp.tcp.options_tree.tcp.options.nop",
+              "layers.tcp.tcp.options_tree.tcp.options.nop_tree.tcp.option_kind",
+              "layers.tcp.tcp.analysis.tcp.analysis.acks_frame",
+              "layers.tcp.tcp.analysis.tcp.analysis.initial_rtt",
+              "layers.ssl.ssl.record.ssl.record.content_type",
+              "layers.ipv6.ip.version",
+              "layers.ipv6.ipv6.tclass_tree.ipv6.tclass.ecn",
+              "Net_Sent",
+              "pgpgin",
+              "pgactivate",
+              "Disk_Read",
+              "pgfault",
+              "Net_Received",
+              "MemFree",
+              "Inactive",
+              "pgdeactivate",
+              "Tcp_Close",
+              "pgfree",
+              "nr_active_file",
+              "Cached",
+              "nr_inactive_file",
+              "Disk_Write",
+              "pgpgout",
+              "Tcp_Syn",
+              "Buffers",
+              "Tcp_TimeWait",
+              "Tcp_Listen",
+              "Tcp_Established",
+              "Active",
+              "pgalloc_dma",
+              "pgmajfault",
+              "SwapFree",
+              "subscribers_count",
+              "publishers_count"
+            ],
+            "values": [
+              0.0,
+              772.0,
+              4.0,
+              0.0,
+              0.0,
+              1.0,
+              2.0,
+              62156.0,
+              32291.0,
+              1.0,
+              0.0,
+              null,
+              null,
+              512.0,
+              65536.0,
+              1.0,
+              1.0,
+              167594.0,
+              8.0266e-05,
+              null,
+              null,
+              null,
+              62000.0,
+              85592348.0,
+              176736336.0,
+              0.0,
+              2227971097.0,
+              924.0,
+              10144084.0,
+              16839164.0,
+              175063620.0,
+              0.0,
+              2176057708.0,
+              636735.0,
+              14865676.0,
+              3172828.0,
+              764000.0,
+              68942361.0,
+              0.0,
+              398916.0,
+              0.0,
+              11.0,
+              3.0,
+              4357652.0,
+              1024.0,
+              835946.0,
+              1891760.0,
+              1.0,
+              2.0
+            ]
+          }
+        },
+        "f0_runtime": {
+          "communication": {
+            "resource": "/rg/guarded_navigate",
+            "resource_type": "Action",
+            "operation": "GOAL_SEND"
+          },
+          "request_count": 12,
+          "window": {
+            "start": "2026-10-12T11:59:55Z",
+            "end": "2026-10-12T12:00:00Z",
+            "duration_ms": 5000
+          }
+        },
+        "comm_probe_provenance": {
+          "fixture": "tests/fixtures/member1/rospace_comm_rows.json",
+          "shard": 13,
+          "original_csv_row": 12882,
+          "dataset_label": "observe",
+          "score": 0.18208717770361063,
+          "note": "real held-out row; injected by the acceptance harness, not by business input"
+        }
+      }
+    }
+  ],
+  "evidence_refs": [
+    {
+      "ref": "tests/fixtures/member1/rospace_comm_rows.json",
+      "kind": "RUNTIME_LOG",
+      "note": "real held-out ROSPaCe rows; offline classification input"
+    }
+  ]
+}

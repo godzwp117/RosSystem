@@ -1,0 +1,47 @@
+=== 成员模块验收：comm_risk ===
+  [PASS    ] CFG-01     模块配置可解析
+  [PASS    ] CFG-02     配置中包含目标模块
+  [PASS    ] CFG-03     command 是参数数组（非字符串）
+  [PASS    ] CFG-04     命令来自受信任本地配置（非业务输入）
+  [PASS    ] CFG-05     接口名与模块匹配
+  [PASS    ] RUN-01     模块被真实调用（记录命令与返回码）
+  [FAIL    ] PROTO-01   stdout 非空
+             0 字节
+  [PASS    ] PROTO-02   stdout 只含一个 JSON 对象
+  [FAIL    ] PROTO-03   stdout 无额外调试文本污染
+             首字符=''
+  [PASS    ] PROTO-04   stdout 未超过 max_stdout_bytes
+  [PASS    ] PROTO-05   诊断信息写入 stderr（stdout 依然干净）
+  [FAIL    ] PROTO-06   stdout 是合法 JSON
+             Expecting value: line 1 column 1 (char 0)
+  [FAIL    ] STATE-NORMAL normal 场景真实运行 -> NORMAL（PROCEED）
+             rc=4 state=None schema_ok=None class=None ids_ok=False
+  [FAIL    ] STATE-SUSPICIOUS suspicious 场景真实运行 -> SUSPICIOUS（LEGAL_BLOCK）
+             rc=4 state=None schema_ok=None class=None ids_ok=False
+  [FAIL    ] STATE-UNKNOWN unknown 场景真实运行 -> UNKNOWN（LEGAL_BLOCK）
+             rc=4 state=None schema_ok=None class=None ids_ok=False
+  [FAIL    ] STATE-ERROR error 场景真实运行 -> ERROR（LEGAL_BLOCK）
+             rc=4 state=None schema_ok=None class=None ids_ok=False
+  [PASS    ] STATE-SUMMARY 四状态矩阵完整执行（共 4 种）
+  [FAIL    ] STATE-CLASSIFY Schema 合法性与安全推进资格分开判定
+             阻断状态（SUSPICIOUS,UNKNOWN,ERROR）Schema 同样合法，被归类为 LEGAL_BLOCK 而非 Schema 错误
+  [PASS    ] ADP-SUSPICIOUS 适配层对 SUSPICIOUS 返回 ADAPTER_BLOCK
+  [PASS    ] ADP-UNKNOWN 适配层对 UNKNOWN 返回 ADAPTER_BLOCK
+  [PASS    ] ADP-ERROR  适配层对 ERROR 返回 ADAPTER_BLOCK
+  [PASS    ] ERR-01     非法 JSON 输入 -> 失败关闭
+  [PASS    ] ERR-03     schema_version 不兼容 -> 模块自行失败关闭（纵深防御）
+  [PASS    ] ERR-04     缺 observations -> 模块自行失败关闭（纵深防御）
+  [PASS    ] ADP-01     适配层对畸形信封失败关闭（真正的安全边界）
+  [PASS    ] LIM-01     极小超时下不会挂起（超时即阻断）
+  [FAIL    ] LIM-02     stdout 超限时立即终止且不判成功
+             exceeded=None stdout_bytes=0（上限 64）
+  [PASS    ] PROC-01    不快照/不残留：调用使用 shell=False 且受超时约束
+  [NOT_RUN ] LAYER-02   L2 真实研究算法验收
+             需要成员提供真实输入、真实输出与证据来源；脚本不做替代
+  [BLOCKED ] LAYER-03   L3 ROS 2 在线联调（Gateway 审计 + NavigationSim Goal）
+             需要 Jazzy 容器；只有真实 Gateway 审计与 Goal 才能证明 Action 层结果
+
+  计数: {'PASS': 19, 'FAIL': 9, 'NOT_RUN': 1, 'BLOCKED': 1}
+  达到 PR 合入门槛: False
+  L2 算法证据: NOT_READY | L3 在线联调: BLOCKED
+  报告: logs/member_acceptance/acc-comm_risk-20261013T115048Z/report.json

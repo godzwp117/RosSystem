@@ -1,0 +1,87 @@
+{
+  "adapter_version": "0.1.0",
+  "contract_version": "1.0.0-proposed",
+  "invocation_id": "f1d9f46cb206",
+  "checked_at": "2026-10-21T02:30:04Z",
+  "decision": "ADAPTER_BLOCK",
+  "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+  "detail": "模块 task_risk 状态为 'UNKNOWN'，不是允许推进的 'ALLOW_RECOMMENDED'；本地阻断，不进入提交流程",
+  "run_id": "sigterm-v3",
+  "request_id": "on03-sigterm-v3",
+  "modules": [
+    {
+      "invocation_id": "f1d9f46cb206",
+      "module": "comm_risk",
+      "mode": "mock",
+      "interface": "comm_risk_evidence",
+      "command": [
+        "python3",
+        "mock_modules/comm_risk_mock.py"
+      ],
+      "timeout_sec": 10.0,
+      "max_stdout_bytes": 65536,
+      "pid": 2258,
+      "pgid": 2258,
+      "exit_code": 0,
+      "duration_ms": 14,
+      "stdout_bytes": 828,
+      "status": "NORMAL",
+      "schema_ok": true,
+      "cleanup": "not_needed",
+      "stderr_bytes_kept": 35
+    },
+    {
+      "invocation_id": "f1d9f46cb206",
+      "module": "identity_trust",
+      "mode": "mock",
+      "interface": "identity_trust_assessment",
+      "command": [
+        "python3",
+        "mock_modules/identity_trust_mock.py"
+      ],
+      "timeout_sec": 10.0,
+      "max_stdout_bytes": 65536,
+      "pid": 2259,
+      "pgid": 2259,
+      "exit_code": 0,
+      "duration_ms": 14,
+      "stdout_bytes": 1180,
+      "status": "AUTHORIZED",
+      "schema_ok": true,
+      "cleanup": "not_needed",
+      "stderr_bytes_kept": 43
+    },
+    {
+      "invocation_id": "f1d9f46cb206",
+      "module": "task_risk",
+      "mode": "external",
+      "interface": "task_risk_decision",
+      "command": [
+        "python3",
+        "modules/member3_taskrisk/module.py",
+        "--policy",
+        "/tmp/m3_online_inputs/task_policy_absent.yaml"
+      ],
+      "timeout_sec": 10.0,
+      "max_stdout_bytes": 65536,
+      "pid": 2260,
+      "pgid": 2260,
+      "exit_code": 0,
+      "duration_ms": 68,
+      "stdout_bytes": 1108,
+      "status": "UNKNOWN",
+      "schema_ok": true,
+      "cleanup": "not_needed",
+      "stderr_bytes_kept": 25
+    }
+  ],
+  "adapter_peak_rss_kb": 28732,
+  "note": "本结果仅表示适配层的候选输入检查结论；READY_FOR_GATEWAY_SUBMISSION 不代表 Gateway 已允许，也不代表下游已执行。本层不提交真实 Action。",
+  "audit_written": true,
+  "online": {
+    "enabled": true,
+    "submitted": false,
+    "outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+    "detail": "适配层未通过推进条件，因此不启动 Planner、不发送任何 Goal"
+  }
+}

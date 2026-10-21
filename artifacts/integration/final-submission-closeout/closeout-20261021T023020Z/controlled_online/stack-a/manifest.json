@@ -1,0 +1,23 @@
+{
+  "run_id": "closeout-20261021T023020Z-controlled",
+  "scenarios": [
+    {
+      "cid": "ON01",
+      "request_id": "on01-legal-allow-closeout-20261021T023020Z-controlled",
+      "run_id": "closeout-20261021T023020Z-controlled",
+      "expected": "ALLOW_AND_EXECUTE"
+    },
+    {
+      "cid": "ON02",
+      "request_id": "on02-oor-block-closeout-20261021T023020Z-controlled",
+      "run_id": "closeout-20261021T023020Z-controlled",
+      "expected": "M3_BLOCK_NO_SUBMIT"
+    },
+    {
+      "cid": "ON05",
+      "request_id": "on05-gateway-authority-closeout-20261021T023020Z-controlled",
+      "run_id": "closeout-20261021T023020Z-controlled",
+      "expected": "M3_ALLOW_GATEWAY_BLOCK"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "adapter_version": "0.1.0",
+  "contract_version": "1.0.0-proposed",
+  "invocation_id": "dccbdae5821b",
+  "checked_at": "2026-10-19T15:56:47Z",
+  "decision": "ADAPTER_BLOCK",
+  "reason_code": "ADAPTER_INPUT_INVALID",
+  "detail": "输入信封不符合 module_input schema: $: Additional properties are not allowed ('f0_control' was unexpected); $: 'created_at' is a required property; $: 'observations' is a required property",
+  "run_id": "downstream-pos-/ws/artifacts/integration/three-real-limited-online/online-20261019T155522Z/downstream/pos_envelope.json",
+  "request_id": "pos-audit-control",
+  "modules": [],
+  "adapter_peak_rss_kb": 28956,
+  "note": "本结果仅表示适配层的候选输入检查结论；READY_FOR_GATEWAY_SUBMISSION 不代表 Gateway 已允许，也不代表下游已执行。本层不提交真实 Action。",
+  "audit_written": true,
+  "online": {
+    "enabled": true,
+    "submitted": false,
+    "outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+    "detail": "适配层未通过推进条件，因此不启动 Planner、不发送任何 Goal"
+  }
+}

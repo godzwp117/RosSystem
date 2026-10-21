@@ -1,0 +1,152 @@
+{
+  "run_id": "b1p2-20261018T065613Z",
+  "work": "WORK_B1 phase-2 (after merging Work A acadbf7)",
+  "git_sha": "a8d07ab18d059c6986597dfea328cd609fa96ce3",
+  "branch": "integration/three-real-online",
+  "base_tag": "demo-2026-10-19-rc2-verified",
+  "base_commit": "33cb4f93d5e5fd268878fe83fc040c655d632a70",
+  "work_a": {
+    "branch": "integration/member-module-adaptation",
+    "phase1": "f51bab800d7bb3fe325d7e096bb15438178f5122",
+    "phase2": "acadbf7654036a11d74aff9f507bef34b4223aa8"
+  },
+  "environment": {
+    "container": "rg_b1 (ros:jazzy), isolated worktree, ROS_DOMAIN_ID=54",
+    "rmw": "rmw_fastrtps_cpp",
+    "domain_online": 54,
+    "domain_enforce": 43,
+    "module_modes": {
+      "comm_risk": "external",
+      "identity_trust": "external",
+      "task_risk": "external"
+    },
+    "interpreter": "scripts/module_python.sh -> jsonschema>=4"
+  },
+  "three_real": {
+    "level1": "PASS",
+    "level2": "PASS",
+    "level3": "BLOCKED",
+    "overall": "B1_INTEGRATED_BLOCKING",
+    "modules": {
+      "comm_risk": {
+        "status": "UNKNOWN",
+        "returncode": 0,
+        "schema_ok": true
+      },
+      "identity_trust": {
+        "status": "AUTHORIZED",
+        "returncode": 0,
+        "schema_ok": true
+      },
+      "task_risk": {
+        "status": "ALLOW_RECOMMENDED",
+        "returncode": 0,
+        "schema_ok": true
+      }
+    },
+    "f0": {
+      "decision": "ADAPTER_BLOCK",
+      "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED"
+    },
+    "blockers": [
+      "comm_risk: status='UNKNOWN'，推进需要 'NORMAL'",
+      "identity_trust: current_request_identity.status='UNKNOWN'，本轮没有可信的当前请求身份绑定",
+      "F0 决策为 'ADAPTER_BLOCK'（ADAPTER_MODULE_STATUS_NOT_PROCEED），未提交 Planner"
+    ]
+  },
+  "m3_online": {
+    "verdict": "PASS",
+    "checks": 39,
+    "failures": 0,
+    "scenarios": [
+      {
+        "cid": "ON01",
+        "gateway_arrivals": 1,
+        "gateway_decisions": [
+          {
+            "decision": "ALLOW",
+            "reason_code": "ALLOW_IN_POLICY"
+          }
+        ],
+        "gateway_executions": 1,
+        "navsim_goals": 1,
+        "planner_outcome": "PLANNER_RESULT_RECEIVED"
+      },
+      {
+        "cid": "ON02",
+        "gateway_arrivals": 0,
+        "gateway_decisions": [],
+        "gateway_executions": 0,
+        "navsim_goals": 0,
+        "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK"
+      },
+      {
+        "cid": "ON03",
+        "gateway_arrivals": 0,
+        "gateway_decisions": [],
+        "gateway_executions": 0,
+        "navsim_goals": 0,
+        "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK"
+      },
+      {
+        "cid": "ON04",
+        "gateway_arrivals": 0,
+        "gateway_decisions": [],
+        "gateway_executions": 0,
+        "navsim_goals": 0,
+        "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK"
+      },
+      {
+        "cid": "ON05",
+        "gateway_arrivals": 1,
+        "gateway_decisions": [
+          {
+            "decision": "BLOCK",
+            "reason_code": "OUT_OF_REGION"
+          }
+        ],
+        "gateway_executions": 0,
+        "navsim_goals": 0,
+        "planner_outcome": "PLANNER_RESULT_RECEIVED"
+      },
+      {
+        "cid": "ON06",
+        "gateway_arrivals": 1,
+        "gateway_decisions": [
+          {
+            "decision": "ALLOW",
+            "reason_code": "ALLOW_IN_POLICY"
+          }
+        ],
+        "gateway_executions": 1,
+        "navsim_goals": 1,
+        "planner_outcome": "PLANNER_RESULT_TIMEOUT"
+      }
+    ]
+  },
+  "dds_enforce": {
+    "passed": 7,
+    "failed": 0,
+    "total": 7,
+    "domain": 43
+  },
+  "tests": {
+    "unit": "734 passed, 3 skipped, 2 xfailed",
+    "acceptance": {
+      "comm_risk": {
+        "PASS": 60,
+        "gate": true
+      },
+      "identity_trust": {
+        "PASS": 58,
+        "gate": true
+      },
+      "task_risk": {
+        "PASS": 58,
+        "gate": true
+      }
+    },
+    "three_real_online_check": "11 passed (T1-T5 + guard)"
+  },
+  "final_state": "B1_INTEGRATED_BLOCKING"
+}
