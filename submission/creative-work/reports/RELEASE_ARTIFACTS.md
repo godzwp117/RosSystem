@@ -25,12 +25,18 @@
 2. 解压后扫描 `.pem/.key/.p7s`：**无**；
 3. 完整包 `reports/` 含 1.0.3 报告、1.0.3 证据索引、1.1.0 基线审计与 1.1.0 最终报告；
 4. 完整包 `runtime/artifacts/acceptance/exports/` 含 1.0.3 归档与 4 个 1.1.0 证据归档；
-5. 全新解压 + 全新容器 `rosystem-jazzy:1.1.0`：
+5. 构建 `16e74e…` 的全新解压 + 全新容器 `rosystem-jazzy:1.1.0`：
    - `colcon build` 4/4；
    - 新实验室 CA + 权限复核 PASS；
    - DDS Enforce **7/7 PASS**；
    - 6 个关键测试文件 **121 passed**；
    - 三真实 LEVEL1/2 PASS，LEVEL3 BLOCKED。
+6. 最终包 `82c2f0ff…`（仅文档/报告变化）复验：
+   - `sha256sum -c` OK；
+   - 解压后无 `.pem/.key/.p7s`；
+   - `reports/` 与 `runtime/artifacts/...` 证据存在；
+   - 同一 6 个关键测试文件 **121 passed**；
+   - **未**在最终包上重跑 DDS 7/7；该结果属于构建 `16e74e…`，两者代码相同、仅文档不同。
 
 > 该复现是**同一宿主上的独立目录/独立容器**复现，不是第三方主机复现。
 > 构建产物不包含私钥或证书；keystore 只在实验容器内临时生成并清理。

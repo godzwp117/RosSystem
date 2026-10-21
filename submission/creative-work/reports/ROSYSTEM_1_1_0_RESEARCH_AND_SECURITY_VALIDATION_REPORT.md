@@ -461,6 +461,8 @@ Baseline A 未在本轮全量重跑，因此**不做**逐项同难度统计对�
 
 证据：`artifacts/acceptance/exports/package_v110_verification/`
 （含 `package_verification.json` 与逐文件 SHA-256；不含私钥/证书）。
+上述 DDS 7/7 与 `colcon` 复现使用构建 `16e74e…`；最终包 `82c2f0ff…` 仅文档/报告
+变化，复验了 SHA、无密钥、报告与证据存在以及 121 项测试，**未**在最终包上重跑 DDS。
 
 **仍未完成**：第三方主机/CI 的复现，以及 Web 控制台在线展示的包内验证。
 因此独立复现状态是 **PASS（同宿主、独立目录/容器）**，不是“第三方独立复现”。
