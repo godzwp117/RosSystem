@@ -1,0 +1,40 @@
+{
+  "scenarios": [
+    {
+      "cid": "ON01",
+      "request_id": "on01-legal-allow-final-20261020T160207Z-v3-six",
+      "run_id": "final-20261020T160207Z-v3-six",
+      "expected": "ALLOW_AND_EXECUTE"
+    },
+    {
+      "cid": "ON02",
+      "request_id": "on02-oor-block-final-20261020T160207Z-v3-six",
+      "run_id": "final-20261020T160207Z-v3-six",
+      "expected": "M3_BLOCK_NO_SUBMIT"
+    },
+    {
+      "cid": "ON05",
+      "request_id": "on05-gateway-authority-final-20261020T160207Z-v3-six",
+      "run_id": "final-20261020T160207Z-v3-six",
+      "expected": "M3_ALLOW_GATEWAY_BLOCK"
+    },
+    {
+      "cid": "ON03",
+      "request_id": "on03-final-20261020T160207Z-v3-six",
+      "run_id": "final-20261020T160207Z-v3-six",
+      "expected": "UNKNOWN_BLOCK"
+    },
+    {
+      "cid": "ON04",
+      "request_id": "on04-final-20261020T160207Z-v3-six",
+      "run_id": "final-20261020T160207Z-v3-six",
+      "expected": "ERROR_BLOCK"
+    },
+    {
+      "cid": "ON06",
+      "request_id": "on06-final-20261020T160207Z-v3-six",
+      "run_id": "final-20261020T160207Z-v3-six",
+      "expected": "TIMEOUT_NOT_BLOCK"
+    }
+  ]
+}

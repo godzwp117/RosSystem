@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/godzwp117/RosSystem/docs/interfaces/schemas/module_input.schema.json",
+  "title": "ModuleInputEnvelope",
+  "description": "三个研究模块共用的统一输入信封。由适配层构造后通过 stdin 以单个 JSON 对象传入模块。本信封刻意**不包含**任何可由业务调用者自报并直接生效的授权开关（如 is_admin / authenticated / role），也不允许指定执行端资源；身份与授权只能由 DDS-Security 与 SecurityGateway 判定。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "request_id",
+    "created_at",
+    "candidate_action",
+    "observations",
+    "evidence_refs"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": [
+        "1.0.0-proposed"
+      ],
+      "description": "输入契约版本。与输出 Schema 共用同一版本号；不兼容版本必须被模块拒绝，不得静默猜测字段含义。"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "运行实例标识。同一次运行内，输入与三个模块输出必须使用同一 run_id。"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "业务请求关联标识。**不代表通信主体的安全身份**。模块输出的 request_id 必须与本字段完全一致；适配层发现不一致时必须拒绝本次候选操作，不得串单。"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "信封创建时间，RFC 3339（含时区）。用于判断观察数据是否过期。"
+    },
+    "candidate_action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action_resource",
+        "operation",
+        "task_id",
+        "target"
+      ],
+      "description": "候选操作。语义必须与冻结的 PatrolNavigate.action 一致，不得发明另一套导航目标语义。",
+      "properties": {
+        "action_resource": {
+          "type": "string",
+          "const": "/rg/guarded_navigate",
+          "description": "候选操作的入口 Action。**固定为 /rg/guarded_navigate**：调用方不得把执行端 /rg/nav_execute 或 NavigationSim 设为请求目标，该约束由 Schema 强制，不允许通过配置绕过。"
+        },
+        "operation": {
+          "type": "string",
+          "enum": [
+            "NAVIGATE"
+          ],
+          "description": "请求操作类型。当前仅支持导航。"
+        },
+        "task_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "任务标识，与 PatrolNavigate.Goal.task_id 及权威 TaskPolicy 语义一致。"
+        },
+        "target": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "frame_id",
+            "x",
+            "y"
+          ],
+          "description": "目标位姿，对应 PatrolNavigate.Goal.target 的位置与坐标系部分。",
+          "properties": {
+            "frame_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "description": "坐标系，须与权威 TaskPolicy 的 coordinate_frame 一致。"
+            },
+            "x": {
+              "type": "number",
+              "minimum": -100000,
+              "maximum": 100000,
+              "description": "目标 x（米）。"
+            },
+            "y": {
+              "type": "number",
+              "minimum": -100000,
+              "maximum": 100000,
+              "description": "目标 y（米）。"
+            },
+            "z": {
+              "type": "number",
+              "minimum": -100000,
+              "maximum": 100000,
+              "description": "可选：目标 z（米），默认 0。"
+            }
+          }
+        }
+      }
+    },
+    "task_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "任务上下文。整体可选；缺失不得导致模块拒绝输入。",
+      "properties": {
+        "task_phase": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "可选：当前可信任务阶段。**F0 基线不提供该值**（无任务动态状态机）；无权威来源时必须省略，不得用占位常量冒充。"
+        },
+        "trusted_policy_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "可选：可信策略引用。三个子字段均可选，缺失不构成错误。",
+          "properties": {
+            "policy_version": {
+              "type": "string",
+              "maxLength": 64,
+              "description": "可选：策略版本标识。"
+            },
+            "policy_epoch": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "可选：策略单调序号。**F0 基线不提供该值**；仅在接入可信任务状态模型后才可填写。"
+            },
+            "policy_digest": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "description": "可选：策略内容摘要（64 位小写十六进制 SHA-256）。无权威来源时必须省略，不得伪造。"
+            }
+          }
+        }
+      }
+    },
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "description": "供模块分析的观察数据。每条必须声明来源与可信级别，便于模块区分证据强度。",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "kind",
+          "observed_at"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "观察来源标识（例如某个 ROS 2 资源名或日志标识）。"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "RUNTIME_LOG",
+              "PERMISSION_FILE_ANALYSIS",
+              "CONTROLLED_SECURITY_EXPERIMENT",
+              "MOCK",
+              "UNKNOWN"
+            ],
+            "description": "数据来源可信级别。MOCK 表示该观察为模拟数据，**不能作为真实安全结论的依据**。"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "观察时间。早于 created_at 过多表示数据过期，是否仍可使用由模块按契约自行判定并如实标注。"
+          },
+          "detail": {
+            "type": "object",
+            "description": "可选：观察内容（结构由来源决定，模块必须容忍未知键）。",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {
+        "$ref": "#/$defs/evidenceRef"
+      },
+      "description": "输入侧证据引用；模拟数据必须显式标注 kind=MOCK。"
+    },
+    "extensions": {
+      "type": "object",
+      "description": "预留扩展位；未来字段只能放入本对象，不得直接加到顶层，也不得借未知字段透传来规避版本管理。",
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "evidenceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref",
+        "kind"
+      ],
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "description": "证据定位。"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "MOCK",
+            "RUNTIME_LOG",
+            "PERMISSION_FILE_ANALYSIS",
+            "CONTROLLED_SECURITY_EXPERIMENT",
+            "UNIT_TEST",
+            "UNKNOWN"
+          ],
+          "description": "证据来源可信级别。"
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "可选补充说明。"
+        }
+      }
+    }
+  }
+}

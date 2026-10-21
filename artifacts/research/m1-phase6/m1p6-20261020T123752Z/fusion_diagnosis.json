@@ -1,0 +1,242 @@
+{
+  "contract": "m1-fusion-diagnosis/1",
+  "sessions_root": "artifacts/research/m1-graph-dataset/m1g-20261020T084933Z/g3_sessions",
+  "sessions": 30,
+  "per_scenario_feature_stats": {
+    "anomaly-churn": {
+      "label": "anomaly",
+      "sessions": 5,
+      "feature_stats": {
+        "graph_snapshot_transition_count": {
+          "n": 5,
+          "min": 43.0,
+          "median": 49.0,
+          "max": 49.0,
+          "std": 2.4
+        }
+      }
+    },
+    "anomaly-flood": {
+      "label": "anomaly",
+      "sessions": 5,
+      "feature_stats": {
+        "message_count": {
+          "n": 5,
+          "min": 49059.0,
+          "median": 49332.0,
+          "max": 49806.0,
+          "std": 257.5433
+        },
+        "frequency_hz": {
+          "n": 5,
+          "min": 1635.3,
+          "median": 1644.4,
+          "max": 1660.2,
+          "std": 8.5848
+        },
+        "gap_median_ms": {
+          "n": 5,
+          "min": 0.5876,
+          "median": 0.592,
+          "max": 0.5944,
+          "std": 0.0025
+        },
+        "gap_p95_ms": {
+          "n": 5,
+          "min": 0.6871,
+          "median": 0.6905,
+          "max": 0.7174,
+          "std": 0.0116
+        },
+        "gap_max_ms": {
+          "n": 5,
+          "min": 1.267,
+          "median": 1.5349,
+          "max": 333.5352,
+          "std": 132.7936
+        },
+        "gap_cv": {
+          "n": 5,
+          "min": 0.0849,
+          "median": 0.0965,
+          "max": 2.4751,
+          "std": 0.9521
+        },
+        "publisher_count_in_window": {
+          "n": 5,
+          "min": 2.0,
+          "median": 2.0,
+          "max": 2.0,
+          "std": 0.0
+        },
+        "late_messages_dropped": {
+          "n": 5,
+          "min": 0.0,
+          "median": 0.0,
+          "max": 0.0,
+          "std": 0.0
+        },
+        "dropped_timestamps": {
+          "n": 5,
+          "min": 0.0,
+          "median": 0.0,
+          "max": 0.0,
+          "std": 0.0
+        },
+        "graph_snapshot_transition_count": {
+          "n": 5,
+          "min": 2.0,
+          "median": 2.0,
+          "max": 2.0,
+          "std": 0.0
+        }
+      }
+    },
+    "anomaly-endpoint-recon": {
+      "label": "anomaly",
+      "sessions": 5,
+      "feature_stats": {
+        "graph_snapshot_transition_count": {
+          "n": 5,
+          "min": 14.0,
+          "median": 14.0,
+          "max": 14.0,
+          "std": 0.0
+        }
+      }
+    },
+    "normal-rate": {
+      "label": "normal",
+      "sessions": 10,
+      "feature_stats": {
+        "message_count": {
+          "n": 10,
+          "min": 29.0,
+          "median": 1024.0,
+          "max": 25262.0,
+          "std": 7790.8777
+        },
+        "frequency_hz": {
+          "n": 10,
+          "min": 0.9667,
+          "median": 34.1333,
+          "max": 842.0667,
+          "std": 259.6959
+        },
+        "gap_median_ms": {
+          "n": 10,
+          "min": 1.1729,
+          "median": 35.5273,
+          "max": 1000.5151,
+          "std": 307.7268
+        },
+        "gap_p95_ms": {
+          "n": 10,
+          "min": 1.3331,
+          "median": 35.8479,
+          "max": 1000.8346,
+          "std": 307.7407
+        },
+        "gap_max_ms": {
+          "n": 10,
+          "min": 2.0711,
+          "median": 51.2719,
+          "max": 1001.0782,
+          "std": 306.0092
+        },
+        "gap_cv": {
+          "n": 10,
+          "min": 0.0002,
+          "median": 0.0122,
+          "max": 0.0716,
+          "std": 0.0257
+        },
+        "publisher_count_in_window": {
+          "n": 10,
+          "min": 2.0,
+          "median": 2.0,
+          "max": 2.0,
+          "std": 0.0
+        },
+        "late_messages_dropped": {
+          "n": 10,
+          "min": 0.0,
+          "median": 0.0,
+          "max": 0.0,
+          "std": 0.0
+        },
+        "dropped_timestamps": {
+          "n": 10,
+          "min": 0.0,
+          "median": 0.0,
+          "max": 0.0,
+          "std": 0.0
+        },
+        "graph_snapshot_transition_count": {
+          "n": 10,
+          "min": 2.0,
+          "median": 2.0,
+          "max": 2.0,
+          "std": 0.0
+        }
+      }
+    },
+    "normal-restart": {
+      "label": "normal",
+      "sessions": 5,
+      "feature_stats": {
+        "graph_snapshot_transition_count": {
+          "n": 5,
+          "min": 6.0,
+          "median": 7.0,
+          "max": 8.0,
+          "std": 0.6325
+        }
+      }
+    }
+  },
+  "message_channel_missing_ratio": {
+    "anomaly-churn": 1.0,
+    "anomaly-flood": 0.0,
+    "anomaly-endpoint-recon": 1.0,
+    "normal-rate": 0.0,
+    "normal-restart": 1.0
+  },
+  "joint_model": {
+    "feature_scales": {
+      "message_count": 17035.445445,
+      "frequency_hz": 567.848178,
+      "gap_median_ms": 197.943889,
+      "gap_p95_ms": 197.959974,
+      "gap_max_ms": 202.244954,
+      "gap_cv": 0.437664,
+      "publisher_count_in_window": 1.0,
+      "graph_snapshot_transition_count": 16.193586
+    },
+    "standardised_abs_mean": {
+      "message_count": 0.7696,
+      "frequency_hz": 0.7696,
+      "gap_median_ms": 0.5183,
+      "gap_p95_ms": 0.5183,
+      "gap_max_ms": 0.5749,
+      "gap_cv": 0.3583,
+      "publisher_count_in_window": 0.0,
+      "graph_snapshot_transition_count": 0.7506
+    },
+    "coefficients": {
+      "message_count": 0.662146,
+      "frequency_hz": 0.662146,
+      "gap_median_ms": -0.255483,
+      "gap_p95_ms": -0.255476,
+      "gap_max_ms": -0.180395,
+      "gap_cv": 0.258267,
+      "publisher_count_in_window": 0.0,
+      "graph_snapshot_transition_count": 1.805349
+    },
+    "intercept": 0.138508,
+    "note": "系数与标准化幅度共同决定实际影响力：|coef| × 该特征的典型 |z| 才是它对 logit 的贡献量级。",
+    "graph_contribution": 1.3552,
+    "max_message_contribution": 0.5096,
+    "dominance_ratio": 0.38
+  }
+}

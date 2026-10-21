@@ -1,0 +1,33 @@
+{
+  "run_id": "m1p3-20261019T021807Z",
+  "research_base_sha": "246bd8bd6b6829a73052235c0a4840b71ff53de5",
+  "branch": "research/m1-window-alignment",
+  "git_head_at_run": "246bd8bd6b6829a73052235c0a4840b71ff53de5",
+  "environment": {
+    "container": "rg_m1p3",
+    "domain": 59,
+    "rmw": "rmw_fastrtps_cpp",
+    "window_seconds": 30,
+    "training_window_ms": 30000
+  },
+  "key_findings": {
+    "duration_ms_logit_contribution_1s_window": 169.354752,
+    "score_1s_window_50hz": 1.0,
+    "score_30s_window_50hz": 0.007642,
+    "duration_ms_cv_by_label": {
+      "observe": 0.0027,
+      "nmap discovery": 0.0524,
+      "ros2 reconnaissance": 0.0124
+    },
+    "duration_weight": -10.5963,
+    "fpr_normal_scored_as_attack": "0/4",
+    "anomaly_storm_500hz_detected": false
+  },
+  "artifacts": [
+    "attribution_1s_window.json",
+    "duration_leakage_ablation.json",
+    "fpr",
+    "guard_1s.json",
+    "window_scored_50hz.json"
+  ]
+}

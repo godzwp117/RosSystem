@@ -1,0 +1,82 @@
+{
+  "contract": "m1-graph-session/1",
+  "session_id": "g2-05-pure-query",
+  "scenario": "pure-query-anomaly",
+  "label": "anomaly",
+  "label_basis": "graph queries only; topology expected unchanged (observability test)",
+  "label_source": "EXPERIMENT_CONDITION",
+  "model_used_for_labeling": false,
+  "topic": "/m1g/g2_05_pure_query",
+  "message_type": "std_msgs/msg/String",
+  "domain_id": 69,
+  "window_sec": 30.0,
+  "window_policy": "time-driven, fixed, contiguous, non-overlapping",
+  "graph_poll_interval_sec": 0.2,
+  "graph_feature_semantics": "graph_snapshot_transition_count = 相邻轮询快照的差异次数；不是 DDS Discovery 报文数，两次轮询之间的短时变化会被漏掉",
+  "started_at": "2026-10-20T08:53:37.092Z",
+  "ended_at": "2026-10-20T08:54:20.013Z",
+  "min_samples": 10,
+  "windows": [
+    {
+      "contract": "m1-observation-window/2",
+      "window_start": 0.0,
+      "window_end": 30.0,
+      "window_complete": true,
+      "message_observation": {
+        "status": "INSUFFICIENT",
+        "samples": 0,
+        "features": {},
+        "reason": "样本 0 < 最小样本 10；不给出间隔统计，避免用零样本编造数值",
+        "publisher_count_in_window": 0,
+        "no_publisher_observed": true
+      },
+      "graph_observation": {
+        "status": "VALID",
+        "successful_polls": 131,
+        "failed_polls": 0,
+        "features": {
+          "graph_snapshot_transition_count": 2
+        }
+      },
+      "overall_observation_status": "PARTIAL"
+    },
+    {
+      "contract": "m1-observation-window/2",
+      "window_start": 30.0,
+      "window_end": 40.018,
+      "window_complete": false,
+      "message_observation": {
+        "status": "INSUFFICIENT",
+        "samples": 0,
+        "features": {},
+        "reason": "样本 0 < 最小样本 10；不给出间隔统计，避免用零样本编造数值",
+        "publisher_count_in_window": 0,
+        "no_publisher_observed": true
+      },
+      "graph_observation": {
+        "status": "VALID",
+        "successful_polls": 44,
+        "failed_polls": 0,
+        "features": {
+          "graph_snapshot_transition_count": 1
+        }
+      },
+      "overall_observation_status": "PARTIAL"
+    }
+  ],
+  "summary": {
+    "session_sec": 40.018,
+    "windows_total": 2,
+    "windows_complete": 1,
+    "windows_incomplete": 1,
+    "windows_message_ok": 0,
+    "windows_graph_valid": 1,
+    "windows_overall_full": 0,
+    "late_ticks": 0,
+    "uncovered_sec": 0.0,
+    "dropped_timestamps": 0,
+    "late_messages_dropped": 0
+  },
+  "tick_lateness_samples": [],
+  "collector": "scripts/m1_graph_collector.py"
+}

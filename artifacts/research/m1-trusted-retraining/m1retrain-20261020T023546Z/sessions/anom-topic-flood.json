@@ -1,0 +1,53 @@
+{
+  "contract": "m1-session-observation/1",
+  "session_id": "anom-topic-flood",
+  "scenario": "anomaly-flood",
+  "label": "anomaly",
+  "label_basis": "unbounded topic flood at 2000 Hz, far beyond any authorized workload",
+  "label_source": "EXPERIMENT_CONDITION",
+  "model_used_for_labeling": false,
+  "topic": "/m1r/anom_topic_flood",
+  "message_type": "std_msgs/msg/String",
+  "domain_id": 68,
+  "window_sec": 30.0,
+  "window_policy": "fixed, contiguous, non-overlapping",
+  "started_at": "2026-10-20T02:45:07.289Z",
+  "ended_at": "2026-10-20T02:46:19.278Z",
+  "min_samples": 10,
+  "windows": [
+    {
+      "window_start": 0.0,
+      "window_end": 30.0,
+      "features": {
+        "message_count": 59838,
+        "frequency_hz": 1994.6,
+        "gap_median_ms": 0.4971,
+        "gap_p95_ms": 0.5902,
+        "gap_max_ms": 1.7066,
+        "gap_cv": 0.1274,
+        "graph_change_count": 1,
+        "distinct_publishers": 2
+      },
+      "samples": 59838,
+      "status": "OK"
+    },
+    {
+      "window_start": 30.0,
+      "window_end": 60.0,
+      "features": {
+        "message_count": 60000,
+        "frequency_hz": 2000.0,
+        "gap_median_ms": 0.4973,
+        "gap_p95_ms": 0.5773,
+        "gap_max_ms": 25.9165,
+        "gap_cv": 0.2343,
+        "graph_change_count": 0,
+        "distinct_publishers": 2
+      },
+      "samples": 60000,
+      "status": "OK"
+    }
+  ],
+  "insufficient_windows": 0,
+  "collector": "scripts/m1_session_collector.py"
+}

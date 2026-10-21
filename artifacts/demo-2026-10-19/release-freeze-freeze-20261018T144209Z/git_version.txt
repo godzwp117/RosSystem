@@ -1,0 +1,5 @@
+git_sha=40011e54c5b61b045ce18c271ff5f95b5bcc5759
+git_tree=0de0f079586e9efd4973b900e6bcda081ef4b7ef
+branch=release/demo-2026-10-19-freeze
+worktree=/home/zhangwei/project/RosSystem-worktrees/demo-freeze
+run_id=freeze-20261018T144209Z

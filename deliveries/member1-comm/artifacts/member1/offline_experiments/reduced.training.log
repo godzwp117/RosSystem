@@ -1,0 +1,78 @@
+ROSPaCe_reduced/rospace_reduced_13.csv: full=1693336 sampled=10000 labels={'metasploit SYN flood': 1214426, 'observe': 478910}
+ROSPaCe_reduced/rospace_reduced_9.csv: full=2032673 sampled=10000 labels={'metasploit SYN flood': 2019691, 'observe': 12982}
+ROSPaCe_reduced/rospace_reduced_7.csv: full=2016532 sampled=10000 labels={'metasploit SYN flood': 1971605, 'observe': 44927}
+ROSPaCe_reduced/rospace_reduced_5.csv: full=2507228 sampled=10000 labels={'nmap SYN flood': 2364968, 'observe': 142260}
+ROSPaCe_reduced/rospace_reduced_3.csv: full=2120220 sampled=10000 labels={'observe': 901116, 'ros2 node crashing': 2124, 'nmap SYN flood': 1216980}
+ROSPaCe_reduced/rospace_reduced_1.csv: full=1686466 sampled=10000 labels={'observe': 1460199, 'ros2 reconnaissance': 224135, 'ros2 reflection': 2132}
+ROSPaCe_reduced/rospace_reduced_6.csv: full=2441101 sampled=10000 labels={'nmap SYN flood': 1944253, 'observe': 103044, 'metasploit SYN flood': 393804}
+ROSPaCe_reduced/rospace_reduced_14.csv: full=1675090 sampled=10000 labels={'observe': 592055, 'metasploit SYN flood': 1083035}
+ROSPaCe_reduced/rospace_reduced_12.csv: full=2030551 sampled=10000 labels={'metasploit SYN flood': 2016892, 'observe': 13659}
+ROSPaCe_reduced/rospace_reduced_10.csv: full=2027335 sampled=10000 labels={'metasploit SYN flood': 1999537, 'observe': 27798}
+ROSPaCe_reduced/rospace_reduced_8.csv: full=2022003 sampled=10000 labels={'metasploit SYN flood': 1986144, 'observe': 35859}
+ROSPaCe_reduced/rospace_reduced_11.csv : full=2027924 sampled=10000 labels={'metasploit SYN flood': 2011756, 'observe': 16168}
+ROSPaCe_reduced/rospace_reduced_4.csv: full=2582213 sampled=10000 labels={'nmap SYN flood': 2467645, 'observe': 114568}
+ROSPaCe_reduced/rospace_reduced_2.csv: full=1637701 sampled=10000 labels={'observe': 1632461, 'ros2 reflection': 1621, 'ros2 node crashing': 3619}
+ROSPaCe_reduced/rospace_reduced_0.csv: full=1746677 sampled=10000 labels={'observe': 1069318, 'nmap discovery': 500000, 'ros2 reconnaissance': 177359}
+{
+  "output": "C:\\Users\\YOGA\\Documents\\Codex\\2026-09-17\\referenced-chatgpt-conversation-this-is-an\\outputs\\RosSystem\\training_runs\\member1",
+  "algorithm": "extra_trees",
+  "gate": false,
+  "test": {
+    "confusion": {
+      "tp": 962,
+      "tn": 6297,
+      "fp": 0,
+      "fn": 12741
+    },
+    "precision": 1.0,
+    "recall": 0.07020360504998906,
+    "specificity": 1.0,
+    "fpr": 0.0,
+    "f1": 0.13119672690078418,
+    "balanced_accuracy": 0.5351018025249945,
+    "binary_macro_recall": 0.5351018025249945,
+    "macro_attack_detection_recall": 0.07020360504998906,
+    "class_counts": {
+      "metasploit SYN flood": 13703,
+      "observe": 6297
+    },
+    "class_proportions": {
+      "metasploit SYN flood": 0.68515,
+      "observe": 0.31485
+    },
+    "attack_class_recall": {
+      "metasploit SYN flood": {
+        "count": 13703,
+        "recall": 0.07020360504998906,
+        "status": "EVALUATED"
+      },
+      "nmap SYN flood": {
+        "count": 0,
+        "recall": null,
+        "status": "NOT_EVALUATED"
+      },
+      "nmap discovery": {
+        "count": 0,
+        "recall": null,
+        "status": "NOT_EVALUATED"
+      },
+      "ros2 reconnaissance": {
+        "count": 0,
+        "recall": null,
+        "status": "NOT_EVALUATED"
+      },
+      "ros2 node crashing": {
+        "count": 0,
+        "recall": null,
+        "status": "NOT_EVALUATED"
+      },
+      "ros2 reflection": {
+        "count": 0,
+        "recall": null,
+        "status": "NOT_EVALUATED"
+      }
+    },
+    "pr_auc": 0.7442155754267716,
+    "pr_auc_definition": "average_precision (stepwise area), not trapezoidal PR area"
+  }
+}

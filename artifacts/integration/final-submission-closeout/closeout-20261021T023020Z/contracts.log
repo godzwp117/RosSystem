@@ -1,0 +1,33 @@
+=== 格式检查器自检 ===
+  date-time 严格检查生效: True
+=== Schema 自身合法性 (4) ===
+  [OK] comm_risk_evidence.schema.json
+  [OK] identity_trust_assessment.schema.json
+  [OK] module_input.schema.json
+  [OK] task_risk_decision.schema.json
+=== 有效样例 (10) ===
+  [OK] comm_normal.json -> comm_risk_evidence
+  [OK] comm_suspicious.json -> comm_risk_evidence
+  [OK] comm_unknown.json -> comm_risk_evidence
+  [OK] identity_authorized.json -> identity_trust_assessment
+  [OK] identity_denied.json -> identity_trust_assessment
+  [OK] identity_error.json -> identity_trust_assessment
+  [OK] module_input_valid.json -> module_input
+  [OK] task_allow_recommended.json -> task_risk_decision
+  [OK] task_block_recommended.json -> task_risk_decision
+  [OK] task_unknown.json -> task_risk_decision
+=== 非法样例 (13) ===
+  [OK] comm_missing_required.json (missing_required)
+  [OK] comm_bad_enum.json (enum_violation)
+  [OK] comm_bad_timestamp.json (format_violation)
+  [OK] comm_extra_field.json (additional_property)
+  [OK] comm_bad_version.json (version_incompatible)
+  [OK] comm_number_out_of_range.json (range_violation)
+  [OK] comm_wrong_type.json (type_violation)
+  [OK] comm_nan_literal.json (non_finite_number)
+  [OK] identity_bad_status.json (enum_violation)
+  [OK] task_execution_target.json (const_violation)
+  [OK] task_bad_digest.json (pattern_violation)
+  [OK] input_admin_flag.json (additional_property)
+  [OK] input_execution_resource.json (const_violation)
+CONTRACT VALIDATION: PASS

@@ -1,0 +1,39 @@
+{
+  "source": "列投影：modules/member1_comm/features.json 中由 Linux /proc 可采集的OS Monitor 特征；排除本机 /proc/vmstat 不存在的 pgalloc_dma。不含任何 Tshark 逐包字段或 ROS 图字段。",
+  "collector": "modules/member1_comm/collector/proc_runtime.py",
+  "excluded": {
+    "pgalloc_dma": "/proc/vmstat 未提供该键（本机 WSL2 内核实测）",
+    "tshark_features": 22,
+    "ros_graph_features": [
+      "subscribers_count",
+      "publishers_count"
+    ]
+  },
+  "semantic_equivalence": "UNVERIFIED: 数据集未说明采样周期/单位；本模块按绝对快照记录",
+  "feature_names": [
+    "Net_Sent",
+    "pgpgin",
+    "pgactivate",
+    "Disk_Read",
+    "pgfault",
+    "Net_Received",
+    "MemFree",
+    "Inactive",
+    "pgdeactivate",
+    "Tcp_Close",
+    "pgfree",
+    "nr_active_file",
+    "Cached",
+    "nr_inactive_file",
+    "Disk_Write",
+    "pgpgout",
+    "Tcp_Syn",
+    "Buffers",
+    "Tcp_TimeWait",
+    "Tcp_Listen",
+    "Tcp_Established",
+    "Active",
+    "pgmajfault",
+    "SwapFree"
+  ]
+}

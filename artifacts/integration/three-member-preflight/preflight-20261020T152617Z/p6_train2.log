@@ -1,0 +1,13 @@
+  p6-norm-0003hz-a0              normal   win=2 msg_ok=1 graph_ok=1 rc=0
+  p6-norm-0007hz-a1              normal   win=2 msg_ok=1 graph_ok=1 rc=0
+  p6-norm-0015hz-a2              normal   win=2 msg_ok=1 graph_ok=1 rc=0
+  p6-norm-0030hz-a3              normal   win=2 msg_ok=1 graph_ok=1 rc=0
+  p6-norm-0075hz-a4              normal   win=2 msg_ok=1 graph_ok=1 rc=0
+  p6-norm-0150hz-a5              normal   win=2 msg_ok=1 graph_ok=1 rc=0
+  p6-norm-0300hz-a6              normal   win=2 msg_ok=1 graph_ok=1 rc=0
+  p6-norm-0750hz-a7              normal   win=2 msg_ok=1 graph_ok=1 rc=0
+  p6-norm-restart-a0             normal   win=2 msg_ok=0 graph_ok=1 rc=0
+  p6-norm-restart-a1             normal   win=2 msg_ok=0 graph_ok=1 rc=0
+  p6-norm-restart-a2             normal   win=2 msg_ok=0 graph_ok=1 rc=0
+  p6-norm-restart-a3             normal   win=2 msg_ok=0 graph_ok=1 rc=0
+done train_norm 12
