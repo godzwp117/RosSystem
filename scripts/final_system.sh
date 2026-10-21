@@ -139,10 +139,14 @@ check_env() {
     if ! python3 -c 'import jsonschema' >/dev/null 2>&1; then
       echo "  [PREFLIGHT_FAIL] python3 缺少 jsonschema" >&2; fail=1
     fi
+    # 只识别**明确的 ROS 节点进程**，避免 `pgrep -f 'rg_gateway|rg_demo_nodes'`
+    # 匹配到调用者自身的命令行（本脚本、测试脚本、grep 参数里都可能含这些词）。
+    # 做法：匹配可执行名/解释器脚本路径，并对本进程组做排除。
     local stray
-    stray=$(pgrep -fc 'rg_gateway|rg_demo_nodes' 2>/dev/null || echo 0)
+    stray=$(ps -eo pid=,pgid=,args= 2>/dev/null \
+      | awk -v self="$$" '$2 != self && ($0 ~ /[\/]rg_gateway( |$)/ || $0 ~ /security_gateway( |$)/ || $0 ~ /navigation_sim( |$)/ || $0 ~ /operator_node( |$)/) {n++} END {print n+0}')
     if [ "${stray:-0}" -gt 0 ]; then
-      echo "  [PREFLIGHT_FAIL] 检测到 ${stray} 个残留 ROS 节点，可能干扰验收" >&2; fail=1
+      echo "  [PREFLIGHT_FAIL] 检测到 ${stray} 个残留 ROS 节点进程，可能干扰验收" >&2; fail=1
     fi
   fi
 
@@ -375,7 +379,18 @@ case "$MODE" in
     ;;
   acceptance)
     rc_all=0
-    STRICT_PREFLIGHT=1 check_env || rc_all=1
+    # 预检是**硬门槛**：失败立即终止，不启动任何 ROS 栈、不跑三真实、
+    # 不进 DDS Enforce。旧实现用 `|| rc_all=1` 继续往下跑，
+    # 会让"预检失败"被后续的栈启动失败掩盖，甚至误报出在线 PASS。
+    if ! STRICT_PREFLIGHT=1 check_env; then
+      mark PREFLIGHT FAIL
+      mark ACCEPTANCE FAIL
+      printf "$RESULTS" | tee "$EVIDENCE/summary.txt"
+      printf "$RESULTS" >> "$EVIDENCE/commands.log"
+      echo "PREFLIGHT_FAIL" | tee -a "$EVIDENCE/summary.txt"
+      echo "ERROR: 预检失败，验收已终止（未启动任何后续测试）" >&2
+      exit 8
+    fi
     run_host_tests || rc_all=1
     run_three_real || rc_all=1
     run_controlled || rc_all=1
