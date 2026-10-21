@@ -1,0 +1,9 @@
+file=RosSystem-CreativeWork-Full-1.1.0.tar.gz
+size_bytes=2177850
+sha256=82c2f0ff31d20276986937326fcb685d5397b8554003a559c47ef24cd41f8982
+top_dir=RosSystem-CreativeWork-Full
+version=1.1.0
+artifact_commit=dac01935df4503d683dd66256a05940dacf87f44
+baseline_core_sha=2f3de257c9eac873093201292f6b2a9571da4f03
+archive_baseline_sha=e69325d8094e1d2bc309772650ae85a241751b31
+generated=2026-10-21T17:59:52Z

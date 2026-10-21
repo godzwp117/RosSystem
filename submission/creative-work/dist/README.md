@@ -4,7 +4,31 @@
 > `RosSystem-creative-work-<x.y.z>.tar.gz` 与 `RosSystem-CreativeWork-Full-<x.y.z>.tar.gz`
 > 属白名单；其余压缩包仍会被拒绝。
 
-## 当前交付版本：1.0.3
+## 当前交付版本：1.1.0（研究分支）
+
+| 包 | 文件 | 大小 | SHA-256 |
+| --- | --- | --- | --- |
+| 离线回放包 | `RosSystem-creative-work-1.1.0.tar.gz` | 68417 B | `d606ce793283cb42515053ce48f6a59a81934a1f27c10d2e2cce064651f91c65` |
+| **完整在线包** | `RosSystem-CreativeWork-Full-1.1.0.tar.gz` | 2177850 B | `82c2f0ff31d20276986937326fcb685d5397b8554003a559c47ef24cd41f8982` |
+
+构建来源：`artifact_commit=dac01935df4503d683dd66256a05940dacf87f44`，
+构建时工作树干净（`source_tree_dirty_entries=0`）。1.0.3 标签与旧包保持不变。
+
+### 1.1.0 变更
+
+- DDS 实验室 Enforce 重新验证：新 CA、domain 43、7/7 正向 + 6/6 负向；
+- M2 当前请求身份：真实 DDS writer→证书主体→请求摘要 + Ed25519（LAB scope）；
+- Gateway 双层授权：独立身份再核验 + TaskPolicy（G1–G4 14/14）；
+- 13 项身份单测实质性修复（56/56），全量单测 920 passed / 4 skipped；
+- 三真实 LEVEL1/2 PASS，LEVEL3 **仍 BLOCKED**（M1 门槛未通过）；
+- 完整包包含 1.0.3 归档、1.1.0 证据、报告与不依赖 `.git` 的哈希清单。
+
+详细结论见 `reports/ROSYSTEM_1_1_0_RESEARCH_AND_SECURITY_VALIDATION_REPORT.md`，
+边界见 `docs/LIMITATIONS.md`。**1.1.0 不是生产版。**
+
+---
+
+## 1.0.3（冻结版本，保留）
 
 | 包 | 文件 | 大小 | SHA-256 |
 | --- | --- | --- | --- |
