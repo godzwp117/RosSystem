@@ -66,13 +66,18 @@ done
 mkdir -p "$ROOT/runtime/docs"
 cp -a "$REPO/docs/interfaces" "$ROOT/runtime/docs/"
 
+# Local runtime test evidence is not part of the deliverable: the curated,
+# non-secret evidence archive is copied to $ROOT/evidence in step 2b. Removing
+# it here also keeps public-key fixtures from tripping the .pem scan.
+rm -rf "$ROOT/runtime/tests/evidence" "$ROOT/runtime/tests/__pycache__"
+
 for f in README.md environment.md requirements.md; do
   if [ -f "$REPO/$f" ]; then cp -a "$REPO/$f" "$ROOT/runtime/"; fi
 done
 
 echo "== 2b) 1.1.0 研究证据（只含非秘密材料） =="
 mkdir -p "$ROOT/evidence"
-for d in m2_sros2_enforce_v110 m2_sros2_enforce_v110_negative m2_lab_identity_v110 m2_gateway_identity_v110 research_v110; do
+for d in m2_sros2_enforce m2_sros2_enforce_v110 m2_sros2_enforce_v110_negative m2_lab_identity_v110 m2_gateway_identity_v110 research_v110; do
   src="$REPO/artifacts/acceptance/exports/$d"
   [ -d "$src" ] || { echo "ERROR: 缺少研究证据目录 $d" >&2; exit 1; }
   cp -a "$src" "$ROOT/evidence/"
@@ -80,6 +85,11 @@ done
 if find "$ROOT/evidence" -type f \( -name '*.pem' -o -name '*.key' -o -name '*.p7s' \) | grep -q .; then
   echo "ERROR: 研究证据中包含密钥/证书材料，拒绝打包" >&2; exit 1
 fi
+
+# The runtime tree's tests reference artifacts/acceptance/exports/<archive>;
+# make the curated evidence resolvable from a fresh extraction too.
+mkdir -p "$ROOT/runtime/artifacts/acceptance/exports"
+cp -a "$ROOT/evidence/." "$ROOT/runtime/artifacts/acceptance/exports/"
 
 echo "== 3) Docker 运行环境 =="
 cp -a "$HERE/docker" "$ROOT/"
