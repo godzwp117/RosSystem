@@ -2,7 +2,8 @@
 
 > **最终交付分支：`release/final-submission-closeout-2026-10-22`**
 > 受测代码 SHA：`2f3de257c9eac873093201292f6b2a9571da4f03`
-> 文档归档 HEAD：`842edf2b1bec4d83d8aef4c4782d0c9a245f05b9`（文档修订不改变受测代码 SHA）
+> 原始封版证据归档 SHA：`842edf2b1bec4d83d8aef4c4782d0c9a245f05b9`
+> （该提交是代码封版+证据归档；之后的文档修订不改变受测代码 SHA）
 > 上一版稳定回退：`integration/final-deliverable-2026-10-22` @ `70fefa47a4333cf2bb3e1631525366897a3cbc81`
 > 交付日期：2026-10-22
 > 验收结论：**`FINAL_CONTROLLED_SYSTEM_PASS`**（受控系统交付通过，验收器已加固）

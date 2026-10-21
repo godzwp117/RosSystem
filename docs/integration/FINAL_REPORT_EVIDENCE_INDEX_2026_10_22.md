@@ -83,7 +83,9 @@
 | 受控在线 request_id 级检查 | 40 checks / 0 failures | `controlled_online/controlled_verification.json` |
 | 验收器反例测试 | 21 项全部被正确拒绝 | `tests/unit/test_final_controlled_verifier.py` |
 | M3 六场景声明校验（历史） | claims_checked=true，**39 checks** | 历史证据目录 |
-| **ON-06 超时后实际执行** | Gateway 到达 1 / ALLOW / NavSim Goal 1 | `timeout_audit/timeout_outcome_audit.json` |
+| **ON-06（历史加固轮）** | 同一请求上 **Planner TIMEOUT 与 Gateway ALLOW / NavSim Goal 1 并存**；不宣称时间先后 | 历史证据 `harden-20261020T171740Z/timeout_audit/` |
 
-> **ON-06 是最值得在报告里单列的一条**：它证明"Planner 超时"与"请求未执行"
-> 是两件不同的事。本轮超时后请求被放行并执行了 1 个 Goal。
+> **ON-06 值得在报告里单列**：它证明"Planner 超时"与"请求未执行"是两件不同的事。
+> 历史加固轮中，同一请求上 **Planner TIMEOUT 与 Gateway ALLOW、NavSim Goal 1 同时成立**；
+> 本次封版轮中，同一场景的 Planner 同样 TIMEOUT，但 Gateway 审计记录 **0 到达、0 Goal**。
+> 现有日志缺可严格比较的时间戳，因此**两种结果都不宣称事件先后**。
