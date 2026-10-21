@@ -40,25 +40,30 @@ CONTROLLER = RunController()
 
 
 def runtime_status():
-    """真实的环境探测：不假设宿主机有 ROS 2。"""
-    docker = shutil.which('docker') is not None
-    ros_on_host = os.path.isdir('/opt/ros/jazzy')
-    # 容器内是否已构建：查 install/setup.bash
-    workspace_built = os.path.exists(os.path.join(REPO_ROOT, 'install/setup.bash'))
-    online_possible = docker and workspace_built
-    reasons = []
-    if not docker:
-        reasons.append('未检测到 docker，无法启动 ROS 2 容器')
+    """真实的环境探测：不假设宿主机有 ROS 2。
+
+    P0 修复：旧实现只做 shutil.which('docker')，并把工作空间位置算成
+    PACKAGE_ROOT/install —— 完整作品包实际是 runtime/install，于是"已构建"
+    也会被判成未构建（假阴性）。作品里本来就有完整探测模块
+    dashboard/docker_runtime.py，却从未被 import；这里改为复用同一套探测，
+    避免出现两套不一致的判断。
+    """
+    import docker_runtime as dr
+    info = dr.probe(os.path.dirname(HERE))
+    workspace_built = os.path.exists(
+        os.path.join(REPO_ROOT, 'install/setup.bash'))
+    online_possible = bool(info['online_possible'] and workspace_built)
+    reasons = list(info['blocked_reasons'])
     if not workspace_built:
         reasons.append('工作空间未构建（install/setup.bash 不存在）')
     return {
-        'docker_available': docker,
-        'ros_jazzy_installed_on_host': ros_on_host,
+        'docker_available': info['docker_daemon'],
+        'ros_jazzy_installed_on_host': os.path.isdir('/opt/ros/jazzy'),
         'workspace_built': workspace_built,
         'online_possible': online_possible,
-        'online_blocked_reasons': reasons,
-        'note': ('在线模式需要 docker + 已构建工作空间；'
-                 '缺失时控制台进入 UNAVAILABLE，可改用 REPLAY 查看历史证据。'),
+        'online_blocked_reasons': [] if online_possible else reasons,
+        'probe': info,
+        'note': info['note'],
     }
 
 
@@ -192,6 +197,15 @@ class Handler(BaseHTTPRequestHandler):
 
         if parsed.path == '/api/run/start':
             mode = payload.get('mode')
+            # P0 修复：在线不可用时后端必须拒绝，而不是只在 UI 层禁用按钮。
+            # 旧实现会把请求交给 run_controller，最终以 127 神秘失败。
+            rt = runtime_status()
+            if not rt['online_possible']:
+                return self._send(409, {
+                    'ok': False,
+                    'error': '在线实验不可用：' + '；'.join(rt['online_blocked_reasons']),
+                    'runtime': rt,
+                })
             result = CONTROLLER.start(mode, payload.get('run_id'))
             return self._send(200 if result.get('ok') else 400, result)
 

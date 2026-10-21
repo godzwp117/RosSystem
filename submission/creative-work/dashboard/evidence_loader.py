@@ -26,19 +26,26 @@ PACKAGE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #: 解包成独立作品包时回退到 PACKAGE_ROOT，避免把路径算到文件系统根。
 # PACKAGE_ROOT = <repo>/submission/creative-work，故仓库根为它的两级父目录
 _CANDIDATE_REPO = os.path.dirname(os.path.dirname(PACKAGE_ROOT))
-REPO_ROOT = (_CANDIDATE_REPO
-             if os.path.exists(os.path.join(_CANDIDATE_REPO, 'scripts', 'final_system.sh'))
-             else PACKAGE_ROOT)
+#: 完整作品包把源码与证据都放在 runtime/ 下；仓库布局则直接在根。
+_PACKAGED_RUNTIME = os.path.join(PACKAGE_ROOT, 'runtime')
+REPO_ROOT = (_PACKAGED_RUNTIME
+             if os.path.exists(os.path.join(_PACKAGED_RUNTIME, 'scripts', 'final_system.sh'))
+             else (_CANDIDATE_REPO
+                   if os.path.exists(os.path.join(_CANDIDATE_REPO, 'scripts', 'final_system.sh'))
+                   else PACKAGE_ROOT))
 
 #: 允许扫描的证据根（白名单，防止路径穿越）
+#: 注意：dashboard-runs 是控制台自己产生的在线证据，必须纳入白名单，
+#: 否则"本次新实验"永远不出现在 run 列表里。
 EVIDENCE_ROOTS = (
+    'artifacts/integration/dashboard-runs',
     'artifacts/integration/final-submission-closeout',
     'artifacts/integration/final-acceptance-hardening',
     'artifacts/integration/final-deliverable-2026-10-22',
 )
 
-#: 视为"当前封版"的证据根（在线模式优先读这里）
-PRIMARY_ROOT = 'artifacts/integration/final-submission-closeout'
+#: 控制台新跑的 run 优先展示（来源标注为 ONLINE_EVIDENCE）
+PRIMARY_ROOT = 'artifacts/integration/dashboard-runs'
 
 
 def _safe_join(root, *parts):
@@ -88,12 +95,15 @@ def resolve_evidence_dir(requested):
     if any(seg in ('.', '..') for seg in parts):
         raise UnsafePath('路径中不允许 . 或 .. 段')
 
-    target = os.path.realpath(os.path.join(REPO_ROOT, *parts))
-    for root in _allowed_roots():
-        if target == root or target.startswith(root + os.sep):
-            if os.path.isdir(target):
-                return target
-            raise UnsafePath('目标不是目录')
+    # 证据可能在 REPO_ROOT（runtime/）下，也可能在 PACKAGE_ROOT（如 replay/）下。
+    # 两个基准都尝试，但最终仍必须落在白名单根目录内。
+    for base in (REPO_ROOT, PACKAGE_ROOT):
+        target = os.path.realpath(os.path.join(base, *parts))
+        for root in _allowed_roots():
+            if target == root or target.startswith(root + os.sep):
+                if os.path.isdir(target):
+                    return target
+                raise UnsafePath('目标不是目录')
     raise UnsafePath('路径不在允许的证据根内')
 
 
@@ -136,14 +146,27 @@ def list_runs():
             })
     replay = load_replay()
     if isinstance(replay, dict):
+        # 旧实现把 path 写成仓库相对路径 'submission/creative-work/replay/...'，
+        # 在独立作品包里既不在白名单内、又指向文件而非目录，点「装载证据」必然 403。
+        # 这里改指向包内 replay 目录，并纳入白名单（见 _allowed_roots）。
         runs.append({
             'run_id': replay.get('run_id', 'REPLAY'),
             'kind': 'REPLAY_SNAPSHOT',
-            'root': 'submission/creative-work/replay',
-            'path': 'submission/creative-work/replay/replay_manifest.json',
+            'root': 'replay',
+            'path': 'replay',
             'tested_code_sha': replay.get('tested_code_sha'),
         })
     return runs
+
+
+def run_kind_for_path(base):
+    """按证据所在位置判定来源，供前端区分 ONLINE / REPLAY / ARCHIVED。"""
+    path = os.path.abspath(base)
+    if os.sep + os.path.join('artifacts', 'integration', 'dashboard-runs') + os.sep in path:
+        return 'ONLINE_EVIDENCE'
+    if path.rstrip(os.sep).endswith(os.sep + 'replay'):
+        return 'REPLAY_SNAPSHOT'
+    return 'ARCHIVED_EVIDENCE'
 
 
 def load_run(run_path):
@@ -152,8 +175,13 @@ def load_run(run_path):
     if not os.path.isdir(base):
         return None
 
+    # run_path 相对哪个根：优先 REPO_ROOT，回放目录在 PACKAGE_ROOT 下。
+    rel = os.path.relpath(base, REPO_ROOT)
+    if rel.startswith('..'):
+        rel = os.path.relpath(base, PACKAGE_ROOT)
     facts = {
-        'run_path': os.path.relpath(base, REPO_ROOT),
+        'run_path': rel,
+        'run_kind': run_kind_for_path(base),
         'tested_commit': _read_json(os.path.join(base, 'tested_commit.json')),
         'summary': _text(os.path.join(base, 'summary.txt')),
         'm3': None,

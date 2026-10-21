@@ -20,10 +20,20 @@ import threading
 import time
 
 PACKAGE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# 完整作品包把源码放在 runtime/ 下；旧实现直接用 PACKAGE_ROOT，
+# 于是入口被解析成 <pkg>/scripts/final_system.sh（实际是 runtime/scripts/），
+# 在宿主机上必然 127。这里按"包内 runtime -> 仓库布局 -> 包根"依次回退。
+_PACKAGED_RUNTIME = os.path.join(PACKAGE_ROOT, 'runtime')
 _CANDIDATE_REPO = os.path.dirname(os.path.dirname(PACKAGE_ROOT))
-REPO_ROOT = (_CANDIDATE_REPO
-             if os.path.exists(os.path.join(_CANDIDATE_REPO, 'scripts', 'final_system.sh'))
-             else PACKAGE_ROOT)
+REPO_ROOT = (_PACKAGED_RUNTIME
+             if os.path.exists(os.path.join(_PACKAGED_RUNTIME, 'scripts', 'final_system.sh'))
+             else (_CANDIDATE_REPO
+                   if os.path.exists(os.path.join(_CANDIDATE_REPO, 'scripts', 'final_system.sh'))
+                   else PACKAGE_ROOT))
+
+# 运行镜像与在线 Domain：必须与 docker/build-runtime.sh 构建出的镜像一致。
+DEFAULT_IMAGE = os.environ.get('ROS_IMAGE', 'ros:jazzy')
+DEFAULT_DOMAIN = os.environ.get('ROS_ONLINE_DOMAIN', '77')
 
 ALLOWED_MODES = {
     'controlled': ['--mode', 'controlled'],
@@ -58,6 +68,7 @@ class RunController:
     def __init__(self):
         self._lock = threading.Lock()
         self._proc = None
+        self._container = None
         self._state = {'status': 'IDLE', 'mode': None, 'run_id': None,
                        'started_at': None, 'finished_at': None,
                        'exit_code': None, 'log_path': None, 'error': None}
@@ -100,9 +111,25 @@ class RunController:
         os.makedirs(evidence_dir, exist_ok=True)
         log_path = os.path.join(evidence_dir, 'run.log')
 
-        argv = ['bash', os.path.join(REPO_ROOT, 'scripts/final_system.sh'),
-                *ALLOWED_MODES[mode], '--run-id', run_id,
-                '--out-dir', 'artifacts/integration/dashboard-runs']
+        # P0 修复：实验必须在作品运行镜像（ROS 2 Jazzy）里执行。
+        # 旧实现直接调用宿主机 bash，而宿主机没有 ROS 2，且脚本路径也算错。
+        # 这里仍用参数数组（不经 shell 拼接），run_id 已通过正则白名单。
+        image = os.environ.get('ROS_IMAGE', DEFAULT_IMAGE)
+        domain = os.environ.get('ROS_ONLINE_DOMAIN', DEFAULT_DOMAIN)
+        if not str(domain).isdigit():
+            domain = DEFAULT_DOMAIN
+        container = 'rosystem-dash-' + run_id
+        inner = (
+            'source /opt/ros/jazzy/setup.bash && '
+            'source /ws/install/setup.bash && cd /ws && '
+            'bash scripts/final_system.sh ' + ' '.join(ALLOWED_MODES[mode]) +
+            ' --run-id ' + run_id +
+            ' --out-dir artifacts/integration/dashboard-runs' +
+            ' --domain ' + str(domain))
+        argv = ['docker', 'run', '--rm', '--name', container,
+                '-e', 'ROS_DOMAIN_ID=' + str(domain),
+                '-v', REPO_ROOT + ':/ws', '-w', '/ws', image,
+                'bash', '-lc', inner]
 
         try:
             opened = open(log_path, 'w', encoding='utf-8')
@@ -117,7 +144,13 @@ class RunController:
 
         with self._lock:
             self._proc = proc
-            self._state.update({'log_path': os.path.relpath(log_path, REPO_ROOT)})
+            self._container = container
+            self._state.update({
+                'log_path': os.path.relpath(log_path, REPO_ROOT),
+                'container': container,
+                'image': image,
+                'domain': str(domain),
+            })
 
         threading.Thread(target=self._wait, args=(proc, opened),
                          daemon=True).start()
@@ -144,6 +177,14 @@ class RunController:
             self._proc = None
 
     def _terminate(self, proc):
+        # 先杀容器（若存在），只针对本次 run 自己创建的名字，绝不做全局清理。
+        container = self._container
+        if container:
+            try:
+                subprocess.run(['docker', 'kill', container],
+                               capture_output=True, timeout=30)
+            except (OSError, subprocess.SubprocessError):
+                pass
         try:
             os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
         except (ProcessLookupError, PermissionError, OSError):

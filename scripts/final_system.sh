@@ -64,8 +64,24 @@ EVIDENCE="$OUT_ROOT/$RUN_ID"
 mkdir -p "$EVIDENCE"
 
 CODE_SHA="$(git rev-parse HEAD 2>/dev/null || echo UNKNOWN)"
+CODE_SHA_SOURCE="git"
 TREE="$(git rev-parse HEAD^{tree} 2>/dev/null || echo UNKNOWN)"
-DIFFTY="$(git status --porcelain | wc -l)"
+# 发布压缩包不含 .git：此时从打包清单读取真实来源提交，而不是伪造 Git 工作树。
+# artifact_commit 是生成该包的源码提交；baseline_core_sha 是安全判定所依据的历史受测核心。
+BASELINE_CORE_SHA=""
+PACKAGE_VERSION=""
+PACKAGE_ARTIFACT_COMMIT=""
+PACKAGE_SOURCE=""
+if [ "$CODE_SHA" = "UNKNOWN" ] && [ -f "BUILD_INFO.json" ]; then
+  CODE_SHA="$(python3 -c 'import json;print(json.load(open("BUILD_INFO.json"))["artifact_commit"])' 2>/dev/null || echo UNKNOWN)"
+  CODE_SHA_SOURCE="BUILD_INFO.json"
+  PACKAGE_SOURCE="BUILD_INFO.json"
+  PACKAGE_ARTIFACT_COMMIT="$CODE_SHA"
+  BASELINE_CORE_SHA="$(python3 -c 'import json;print(json.load(open("BUILD_INFO.json")).get("baseline_core_sha",""))' 2>/dev/null || echo '')"
+  PACKAGE_VERSION="$(python3 -c 'import json;print(json.load(open("BUILD_INFO.json")).get("version",""))' 2>/dev/null || echo '')"
+fi
+DIFFTY="$(git status --porcelain 2>/dev/null | wc -l)"
+[ -n "${DIFFTY:-}" ] || DIFFTY=0
 
 log() { echo "[$(date -u +%H:%M:%SZ)] $*"; }
 
@@ -79,6 +95,51 @@ record() {  # record <name> <exit-code> <command...>
     echo "code_sha: $CODE_SHA"
     echo "run_id: $RUN_ID"
   } >> "$EVIDENCE/commands.log"
+}
+
+# ---------------------------------------------------------------- 运行元数据
+# 控制台依赖 tested_commit.json 展示 run_id / 受测版本；旧实现从不写该文件，
+# 于是页面只能显示「—」「未记录」。这里记录可核对的来源，不伪造 Git 信息。
+write_run_metadata() {  # write_run_metadata <status>
+  local status="${1:-RUNNING}"
+  python3 - "$EVIDENCE" "$RUN_ID" "$MODE" "$CODE_SHA" "$CODE_SHA_SOURCE" \
+           "$BASELINE_CORE_SHA" "$PACKAGE_VERSION" "$PACKAGE_ARTIFACT_COMMIT" \
+           "$status" <<'PYMETA'
+import json, os, sys, datetime
+(ev, run_id, mode, sha, sha_src, baseline, version,
+ artifact_commit, status) = sys.argv[1:10]
+repo = os.path.dirname(os.path.dirname(os.path.abspath(ev)))
+doc = {
+    'run_id': run_id,
+    'mode': mode,
+    'generated_at': datetime.datetime.now(datetime.timezone.utc)
+                    .strftime('%Y-%m-%dT%H:%M:%SZ'),
+    'tested_code_sha': sha,
+    'sha_source': sha_src,
+    'baseline_core_sha': baseline or None,
+    'package_version': version or None,
+    'artifact_commit': artifact_commit or (sha if sha_src == 'git' else None),
+    'evidence_source': os.path.relpath(ev, repo),
+    'result': status,
+    'note': ('tested_code_sha 为本次实际执行代码的提交；baseline_core_sha 为历史受测核心，'
+             '两者含义不同，不得互相替代。'),
+}
+with open(os.path.join(ev, 'tested_commit.json'), 'w', encoding='utf-8') as fh:
+    json.dump(doc, fh, ensure_ascii=False, indent=2)
+PYMETA
+}
+
+update_run_result() {  # update_run_result <PASS|FAIL|NOT_RUN>
+  local status="$1"
+  local path="$EVIDENCE/tested_commit.json"
+  [ -f "$path" ] || return 0
+  python3 - "$path" "$status" <<'PYRES'
+import json, sys
+path, status = sys.argv[1], sys.argv[2]
+doc = json.load(open(path, encoding='utf-8'))
+doc['result'] = status
+json.dump(doc, open(path, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
+PYRES
 }
 
 # ---------------------------------------------------------------- 环境自检
@@ -187,6 +248,10 @@ run_host_tests() {
 }
 
 # ---------------------------------------------------------------- 三真实严格
+# 退出码语义（run_three_real_online.py 0.2 起）：
+#   0 = 三个真实模块均成功调用、契约有效，且 F0 以**预期原因**阻断
+#   1 = 预期未达成（例如被错误放行）
+#   2 = LEVEL1/LEVEL2 不成立（模块未跑通/契约无效）——不得当作安全阻断
 run_three_real() {
   log "三真实 External 严格准入"
   python3 scripts/run_three_real_online.py \
@@ -195,16 +260,32 @@ run_three_real() {
       > "$EVIDENCE/three_real.log" 2>&1
   local rc=$?
   record "three_real" "$rc" "run_three_real_online.py --expect-block"
-  [ "$rc" -ne 0 ] && { echo "  [FAIL] 三真实调用/预期阻断不符" >&2; tail -8 "$EVIDENCE/three_real.log" >&2; return 1; }
-  python3 - "$EVIDENCE/three_real/f0.json" <<'PY'
+  # 无论成败都打印分层结果：判定必须能追溯到 LEVEL1/2/3 的真实取值。
+  python3 - "$EVIDENCE/three_real/summary.json" <<'PY' || true
 import json, sys
-d = json.load(open(sys.argv[1], encoding='utf-8'))
-print('  F0:', d.get('decision'), d.get('reason_code'))
-for m in d.get('modules') or []:
-    print('    {0:<16} mode={1:<8} exit={2} status={3} schema={4}'.format(
-        m.get('module'), m.get('mode'), m.get('exit_code'), m.get('status'), m.get('schema_ok')))
+try:
+    d = json.load(open(sys.argv[1], encoding='utf-8'))
+except (OSError, ValueError):
+    print('  [ERROR] 三真实摘要缺失：本次调用没有产生 summary.json')
+    raise SystemExit(0)
+lv = d.get('levels') or {}
+print('  LEVEL1 模块真实调用 :', lv.get('THREE_EXTERNAL_CALLED'))
+print('  LEVEL2 证据契约有效 :', lv.get('THREE_EXTERNAL_VALIDATED'))
+print('  LEVEL3 联合准入     :', lv.get('THREE_EXTERNAL_ONLINE_PROCEED'))
+f0 = d.get('f0') or {}
+print('  F0:', f0.get('decision'), f0.get('reason_code'))
+for b in (d.get('blockers') or [])[:8]:
+    print('    blocker:', b)
 PY
-  echo "  [PASS] 三真实 External 调用并正确阻断"
+  if [ "$rc" -ne 0 ]; then
+    if [ "$rc" -eq 2 ]; then
+      echo "  [FAIL] 三真实严格：模块未跑通或契约无效，不能判定为安全阻断（exit=2）" >&2
+    else
+      echo "  [FAIL] 三真实严格：预期阻断未达成（exit=$rc）" >&2
+    fi
+    return 1
+  fi
+  echo "  [PASS] 三真实 External 调用、证据契约与预期阻断均已核对"
   return 0
 }
 
@@ -344,6 +425,20 @@ run_enforce() {
   log "正式 DDS Enforce（S1/S2/S3/S3C/S4/S5/S6）"
   local ev="$EVIDENCE/dds_enforce"
   mkdir -p "$ev"
+  # 凭据门禁：公开包**刻意不含** keystore/私钥。缺凭据时本项为 NOT_RUN，
+  # 既不是 PASS 也不是 FAIL，更不得拿历史 7/7 充当本次结果。
+  if [ ! -d security/keystore ]; then
+    echo "DDS_ENFORCE=NOT_RUN reason=缺少授权的 security/keystore 与私钥（公开包不含凭据）" \
+      | tee "$ev/NOT_RUN.txt"
+    record "dds_enforce" 9 "preflight: security/keystore 缺失"
+    return 9
+  fi
+  if [ ! -f tests/integration/sros2_check.py ]; then
+    echo "DDS_ENFORCE=NOT_RUN reason=缺少 tests/integration/sros2_check.py" \
+      | tee "$ev/NOT_RUN.txt"
+    record "dds_enforce" 9 "preflight: sros2_check.py 缺失"
+    return 9
+  fi
   # 正式权限按 Domain 绑定，必须在其设计的域上运行
   python3 tests/integration/sros2_check.py --run-id "enforce-${RUN_ID}" \
       > "$ev/sros2_check.log" 2>&1
@@ -356,25 +451,51 @@ run_enforce() {
 }
 
 # ---------------------------------------------------------------- 主流程
+# 退出码约定：
+#   0 = 全部结果 PASS
+#   1 = 存在 FAIL
+#   3 = 环境自检失败
+#   4 = 单模式实验失败
+#   8 = 严格预检失败（acceptance）
+#   9 = 条件不满足，NOT_RUN（例如缺少 DDS 凭据）
 RESULTS=""
 mark() { RESULTS="${RESULTS}$1=$2\n"; }
 
+finish() {  # finish <exit-code> <metadata-status>
+  local code="$1" status="$2"
+  printf "$RESULTS" | tee "$EVIDENCE/summary.txt"
+  printf "$RESULTS" >> "$EVIDENCE/commands.log"
+  update_run_result "$status"
+  exit "$code"
+}
+
+write_run_metadata RUNNING
+
 case "$MODE" in
   check)
-    check_env; exit $?
+    check_env; rc=$?
+    update_run_result "$([ "$rc" -eq 0 ] && echo PASS || echo FAIL)"
+    exit "$rc"
     ;;
   controlled)
-    check_env || exit 3
-    run_controlled || { mark CONTROLLED FAIL; printf "$RESULTS"; exit 4; }
+    check_env || { update_run_result FAIL; exit 3; }
+    run_controlled || { mark CONTROLLED FAIL; finish 4 FAIL; }
     mark CONTROLLED PASS
     ;;
   three-real-strict)
-    check_env || exit 3
-    run_three_real || { mark THREE_REAL FAIL; printf "$RESULTS"; exit 4; }
+    check_env || { update_run_result FAIL; exit 3; }
+    run_three_real || { mark THREE_REAL FAIL; finish 4 FAIL; }
     mark THREE_REAL PASS
     ;;
   enforce)
-    run_enforce || { mark ENFORCE FAIL; printf "$RESULTS"; exit 4; }
+    run_enforce; rc=$?
+    if [ "$rc" -eq 9 ]; then
+      mark ENFORCE NOT_RUN
+      finish 9 NOT_RUN
+    elif [ "$rc" -ne 0 ]; then
+      mark ENFORCE FAIL
+      finish 4 FAIL
+    fi
     mark ENFORCE PASS
     ;;
   acceptance)
@@ -389,24 +510,38 @@ case "$MODE" in
       printf "$RESULTS" >> "$EVIDENCE/commands.log"
       echo "PREFLIGHT_FAIL" | tee -a "$EVIDENCE/summary.txt"
       echo "ERROR: 预检失败，验收已终止（未启动任何后续测试）" >&2
+      update_run_result FAIL
       exit 8
     fi
     run_host_tests || rc_all=1
     run_three_real || rc_all=1
     run_controlled || rc_all=1
     run_m3_six || rc_all=1
-    run_enforce || rc_all=1
+    # NOT_RUN（缺凭据）不算 PASS，但也不冒充 FAIL：单独记录后继续。
+    run_enforce; rc_e=$?
+    if [ "$rc_e" -eq 9 ]; then mark ENFORCE NOT_RUN; elif [ "$rc_e" -ne 0 ]; then mark ENFORCE FAIL; rc_all=1; else mark ENFORCE PASS; fi
     mark ACCEPTANCE "$([ "$rc_all" -eq 0 ] && echo PASS || echo FAIL)"
-    printf "$RESULTS" | tee "$EVIDENCE/summary.txt"
-    printf "$RESULTS" >> "$EVIDENCE/commands.log"
     if [ "$rc_all" -eq 0 ]; then
-      log "验收通过"; exit 0
+      log "验收通过"
+      finish 0 PASS
     else
-      log "验收存在失败项"; exit 1
+      log "验收存在失败项" >&2
+      finish 1 FAIL
     fi
     ;;
 esac
 
-printf "$RESULTS" | tee "$EVIDENCE/summary.txt"
-printf "$RESULTS" >> "$EVIDENCE/commands.log"
-[ "${RESULTS#*=}" = "PASS" ] && exit 0 || exit 1
+# 单模式统一收尾：只有每一行结果都是 PASS 才返回 0。
+RC_FAILED=0
+while IFS= read -r _line; do
+  [ -z "$_line" ] && continue
+  case "$_line" in
+    *=PASS) : ;;
+    *) RC_FAILED=1 ;;
+  esac
+done < <(printf "$RESULTS")
+if [ "$RC_FAILED" -eq 0 ]; then
+  finish 0 PASS
+else
+  finish 1 FAIL
+fi

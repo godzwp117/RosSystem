@@ -329,6 +329,9 @@ def main(argv=None):
     parser.add_argument('--envelope-in', help='使用现成信封（否则自动构造）')
     parser.add_argument('--expect-block', action='store_true',
                         help='声明本次期望被阻断（用于失败关闭反例）')
+    parser.add_argument('--expect-block-reason',
+                        default='ADAPTER_MODULE_STATUS_NOT_PROCEED',
+                        help='期望的阻断原因码；只有该原因才视为负向用例通过')
     args = parser.parse_args(argv)
 
     out_dir = args.out_dir if os.path.isabs(args.out_dir) else os.path.join(
@@ -550,13 +553,53 @@ def main(argv=None):
                           if summary['levels'][LEVEL2] == 'PASS'
                           else 'B1_PARTIAL')),
     }
+    # ---------------- 负向预期判定（消除假阳性） ----------------
+    # 旧实现只要 LEVEL3 == BLOCKED 就返回 0，于是：Schema 缺失、模块崩溃、
+    # 契约失败（这些都会让 LEVEL1/LEVEL2 不成立 -> LEVEL3 被"依赖阻断"）
+    # 全都被当成了"成功的安全阻断"。这里改为分层核对：
+    #   LEVEL1/LEVEL2 必须真实通过（模块确实跑通、契约确实有效），
+    #   LEVEL3 必须是 BLOCKED，且阻断原因等于预期原因码。
+    # 三者缺一即不算通过，并以不同退出码区分原因。
+    if args.expect_block:
+        l1 = summary['levels'][LEVEL1]
+        l2 = summary['levels'][LEVEL2]
+        l3 = summary['levels'][LEVEL3]
+        observed = (summary.get('f0') or {}).get('reason_code')
+        expected = args.expect_block_reason
+        negative = {
+            'expect_block': True,
+            'expected_reason_code': expected,
+            'observed_reason_code': observed,
+            'levels': {'level1': l1, 'level2': l2, 'level3': l3},
+        }
+        if l1 != 'PASS' or l2 != 'PASS':
+            negative['verdict'] = 'INVALID_EVIDENCE'
+            negative['detail'] = (
+                '模块未成功调用或证据契约无效（LEVEL1=%s, LEVEL2=%s）：'
+                '这类失败不是安全阻断，不能计为通过' % (l1, l2))
+            exit_code = 2
+        elif l3 != 'BLOCKED':
+            negative['verdict'] = 'UNEXPECTED_ALLOW'
+            negative['detail'] = '期望阻断，但 LEVEL3=%s' % l3
+            exit_code = 1
+        elif observed != expected:
+            negative['verdict'] = 'UNEXPECTED_BLOCK_REASON'
+            negative['detail'] = (
+                '阻断原因 %r 与预期 %r 不一致：异常阻断不计为通过'
+                % (observed, expected))
+            exit_code = 1
+        else:
+            negative['verdict'] = 'EXPECTED_BLOCK'
+            negative['detail'] = '三个真实模块均成功调用、契约有效，F0 以预期原因阻断'
+            exit_code = 0
+        summary['negative_expectation'] = negative
+        summary['verdict']['negative'] = negative['verdict']
+    else:
+        exit_code = 0 if summary['levels'][LEVEL2] == 'PASS' else 1
+
     _write(out_dir, summary, run_id)
     print(json.dumps(summary, ensure_ascii=False, indent=2))
-
-    if args.expect_block:
-        blocked = summary['levels'][LEVEL3] == 'BLOCKED'
-        return 0 if blocked else 1
-    return 0 if summary['levels'][LEVEL2] == 'PASS' else 1
+    return exit_code
 
 
 def _write(out_dir, summary, run_id):
@@ -584,6 +627,13 @@ def _write(out_dir, summary, run_id):
               '- 返回码: {0}'.format(summary['f0'].get('returncode')), '',
               '> F0 的 READY_FOR_GATEWAY_SUBMISSION 不是 Gateway ALLOW；'
               'Gateway 判定在在线阶段单独验证。', '']
+    neg = summary.get('negative_expectation')
+    if neg:
+        lines += ['', '## 负向预期核对', '',
+                  '- 预期阻断原因: `{0}`'.format(neg.get('expected_reason_code')),
+                  '- 实际阻断原因: `{0}`'.format(neg.get('observed_reason_code')),
+                  '- 判定: **{0}**'.format(neg.get('verdict')),
+                  '- 说明: {0}'.format(neg.get('detail')), '']
     if summary['blockers']:
         lines += ['## 阻断原因', '']
         lines += ['- {0}'.format(item) for item in summary['blockers']]

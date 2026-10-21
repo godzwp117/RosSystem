@@ -22,4 +22,6 @@ except Exception as exc:
 print('依赖检查: OK（仅标准库）')
 PYCHK
 
+# 记录 PID，让 stop.sh 走确定性的 PID 文件（exec 不改变 PID）。
+echo "$$" > "$HERE/.dashboard.pid"
 exec "$PY" "$HERE/dashboard/server.py" --host 127.0.0.1 --port "$PORT"

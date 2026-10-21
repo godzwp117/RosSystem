@@ -187,10 +187,24 @@ async function loadEvidence(path) {
   try {
     const facts = await api('/api/run?path=' + encodeURIComponent(path));
     renderFacts(facts);
-    if (CURRENT_MODE !== 'RUNNING') {
+    // 证据来源必须按 run_kind 判定，而不是"进程结束就当历史回放"。
+    // ONLINE_EVIDENCE 是控制台本次真实跑出来的证据，不能标成 REPLAY；
+    // 反之历史归档也不能被说成本次在线执行。
+    const kind = facts.run_kind || 'ARCHIVED_EVIDENCE';
+    if (CURRENT_MODE === 'RUNNING') {
+      // 运行中：保持 RUNNING 徽标
+    } else if (kind === 'ONLINE_EVIDENCE') {
+      setBadge($('mode-badge'), 'ONLINE / 本次在线执行', 'badge-online');
+      CURRENT_MODE = 'ONLINE_EVIDENCE';
+      $('s-mode').textContent = 'ONLINE（本次在线执行产生的证据）';
+    } else if (kind === 'REPLAY_SNAPSHOT') {
       setBadge($('mode-badge'), 'REPLAY / 历史证据回放', 'badge-replay');
       CURRENT_MODE = 'REPLAY';
       $('s-mode').textContent = 'REPLAY（读取已归档证据，非本次在线运行）';
+    } else {
+      setBadge($('mode-badge'), 'ARCHIVED / 归档证据', 'badge-replay');
+      CURRENT_MODE = 'ARCHIVED';
+      $('s-mode').textContent = 'ARCHIVED（已归档实验记录，非本次在线运行）';
     }
   } catch (e) {
     $('s-note').textContent = '装载失败：' + e.message;
@@ -206,8 +220,13 @@ async function loadReplay() {
     setBadge($('mode-badge'), 'REPLAY / 历史证据回放', 'badge-replay');
     CURRENT_MODE = 'REPLAY';
     $('s-mode').textContent = 'REPLAY（离线，读取已归档真实证据，不含 ROS 2 运行）';
-    $('s-note').textContent = view.replay_notice ||
-      '离线回放：展示已归档真实证据，不代表本次重新执行。';
+    // 回放提示写独立元素：旧实现覆盖 #s-note，把 renderReplayView 刚写入的
+    // DDS Enforce 7/7 历史结果冲掉了，页面上再也看不到。
+    const notice = $('replay-notice');
+    if (notice) {
+      notice.textContent = view.replay_notice ||
+        '离线回放：展示已归档真实证据，不代表本次重新执行。';
+    }
   } catch (e) {
     $('s-note').textContent = '回放装载失败：' + e.message;
     $('m3-meta').textContent = 'NOT_OBSERVED';
@@ -297,10 +316,18 @@ function pollStatus() {
         clearInterval(POLL); POLL = null;
         $('btn-start').disabled = !(await refreshHealth()).runtime.online_possible;
         if (s.status === 'DONE') {
-          $('run-log').textContent += '\n\n✔ 实验完成（exit 0）。请点击「装载证据」查看结果。';
+          $('run-log').textContent += '\n\n✔ 实验完成（exit 0）。已刷新证据列表。';
+          await loadRuns();
+          // 自动装载本次新产生的证据，避免评委还要手动去下拉框找。
+          if (s.run_id) {
+            const target = (await api('/api/runs').catch(() => ({runs: []})))
+              .runs.find(r => r.run_id === s.run_id);
+            if (target) await loadEvidence(target.path);
+          }
         } else if (s.status === 'FAIL') {
           $('run-log').textContent += '\n\n✘ ' + (s.error || '实验失败');
           setBadge($('mode-badge'), 'FAIL', 'badge-fail');
+          await loadRuns();
         }
       }
     } catch (e) { /* 保持静默，下次轮询再试 */ }
