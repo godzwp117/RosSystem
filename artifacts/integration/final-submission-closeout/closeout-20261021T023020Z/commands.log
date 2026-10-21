@@ -1,0 +1,67 @@
+=== check_env ===
+command: final_system.sh --check
+exit_code: 0
+at: 2026-10-21T02:30:21Z
+code_sha: 2f3de257c9eac873093201292f6b2a9571da4f03
+run_id: closeout-20261021T023020Z
+=== contracts ===
+command: validate_team_contracts.py --all
+exit_code: 0
+at: 2026-10-21T02:30:21Z
+code_sha: 2f3de257c9eac873093201292f6b2a9571da4f03
+run_id: closeout-20261021T023020Z
+=== f0_p0 ===
+command: pytest phase2 + f0_identity_trust_boundary
+exit_code: 0
+at: 2026-10-21T02:30:25Z
+code_sha: 2f3de257c9eac873093201292f6b2a9571da4f03
+run_id: closeout-20261021T023020Z
+=== unit_tests ===
+command: pytest tests/unit
+exit_code: 0
+at: 2026-10-21T02:40:38Z
+code_sha: 2f3de257c9eac873093201292f6b2a9571da4f03
+run_id: closeout-20261021T023020Z
+=== three_real ===
+command: run_three_real_online.py --expect-block
+exit_code: 0
+at: 2026-10-21T02:40:39Z
+code_sha: 2f3de257c9eac873093201292f6b2a9571da4f03
+run_id: closeout-20261021T023020Z
+=== controlled_online ===
+command: m3_online_drive.sh (domain 76)
+exit_code: 0
+at: 2026-10-21T02:40:47Z
+code_sha: 2f3de257c9eac873093201292f6b2a9571da4f03
+run_id: closeout-20261021T023020Z
+=== controlled_verifier ===
+command: verify_final_controlled_online.py
+exit_code: 0
+at: 2026-10-21T02:40:47Z
+code_sha: 2f3de257c9eac873093201292f6b2a9571da4f03
+run_id: closeout-20261021T023020Z
+=== m3_online_drive ===
+command: m3_online_drive.sh
+exit_code: 0
+at: 2026-10-21T02:40:57Z
+code_sha: 2f3de257c9eac873093201292f6b2a9571da4f03
+run_id: closeout-20261021T023020Z
+=== m3_online_extra ===
+command: m3_online_extra.sh
+exit_code: 0
+at: 2026-10-21T02:40:57Z
+code_sha: 2f3de257c9eac873093201292f6b2a9571da4f03
+run_id: closeout-20261021T023020Z
+=== m3_verify ===
+command: verify_m3_online_evidence.py
+exit_code: 0
+at: 2026-10-21T02:40:57Z
+code_sha: 2f3de257c9eac873093201292f6b2a9571da4f03
+run_id: closeout-20261021T023020Z
+=== dds_enforce ===
+command: sros2_check.py
+exit_code: 0
+at: 2026-10-21T02:41:06Z
+code_sha: 2f3de257c9eac873093201292f6b2a9571da4f03
+run_id: closeout-20261021T023020Z
+ACCEPTANCE=PASS

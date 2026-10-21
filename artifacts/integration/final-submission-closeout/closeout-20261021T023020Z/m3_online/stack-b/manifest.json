@@ -1,0 +1,23 @@
+{
+  "run_id": "closeout-20261021T023020Z-six",
+  "scenarios": [
+    {
+      "cid": "ON03",
+      "request_id": "on03-closeout-20261021T023020Z-six",
+      "run_id": "closeout-20261021T023020Z-six",
+      "expected": "UNKNOWN_BLOCK"
+    },
+    {
+      "cid": "ON04",
+      "request_id": "on04-closeout-20261021T023020Z-six",
+      "run_id": "closeout-20261021T023020Z-six",
+      "expected": "ERROR_BLOCK"
+    },
+    {
+      "cid": "ON06",
+      "request_id": "on06-closeout-20261021T023020Z-six",
+      "run_id": "closeout-20261021T023020Z-six",
+      "expected": "TIMEOUT_NOT_BLOCK"
+    }
+  ]
+}

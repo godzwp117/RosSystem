@@ -1,7 +1,7 @@
 # RosSystem —— ROS 2 Jazzy 多模块风险评估与分层安全准入原型系统
 
-> **最终交付分支：`integration/final-acceptance-hardening-2026-10-22`**
-> 受测代码 SHA：`ba16e7f39261bd5898a186d29561170a46c950d5`
+> **最终交付分支：`release/final-submission-closeout-2026-10-22`**
+> 受测代码 SHA：`2f3de257c9eac873093201292f6b2a9571da4f03`
 > 上一版稳定回退：`integration/final-deliverable-2026-10-22` @ `70fefa47a4333cf2bb3e1631525366897a3cbc81`
 > 交付日期：2026-10-22
 > 验收结论：**`FINAL_CONTROLLED_SYSTEM_PASS`**（受控系统交付通过，验收器已加固）
@@ -57,6 +57,8 @@ scripts/final_system.sh --mode acceptance          # 全量验收
 | M3 在线六场景 | **39 checks / 0 failures / PASS**，`claims_checked=true` | `m3_online/merged/verification.json` |
 | 正式 DDS Enforce | **7/7 PASS** | `dds_enforce/` |
 | 验收器反例测试 | **21 项全部被正确拒绝** | `tests/unit/test_final_controlled_verifier.py` |
+| 预检硬门槛反例 | **7 项全部中止且无后续执行** | `tests/integration/test_preflight_failfast.sh` |
+| SIGTERM 顶层清理 | **7 → 0 残留，exit 130** | `tests/integration/test_sigterm_cleanup.sh` |
 | 全量验收 | **`ACCEPTANCE=PASS`** | `summary.txt` |
 
 证据根目录：
@@ -78,7 +80,10 @@ scripts/final_system.sh --mode acceptance          # 全量验收
 ### 0.5 两个容易误解的事实（务必区分）
 
 **Planner TIMEOUT ≠ Gateway BLOCK，也 ≠ 未执行。**
-本轮 ON-06 实测：Planner 超时，但 Gateway **到达 1、ALLOW、执行 1、NavSim Goal 1**。
+本轮 ON-06 实测：本次 Planner 返回 `TIMEOUT`，但**同一请求**在 Gateway 审计中被 `ALLOW`，
+并由 NavigationSim 记录了 1 个 Goal。**TIMEOUT 不代表请求被阻断或取消。**
+（注：现有日志缺少可严格排序的 Planner 超时时刻，因此**不宣称** Goal 发生在超时之后，
+只陈述两者在同一请求上同时成立。）
 上一轮同一场景是「到达 0 / Goal 0」。两种都真实出现过，
 因此任何"超时即阻断"的推断都是错的。
 没有 Action 取消协议证据，**不得声明请求已取消**。
