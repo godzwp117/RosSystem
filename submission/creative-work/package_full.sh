@@ -32,7 +32,9 @@ BASELINE_CORE_SHA="2f3de257c9eac873093201292f6b2a9571da4f03"
 ARCHIVE_BASELINE_SHA="e69325d8094e1d2bc309772650ae85a241751b31"
 SOURCE_COMMIT="$(git -C "$REPO" rev-parse HEAD 2>/dev/null || echo UNKNOWN)"
 # 只统计“已跟踪文件的修改”，未跟踪的发布产物不算源码脏。
-SOURCE_DIRTY="$(git -C "$REPO" status --porcelain --untracked-files=no 2>/dev/null | wc -l | tr -d ' ')"
+# Release artifacts are outputs, not source: regenerating the tarball must not
+# make the source tree look dirty. Exclude the dist directory from the count.
+SOURCE_DIRTY="$(git -C "$REPO" status --porcelain --untracked-files=no -- .   ':(exclude)submission/creative-work/dist' 2>/dev/null | wc -l | tr -d ' ')"
 BUILT_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 echo "== 1) 展示层 =="
