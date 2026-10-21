@@ -1,5 +1,10 @@
 # RosSystem 最终三成员工程交付报告（2026-10-22）
 
+> ⚠️ **历史版本提示**：本报告对应受测代码 `0563fe7cc8aab6901bb7a91d6ece3b9cdd960a04`，是**旧固定 SHA 的历史交付记录**，其中的 M3 19 checks 等数字不代表当前封版结果。
+> 当前封版请见：`docs/integration/FINAL_SUBMISSION_CLOSEOUT_2026_10_22.md`（受测 `2f3de257c9eac873093201292f6b2a9571da4f03`）。
+
+
+
 > 分支：`integration/final-deliverable-2026-10-22`
 > 起点：`f258ac1ed59e316c4989279a7968dad3fe4460c8`
 > **受测代码 SHA（FINAL_TESTED_CODE_SHA）：`0563fe7cc8aab6901bb7a91d6ece3b9cdd960a04`**

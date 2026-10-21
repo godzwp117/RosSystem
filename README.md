@@ -2,6 +2,7 @@
 
 > **最终交付分支：`release/final-submission-closeout-2026-10-22`**
 > 受测代码 SHA：`2f3de257c9eac873093201292f6b2a9571da4f03`
+> 文档归档 HEAD：`842edf2b1bec4d83d8aef4c4782d0c9a245f05b9`（文档修订不改变受测代码 SHA）
 > 上一版稳定回退：`integration/final-deliverable-2026-10-22` @ `70fefa47a4333cf2bb3e1631525366897a3cbc81`
 > 交付日期：2026-10-22
 > 验收结论：**`FINAL_CONTROLLED_SYSTEM_PASS`**（受控系统交付通过，验收器已加固）
@@ -54,17 +55,19 @@ scripts/final_system.sh --mode acceptance          # 全量验收
 | 三真实 External | 调用 PASS / Schema PASS / **F0 BLOCK（预期）** | `three_real/` |
 | 受控在线正向 | **request_id 级严格验收 PASS**（40 checks），Gateway ALLOW / NavSim Goal **1** | `controlled_online/controlled_verification.json` |
 | Gateway 独立阻断 | **BLOCK，Goal 0** | `controlled_online/` |
-| M3 在线六场景 | **39 checks / 0 failures / PASS**，`claims_checked=true` | `m3_online/merged/verification.json` |
+| M3 在线六场景 | **36 checks / 0 failures / PASS**，`claims_checked=true` | `m3_online/merged/verification.json` |
 | 正式 DDS Enforce | **7/7 PASS** | `dds_enforce/` |
 | 验收器反例测试 | **21 项全部被正确拒绝** | `tests/unit/test_final_controlled_verifier.py` |
 | 预检硬门槛反例 | **7 项全部中止且无后续执行** | `tests/integration/test_preflight_failfast.sh` |
 | SIGTERM 顶层清理 | **7 → 0 残留，exit 130** | `tests/integration/test_sigterm_cleanup.sh` |
 | 全量验收 | **`ACCEPTANCE=PASS`** | `summary.txt` |
+| 证据文件计数 | **115 个独立文件**（清单 134 条索引，含 19 条 DDS 重复引用） | `FINAL_SUBMISSION_EVIDENCE_MANIFEST.json` |
 
 证据根目录：
-`artifacts/integration/final-deliverable-2026-10-22/harden-20261020T171740Z/`
-（含 `SHA256SUMS.txt`，可 `sha256sum -c` 复核；
-首轮失败证据保留在 `harden-20261020T170655Z/`）
+`artifacts/integration/final-submission-closeout/closeout-20261021T023020Z/`
+（含 `SHA256SUMS.txt`，可 `sha256sum -c` 复核）
+历史加固证据：`artifacts/integration/final-deliverable-2026-10-22/harden-20261020T171740Z/`
+首轮失败证据：`artifacts/integration/final-deliverable-2026-10-22/harden-20261020T170655Z/`
 
 ### 0.4 两种运行模式的本质区别
 
@@ -77,16 +80,24 @@ scripts/final_system.sh --mode acceptance          # 全量验收
 正式 DDS Enforce 是**第三类独立实验**，运行在正式权限绑定的域上，
 不能与在线模式拼成"同次安全通信链路"。
 
-### 0.5 两个容易误解的事实（务必区分）
+### 0.5 ON-06（Planner 超时）：两次实验的结果不同，必须按 run 判读
 
-**Planner TIMEOUT ≠ Gateway BLOCK，也 ≠ 未执行。**
-本轮 ON-06 实测：本次 Planner 返回 `TIMEOUT`，但**同一请求**在 Gateway 审计中被 `ALLOW`，
-并由 NavigationSim 记录了 1 个 Goal。**TIMEOUT 不代表请求被阻断或取消。**
-（注：现有日志缺少可严格排序的 Planner 超时时刻，因此**不宣称** Goal 发生在超时之后，
-只陈述两者在同一请求上同时成立。）
-上一轮同一场景是「到达 0 / Goal 0」。两种都真实出现过，
-因此任何"超时即阻断"的推断都是错的。
-没有 Action 取消协议证据，**不得声明请求已取消**。
+| run_id | 受测代码 SHA | Planner | Gateway 到达 | Gateway 决策 | NavSim Goal |
+| --- | --- | --- | --- | --- | --- |
+| `closeout-20261021T023020Z`（**最终封版**） | `2f3de257c9eac873093201292f6b2a9571da4f03` | `PLANNER_RESULT_TIMEOUT` | **0** | 无 | **0** |
+| `harden-20261020T171740Z`（历史加固） | `ba16e7f39261bd5898a186d29561170a46c950d5` | `PLANNER_RESULT_TIMEOUT` | **1** | `ALLOW` | **1** |
+
+在最终封版实验 `closeout-20261021T023020Z` 中，ON-06 的 Planner 返回 TIMEOUT，Gateway 审计**未记录**该请求到达，
+NavigationSim **未记录**对应 Goal。在上一轮加固实验 `harden-20261020T171740Z` 中，同类场景曾出现
+Planner TIMEOUT、Gateway `ALLOW` 与 Goal 1。
+
+**两组实验表明：Planner TIMEOUT 本身不能等同于 Gateway BLOCK、任务取消或未执行**，
+必须结合每次运行的原始审计与执行日志判断。
+
+- 不得把"Gateway 无到达记录"写成 Gateway BLOCK；
+- 不得把本轮 Goal 0 解释为系统已执行取消；
+- 不得把历史 Goal 1 误写为本轮结果；
+- 现有日志无可严格比较的时间戳，因此**不推断** Goal 是否发生在超时之后。
 
 **`--check` ≠ 正式验收预检。**
 `--check` 是诊断模式，允许 WARN，`CHECK_RESULT=PASS` 只表示列出的条件通过；

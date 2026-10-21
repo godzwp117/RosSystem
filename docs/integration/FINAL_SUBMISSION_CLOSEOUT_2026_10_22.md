@@ -77,6 +77,16 @@ F0 STRICT 正确阻断。**三真实 LEVEL 3 正向准入未达成，且不因�
 
 ## 3. ON-06 表述校正（重要）
 
+**两次实验的 ON-06 结果不同，必须按 run 判读：**
+
+| run_id | 受测 SHA | Planner | Gateway 到达 | 决策 | Goal |
+| --- | --- | --- | --- | --- | --- |
+| `closeout-20261021T023020Z`（本次封版） | `2f3de257...` | `TIMEOUT` | **0** | 无 | **0** |
+| `harden-20261020T171740Z`（历史加固） | `ba16e7f...` | `TIMEOUT` | **1** | `ALLOW` | **1** |
+
+本次封版：Gateway 审计**未记录**该请求到达，NavSim **未记录** Goal。
+历史加固：同场景曾 `ALLOW` 且 Goal 1。两者都真实，**不可互相替代**。
+
 原文曾写"超时后执行"，但现有日志**缺少可严格排序的 Planner 超时时刻**，
 因此不能断言 Goal 发生在超时之后。已统一改为：
 
@@ -95,7 +105,7 @@ Gateway Action 取消协议与任务幂等留作后续工作。
 | 全仓单测 | **847 passed, 1 skipped** |
 | 三真实 External | 调用 PASS / Schema PASS / **F0 BLOCK（预期）** |
 | 受控在线（request_id 级） | **PASS** |
-| M3 六场景（含 claims） | **PASS（36 checks / 0 failures）** |
+| M3 六场景（含 claims） | **PASS（36 checks / 0 failures，claims_checked=true）** |
 | 正式 DDS Enforce | **7/7 PASS** |
 | **全量验收** | **`ACCEPTANCE=PASS`** |
 

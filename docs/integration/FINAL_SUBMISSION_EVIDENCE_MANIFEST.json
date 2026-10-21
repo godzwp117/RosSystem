@@ -1218,9 +1218,13 @@
     }
   ],
   "counts": {
-    "total": 134,
-    "primary": 115,
-    "dds_enforce": 19
+    "index_entries": 134,
+    "unique_files": 115,
+    "dds_subset_files": 19,
+    "duplicate_path_references": 19,
+    "hash_conflicts": 0,
+    "primary_entries": 115,
+    "dds_entries": 19
   },
   "sensitive_files": [],
   "verified": {
@@ -1230,5 +1234,12 @@
   "notes": [
     "两个历史证据根目录未被移动或改写；本清单覆盖本轮新生成的证据（含 DDS 逐场景）。",
     "历史主清单 99 项不覆盖 DDS 逐场景目录，因此本轮建立跨根统一索引并逐文件重算哈希。"
-  ]
+  ],
+  "count_discipline": {
+    "definition": "索引条目按 root+path 计数；独立文件按规范化绝对路径去重计数。DDS 目录位于主目录内部，因此其 19 条记录是主目录 115 个文件中的子集，不是额外 19 个新文件。",
+    "verified_by": "scripts 独立重算：逐条解析路径、去重、重算 SHA-256",
+    "missing_files": 0,
+    "recomputed_hash_mismatch": 0,
+    "sensitive_files": 0
+  }
 }

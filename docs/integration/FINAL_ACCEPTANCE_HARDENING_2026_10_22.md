@@ -1,5 +1,12 @@
 # 最终验收加固报告（2026-10-22）
 
+> ⚠️ **历史版本**：本报告对应受测 `ba16e7f39261bd5898a186d29561170a46c950d5`（加固轮），
+> 其中 M3 **39 checks** 与 ON-06 **Gateway ALLOW / Goal 1** 均为该轮结果。
+> 当前封版为 `2f3de257c9eac873093201292f6b2a9571da4f03`，M3 **36 checks**、
+> ON-06 **Gateway 到达 0 / Goal 0**。见 `FINAL_SUBMISSION_CLOSEOUT_2026_10_22.md`。
+
+
+
 > 分支：`integration/final-acceptance-hardening-2026-10-22`
 > 起点：`70fefa47a4333cf2bb3e1631525366897a3cbc81`
 > 代码提交：`d0c6450035f0156a111e7c6c632cf77253789613`
