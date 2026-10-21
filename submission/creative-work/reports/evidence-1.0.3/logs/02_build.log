@@ -1,0 +1,29 @@
+=== 2026-10-22T00:15:28+08:00 镜像构建 ===
+#7 exporting config sha256:361ddd673dc318f54cc009e46c363e77b495668376cce79d1c36c0135ef69537 done
+#7 exporting attestation manifest sha256:ef9fa51e0fd1c88d0770234754dabb1516447c2977dad167ec80c44a1e4bf620 done
+#7 exporting manifest list sha256:ad4e6d2703b72c6fe09470e191edd569f6470077ddedde7ae41c8e7fc356fa75 done
+#7 naming to docker.io/library/rosystem-verify-1.0.3:latest done
+#7 unpacking to docker.io/library/rosystem-verify-1.0.3:latest 0.0s done
+#7 DONE 0.1s
+BUILD_EXIT=0
+sha256:ad4e6d2703b72c6fe09470e191edd569f6470077ddedde7ae41c8e7fc356fa75
+
+=== 全新 colcon 构建 ===
+ls: cannot access '/home/zhangwei/project/RosSystem_test/verify_1.0.3/full/RosSystem-CreativeWork-Full/runtime/build': No such file or directory
+ls: cannot access '/home/zhangwei/project/RosSystem_test/verify_1.0.3/full/RosSystem-CreativeWork-Full/runtime/install': No such file or directory
+fresh: no build/install
+Starting >>> rg_interfaces
+Starting >>> rg_policy
+Finished <<< rg_policy [0.69s]
+Finished <<< rg_interfaces [3.87s]
+Starting >>> rg_demo_nodes
+Starting >>> rg_gateway
+Finished <<< rg_demo_nodes [0.75s]
+Finished <<< rg_gateway [0.75s]
+
+Summary: 4 packages finished [4.70s]
+rg_interfaces    /ws/install/rg_interfaces
+rg_demo_nodes    /ws/install/rg_demo_nodes
+rg_gateway       /ws/install/rg_gateway
+rg_policy        /ws/install/rg_policy
+COLCON_EXIT=0

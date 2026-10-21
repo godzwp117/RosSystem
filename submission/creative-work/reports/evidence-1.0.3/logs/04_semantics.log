@@ -1,0 +1,67 @@
+=== 2026-10-22T00:15:46+08:00 条件与语义验证 ===
+--- DDS Enforce：缺凭据必须 NOT_RUN / exit 9 ---
+[16:15:47Z] 正式 DDS Enforce（S1/S2/S3/S3C/S4/S5/S6）
+DDS_ENFORCE=NOT_RUN reason=缺少授权的 security/keystore 与私钥（公开包不含凭据）
+ENFORCE=NOT_RUN
+EXIT_CODE=9
+
+--- acceptance（发布包无 .git）：必须 PREFLIGHT_FAIL / exit 8，且不启动任何实验 ---
+[16:15:47Z] 环境自检 (run_id=v103-acceptance)
+  ROS: jazzy
+  Python: 3.12.3
+  jsonschema: 4.10.3
+  colcon: present
+  代码 SHA: bcbec1bfc6b0ac26db447975b41fcda762934ec9
+  未提交改动: 0
+  [ok] config/team_modules.three-real.yaml
+  [ok] config/team_modules.member3.real.yaml
+  [ok] config/task_policy.yaml
+  [ok] scripts/team_demo.py
+  [ok] scripts/m3_online_drive.sh
+  [ok] scripts/m3_online_extra.sh
+  [ok] scripts/verify_m3_online_evidence.py
+  [PREFLIGHT_FAIL] 无法取得完整 40 位 SHA
+[16:15:48Z] 自检失败
+CHECK_RESULT=FAIL
+PREFLIGHT=FAIL
+ACCEPTANCE=PREFLIGHT_FAIL
+PREFLIGHT_FAIL
+ERROR: 预检失败，验收已终止（未启动任何后续测试）
+EXIT_CODE=8
+--- 该 run 是否产生了实验目录（应为空，证明未启动后续测试）---
+v103/v103-acceptance
+
+--- 状态语义回归（CLI 级）---
+== 5.1 全部必需项 PASS ==
+  [PASS] all-pass -> PASS 0 - - (exit 0)
+== 5.2 存在 NOT_RUN（Enforce 缺凭据）==
+  [PASS] enforce-not-run -> INCOMPLETE 9 ENFORCE - (exit 9)
+== 5.3 存在 FAIL ==
+  [PASS] controlled-fail -> FAIL 1 - CONTROLLED (exit 1)
+== 5.4 FAIL 与 NOT_RUN 并存 ==
+  [PASS] fail-and-not-run -> FAIL 1 ENFORCE THREE_REAL (exit 1)
+== 边界：未执行任何项不得 PASS ==
+  [PASS] empty -> INCOMPLETE 9 - - (exit 9)
+
+结果: 5 passed / 5 total
+ACCEPTANCE_SEMANTICS=PASS
+
+--- 验收编排接线回归（stub 实验体，验收块不改）---
+== 5.1 全部 PASS ==
+  [PASS] all_pass -> ACCEPTANCE=PASS exit=0
+== 5.2 仅 Enforce 为 NOT_RUN（必须 INCOMPLETE / exit 9）==
+  [PASS] enforce_notrun -> ACCEPTANCE=INCOMPLETE exit=9
+== 5.3 存在 FAIL ==
+  [PASS] controlled_fail -> ACCEPTANCE=FAIL exit=1
+== 5.4 FAIL 与 NOT_RUN 并存（应为 FAIL，且保留 NOT_RUN）==
+  [PASS] fail_and_notrun -> ACCEPTANCE=FAIL exit=1
+  [PASS] fail_and_notrun 保留了 NOT_RUN_ITEMS=ENFORCE
+== 5.2b 三真实 NOT_RUN 同样不得 PASS ==
+  [PASS] three_notrun -> ACCEPTANCE=INCOMPLETE exit=9
+
+结果: 6 passed / 6 total
+ACCEPTANCE_WIRING=PASS
+
+--- 状态聚合单元测试（容器内）---
+..............                                                           [100%]
+14 passed in 0.07s
