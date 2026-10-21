@@ -1,0 +1,6 @@
+run_id=freeze-20261018T144215Z
+scenario=check
+container=rg_demo
+domain=56
+enforce_domain=43
+git_sha=40011e54c5b61b045ce18c271ff5f95b5bcc5759

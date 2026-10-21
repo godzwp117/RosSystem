@@ -1,0 +1,7 @@
+{ "schema_version":"1.0.0-proposed","run_id":"run-f0c-0001","request_id":"req-f0c-0001","event_id":"evt-x","producer":{"name":"m","source":"MOCK"}, "observed_at":"2026-10-10T12:00:05Z", "status":"TRUSTED", "reason":"r",
+  "subject":{"observed_name":"planner_node"},
+  "requested_resource":{"resource":"/rg/nav_execute","operation":"SERVICE_REQUEST"},
+  "authorization":{"result_status":"AUTHORIZED","denial_layer":"NONE"},
+  "identity_evidence":{"kind":"CLIENT_ASSERTED"},
+  "access_control_evidence":{"kind":"NONE"},
+  "evidence_refs":[{"ref":"x","kind":"MOCK"}] }

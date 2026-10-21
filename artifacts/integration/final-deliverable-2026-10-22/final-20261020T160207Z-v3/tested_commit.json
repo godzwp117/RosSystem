@@ -1,0 +1,43 @@
+{
+  "final_tested_code_sha": "0563fe7cc8aab6901bb7a91d6ece3b9cdd960a04",
+  "branch": "integration/final-deliverable-2026-10-22",
+  "start_point": "f258ac1ed59e316c4989279a7968dad3fe4460c8",
+  "environment": {
+    "container": "rg_final",
+    "image": "ros:jazzy",
+    "online_domain": 74,
+    "formal_domains": [
+      42,
+      43
+    ],
+    "rmw": "rmw_fastrtps_cpp",
+    "jsonschema": "4.10.3",
+    "git_dir_mounted": true
+  },
+  "results": {
+    "contracts": "PASS",
+    "f0_p0": "38 passed",
+    "unit_full": "826 passed, 1 skipped",
+    "three_real": {
+      "called": "PASS",
+      "validated": "PASS",
+      "proceed": "BLOCKED",
+      "f0": "ADAPTER_BLOCK / ADAPTER_MODULE_STATUS_NOT_PROCEED"
+    },
+    "controlled_online": {
+      "gateway_audit_rows": 5,
+      "navsim_goal_rows": 1
+    },
+    "m3_online_six": {
+      "verdict": "PASS",
+      "checks": 19,
+      "failures": 0
+    },
+    "dds_enforce": "7/7 PASS",
+    "acceptance": "PASS"
+  },
+  "notes": [
+    "首次容器化验收因容器内 git 元数据不可见导致 test_no_key_material_is_committed 失败；",
+    "通过把宿主 .git 以只读方式挂到相同路径解决，属环境问题而非代码缺陷。"
+  ]
+}

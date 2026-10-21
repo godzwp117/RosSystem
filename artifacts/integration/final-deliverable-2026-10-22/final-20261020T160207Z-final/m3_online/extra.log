@@ -1,0 +1,30 @@
+STACK_READY=1
+input ON03 -> on03-final-20261020T160207Z-final-six
+input ON04 -> on04-final-20261020T160207Z-final-six
+input ON06 -> on06-final-20261020T160207Z-final-six
+config ON03 -> policy /tmp/m3_online_inputs/task_policy_absent.yaml
+config ON04 -> policy /tmp/m3_online_inputs/task_policy_corrupt.yaml
+config ON06 -> policy /ws/config/task_policy.yaml
+manifest -> artifacts/integration/final-deliverable-2026-10-22/final-20261020T160207Z-final/m3_online/stack-b/manifest.json
+
+########## SCENARIO ON03 ##########
+F0_EXIT_ON03=4
+  decision=ADAPTER_BLOCK reason=ADAPTER_DEPENDENCY_MISSING
+  journal 行数: 0
+
+########## SCENARIO ON04 ##########
+F0_EXIT_ON04=4
+  decision=ADAPTER_BLOCK reason=ADAPTER_DEPENDENCY_MISSING
+  journal 行数: 0
+
+########## SCENARIO ON06 ##########
+F0_EXIT_ON06=4
+  decision=ADAPTER_BLOCK reason=ADAPTER_DEPENDENCY_MISSING
+  journal 行数: 0
+
+=== 关闭 ===
+[1]-  Terminated              ros2 run rg_demo_nodes navigation_sim --ros-args -p record_path:="$JOURNAL" > "$OUT/navsim.log" 2>&1
+[2]+  Terminated              ros2 run rg_gateway security_gateway --ros-args -p policy_path:="$WS/config/task_policy.yaml" -p audit_log_path:="$AUDIT" > "$OUT/gateway.log" 2>&1
+STRAY_GROUPS=0
+audit 行数: 0  journal 行数: 0
+DONE_EXTRA

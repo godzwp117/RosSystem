@@ -1,0 +1,14 @@
+{
+  "contract": "limited-online-downstream-check/1",
+  "negative": {
+    "adapter": "config/team_modules.three-real.yaml",
+    "gateway_audit_rows_after_neg": 0,
+    "navsim_goal_rows_after_neg": 0
+  },
+  "positive": {
+    "adapter": "config/team_modules.member3.real.yaml",
+    "gateway_audit_rows_after_pos": 0,
+    "navsim_goal_rows_after_pos": 0
+  },
+  "interpretation": "POS 证明审计与 journal 在本栈可写可读；只有 POS 成立时，NEG 的 0 到达才可归因为\"未提交\"而非\"网关没跑/日志坏了\"。"
+}

@@ -1,0 +1,13 @@
+STACK_READY=1
+input ON03 -> on03-sigterm-v3
+input ON04 -> on04-sigterm-v3
+input ON06 -> on06-sigterm-v3
+config ON03 -> policy /tmp/m3_online_inputs/task_policy_absent.yaml
+config ON04 -> policy /tmp/m3_online_inputs/task_policy_corrupt.yaml
+config ON06 -> policy /ws/config/task_policy.yaml
+manifest -> /ws/artifacts/integration/final-submission-closeout/sigterm-v3/stack-b/manifest.json
+
+########## SCENARIO ON03 ##########
+收到 TERM，执行清理
+[1]-  Terminated              ros2 run rg_demo_nodes navigation_sim --ros-args -p record_path:="$JOURNAL" > "$OUT/navsim.log" 2>&1
+[2]+  Terminated              ros2 run rg_gateway security_gateway --ros-args -p policy_path:="$WS/config/task_policy.yaml" -p audit_log_path:="$AUDIT" > "$OUT/gateway.log" 2>&1

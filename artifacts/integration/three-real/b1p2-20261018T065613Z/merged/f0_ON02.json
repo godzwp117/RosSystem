@@ -1,0 +1,85 @@
+{
+  "adapter_version": "0.1.0",
+  "contract_version": "1.0.0-proposed",
+  "invocation_id": "e6d89017ed5c",
+  "checked_at": "2026-10-18T06:56:16Z",
+  "decision": "ADAPTER_BLOCK",
+  "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+  "detail": "模块 task_risk 状态为 'BLOCK_RECOMMENDED'，不是允许推进的 'ALLOW_RECOMMENDED'；本地阻断，不进入提交流程",
+  "run_id": "b1p2-20261018T065613Z",
+  "request_id": "on02-oor-block-b1p2-20261018T065613Z",
+  "modules": [
+    {
+      "invocation_id": "e6d89017ed5c",
+      "module": "comm_risk",
+      "mode": "mock",
+      "interface": "comm_risk_evidence",
+      "command": [
+        "python3",
+        "mock_modules/comm_risk_mock.py"
+      ],
+      "timeout_sec": 10.0,
+      "max_stdout_bytes": 65536,
+      "pid": 208,
+      "pgid": 208,
+      "exit_code": 0,
+      "duration_ms": 14,
+      "stdout_bytes": 881,
+      "status": "NORMAL",
+      "schema_ok": true,
+      "cleanup": "not_needed",
+      "stderr_bytes_kept": 35
+    },
+    {
+      "invocation_id": "e6d89017ed5c",
+      "module": "identity_trust",
+      "mode": "mock",
+      "interface": "identity_trust_assessment",
+      "command": [
+        "python3",
+        "mock_modules/identity_trust_mock.py"
+      ],
+      "timeout_sec": 10.0,
+      "max_stdout_bytes": 65536,
+      "pid": 209,
+      "pgid": 209,
+      "exit_code": 0,
+      "duration_ms": 15,
+      "stdout_bytes": 1233,
+      "status": "AUTHORIZED",
+      "schema_ok": true,
+      "cleanup": "not_needed",
+      "stderr_bytes_kept": 43
+    },
+    {
+      "invocation_id": "e6d89017ed5c",
+      "module": "task_risk",
+      "mode": "external",
+      "interface": "task_risk_decision",
+      "command": [
+        "python3",
+        "modules/member3_taskrisk/module.py"
+      ],
+      "timeout_sec": 10.0,
+      "max_stdout_bytes": 65536,
+      "pid": 210,
+      "pgid": 210,
+      "exit_code": 0,
+      "duration_ms": 68,
+      "stdout_bytes": 1670,
+      "status": "BLOCK_RECOMMENDED",
+      "schema_ok": true,
+      "cleanup": "not_needed",
+      "stderr_bytes_kept": 35
+    }
+  ],
+  "adapter_peak_rss_kb": 28536,
+  "note": "本结果仅表示适配层的候选输入检查结论；READY_FOR_GATEWAY_SUBMISSION 不代表 Gateway 已允许，也不代表下游已执行。本层不提交真实 Action。",
+  "audit_written": true,
+  "online": {
+    "enabled": true,
+    "submitted": false,
+    "outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+    "detail": "适配层未通过推进条件，因此不启动 Planner、不发送任何 Goal"
+  }
+}

@@ -1,0 +1,297 @@
+{
+  "run_id": "final-20261017T131601Z",
+  "generated_at": "2026-10-17T13:26:23Z",
+  "git_sha": "f6574acbf51062a96a918ac3096e7aecf83371c6",
+  "branch": "demo/2026-10-19-rc2",
+  "environment": {
+    "run_id": "final-20261017T131601Z",
+    "generated_at": "2026-10-17T13:16:01Z",
+    "repo": "/home/zhangwei/project/RosSystem",
+    "host": "Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.10.12",
+    "git": {
+      "head_sha": "f6574acbf51062a96a918ac3096e7aecf83371c6",
+      "branch": "demo/2026-10-19-rc2",
+      "status_porcelain": "",
+      "baseline": "a4c597161d254192b662ee7b8f4d17f76a89cc16",
+      "main": "838f66f41821edf0421612a205d162ae8e9eb955",
+      "member_deliveries": "3ce820258c69b89e2ad9291e16c44dc7d2b99150",
+      "fix_branch": "19f6a256e71db7270de88e5b76b9ac2d87668cc6",
+      "old_demo": "df5a0f0d3a12286b3dc3861fb104987cf10d21d3"
+    },
+    "container": {
+      "ROS_DISTRO": "jazzy",
+      "RMW": "rmw_fastrtps_cpp",
+      "DOMAIN": "42",
+      "PY": "Python 3.12.3",
+      "PKGS": "4",
+      "NODES": "0",
+      "_returncode": 0
+    },
+    "dds_security_mode_l3": "disabled (domain 42, normal mode)",
+    "dds_security_mode_l4": "enforce (domain 43)",
+    "module_config_l3": {
+      "comm_risk": "MOCK",
+      "identity_trust": "MOCK",
+      "task_risk": "EXTERNAL"
+    }
+  },
+  "checks": [
+    {
+      "layer": "L0_GIT",
+      "id": "GIT-01",
+      "check": "受测 SHA 已记录",
+      "verdict": "PASS",
+      "returncode": 0,
+      "elapsed_sec": null,
+      "timed_out": null,
+      "stdout_tail": "",
+      "stderr_tail": "",
+      "note": "HEAD=f6574acbf51062a96a918ac3096e7aecf83371c6 branch=demo/2026-10-19-rc2",
+      "git": {
+        "head_sha": "f6574acbf51062a96a918ac3096e7aecf83371c6",
+        "branch": "demo/2026-10-19-rc2",
+        "status_porcelain": "",
+        "baseline": "a4c597161d254192b662ee7b8f4d17f76a89cc16",
+        "main": "838f66f41821edf0421612a205d162ae8e9eb955",
+        "member_deliveries": "3ce820258c69b89e2ad9291e16c44dc7d2b99150",
+        "fix_branch": "19f6a256e71db7270de88e5b76b9ac2d87668cc6",
+        "old_demo": "df5a0f0d3a12286b3dc3861fb104987cf10d21d3"
+      }
+    },
+    {
+      "layer": "L0_GIT",
+      "id": "GIT-02",
+      "check": "工作区干净（受测代码 == 提交内容）",
+      "verdict": "PASS",
+      "returncode": 0,
+      "elapsed_sec": null,
+      "timed_out": null,
+      "stdout_tail": "",
+      "stderr_tail": "",
+      "note": "未提交条目数=0",
+      "dirty_entries": []
+    },
+    {
+      "layer": "L1_PROTOCOL",
+      "id": "L1-01",
+      "check": "团队契约与 Schema 校验",
+      "verdict": "PASS",
+      "returncode": 0,
+      "elapsed_sec": 0.08,
+      "timed_out": false,
+      "stdout_tail": "ditional_property)\n  [OK] comm_bad_version.json (version_incompatible)\n  [OK] comm_number_out_of_range.json (range_violation)\n  [OK] comm_wrong_type.json (type_violation)\n  [OK] comm_nan_literal.json (non_finite_number)\n  [OK] identity_bad_status.json (enum_violation)\n  [OK] task_execution_target.json (const_violation)\n  [OK] task_bad_digest.json (pattern_violation)\n  [OK] input_admin_flag.json (additional_property)\n  [OK] input_execution_resource.json (const_violation)\nCONTRACT VALIDATION: PASS",
+      "stderr_tail": "",
+      "note": "",
+      "pytest_counts": {}
+    },
+    {
+      "layer": "L1_PROTOCOL",
+      "id": "L1-02",
+      "check": "验收器严格性反例（LIM-01 / REAL-STATE）",
+      "verdict": "PASS",
+      "returncode": 0,
+      "elapsed_sec": 10.13,
+      "timed_out": false,
+      "stdout_tail": "...........................                                              [100%]\n27 passed in 9.98s",
+      "stderr_tail": "",
+      "note": "",
+      "pytest_counts": {
+        "passed": 27
+      }
+    },
+    {
+      "layer": "L1_PROTOCOL",
+      "id": "L1-03",
+      "check": "ADP-01 输入拒绝反例（ADP-N01..N10）",
+      "verdict": "PASS",
+      "returncode": 0,
+      "elapsed_sec": 1.42,
+      "timed_out": false,
+      "stdout_tail": "................                                                         [100%]\n16 passed in 1.33s",
+      "stderr_tail": "",
+      "note": "",
+      "pytest_counts": {
+        "passed": 16
+      }
+    },
+    {
+      "layer": "L1_PROTOCOL",
+      "id": "L1-04",
+      "check": "event_id / request_id 边界",
+      "verdict": "PASS",
+      "returncode": 0,
+      "elapsed_sec": 5.06,
+      "timed_out": false,
+      "stdout_tail": ".....................................                                    [100%]\n37 passed in 4.98s",
+      "stderr_tail": "",
+      "note": "",
+      "pytest_counts": {
+        "passed": 37
+      }
+    },
+    {
+      "layer": "L1_PROTOCOL",
+      "id": "L1-05",
+      "check": "在线证据篡改反例",
+      "verdict": "PASS",
+      "returncode": 0,
+      "elapsed_sec": 0.11,
+      "timed_out": false,
+      "stdout_tail": "..............                                                           [100%]\n14 passed in 0.02s",
+      "stderr_tail": "",
+      "note": "",
+      "pytest_counts": {
+        "passed": 14
+      }
+    },
+    {
+      "layer": "L1_PROTOCOL",
+      "id": "L1-06",
+      "check": "ON-06 报告声明对账反例",
+      "verdict": "PASS",
+      "returncode": 0,
+      "elapsed_sec": 0.11,
+      "timed_out": false,
+      "stdout_tail": "...............                                                          [100%]\n15 passed in 0.02s",
+      "stderr_tail": "",
+      "note": "",
+      "pytest_counts": {
+        "passed": 15
+      }
+    },
+    {
+      "layer": "L2_ALGORITHM",
+      "id": "L2-01",
+      "check": "M2 identity_trust 真实验收",
+      "verdict": "PASS",
+      "returncode": 0,
+      "elapsed_sec": 2.29,
+      "timed_out": false,
+      "stdout_tail": "IM-02     stdout 超限时立即终止且不判成功\n  [PASS    ] PROC-01    不快照/不残留：调用使用 shell=False 且受超时约束\n  [NOT_RUN ] LAYER-02   L2 真实研究算法验收\n             需要成员提供真实输入、真实输出与证据来源；脚本不做替代\n  [BLOCKED ] LAYER-03   L3 ROS 2 在线联调（Gateway 审计 + NavigationSim Goal）\n             需要 Jazzy 容器；只有真实 Gateway 审计与 Goal 才能证明 Action 层结果\n\n  计数: {'PASS': 58, 'FAIL': 3, 'NOT_RUN': 1, 'BLOCKED': 1}\n  达到 PR 合入门槛: True\n  L2 算法证据: NOT_READY | L3 在线联调: BLOCKED\n  报告: artifacts/demo-2026-10-19/final-review-final-20261017T131601Z/l2/m2/report.json",
+      "stderr_tail": "",
+      "note": "counts={'PASS': 58, 'FAIL': 3, 'NOT_RUN': 1, 'BLOCKED': 1} meets_pr_gate=True",
+      "checker_counts": {
+        "PASS": 58,
+        "FAIL": 3,
+        "NOT_RUN": 1,
+        "BLOCKED": 1
+      },
+      "meets_pr_gate": true,
+      "report_path": "artifacts/demo-2026-10-19/final-review-final-20261017T131601Z/l2/m2/report.json"
+    },
+    {
+      "layer": "L2_ALGORITHM",
+      "id": "L2-02",
+      "check": "M3 task_risk 真实验收",
+      "verdict": "PASS",
+      "returncode": 0,
+      "elapsed_sec": 2.62,
+      "timed_out": false,
+      "stdout_tail": "IM-02     stdout 超限时立即终止且不判成功\n  [PASS    ] PROC-01    不快照/不残留：调用使用 shell=False 且受超时约束\n  [NOT_RUN ] LAYER-02   L2 真实研究算法验收\n             需要成员提供真实输入、真实输出与证据来源；脚本不做替代\n  [BLOCKED ] LAYER-03   L3 ROS 2 在线联调（Gateway 审计 + NavigationSim Goal）\n             需要 Jazzy 容器；只有真实 Gateway 审计与 Goal 才能证明 Action 层结果\n\n  计数: {'PASS': 58, 'FAIL': 3, 'NOT_RUN': 1, 'BLOCKED': 1}\n  达到 PR 合入门槛: True\n  L2 算法证据: NOT_READY | L3 在线联调: BLOCKED\n  报告: artifacts/demo-2026-10-19/final-review-final-20261017T131601Z/l2/m3/report.json",
+      "stderr_tail": "",
+      "note": "counts={'PASS': 58, 'FAIL': 3, 'NOT_RUN': 1, 'BLOCKED': 1} meets_pr_gate=True",
+      "checker_counts": {
+        "PASS": 58,
+        "FAIL": 3,
+        "NOT_RUN": 1,
+        "BLOCKED": 1
+      },
+      "meets_pr_gate": true,
+      "report_path": "artifacts/demo-2026-10-19/final-review-final-20261017T131601Z/l2/m3/report.json"
+    },
+    {
+      "layer": "L1_PROTOCOL",
+      "id": "L1-00",
+      "check": "全仓 Python 单元测试",
+      "verdict": "PASS",
+      "returncode": 0,
+      "elapsed_sec": 516.84,
+      "timed_out": false,
+      "stdout_tail": ".................................................. [ 54%]\n........................................................................ [ 65%]\n........................................................................ [ 76%]\n........................................................................ [ 87%]\n........................................................................ [ 98%]\n...........                                                              [100%]\n657 passed, 3 skipped in 516.75s (0:08:36)",
+      "stderr_tail": "",
+      "note": "",
+      "pytest_counts": {
+        "passed": 657,
+        "skipped": 3
+      }
+    },
+    {
+      "layer": "L3_ROS2",
+      "id": "L3-01",
+      "check": "Gateway/NavigationSim A/B 基础演示",
+      "verdict": "PASS",
+      "returncode": 0,
+      "elapsed_sec": 6.76,
+      "timed_out": false,
+      "stdout_tail": " /ws/logs/demo/navsim.log\n  operator log    : /ws/logs/demo/operator.log\n  planner logs    : /ws/logs/demo/planner_a.log, /ws/logs/demo/planner_b.log\n  planner exits   : A=0 B=0\nLIVE DEMO RESULT: PASS\n[exit] 0\n[log] /home/zhangwei/project/RosSystem/logs/demo.log\n---------------------------------------------------------------\n\nDEMO RESULT: PASS\n  audit JSONL    : /home/zhangwei/project/RosSystem/logs/demo/audit.jsonl\n  navsim journal : /home/zhangwei/project/RosSystem/logs/demo/navsim_goals.jsonl",
+      "stderr_tail": "",
+      "note": "域 42 普通模式"
+    },
+    {
+      "layer": "L3_ROS2",
+      "id": "L3-02",
+      "check": "M3 在线第一组（ON-01/02/05）",
+      "verdict": "PASS",
+      "returncode": 0,
+      "elapsed_sec": 5.98,
+      "timed_out": false,
+      "stdout_tail": "ode=external  exit=0 status=ALLOW_RECOMMENDED schema_ok=True\n  online     : enabled=True outcome=PLANNER_RESULT_RECEIVED planner_exit=0\n    planner_result: status_code=OUT_OF_REGION success=False goal_id=63c43d2165a04c54914ec5e3f87f157c\n    online_detail: target (9.0, 9.0) outside allowed_region {'x_min': 0.0, 'x_max': 4.0, 'y_min': 0.0, 'y_max': 4.0}\n--- journal 行数: 1 ---\n\n=== 栈关闭 ===\nSTRAY_RG_PROCS=0\n=== 汇总 ===\ngateway_audit.jsonl 行数: 5\nnavsim_goals.jsonl  行数: 1\nDONE rc2-final-20261017T131601Z",
+      "stderr_tail": "[1]   Terminated              ros2 run rg_demo_nodes operator_node --ros-args -p task_id:=patrol_a_001 > \"${OUT}/operator.log\" 2>&1\n[2]-  Terminated              ros2 run rg_demo_nodes navigation_sim --ros-args -p record_path:=\"${JOURNAL}\" > \"${OUT}/navsim.log\" 2>&1\n[3]+  Terminated              ros2 run rg_gateway security_gateway --ros-args -p policy_path:=\"${WS}/config/task_policy.yaml\" -p audit_log_path:=\"${AUDIT}\" > \"${OUT}/gateway.log\" 2>&1",
+      "note": "run_id=rc2-final-20261017T131601Z"
+    },
+    {
+      "layer": "L3_ROS2",
+      "id": "L3-03",
+      "check": "M3 在线第二组（ON-03/04/06）",
+      "verdict": "PASS",
+      "returncode": 0,
+      "elapsed_sec": 4.89,
+      "timed_out": false,
+      "stdout_tail": "NOT_SUBMITTED_ADAPTER_BLOCK planner_exit=None\n  journal 行数: 0\n\n########## SCENARIO ON06 ##########\nF0_EXIT_ON06=0\n  decision=READY_FOR_GATEWAY_SUBMISSION reason=ADAPTER_OK\n    comm_risk       mode=mock      exit=0 status=NORMAL\n    identity_trust  mode=mock      exit=0 status=AUTHORIZED\n    task_risk       mode=external  exit=0 status=ALLOW_RECOMMENDED\n  online: enabled=True outcome=PLANNER_RESULT_TIMEOUT planner_exit=None\n  journal 行数: 1\n\n=== 关闭 ===\nSTRAY=0\naudit 行数: 3  journal 行数: 1\nDONE_EXTRA",
+      "stderr_tail": "[1]-  Terminated              ros2 run rg_demo_nodes navigation_sim --ros-args -p record_path:=\"$JOURNAL\" > \"$OUT/navsim.log\" 2>&1\n[2]+  Terminated              ros2 run rg_gateway security_gateway --ros-args -p policy_path:=\"$WS/config/task_policy.yaml\" -p audit_log_path:=\"$AUDIT\" > \"$OUT/gateway.log\" 2>&1",
+      "note": "run_id=rc2b-final-20261017T131601Z"
+    },
+    {
+      "layer": "L3_ROS2",
+      "id": "L3-04",
+      "check": "回收两组在线证据",
+      "verdict": "PASS",
+      "returncode": 0,
+      "elapsed_sec": 0.03,
+      "timed_out": false,
+      "stdout_tail": "COLLECTED",
+      "stderr_tail": "",
+      "note": ""
+    },
+    {
+      "layer": "L3_ROS2",
+      "id": "L3-05",
+      "check": "跨层证据独立复核",
+      "verdict": "PASS",
+      "returncode": 0,
+      "elapsed_sec": 0.02,
+      "timed_out": false,
+      "stdout_tail": "6\",\n      \"code\": \"GATEWAY_REASON_MISMATCH\",\n      \"ok\": true,\n      \"detail\": \"声明 gateway_reason_code='ALLOW_IN_POLICY' vs 实测 'ALLOW_IN_POLICY'\"\n    },\n    {\n      \"scenario\": \"ON06\",\n      \"code\": \"GATEWAY_EXECUTION_MISMATCH\",\n      \"ok\": true,\n      \"detail\": \"声明 gateway_execution=1 vs 实测 1\"\n    },\n    {\n      \"scenario\": \"ON06\",\n      \"code\": \"NAVSIM_GOAL_MISMATCH\",\n      \"ok\": true,\n      \"detail\": \"声明 navsim_goals=1 vs 实测 1\"\n    }\n  ],\n  \"failures\": 0,\n  \"checks\": 46,\n  \"verdict\": \"PASS\"\n}",
+      "stderr_tail": "",
+      "note": ""
+    },
+    {
+      "layer": "L4_DDS",
+      "id": "L4-01",
+      "check": "DDS-Security Enforce S1–S6（域 43）",
+      "verdict": "PASS",
+      "returncode": 0,
+      "elapsed_sec": 12.07,
+      "timed_out": false,
+      "stdout_tail": "SS] S1_normal_mode_a_zone      普通模式合法 A 区请求（domain 42，未启用安全）\n  [PASS] S2                         Enforce 模式合法 A 区请求：Planner→Gateway→NavigationSim 正常完\n  [PASS] S5                         Enforce 模式 B 区越界：身份合法但 TaskPolicy 拒绝\n  [PASS] S3C                        正向对照：/gateway 身份直连执行接口应当成功\n  [PASS] S3                         Enforce 模式：Planner 身份直连执行接口应被拒绝\n  [PASS] S4                         无授权身份访问执行接口应被拒绝\n  [PASS] S6                         安全配置失效不得静默回退为无认证通信\nevidence: tests/evidence/rc2-regression",
+      "stderr_tail": "",
+      "note": "与 L3 不是同一次运行；L3 为域 42 普通模式"
+    }
+  ],
+  "counts": {
+    "PASS": 17
+  },
+  "failures": [],
+  "verdict": "PASS"
+}

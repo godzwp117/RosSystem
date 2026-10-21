@@ -1,0 +1,6 @@
+[INFO] [1792550461.163372385] [rcl]: Found security directory: /ws/security/keystore/enclaves/operator
+[INFO] [1792550461.191843463] [operator_node]: TASK_INFO {"task_id": "patrol_a_001", "policy_version": "1.0", "coordinate_frame": "map", "description": "perimeter patrol, A zone", "published_at": "2026-10-21T02:41:01.185Z", "authority": "advisory_only", "note": "task summary only; the authoritative TaskPolicy is read by security_gateway from config/task_policy.yaml and cannot be overridden by this message"}
+[INFO] [1792550461.192089912] [operator_node]: OPERATOR_READY {"node": "operator_node", "topic": "/rg/task_info", "task_id": "patrol_a_001", "publish_period_sec": 2.0, "authority": "advisory_only"}
+[INFO] [1792550463.192297874] [operator_node]: TASK_INFO {"task_id": "patrol_a_001", "policy_version": "1.0", "coordinate_frame": "map", "description": "perimeter patrol, A zone", "published_at": "2026-10-21T02:41:03.192Z", "authority": "advisory_only", "note": "task summary only; the authoritative TaskPolicy is read by security_gateway from config/task_policy.yaml and cannot be overridden by this message"}
+[INFO] [1792550464.808458324] [operator_node]: OPERATOR_COUNTERS {"messages_published": 2}
+Failed to publish log message to rosout: publisher's context is invalid, at ./src/rcl/publisher.c:423

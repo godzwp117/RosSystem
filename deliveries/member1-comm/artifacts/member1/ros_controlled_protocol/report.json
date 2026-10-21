@@ -1,0 +1,60 @@
+{
+  "run_id": "member1-ros-controlled-2e40e3d96141",
+  "security_mode": "Enforce",
+  "domain": "51",
+  "source_kind": "MOCK",
+  "model": "CONTROLLED_NUMERIC_FIXTURE_NOT_TRAINED_MODEL",
+  "identity_trust": "BASELINE_MOCK",
+  "task_risk": "BASELINE_MOCK",
+  "cases": [
+    {
+      "case": "normal",
+      "expected_status": "NORMAL",
+      "actual_status": "NORMAL",
+      "result": "PASS",
+      "request_id": "member1-ros-controlled-2e40e3d96141-normal",
+      "decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "reason_code": "ADAPTER_OK",
+      "goal_delta": 1,
+      "gateway_audit_rows": 3
+    },
+    {
+      "case": "suspicious",
+      "expected_status": "SUSPICIOUS",
+      "actual_status": "SUSPICIOUS",
+      "result": "PASS",
+      "request_id": "member1-ros-controlled-2e40e3d96141-suspicious",
+      "decision": "ADAPTER_BLOCK",
+      "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "goal_delta": 0,
+      "gateway_audit_rows": 0
+    },
+    {
+      "case": "unknown",
+      "expected_status": "UNKNOWN",
+      "actual_status": "UNKNOWN",
+      "result": "PASS",
+      "request_id": "member1-ros-controlled-2e40e3d96141-unknown",
+      "decision": "ADAPTER_BLOCK",
+      "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "goal_delta": 0,
+      "gateway_audit_rows": 0
+    },
+    {
+      "case": "error",
+      "expected_status": "ERROR",
+      "actual_status": "ERROR",
+      "result": "PASS",
+      "request_id": "member1-ros-controlled-2e40e3d96141-error",
+      "decision": "ADAPTER_BLOCK",
+      "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "goal_delta": 0,
+      "gateway_audit_rows": 0
+    }
+  ],
+  "live_ros_protocol": "PASS",
+  "real_detector_online": "NOT_READY",
+  "RUNTIME_MONITOR": "NOT_READY",
+  "no_leftover_nodes": true,
+  "scope": "Module + adapter + actual secure Gateway/NavigationSim protocol; no IDS effectiveness claim"
+}

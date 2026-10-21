@@ -1,0 +1,29 @@
+{
+  "run_id": "m1audit-20261018T160049Z",
+  "research_base_sha": "be47ccd6c1b19460b65abc0ea8004706383d01d4",
+  "branch": "research/m1-online-detection",
+  "git_head_at_run": "be47ccd6c1b19460b65abc0ea8004706383d01d4",
+  "interpreters": {
+    "host_venv": "/home/zhangwei/project/RosSystem-worktrees/work-m1/.research-venv/bin/python",
+    "python": "3.10.12",
+    "scikit_learn": "1.7.2",
+    "numpy": "2.2.6"
+  },
+  "ros": {
+    "distro": "jazzy",
+    "rmw": "rmw_fastrtps_cpp",
+    "container": "rg_m1",
+    "domain": 57
+  },
+  "datasets": {
+    "raw_shards_dir": "data/ROSPaCe_reduced/ROSPaCe_reduced (15 CSV, 62 cols, label col 61)",
+    "window_dataset": "data/ROSPaCe_reduced/windows_0.jsonl (22591 windows, 3 labels)",
+    "provenance_limit": "window generator is out-of-tree; audited independently here"
+  },
+  "artifacts": [
+    "SHA256SUMS.txt",
+    "data_audit",
+    "model",
+    "observation"
+  ]
+}

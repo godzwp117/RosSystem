@@ -1,0 +1,23 @@
+{
+  "run_id": "preflight-20261020T152617Z",
+  "scenarios": [
+    {
+      "cid": "ON03",
+      "request_id": "on03-preflight-20261020T152617Z",
+      "run_id": "preflight-20261020T152617Z",
+      "expected": "UNKNOWN_BLOCK"
+    },
+    {
+      "cid": "ON04",
+      "request_id": "on04-preflight-20261020T152617Z",
+      "run_id": "preflight-20261020T152617Z",
+      "expected": "ERROR_BLOCK"
+    },
+    {
+      "cid": "ON06",
+      "request_id": "on06-preflight-20261020T152617Z",
+      "run_id": "preflight-20261020T152617Z",
+      "expected": "TIMEOUT_NOT_BLOCK"
+    }
+  ]
+}

@@ -1,0 +1,231 @@
+{
+  "run_dir": "/home/zhangwei/project/RosSystem-worktrees/work-online/artifacts/integration/three-real-limited-online/online-20261019T155522Z/m3_online/merged",
+  "claims_checked": false,
+  "manifest_used": true,
+  "manifest_scenarios": [
+    "ON01",
+    "ON02",
+    "ON03",
+    "ON04",
+    "ON05",
+    "ON06"
+  ],
+  "gateway_audit_rows": 5,
+  "navsim_goal_rows": 1,
+  "scenarios_verified": 6,
+  "scenarios": [
+    {
+      "cid": "ON01",
+      "request_id": "on01-legal-allow-online-20261019T155522Z",
+      "run_id": "online-20261019T155522Z",
+      "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "adapter_reason": "ADAPTER_OK",
+      "m3_status": "ALLOW_RECOMMENDED",
+      "planner_outcome": "PLANNER_RESULT_RECEIVED",
+      "planner_started": true,
+      "gateway_arrivals": 1,
+      "gateway_decisions": [
+        {
+          "decision": "ALLOW",
+          "reason_code": "ALLOW_IN_POLICY"
+        }
+      ],
+      "gateway_executions": 1,
+      "navsim_goals": 1
+    },
+    {
+      "cid": "ON02",
+      "request_id": "on02-oor-block-online-20261019T155522Z",
+      "run_id": "online-20261019T155522Z",
+      "adapter_decision": "ADAPTER_BLOCK",
+      "adapter_reason": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "m3_status": "BLOCK_RECOMMENDED",
+      "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+      "planner_started": false,
+      "gateway_arrivals": 0,
+      "gateway_decisions": [],
+      "gateway_executions": 0,
+      "navsim_goals": 0
+    },
+    {
+      "cid": "ON03",
+      "request_id": "on03-online-20261019T155522Z",
+      "run_id": "online-20261019T155522Z",
+      "adapter_decision": "ADAPTER_BLOCK",
+      "adapter_reason": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "m3_status": "UNKNOWN",
+      "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+      "planner_started": false,
+      "gateway_arrivals": 0,
+      "gateway_decisions": [],
+      "gateway_executions": 0,
+      "navsim_goals": 0
+    },
+    {
+      "cid": "ON04",
+      "request_id": "on04-online-20261019T155522Z",
+      "run_id": "online-20261019T155522Z",
+      "adapter_decision": "ADAPTER_BLOCK",
+      "adapter_reason": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "m3_status": "ERROR",
+      "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+      "planner_started": false,
+      "gateway_arrivals": 0,
+      "gateway_decisions": [],
+      "gateway_executions": 0,
+      "navsim_goals": 0
+    },
+    {
+      "cid": "ON05",
+      "request_id": "on05-gateway-authority-online-20261019T155522Z",
+      "run_id": "online-20261019T155522Z",
+      "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "adapter_reason": "ADAPTER_OK",
+      "m3_status": "ALLOW_RECOMMENDED",
+      "planner_outcome": "PLANNER_RESULT_RECEIVED",
+      "planner_started": true,
+      "gateway_arrivals": 1,
+      "gateway_decisions": [
+        {
+          "decision": "BLOCK",
+          "reason_code": "OUT_OF_REGION"
+        }
+      ],
+      "gateway_executions": 0,
+      "navsim_goals": 0
+    },
+    {
+      "cid": "ON06",
+      "request_id": "on06-online-20261019T155522Z",
+      "run_id": "online-20261019T155522Z",
+      "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "adapter_reason": "ADAPTER_OK",
+      "m3_status": "ALLOW_RECOMMENDED",
+      "planner_outcome": "PLANNER_RESULT_TIMEOUT",
+      "planner_started": true,
+      "gateway_arrivals": 0,
+      "gateway_decisions": [],
+      "gateway_executions": 0,
+      "navsim_goals": 0
+    }
+  ],
+  "findings": [
+    {
+      "scenario": "ON01",
+      "code": "M3_PROPOSED",
+      "ok": true,
+      "detail": "M3 状态='ALLOW_RECOMMENDED'"
+    },
+    {
+      "scenario": "ON01",
+      "code": "SUBMITTED_TO_GATEWAY",
+      "ok": true,
+      "detail": "Gateway arrival=1"
+    },
+    {
+      "scenario": "ON01",
+      "code": "ACTION_RESULT_GOAL_CONSISTENT",
+      "ok": true,
+      "detail": "Action Result=EXECUTED 且 Goal 数=1"
+    },
+    {
+      "scenario": "ON02",
+      "code": "BLOCK_NO_PLANNER",
+      "ok": true,
+      "detail": "outcome='NOT_SUBMITTED_ADAPTER_BLOCK'"
+    },
+    {
+      "scenario": "ON02",
+      "code": "BLOCK_NO_GATEWAY_ARRIVAL",
+      "ok": true,
+      "detail": "Gateway arrival=0"
+    },
+    {
+      "scenario": "ON02",
+      "code": "BLOCK_NO_GOAL",
+      "ok": true,
+      "detail": "Goal 数=0"
+    },
+    {
+      "scenario": "ON02",
+      "code": "BLOCK_NO_EXECUTION",
+      "ok": true,
+      "detail": "ExecutionEvent=0"
+    },
+    {
+      "scenario": "ON03",
+      "code": "BLOCK_NO_PLANNER",
+      "ok": true,
+      "detail": "outcome='NOT_SUBMITTED_ADAPTER_BLOCK'"
+    },
+    {
+      "scenario": "ON03",
+      "code": "BLOCK_NO_GATEWAY_ARRIVAL",
+      "ok": true,
+      "detail": "Gateway arrival=0"
+    },
+    {
+      "scenario": "ON03",
+      "code": "BLOCK_NO_GOAL",
+      "ok": true,
+      "detail": "Goal 数=0"
+    },
+    {
+      "scenario": "ON03",
+      "code": "BLOCK_NO_EXECUTION",
+      "ok": true,
+      "detail": "ExecutionEvent=0"
+    },
+    {
+      "scenario": "ON04",
+      "code": "BLOCK_NO_PLANNER",
+      "ok": true,
+      "detail": "outcome='NOT_SUBMITTED_ADAPTER_BLOCK'"
+    },
+    {
+      "scenario": "ON04",
+      "code": "BLOCK_NO_GATEWAY_ARRIVAL",
+      "ok": true,
+      "detail": "Gateway arrival=0"
+    },
+    {
+      "scenario": "ON04",
+      "code": "BLOCK_NO_GOAL",
+      "ok": true,
+      "detail": "Goal 数=0"
+    },
+    {
+      "scenario": "ON04",
+      "code": "BLOCK_NO_EXECUTION",
+      "ok": true,
+      "detail": "ExecutionEvent=0"
+    },
+    {
+      "scenario": "ON05",
+      "code": "M3_PROPOSED",
+      "ok": true,
+      "detail": "M3 状态='ALLOW_RECOMMENDED'"
+    },
+    {
+      "scenario": "ON05",
+      "code": "SUBMITTED_TO_GATEWAY",
+      "ok": true,
+      "detail": "Gateway arrival=1"
+    },
+    {
+      "scenario": "ON06",
+      "code": "M3_PROPOSED",
+      "ok": true,
+      "detail": "M3 状态='ALLOW_RECOMMENDED'"
+    },
+    {
+      "scenario": "ON06",
+      "code": "TIMEOUT_NOT_BLOCK",
+      "ok": true,
+      "detail": "超时未记为 Gateway BLOCK（outcome=PLANNER_RESULT_TIMEOUT）"
+    }
+  ],
+  "failures": 0,
+  "checks": 19,
+  "verdict": "PASS"
+}
