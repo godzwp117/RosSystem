@@ -3,7 +3,7 @@
 > 代码：`src/rg_gateway/rg_gateway/identity_gate.py`、`security_gateway.py`
 > 证据：`artifacts/acceptance/exports/m2_gateway_identity_v110/`
 > 环境：ROS 2 Jazzy / Fast DDS / domain 45 / research keystore / 容器 `rg_v110`
-> 运行：`tests/integration/gateway_identity_lab.py --run-id <id>`，**11/11 通过**
+> 运行：`tests/integration/gateway_identity_lab.py --run-id <id>`，**14/14 通过**
 
 ## 1. 为什么 Gateway 必须再判一次
 
@@ -53,6 +53,7 @@ identity_audit_path          独立的 GatewayIdentityCheck JSONL
 | G1 证据有效、目标在策略内 | 真实 DDS 入口观测 + Ed25519 | `ALLOW_IN_POLICY` | **1** |
 | G2 该 request_id 无证据 | 目录中无文件 | `IDENTITY_ATTESTATION_REJECTED` | **0** |
 | G3 证据绑定 9.0/9.0，Goal 为 1.5/1.5 | 摘要不匹配 | `IDENTITY_ATTESTATION_REJECTED` | **0** |
+| G4 证据有效、目标越界 9.0/9.0 | 身份 ALLOW | `OUT_OF_REGION` | **0** |
 
 G1 的 `GatewayIdentityCheck` 记录：
 
@@ -63,7 +64,9 @@ G1 的 `GatewayIdentityCheck` 记录：
            "request_binding":"MATCH","freshness":"OK","replay":"RESERVED"}}
 ```
 
-G3 的 `request_binding` 为 `MISMATCH`；G2 的 `status` 为 `null`（没有证据）。
+G3 的 `request_binding` 为 `MISMATCH`；G2 的 `status` 为 `null`（没有证据）；
+G4 的 `GatewayIdentityCheck` 为 `ALLOW`、`TaskPolicy` 为 `OUT_OF_REGION`，证明
+“身份通过”不能替代“业务策略通过”。
 planner 在 G2/G3 均未得到 `EXECUTED`，NavigationSim 只收到 G1 的一条 Goal。
 
 ## 4. 边界（不得省略）

@@ -1,5 +1,10 @@
 # RosSystem 1.1.0 基线与能力差距审查（阶段一，实测）
 
+> **本文件记录的是阶段一审计时点（2026-10-22 01:17）的状态。** 后续实施的
+> DDS Lab Enforce、Ed25519 当前请求身份、Gateway 双层授权与三条证据链见
+> [`ROSYSTEM_1_1_0_RESEARCH_AND_SECURITY_VALIDATION_REPORT.md`](ROSYSTEM_1_1_0_RESEARCH_AND_SECURITY_VALIDATION_REPORT.md)。
+> 本审计中的“未完成”表保留为历史记录，不追溯改写；M1 与 LEVEL 3 仍未完成。
+
 > 分支：`research/cross-layer-security-v1.1.0`
 > 基线：`creative-work-v1.0.3` = `5773fb486c8eabdf7c0dfa039b600faabacffe75`
 > 状态：**能力差距审查已完成；本轮未实施 M1/M2/DDS 实质性增强**（原因见 §5）

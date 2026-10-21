@@ -342,6 +342,16 @@ G4 是双层独立性的关键证据：身份层通过并不能让越界目标�
 合计：**PASS 9，BLOCKED 1，NOT_RUN 1，NOT_VERIFIED 1**。
 不得用单一 `overall=PASS` 代替这张表。
 
+严格 acceptance 聚合（`scripts/acceptance_status.py` 规则）：
+
+```text
+ACCEPTANCE = INCOMPLETE (exit 9)
+NOT_RUN = THREE_REAL_LEVEL3, P01, P02, P09, THIRD_PARTY_HOST_REPRO, WEB_V110_EVIDENCE
+```
+
+这是**正确**的结果：没有 FAIL，但三真正向、第三方主机复现与 Web 证据仍未完成，
+因此不得判 PASS。明细见 `research_v110/acceptance_v110.json`。
+
 ## 10. 跨层执行与超时语义
 
 - Gateway 在创建下游 Goal 前写 `RosCommEvent` 与唯一的 `DecisionEvent`；
@@ -399,6 +409,7 @@ Baseline A 未在本轮全量重跑，因此**不做**逐项同难度统计对�
 | M2 真实 DDS 链 | 17/17 | 0.816 |
 | Gateway 双层 | 14/14 | 0.785 |
 | 身份单测（原 13 项） | 56/56 | 0.936 |
+| 全量单元回归 | **920 passed / 4 skipped / 0 failed**（563 s） | — |
 
 这些区间只描述“在本实验条件下重复成功的概率下界”，不构成生产可靠性证明。
 
@@ -467,8 +478,8 @@ Baseline A 未在本轮全量重跑，因此**不做**逐项同难度统计对�
 | M2 链 manifest | `m2_lab_identity_v110/evidence_manifest.json` |
 | Gateway manifest | `m2_gateway_identity_v110/evidence_manifest.json`，SHA-256 `d16f732cb07f51d65660764ad10cc1d87e111586546258589ecfc81817aef86f` |
 | P01–P12 矩阵 | `research_v110/p01_p12_matrix.json` |
-| 完整包 SHA-256 | `RosSystem-CreativeWork-Full-1.1.0.tar.gz` = `16e74ea0cb02e34a9cccb003eaa16ede859ccc88fce3d318d560f07ce9247359` |
-| 离线包 SHA-256 | `RosSystem-creative-work-1.1.0.tar.gz` = `4a3d094d8a8c155cd82d91b6c2ee16df9625743734635bd6ca5828548c1735b7` |
+| 完整包 SHA-256 | 见 `dist/RosSystem-CreativeWork-Full-1.1.0.tar.gz.sha256` 与 `reports/RELEASE_ARTIFACTS.md`（构建后回填；报告无法包含自身所在压缩包的哈希） |
+| 离线包 SHA-256 | 见 `dist/RosSystem-creative-work-1.1.0.tar.gz.sha256` 与 `reports/RELEASE_ARTIFACTS.md` |
 | 包复现证据 | `package_v110_verification/package_verification.json` |
 
 1.0.3 标签、发布压缩包与历史证据未被修改；历史归档仍缺 `permissions.xml` 这一事实

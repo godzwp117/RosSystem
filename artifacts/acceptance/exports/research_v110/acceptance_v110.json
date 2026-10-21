@@ -1,0 +1,58 @@
+{
+  "acceptance": "INCOMPLETE",
+  "exit_code": 9,
+  "items": {
+    "UNIT_FULL_SUITE": "PASS",
+    "IDENTITY_13_ORIGINAL": "PASS",
+    "DDS_LAB_ENFORCE_7": "PASS",
+    "DDS_LAB_NEGATIVE_6": "PASS",
+    "M2_LAB_IDENTITY_17": "PASS",
+    "GATEWAY_DOUBLE_LAYER_14": "PASS",
+    "THREE_REAL_LEVEL1": "PASS",
+    "THREE_REAL_LEVEL2": "PASS",
+    "REPEATS_30": "PASS",
+    "PACKAGE_FRESH_REPRO": "PASS",
+    "P08_IDENTITY_VALID_POLICY_BLOCK": "PASS",
+    "THREE_REAL_LEVEL3": "NOT_RUN",
+    "P01_THREE_REAL_POSITIVE": "NOT_RUN",
+    "P02_REAL_M1_SUSPICIOUS": "NOT_RUN",
+    "P09_PLANNER_TIMEOUT": "NOT_RUN",
+    "THIRD_PARTY_HOST_REPRO": "NOT_RUN",
+    "WEB_V110_EVIDENCE": "NOT_RUN"
+  },
+  "not_run": [
+    "THREE_REAL_LEVEL3",
+    "P01_THREE_REAL_POSITIVE",
+    "P02_REAL_M1_SUSPICIOUS",
+    "P09_PLANNER_TIMEOUT",
+    "THIRD_PARTY_HOST_REPRO",
+    "WEB_V110_EVIDENCE"
+  ],
+  "failed": [],
+  "rule": "FAIL>NOT_RUN>PASS；空集合=INCOMPLETE",
+  "contract": "roSystem-v110-acceptance/1",
+  "unit_suite": {
+    "passed": 920,
+    "skipped": 4,
+    "failed": 0,
+    "duration_sec": 563.01,
+    "command": "docker exec rg_v110 bash -lc 'cd /ws && python3 -m pytest tests/unit -q -p no:cacheprovider'"
+  },
+  "not_run_reasons": {
+    "THREE_REAL_LEVEL3": "M1 validation_gate_passed=false -> comm_risk UNKNOWN -> F0 ADAPTER_BLOCK; no mock substituted",
+    "P01_THREE_REAL_POSITIVE": "same blocker as THREE_REAL_LEVEL3",
+    "P02_REAL_M1_SUSPICIOUS": "only controlled/mock M1 paths; no real M1 SUSPICIOUS produced in 1.1.0",
+    "P09_PLANNER_TIMEOUT": "not rerun in 1.1.0; 1.0.3 evidence remains the reference",
+    "THIRD_PARTY_HOST_REPRO": "fresh-directory/container reproduction done on the same host; no third-party host/CI",
+    "WEB_V110_EVIDENCE": "1.1.0 evidence is not wired into the dashboard"
+  },
+  "evidence": {
+    "dds": "artifacts/acceptance/exports/m2_sros2_enforce_v110/evidence_manifest.json",
+    "dds_negative": "artifacts/acceptance/exports/m2_sros2_enforce_v110_negative/evidence_manifest.json",
+    "m2": "artifacts/acceptance/exports/m2_lab_identity_v110/evidence_manifest.json",
+    "gateway": "artifacts/acceptance/exports/m2_gateway_identity_v110/evidence_manifest.json",
+    "package": "artifacts/acceptance/exports/package_v110_verification/package_verification.json",
+    "matrix": "artifacts/acceptance/exports/research_v110/p01_p12_matrix.json",
+    "report": "submission/creative-work/reports/ROSYSTEM_1_1_0_RESEARCH_AND_SECURITY_VALIDATION_REPORT.md"
+  }
+}
