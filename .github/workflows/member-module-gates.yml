@@ -116,13 +116,33 @@ jobs:
           done < <(git ls-files | grep -Ei '\.(pem|key|p12|pfx|crt|csr|der|srl)$' || true)
 
           echo "--- 原始数据集 / 模型缓存 / 训练产物 ---"
-          for pattern in '^data/' '^training_runs/' '^models/' '\.joblib$' '\.tar\.gz$'; do
+          for pattern in '^data/' '^training_runs/' '^models/' '\.joblib$'; do
             hits=$(git ls-files | grep -E "$pattern" || true)
             if [ -n "$hits" ]; then
               echo "::error::不得入库（匹配 $pattern）:"; echo "$hits"
               FAIL=1
             fi
           done
+
+          echo "--- 归档文件（tar.gz）---"
+          # 默认禁止跟踪压缩包，防止数据集与模型缓存入库。
+          # 唯一例外：参赛作品的可执行交付包，路径与命名受严格白名单约束。
+          # 白名单之外的任何 .tar.gz 仍然失败，避免这条规则形同虚设。
+          ALLOWED_ARCHIVES='^submission/creative-work/dist/RosSystem-creative-work-[0-9]+\.[0-9]+\.[0-9]+\.tar\.gz$|^submission/creative-work/dist/RosSystem-CreativeWork-Full-[0-9]+\.[0-9]+\.[0-9]+\.tar\.gz$'
+          ALL_ARCHIVES=$(git ls-files | grep -E '\.tar\.gz$' || true)
+          if [ -n "$ALL_ARCHIVES" ]; then
+            while IFS= read -r f; do
+              [ -z "$f" ] && continue
+              if printf '%s' "$f" | grep -qE "$ALLOWED_ARCHIVES"; then
+                echo "OK: 允许的参赛作品包 $f"
+              else
+                echo "::error::不得入库（不在参赛作品包白名单内）: $f"
+                FAIL=1
+              fi
+            done <<< "$ALL_ARCHIVES"
+          else
+            echo "OK: 未跟踪任何 .tar.gz"
+          fi
 
           echo "--- 仅限本地的个人归档 ---"
           git ls-files | grep -qx 'gitlog.md' && { echo "::error::gitlog.md 被跟踪"; FAIL=1; }

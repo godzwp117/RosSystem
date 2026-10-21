@@ -1,9 +1,10 @@
-# dist/ —— 作品包（构建产物不入库）
+# dist/ —— 参赛作品可执行包（已入库）
 
-仓库 CI 门禁 `member-module-gates` 检查 5 禁止跟踪 `*.tar.gz`（防数据集/模型缓存入库）。
-我们**不修改该门禁**，因此压缩包由脚本生成、哈希与验收结果记录在此。
+> 仓库 CI 门禁 `member-module-gates` 检查 5 默认禁止跟踪 `*.tar.gz`（防数据集与模型缓存入库）。
+> 经赛事交付需要，**为该目录下的两个命名受控的作品包开放白名单**，
+> 白名单之外的任何 `.tar.gz` 仍然会被 CI 拒绝。
 
-## 本轮实际构建（2026-10-21 UTC）
+## 实际交付文件
 
 | 包 | 文件 | 大小 | SHA-256 |
 | --- | --- | --- | --- |
@@ -11,13 +12,30 @@
 | **完整在线包** | `RosSystem-CreativeWork-Full-1.0.1.tar.gz` | 1.5 MB | `775fb0dca6609d7284e45eaa33df5623d8d84b8607cff6bb2b8b0c1af5dbdf47` |
 
 两个包均通过 `verify_package.sh`：**13/13 PASS**（`PACKAGE_VERIFY=PASS`）。
+各自的 `.sha256` 文件可直接用于 `sha256sum -c` 校验。
+
+## 使用
+
+```bash
+# 离线回放（无需 Docker / ROS 2）
+tar -xzf RosSystem-creative-work-1.0.1.tar.gz
+cd RosSystem-creative-work-1.0.1
+./run.sh                      # http://127.0.0.1:8787/  点击「离线回放」
+
+# 完整在线（需要 Docker）
+tar -xzf RosSystem-CreativeWork-Full-1.0.1.tar.gz
+cd RosSystem-CreativeWork-Full
+python3 dashboard/docker_runtime.py "$PWD"   # 先检查在线条件
+./run.sh
+```
 
 ## 重新构建
 
 ```bash
 ./package.sh 1.0.1        # 离线回放包
-./package_full.sh 1.0.1   # 完整在线包（含 runtime/ 与 docker/）
-./verify_package.sh       # 解包→启动→请求页面与回放接口→扫描密钥
+./package_full.sh 1.0.1   # 完整在线包
+./verify_package.sh       # 解包→启动→请求接口→扫描密钥
 ```
 
-> 压缩包含构建时间戳，重跑后哈希会变化；应以 `verify_package.sh` 的 13 项结果为准。
+> 压缩包含构建时间戳，重新构建后哈希会变化；应同时更新本文件与 `.sha256`。
+> 验收以 `verify_package.sh` 的 13 项结果为准。
