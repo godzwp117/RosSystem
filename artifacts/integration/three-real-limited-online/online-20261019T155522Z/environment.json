@@ -1,0 +1,15 @@
+{
+  "run_id": "online-20261019T155522Z",
+  "container": "rg_online",
+  "workspace": "/ws (worktree: work-online)",
+  "ros_distro": "jazzy",
+  "rmw": "rmw_fastrtps_cpp",
+  "fastdds": "2.14.6",
+  "domains": {
+    "online": 64,
+    "formal_normal": 42,
+    "formal_enforce": 43
+  },
+  "keystore": "security/keystore (gitignored local fixture, not committed)",
+  "demo_container_state": "rg_demo Exited (not running); not touched"
+}

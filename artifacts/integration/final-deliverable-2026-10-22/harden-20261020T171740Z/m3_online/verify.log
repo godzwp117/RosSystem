@@ -1,0 +1,356 @@
+{
+  "run_dir": "/ws/artifacts/integration/final-deliverable-2026-10-22/harden-20261020T171740Z/m3_online/merged",
+  "claims_checked": true,
+  "manifest_used": true,
+  "manifest_scenarios": [
+    "ON01",
+    "ON02",
+    "ON03",
+    "ON04",
+    "ON05",
+    "ON06"
+  ],
+  "gateway_audit_rows": 8,
+  "navsim_goal_rows": 2,
+  "scenarios_verified": 6,
+  "scenarios": [
+    {
+      "cid": "ON01",
+      "request_id": "on01-legal-allow-harden-20261020T171740Z-six",
+      "run_id": "harden-20261020T171740Z-six",
+      "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "adapter_reason": "ADAPTER_OK",
+      "m3_status": "ALLOW_RECOMMENDED",
+      "planner_outcome": "PLANNER_RESULT_RECEIVED",
+      "planner_started": true,
+      "gateway_arrivals": 1,
+      "gateway_decisions": [
+        {
+          "decision": "ALLOW",
+          "reason_code": "ALLOW_IN_POLICY"
+        }
+      ],
+      "gateway_executions": 1,
+      "navsim_goals": 1
+    },
+    {
+      "cid": "ON02",
+      "request_id": "on02-oor-block-harden-20261020T171740Z-six",
+      "run_id": "harden-20261020T171740Z-six",
+      "adapter_decision": "ADAPTER_BLOCK",
+      "adapter_reason": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "m3_status": "BLOCK_RECOMMENDED",
+      "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+      "planner_started": false,
+      "gateway_arrivals": 0,
+      "gateway_decisions": [],
+      "gateway_executions": 0,
+      "navsim_goals": 0
+    },
+    {
+      "cid": "ON03",
+      "request_id": "on03-harden-20261020T171740Z-six",
+      "run_id": "harden-20261020T171740Z-six",
+      "adapter_decision": "ADAPTER_BLOCK",
+      "adapter_reason": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "m3_status": "UNKNOWN",
+      "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+      "planner_started": false,
+      "gateway_arrivals": 0,
+      "gateway_decisions": [],
+      "gateway_executions": 0,
+      "navsim_goals": 0
+    },
+    {
+      "cid": "ON04",
+      "request_id": "on04-harden-20261020T171740Z-six",
+      "run_id": "harden-20261020T171740Z-six",
+      "adapter_decision": "ADAPTER_BLOCK",
+      "adapter_reason": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+      "m3_status": "ERROR",
+      "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+      "planner_started": false,
+      "gateway_arrivals": 0,
+      "gateway_decisions": [],
+      "gateway_executions": 0,
+      "navsim_goals": 0
+    },
+    {
+      "cid": "ON05",
+      "request_id": "on05-gateway-authority-harden-20261020T171740Z-six",
+      "run_id": "harden-20261020T171740Z-six",
+      "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "adapter_reason": "ADAPTER_OK",
+      "m3_status": "ALLOW_RECOMMENDED",
+      "planner_outcome": "PLANNER_RESULT_RECEIVED",
+      "planner_started": true,
+      "gateway_arrivals": 1,
+      "gateway_decisions": [
+        {
+          "decision": "BLOCK",
+          "reason_code": "OUT_OF_REGION"
+        }
+      ],
+      "gateway_executions": 0,
+      "navsim_goals": 0
+    },
+    {
+      "cid": "ON06",
+      "request_id": "on06-harden-20261020T171740Z-six",
+      "run_id": "harden-20261020T171740Z-six",
+      "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+      "adapter_reason": "ADAPTER_OK",
+      "m3_status": "ALLOW_RECOMMENDED",
+      "planner_outcome": "PLANNER_RESULT_TIMEOUT",
+      "planner_started": true,
+      "gateway_arrivals": 1,
+      "gateway_decisions": [
+        {
+          "decision": "ALLOW",
+          "reason_code": "ALLOW_IN_POLICY"
+        }
+      ],
+      "gateway_executions": 1,
+      "navsim_goals": 1
+    }
+  ],
+  "findings": [
+    {
+      "scenario": "ON01",
+      "code": "M3_PROPOSED",
+      "ok": true,
+      "detail": "M3 状态='ALLOW_RECOMMENDED'"
+    },
+    {
+      "scenario": "ON01",
+      "code": "SUBMITTED_TO_GATEWAY",
+      "ok": true,
+      "detail": "Gateway arrival=1"
+    },
+    {
+      "scenario": "ON01",
+      "code": "ACTION_RESULT_GOAL_CONSISTENT",
+      "ok": true,
+      "detail": "Action Result=EXECUTED 且 Goal 数=1"
+    },
+    {
+      "scenario": "ON02",
+      "code": "BLOCK_NO_PLANNER",
+      "ok": true,
+      "detail": "outcome='NOT_SUBMITTED_ADAPTER_BLOCK'"
+    },
+    {
+      "scenario": "ON02",
+      "code": "BLOCK_NO_GATEWAY_ARRIVAL",
+      "ok": true,
+      "detail": "Gateway arrival=0"
+    },
+    {
+      "scenario": "ON02",
+      "code": "BLOCK_NO_GOAL",
+      "ok": true,
+      "detail": "Goal 数=0"
+    },
+    {
+      "scenario": "ON02",
+      "code": "BLOCK_NO_EXECUTION",
+      "ok": true,
+      "detail": "ExecutionEvent=0"
+    },
+    {
+      "scenario": "ON03",
+      "code": "BLOCK_NO_PLANNER",
+      "ok": true,
+      "detail": "outcome='NOT_SUBMITTED_ADAPTER_BLOCK'"
+    },
+    {
+      "scenario": "ON03",
+      "code": "BLOCK_NO_GATEWAY_ARRIVAL",
+      "ok": true,
+      "detail": "Gateway arrival=0"
+    },
+    {
+      "scenario": "ON03",
+      "code": "BLOCK_NO_GOAL",
+      "ok": true,
+      "detail": "Goal 数=0"
+    },
+    {
+      "scenario": "ON03",
+      "code": "BLOCK_NO_EXECUTION",
+      "ok": true,
+      "detail": "ExecutionEvent=0"
+    },
+    {
+      "scenario": "ON04",
+      "code": "BLOCK_NO_PLANNER",
+      "ok": true,
+      "detail": "outcome='NOT_SUBMITTED_ADAPTER_BLOCK'"
+    },
+    {
+      "scenario": "ON04",
+      "code": "BLOCK_NO_GATEWAY_ARRIVAL",
+      "ok": true,
+      "detail": "Gateway arrival=0"
+    },
+    {
+      "scenario": "ON04",
+      "code": "BLOCK_NO_GOAL",
+      "ok": true,
+      "detail": "Goal 数=0"
+    },
+    {
+      "scenario": "ON04",
+      "code": "BLOCK_NO_EXECUTION",
+      "ok": true,
+      "detail": "ExecutionEvent=0"
+    },
+    {
+      "scenario": "ON05",
+      "code": "M3_PROPOSED",
+      "ok": true,
+      "detail": "M3 状态='ALLOW_RECOMMENDED'"
+    },
+    {
+      "scenario": "ON05",
+      "code": "SUBMITTED_TO_GATEWAY",
+      "ok": true,
+      "detail": "Gateway arrival=1"
+    },
+    {
+      "scenario": "ON06",
+      "code": "M3_PROPOSED",
+      "ok": true,
+      "detail": "M3 状态='ALLOW_RECOMMENDED'"
+    },
+    {
+      "scenario": "ON06",
+      "code": "TIMEOUT_NOT_BLOCK",
+      "ok": true,
+      "detail": "超时未记为 Gateway BLOCK（outcome=PLANNER_RESULT_TIMEOUT）"
+    },
+    {
+      "scenario": "ON01",
+      "code": "GATEWAY_ARRIVAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_arrival=1 vs 实测 1"
+    },
+    {
+      "scenario": "ON01",
+      "code": "GATEWAY_DECISION_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_decision='ALLOW' vs 实测 'ALLOW'"
+    },
+    {
+      "scenario": "ON01",
+      "code": "GATEWAY_REASON_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_reason_code='ALLOW_IN_POLICY' vs 实测 'ALLOW_IN_POLICY'"
+    },
+    {
+      "scenario": "ON01",
+      "code": "GATEWAY_EXECUTION_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_execution=1 vs 实测 1"
+    },
+    {
+      "scenario": "ON01",
+      "code": "NAVSIM_GOAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 navsim_goals=1 vs 实测 1"
+    },
+    {
+      "scenario": "ON02",
+      "code": "GATEWAY_ARRIVAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_arrival=0 vs 实测 0"
+    },
+    {
+      "scenario": "ON02",
+      "code": "NAVSIM_GOAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 navsim_goals=0 vs 实测 0"
+    },
+    {
+      "scenario": "ON05",
+      "code": "GATEWAY_ARRIVAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_arrival=1 vs 实测 1"
+    },
+    {
+      "scenario": "ON05",
+      "code": "GATEWAY_DECISION_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_decision='BLOCK' vs 实测 'BLOCK'"
+    },
+    {
+      "scenario": "ON05",
+      "code": "GATEWAY_REASON_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_reason_code='OUT_OF_REGION' vs 实测 'OUT_OF_REGION'"
+    },
+    {
+      "scenario": "ON05",
+      "code": "NAVSIM_GOAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 navsim_goals=0 vs 实测 0"
+    },
+    {
+      "scenario": "ON03",
+      "code": "GATEWAY_ARRIVAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_arrival=0 vs 实测 0"
+    },
+    {
+      "scenario": "ON03",
+      "code": "NAVSIM_GOAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 navsim_goals=0 vs 实测 0"
+    },
+    {
+      "scenario": "ON04",
+      "code": "GATEWAY_ARRIVAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_arrival=0 vs 实测 0"
+    },
+    {
+      "scenario": "ON04",
+      "code": "NAVSIM_GOAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 navsim_goals=0 vs 实测 0"
+    },
+    {
+      "scenario": "ON06",
+      "code": "GATEWAY_ARRIVAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_arrival=1 vs 实测 1"
+    },
+    {
+      "scenario": "ON06",
+      "code": "GATEWAY_DECISION_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_decision='ALLOW' vs 实测 'ALLOW'"
+    },
+    {
+      "scenario": "ON06",
+      "code": "GATEWAY_REASON_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_reason_code='ALLOW_IN_POLICY' vs 实测 'ALLOW_IN_POLICY'"
+    },
+    {
+      "scenario": "ON06",
+      "code": "GATEWAY_EXECUTION_MISMATCH",
+      "ok": true,
+      "detail": "声明 gateway_execution=1 vs 实测 1"
+    },
+    {
+      "scenario": "ON06",
+      "code": "NAVSIM_GOAL_MISMATCH",
+      "ok": true,
+      "detail": "声明 navsim_goals=1 vs 实测 1"
+    }
+  ],
+  "failures": 0,
+  "checks": 39,
+  "verdict": "PASS"
+}

@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0-proposed",
+  "run_id": "controlled-unit-run",
+  "request_id": "req-unit",
+  "event_id": "comm-33e23bc8a1c044b4a109177bc3660158",
+  "producer": {
+    "name": "member1_rospace_comm",
+    "source": "EXTERNAL",
+    "module_version": "0.2.0"
+  },
+  "observed_at": "2026-10-13T11:50:43.851468+00:00",
+  "status": "NORMAL",
+  "reason": "CONTROLLED_TEST_ONLY: classifier below threshold; no production effectiveness claim",
+  "communication": {
+    "resource": "/rg/guarded_navigate",
+    "resource_type": "Action",
+    "operation": "GOAL_SEND"
+  },
+  "window": {
+    "start": "2026-10-13T12:00:00Z",
+    "end": "2026-10-13T12:00:05Z",
+    "duration_ms": 5000
+  },
+  "request_count": 10,
+  "anomaly_category": "NONE",
+  "risk_level": "NONE",
+  "basis": [
+    "Offline classification only; RUNTIME_MONITOR: NOT_READY",
+    "CONTROLLED_TEST_ONLY: classifier below threshold; no production effectiveness claim",
+    "model_sha256=d3f0a86a613aaad73a4a95e2e36100f6ab212f7172ffad9174b2f406d51ab9b1"
+  ],
+  "evidence_refs": [
+    {
+      "ref": "modules/my_comm/test_module.py#envelope",
+      "kind": "MOCK",
+      "note": "synthetic controlled input; not actual ROS traffic"
+    }
+  ],
+  "extensions": {
+    "my_comm": {
+      "algorithm": "numeric-model",
+      "score": 0.004608294930875575,
+      "model_sha256": "d3f0a86a613aaad73a4a95e2e36100f6ab212f7172ffad9174b2f406d51ab9b1",
+      "controlled_test": true,
+      "RUNTIME_MONITOR": "NOT_READY",
+      "request_id_is_identity": false,
+      "explicit_missing_value_count": 0
+    }
+  },
+  "frequency_hz": 2.0
+}

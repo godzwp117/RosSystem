@@ -1,0 +1,35 @@
+{
+  "contract": "m1-session-observation/1",
+  "session_id": "anom-recon",
+  "scenario": "anomaly-recon",
+  "label": "anomaly",
+  "label_basis": "ROS graph reconnaissance: sustained enumeration plus transient endpoints",
+  "label_source": "EXPERIMENT_CONDITION",
+  "model_used_for_labeling": false,
+  "topic": "/m1r/anom_recon",
+  "message_type": "std_msgs/msg/String",
+  "domain_id": 68,
+  "window_sec": 30.0,
+  "window_policy": "fixed, contiguous, non-overlapping",
+  "started_at": "2026-10-20T02:47:37.328Z",
+  "ended_at": "2026-10-20T02:48:48.229Z",
+  "min_samples": 10,
+  "windows": [
+    {
+      "window_start": 0.0,
+      "window_end": 30.0,
+      "features": {},
+      "samples": 0,
+      "status": "INSUFFICIENT_OBSERVATION"
+    },
+    {
+      "window_start": 30.0,
+      "window_end": 60.0,
+      "features": {},
+      "samples": 0,
+      "status": "INSUFFICIENT_OBSERVATION"
+    }
+  ],
+  "insufficient_windows": 2,
+  "collector": "scripts/m1_session_collector.py"
+}

@@ -1,0 +1,2 @@
+ERROR: 缺少 jsonschema（需 >=4.0 才支持 Draft 2020-12）
+       安装方式: apt-get install -y python3-jsonschema

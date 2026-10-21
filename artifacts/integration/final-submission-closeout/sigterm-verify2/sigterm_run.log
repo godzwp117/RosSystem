@@ -1,0 +1,3 @@
+收到 TERM，执行清理
+[1]-  Terminated              ros2 run rg_demo_nodes navigation_sim --ros-args -p record_path:="$JOURNAL" > "$OUT/navsim.log" 2>&1
+[2]+  Terminated              ros2 run rg_gateway security_gateway --ros-args -p policy_path:="$WS/config/task_policy.yaml" -p audit_log_path:="$AUDIT" > "$OUT/gateway.log" 2>&1

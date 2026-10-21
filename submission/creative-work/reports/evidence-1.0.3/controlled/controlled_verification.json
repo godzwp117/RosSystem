@@ -1,0 +1,297 @@
+{
+  "contract": "final-controlled-verifier/1",
+  "run_dir": "artifacts/integration/v103/v103-controlled/controlled_online/stack-a",
+  "checks": 40,
+  "failures": 0,
+  "verdict": "PASS",
+  "facts": {
+    "run_id": "v103-controlled-controlled",
+    "scenarios": {
+      "ON01": {
+        "request_id": "on01-legal-allow-v103-controlled-controlled",
+        "f0_decision": "READY_FOR_GATEWAY_SUBMISSION",
+        "planner_outcome": "PLANNER_RESULT_RECEIVED",
+        "gateway_arrivals": 1,
+        "gateway_decisions": [
+          "ALLOW"
+        ],
+        "gateway_reasons": [
+          "ALLOW_IN_POLICY"
+        ],
+        "gateway_executions": 1,
+        "navsim_goals": 1,
+        "goal_ids": [
+          "703baca938e34ea8b8e0f03312500bbb"
+        ]
+      },
+      "ON02": {
+        "request_id": "on02-oor-block-v103-controlled-controlled",
+        "f0_decision": "ADAPTER_BLOCK",
+        "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+        "gateway_arrivals": 0,
+        "gateway_decisions": [],
+        "gateway_reasons": [],
+        "gateway_executions": 0,
+        "navsim_goals": 0,
+        "goal_ids": []
+      },
+      "ON05": {
+        "request_id": "on05-gateway-authority-v103-controlled-controlled",
+        "f0_decision": "READY_FOR_GATEWAY_SUBMISSION",
+        "planner_outcome": "PLANNER_RESULT_RECEIVED",
+        "gateway_arrivals": 1,
+        "gateway_decisions": [
+          "BLOCK"
+        ],
+        "gateway_reasons": [
+          "OUT_OF_REGION"
+        ],
+        "gateway_executions": 0,
+        "navsim_goals": 0,
+        "goal_ids": []
+      }
+    }
+  },
+  "results": [
+    {
+      "scenario": "GLOBAL",
+      "code": "AUDIT_PRESENT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "GLOBAL",
+      "code": "JOURNAL_PRESENT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "GLOBAL",
+      "code": "MANIFEST_PRESENT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "GLOBAL",
+      "code": "RUN_ID_RESOLVED",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON01",
+      "code": "REQUEST_ID_MATCHES_RUN",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON01",
+      "code": "F0_PRESENT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON01",
+      "code": "F0_DECISION",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON01",
+      "code": "PLANNER_SUBMITTED",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON01",
+      "code": "GATEWAY_ARRIVAL_COUNT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON01",
+      "code": "GATEWAY_DECISION_COUNT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON01",
+      "code": "GATEWAY_DECISION",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON01",
+      "code": "GATEWAY_REASON",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON01",
+      "code": "GATEWAY_EXECUTION_COUNT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON01",
+      "code": "NAVSIM_GOAL_COUNT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON01",
+      "code": "GOAL_HAS_ID",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON01",
+      "code": "GOAL_ACTION_MATCH",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON02",
+      "code": "REQUEST_ID_MATCHES_RUN",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON02",
+      "code": "F0_PRESENT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON02",
+      "code": "F0_DECISION",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON02",
+      "code": "PLANNER_NOT_SUBMITTED",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON02",
+      "code": "GATEWAY_ARRIVAL_COUNT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON02",
+      "code": "GATEWAY_DECISION_COUNT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON02",
+      "code": "GATEWAY_EXECUTION_COUNT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON02",
+      "code": "NAVSIM_GOAL_COUNT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON05",
+      "code": "REQUEST_ID_MATCHES_RUN",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON05",
+      "code": "F0_PRESENT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON05",
+      "code": "F0_DECISION",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON05",
+      "code": "PLANNER_SUBMITTED",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON05",
+      "code": "GATEWAY_ARRIVAL_COUNT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON05",
+      "code": "GATEWAY_DECISION_COUNT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON05",
+      "code": "GATEWAY_DECISION",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON05",
+      "code": "GATEWAY_REASON",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON05",
+      "code": "GATEWAY_EXECUTION_COUNT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON05",
+      "code": "NO_SUCCESSFUL_EXECUTION",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON05",
+      "code": "NAVSIM_GOAL_COUNT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "GLOBAL",
+      "code": "NO_FOREIGN_AUDIT_REQUESTS",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "GLOBAL",
+      "code": "NO_FOREIGN_JOURNAL_GOALS",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON01",
+      "code": "NO_DUPLICATE_DECISION",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON02",
+      "code": "NO_DUPLICATE_DECISION",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "ON05",
+      "code": "NO_DUPLICATE_DECISION",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}

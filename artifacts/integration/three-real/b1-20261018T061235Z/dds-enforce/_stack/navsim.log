@@ -1,0 +1,6 @@
+[INFO] [1792304191.414410620] [rcl]: Found security directory: /ws/security/keystore/enclaves/navsim
+[INFO] [1792304191.456664168] [navigation_sim]: NAVSIM_READY {"node": "navigation_sim", "action": "/rg/nav_execute", "record_path": "/ws/tests/evidence/b1-enforce/_stack/navsim_goals.jsonl", "simulate_delay_sec": 0.0, "simulate_failure": false, "simulate_reject": false, "path_planning": "none (stub executor)", "executor_threads": 4}
+[INFO] [1792304192.308924660] [navigation_sim]: NAVSIM_GOAL {"goal_id": "140082f759324203ab02003f4abe846e", "request_id": "s2-a-zone", "task_id": "patrol_a_001", "frame_id": "map", "x": 1.5, "y": 1.5, "z": 0.0, "goals_executed": 1, "received_at": "2026-10-18T06:16:32.308Z"}
+[INFO] [1792304193.878478477] [navigation_sim]: NAVSIM_GOAL {"goal_id": "aaba1f928ef54052a3678ae4693e4bd7", "request_id": "s3c-gateway-direct", "task_id": "patrol_a_001", "frame_id": "map", "x": 1.5, "y": 1.5, "z": 0.0, "goals_executed": 2, "received_at": "2026-10-18T06:16:33.878Z"}
+[INFO] [1792304194.762635680] [navigation_sim]: NAVSIM_COUNTERS {"goals_executed": 2, "journal_path": "/ws/tests/evidence/b1-enforce/_stack/navsim_goals.jsonl"}
+Failed to publish log message to rosout: publisher's context is invalid, at ./src/rcl/publisher.c:423

@@ -1,0 +1,13 @@
+{
+  "run_id": "v103-controlled",
+  "mode": "controlled",
+  "generated_at": "2026-10-21T16:15:37Z",
+  "tested_code_sha": "bcbec1bfc6b0ac26db447975b41fcda762934ec9",
+  "sha_source": "BUILD_INFO.json",
+  "baseline_core_sha": "2f3de257c9eac873093201292f6b2a9571da4f03",
+  "package_version": "1.0.3",
+  "artifact_commit": "bcbec1bfc6b0ac26db447975b41fcda762934ec9",
+  "evidence_source": "v103/v103-controlled",
+  "result": "PASS",
+  "note": "tested_code_sha 为本次实际执行代码的提交；baseline_core_sha 为历史受测核心，两者含义不同，不得互相替代。"
+}

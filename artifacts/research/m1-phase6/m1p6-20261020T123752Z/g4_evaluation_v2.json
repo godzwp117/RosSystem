@@ -1,0 +1,3094 @@
+{
+  "contract": "m1-phase6-evaluation/2",
+  "sessions_total": 42,
+  "normal_sessions": 27,
+  "anomaly_sessions": 15,
+  "metric_semantics_version": "v2",
+  "ablations": {
+    "message_only": {
+      "features": [
+        "message_count",
+        "frequency_hz",
+        "gap_median_ms",
+        "gap_p95_ms",
+        "gap_max_ms",
+        "gap_cv",
+        "publisher_count_in_window"
+      ],
+      "summary": {
+        "normal_sessions": 27,
+        "anomaly_sessions": 15,
+        "overall_fpr_pooled": 0.18518518518518517,
+        "overall_fpr_pooled_denominator": 27,
+        "worst_session_fpr": 1.0,
+        "mean_session_fpr": 0.18518518518518517,
+        "per_class": {
+          "anomaly-churn": {
+            "sessions": 5,
+            "tp": 0,
+            "fn": 5,
+            "fp": 0,
+            "recall": 0.0,
+            "sessions_detected": 0
+          },
+          "anomaly-endpoint-recon": {
+            "sessions": 5,
+            "tp": 0,
+            "fn": 5,
+            "fp": 0,
+            "recall": 0.0,
+            "sessions_detected": 0
+          },
+          "anomaly-flood": {
+            "sessions": 5,
+            "tp": 4,
+            "fn": 1,
+            "fp": 0,
+            "recall": 0.8,
+            "sessions_detected": 4
+          }
+        },
+        "worst_class_recall": 0.0,
+        "note": "overall_fpr_pooled 与 worst_session_fpr 是两个不同的量：前者衡量总体噪声，后者衡量是否存在被全线误报的场景。"
+      },
+      "per_session": [
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-churn-s00",
+          "scenario": "anomaly-churn"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-churn-s01",
+          "scenario": "anomaly-churn"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-churn-s02",
+          "scenario": "anomaly-churn"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-churn-s03",
+          "scenario": "anomaly-churn"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-churn-s04",
+          "scenario": "anomaly-churn"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-flood-s00",
+          "scenario": "anomaly-flood"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-flood-s01",
+          "scenario": "anomaly-flood"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-flood-s02",
+          "scenario": "anomaly-flood"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-flood-s03",
+          "scenario": "anomaly-flood"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-flood-s04",
+          "scenario": "anomaly-flood"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-recon-s00",
+          "scenario": "anomaly-endpoint-recon"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-recon-s01",
+          "scenario": "anomaly-endpoint-recon"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-recon-s02",
+          "scenario": "anomaly-endpoint-recon"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-recon-s03",
+          "scenario": "anomaly-endpoint-recon"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-recon-s04",
+          "scenario": "anomaly-endpoint-recon"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0001hz-s00",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0002hz-s01",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0005hz-s02",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0010hz-s03",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0020hz-s04",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0050hz-s05",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0100hz-s06",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 1.0,
+          "false_positive_window_rate": 1.0,
+          "session_id": "g3-norm-0200hz-s07",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 1.0,
+          "false_positive_window_rate": 1.0,
+          "session_id": "g3-norm-0500hz-s08",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 1.0,
+          "false_positive_window_rate": 1.0,
+          "session_id": "g3-norm-1000hz-s09",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-restart-s00",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-restart-s01",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-restart-s02",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-restart-s03",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-restart-s04",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0003hz-a0",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0007hz-a1",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0015hz-a2",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0030hz-a3",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0075hz-a4",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 1.0,
+          "false_positive_window_rate": 1.0,
+          "session_id": "p6-norm-0150hz-a5",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 1.0,
+          "false_positive_window_rate": 1.0,
+          "session_id": "p6-norm-0300hz-a6",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0750hz-a7",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-restart-a0",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-restart-a1",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-restart-a2",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-restart-a3",
+          "scenario": "normal-restart"
+        }
+      ]
+    },
+    "graph_only": {
+      "features": [
+        "graph_snapshot_transition_count"
+      ],
+      "summary": {
+        "normal_sessions": 27,
+        "anomaly_sessions": 15,
+        "overall_fpr_pooled": 0.0,
+        "overall_fpr_pooled_denominator": 27,
+        "worst_session_fpr": 0.0,
+        "mean_session_fpr": 0.0,
+        "per_class": {
+          "anomaly-churn": {
+            "sessions": 5,
+            "tp": 5,
+            "fn": 0,
+            "fp": 0,
+            "recall": 1.0,
+            "sessions_detected": 5
+          },
+          "anomaly-endpoint-recon": {
+            "sessions": 5,
+            "tp": 5,
+            "fn": 0,
+            "fp": 0,
+            "recall": 1.0,
+            "sessions_detected": 5
+          },
+          "anomaly-flood": {
+            "sessions": 5,
+            "tp": 0,
+            "fn": 5,
+            "fp": 0,
+            "recall": 0.0,
+            "sessions_detected": 0
+          }
+        },
+        "worst_class_recall": 0.0,
+        "note": "overall_fpr_pooled 与 worst_session_fpr 是两个不同的量：前者衡量总体噪声，后者衡量是否存在被全线误报的场景。"
+      },
+      "per_session": [
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-churn-s00",
+          "scenario": "anomaly-churn"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-churn-s01",
+          "scenario": "anomaly-churn"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-churn-s02",
+          "scenario": "anomaly-churn"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-churn-s03",
+          "scenario": "anomaly-churn"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-churn-s04",
+          "scenario": "anomaly-churn"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-flood-s00",
+          "scenario": "anomaly-flood"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-flood-s01",
+          "scenario": "anomaly-flood"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-flood-s02",
+          "scenario": "anomaly-flood"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-flood-s03",
+          "scenario": "anomaly-flood"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-flood-s04",
+          "scenario": "anomaly-flood"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-recon-s00",
+          "scenario": "anomaly-endpoint-recon"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-recon-s01",
+          "scenario": "anomaly-endpoint-recon"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-recon-s02",
+          "scenario": "anomaly-endpoint-recon"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-recon-s03",
+          "scenario": "anomaly-endpoint-recon"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-recon-s04",
+          "scenario": "anomaly-endpoint-recon"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0001hz-s00",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0002hz-s01",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0005hz-s02",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0010hz-s03",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0020hz-s04",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0050hz-s05",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0100hz-s06",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0200hz-s07",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0500hz-s08",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-1000hz-s09",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-restart-s00",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-restart-s01",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-restart-s02",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-restart-s03",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-restart-s04",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0003hz-a0",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0007hz-a1",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0015hz-a2",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0030hz-a3",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0075hz-a4",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0150hz-a5",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0300hz-a6",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0750hz-a7",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-restart-a0",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-restart-a1",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-restart-a2",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-restart-a3",
+          "scenario": "normal-restart"
+        }
+      ]
+    },
+    "both": {
+      "features": [
+        "message_count",
+        "frequency_hz",
+        "gap_median_ms",
+        "gap_p95_ms",
+        "gap_max_ms",
+        "gap_cv",
+        "publisher_count_in_window",
+        "graph_snapshot_transition_count"
+      ],
+      "summary": {
+        "normal_sessions": 27,
+        "anomaly_sessions": 15,
+        "overall_fpr_pooled": 0.037037037037037035,
+        "overall_fpr_pooled_denominator": 27,
+        "worst_session_fpr": 1.0,
+        "mean_session_fpr": 0.037037037037037035,
+        "per_class": {
+          "anomaly-churn": {
+            "sessions": 5,
+            "tp": 5,
+            "fn": 0,
+            "fp": 0,
+            "recall": 1.0,
+            "sessions_detected": 5
+          },
+          "anomaly-endpoint-recon": {
+            "sessions": 5,
+            "tp": 0,
+            "fn": 5,
+            "fp": 0,
+            "recall": 0.0,
+            "sessions_detected": 0
+          },
+          "anomaly-flood": {
+            "sessions": 5,
+            "tp": 4,
+            "fn": 1,
+            "fp": 0,
+            "recall": 0.8,
+            "sessions_detected": 4
+          }
+        },
+        "worst_class_recall": 0.0,
+        "note": "overall_fpr_pooled 与 worst_session_fpr 是两个不同的量：前者衡量总体噪声，后者衡量是否存在被全线误报的场景。"
+      },
+      "per_session": [
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-churn-s00",
+          "scenario": "anomaly-churn"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-churn-s01",
+          "scenario": "anomaly-churn"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-churn-s02",
+          "scenario": "anomaly-churn"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-churn-s03",
+          "scenario": "anomaly-churn"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-churn-s04",
+          "scenario": "anomaly-churn"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-flood-s00",
+          "scenario": "anomaly-flood"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-flood-s01",
+          "scenario": "anomaly-flood"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-flood-s02",
+          "scenario": "anomaly-flood"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "session_id": "g3-anom-flood-s03",
+          "scenario": "anomaly-flood"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-flood-s04",
+          "scenario": "anomaly-flood"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-recon-s00",
+          "scenario": "anomaly-endpoint-recon"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-recon-s01",
+          "scenario": "anomaly-endpoint-recon"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-recon-s02",
+          "scenario": "anomaly-endpoint-recon"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-recon-s03",
+          "scenario": "anomaly-endpoint-recon"
+        },
+        {
+          "label": "anomaly",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "metrics_not_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "recall": 0.0,
+          "precision": "N/A",
+          "f1": "N/A",
+          "session_id": "g3-anom-recon-s04",
+          "scenario": "anomaly-endpoint-recon"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0001hz-s00",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0002hz-s01",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0005hz-s02",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0010hz-s03",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0020hz-s04",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0050hz-s05",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0100hz-s06",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0200hz-s07",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-0500hz-s08",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 0,
+            "tn": 0
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 1.0,
+          "false_positive_window_rate": 1.0,
+          "session_id": "g3-norm-1000hz-s09",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-restart-s00",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-restart-s01",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-restart-s02",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-restart-s03",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "g3-norm-restart-s04",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0003hz-a0",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0007hz-a1",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0015hz-a2",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0030hz-a3",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0075hz-a4",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0150hz-a5",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0300hz-a6",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-0750hz-a7",
+          "scenario": "normal-rate"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-restart-a0",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-restart-a1",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-restart-a2",
+          "scenario": "normal-restart"
+        },
+        {
+          "label": "normal",
+          "confusion": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 1
+          },
+          "windows": 1,
+          "metrics_applicable": [
+            "fpr",
+            "false_positive_window_rate"
+          ],
+          "metrics_not_applicable": [
+            "recall",
+            "precision",
+            "f1"
+          ],
+          "fpr": 0.0,
+          "false_positive_window_rate": 0.0,
+          "session_id": "p6-norm-restart-a3",
+          "scenario": "normal-restart"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,134 @@
+[
+  {
+    "session_id": "p6-norm-0003hz-a0",
+    "scenario": "normal-rate",
+    "label": "normal",
+    "label_basis": "authorized 3 Hz publisher, within expected workload",
+    "returncode": 0,
+    "stderr_tail": "",
+    "windows_total": 2,
+    "windows_message_ok": 1,
+    "windows_graph_valid": 1
+  },
+  {
+    "session_id": "p6-norm-0007hz-a1",
+    "scenario": "normal-rate",
+    "label": "normal",
+    "label_basis": "authorized 7 Hz publisher, within expected workload",
+    "returncode": 0,
+    "stderr_tail": "",
+    "windows_total": 2,
+    "windows_message_ok": 1,
+    "windows_graph_valid": 1
+  },
+  {
+    "session_id": "p6-norm-0015hz-a2",
+    "scenario": "normal-rate",
+    "label": "normal",
+    "label_basis": "authorized 15 Hz publisher, within expected workload",
+    "returncode": 0,
+    "stderr_tail": "",
+    "windows_total": 2,
+    "windows_message_ok": 1,
+    "windows_graph_valid": 1
+  },
+  {
+    "session_id": "p6-norm-0030hz-a3",
+    "scenario": "normal-rate",
+    "label": "normal",
+    "label_basis": "authorized 30 Hz publisher, within expected workload",
+    "returncode": 0,
+    "stderr_tail": "",
+    "windows_total": 2,
+    "windows_message_ok": 1,
+    "windows_graph_valid": 1
+  },
+  {
+    "session_id": "p6-norm-0075hz-a4",
+    "scenario": "normal-rate",
+    "label": "normal",
+    "label_basis": "authorized 75 Hz publisher, within expected workload",
+    "returncode": 0,
+    "stderr_tail": "",
+    "windows_total": 2,
+    "windows_message_ok": 1,
+    "windows_graph_valid": 1
+  },
+  {
+    "session_id": "p6-norm-0150hz-a5",
+    "scenario": "normal-rate",
+    "label": "normal",
+    "label_basis": "authorized 150 Hz publisher, within expected workload",
+    "returncode": 0,
+    "stderr_tail": "",
+    "windows_total": 2,
+    "windows_message_ok": 1,
+    "windows_graph_valid": 1
+  },
+  {
+    "session_id": "p6-norm-0300hz-a6",
+    "scenario": "normal-rate",
+    "label": "normal",
+    "label_basis": "authorized 300 Hz publisher, within expected workload",
+    "returncode": 0,
+    "stderr_tail": "",
+    "windows_total": 2,
+    "windows_message_ok": 1,
+    "windows_graph_valid": 1
+  },
+  {
+    "session_id": "p6-norm-0750hz-a7",
+    "scenario": "normal-rate",
+    "label": "normal",
+    "label_basis": "authorized 750 Hz publisher, within expected workload",
+    "returncode": 0,
+    "stderr_tail": "",
+    "windows_total": 2,
+    "windows_message_ok": 1,
+    "windows_graph_valid": 1
+  },
+  {
+    "session_id": "p6-norm-restart-a0",
+    "scenario": "normal-restart",
+    "label": "normal",
+    "label_basis": "authorized node joins and leaves; restart is not a violation",
+    "returncode": 0,
+    "stderr_tail": "",
+    "windows_total": 2,
+    "windows_message_ok": 0,
+    "windows_graph_valid": 1
+  },
+  {
+    "session_id": "p6-norm-restart-a1",
+    "scenario": "normal-restart",
+    "label": "normal",
+    "label_basis": "authorized node joins and leaves; restart is not a violation",
+    "returncode": 0,
+    "stderr_tail": "",
+    "windows_total": 2,
+    "windows_message_ok": 0,
+    "windows_graph_valid": 1
+  },
+  {
+    "session_id": "p6-norm-restart-a2",
+    "scenario": "normal-restart",
+    "label": "normal",
+    "label_basis": "authorized node joins and leaves; restart is not a violation",
+    "returncode": 0,
+    "stderr_tail": "",
+    "windows_total": 2,
+    "windows_message_ok": 0,
+    "windows_graph_valid": 1
+  },
+  {
+    "session_id": "p6-norm-restart-a3",
+    "scenario": "normal-restart",
+    "label": "normal",
+    "label_basis": "authorized node joins and leaves; restart is not a violation",
+    "returncode": 0,
+    "stderr_tail": "",
+    "windows_total": 2,
+    "windows_message_ok": 0,
+    "windows_graph_valid": 1
+  }
+]

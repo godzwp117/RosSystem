@@ -1,0 +1,6 @@
+=== check_env ===
+command: final_system.sh --check
+exit_code: 0
+at: 2026-10-20T16:01:58Z
+code_sha: f258ac1ed59e316c4989279a7968dad3fe4460c8
+run_id: smoke

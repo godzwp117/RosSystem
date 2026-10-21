@@ -1,0 +1,49 @@
+{
+  "run_id": "m1retrain-20261020T023546Z",
+  "base_sha": "86a8910bf4560dfe455bec09bc503600c30bf670",
+  "branch": "research/m1-trusted-action-retraining",
+  "m1_tested_code_sha": "86a8910bf4560dfe455bec09bc503600c30bf670",
+  "environment": {
+    "container": "rg_m1r",
+    "domain": 68,
+    "ros": "jazzy",
+    "rmw": "rmw_fastrtps_cpp",
+    "window_sec": 30,
+    "window_policy": "fixed, contiguous, non-overlapping"
+  },
+  "dataset": {
+    "sessions_total": 9,
+    "sessions_with_usable_windows": 7,
+    "windows_total": 18,
+    "windows_usable": 14,
+    "windows_anomaly": 2
+  },
+  "key_findings": {
+    "forbidden_features_present": [],
+    "duration_ms_used_as_feature": false,
+    "single_feature_auc": {
+      "message_count": 1.0,
+      "frequency_hz": 1.0,
+      "gap_cv": 0.667
+    },
+    "auc_interpretation": "唯一可用异常为 2000 Hz 洪泛，与最高 500 Hz 正常差一个数量级，因此 AUC=1.0 反映任务过窄，不构成检测有效性证据",
+    "graph_only_anomalies_invisible": true,
+    "graph_only_reason": "window driven by message arrival; 0 messages -> INSUFFICIENT_OBSERVATION",
+    "recall_measurable": false,
+    "recall_blocker": "只有 1 个异常会话，留出后训练集只剩单一类别"
+  },
+  "verdicts": {
+    "M1_DATA_PROVENANCE_VERIFIED": "PASS",
+    "M1_SESSION_INDEPENDENCE_VERIFIED": "PASS",
+    "M1_LABEL_LEAKAGE_REMOVED": "PASS",
+    "M1_TRUSTED_ACTION_DATA_SOURCE_READY": "BLOCKED",
+    "M1_DATASET_REPRODUCIBLE": "PASS",
+    "M1_NORMAL_FPR_VERIFIED": "FAIL",
+    "M1_ATTACK_RECALL_VERIFIED": "FAIL",
+    "M1_OOD_UNKNOWN_VERIFIED": "BLOCKED",
+    "M1_ONLINE_INFERENCE_VERIFIED": "NOT_RUN",
+    "M1_ONLINE_PROCEED_READY": "FAIL"
+  },
+  "model_exported": false,
+  "production_config_modified": false
+}

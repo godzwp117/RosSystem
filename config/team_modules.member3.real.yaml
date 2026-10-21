@@ -1,0 +1,67 @@
+# 成员 3 真实模块通用验收配置（受信任本地文件）
+#
+# 用途
+# ----
+# `scripts/check_member_module.py --module task_risk --config <本文件> --real-fixture ...`
+#
+# 与 config/team_modules.member3.yaml 的区别
+# -----------------------------------------
+# 本文件额外提供 `real_command_profiles`：真实场景命令档案。每个档案只是
+# **同一真实模块命令加上不同的 `--policy` 参数**，用于由真实条件触发
+# 「缺少策略 -> UNKNOWN」与「损坏策略 -> ERROR」两种状态。
+#
+# 安全要点
+# --------
+# * 缺失/损坏策略只出现在隔离的测试策略文件上；
+#   **正式权威策略 config/task_policy.yaml 从不被修改**。
+# * 命令只能来自本文件；业务输入 JSON 不得指定命令、策略路径或可执行文件。
+# * 档案中的 `--policy` 指向只读测试策略，不会启动 Gateway、不会创建下游执行通道。
+# * 其他成员模块保持 MOCK，未做任何真实化。
+adapter:
+  log_path: logs/member3/adapter.jsonl
+  planner_command: [ros2, run, rg_demo_nodes, planner_node]
+
+# 真实场景命令档案：fixture 只能引用档案**名字**，不能提供命令本身。
+real_command_profiles:
+  # 合法任务：使用权威 TaskPolicy（只读）
+  policy_valid:
+    args: [--policy, config/task_policy.yaml]
+  # 违规任务：允许区域收窄到 [0,1]x[0,1]，候选目标 (2.0, 2.0) 越界 -> BLOCK_RECOMMENDED
+  policy_tight_region:
+    args: [--policy, config/scenarios/task_policy_tight_region.yaml]
+  # 缺少策略：受信任配置指向不存在的策略文件 -> UNKNOWN
+  policy_absent:
+    args: [--policy, config/scenarios/task_policy_absent.yaml]
+  # 错误策略：受信任配置指向损坏/不合法策略文件 -> ERROR
+  policy_corrupt:
+    args: [--policy, config/scenarios/task_policy_corrupt.yaml]
+
+modules:
+  comm_risk:
+    mode: mock
+    interface: comm_risk_evidence
+    command: [python3, mock_modules/comm_risk_mock.py]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+  identity_trust:
+    mode: mock
+    interface: identity_trust_assessment
+    command: [python3, mock_modules/identity_trust_mock.py]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+  task_risk:
+    mode: external
+    interface: task_risk_decision
+    command: [python3, modules/member3_taskrisk/module.py]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+
+# 身份信任模式（P0 修复后新增）：本配置的 identity_trust 是 MOCK，
+# 身份结论来自模块自报。F0 默认严格模式会拒绝这种自报，因此这里必须
+# 显式声明受控模式。该 READY **不**表示当前请求已完成真实 DDS 身份认证。
+identity_attestation:
+  mode: CONTROLLED_TEST_ONLY
+  controlled_reason: RC2 受控演示：identity_trust 为 MOCK，身份结论来自模块自报，不构成真实 DDS 身份认证
