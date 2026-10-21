@@ -1,30 +1,23 @@
-# dist/ —— 作品包构建产物
+# dist/ —— 作品包（构建产物不入库）
 
-> **本目录不跟踪 `*.tar.gz` 构建产物**（仓库 CI 门禁 `member-module-gates` 检查 5
-> 明确禁止跟踪 `\.tar\.gz$`，用于防止数据集与模型缓存入库）。
-> 我们不修改该门禁，而是让作品包**可复现构建**并记录哈希。
+仓库 CI 门禁 `member-module-gates` 检查 5 禁止跟踪 `*.tar.gz`（防数据集/模型缓存入库）。
+我们**不修改该门禁**，因此压缩包由脚本生成、哈希与验收结果记录在此。
 
-## 构建与校验（一条命令）
+## 本轮实际构建（2026-10-21 UTC）
+
+| 包 | 文件 | 大小 | SHA-256 |
+| --- | --- | --- | --- |
+| 离线回放包 | `RosSystem-creative-work-1.0.1.tar.gz` | 42 KB | `730dd5c28897646fe0f3e1246480838b0e9c6feb6ae1380c6328212f9e83e1d3` |
+| **完整在线包** | `RosSystem-CreativeWork-Full-1.0.1.tar.gz` | 1.5 MB | `775fb0dca6609d7284e45eaa33df5623d8d84b8607cff6bb2b8b0c1af5dbdf47` |
+
+两个包均通过 `verify_package.sh`：**13/13 PASS**（`PACKAGE_VERIFY=PASS`）。
+
+## 重新构建
 
 ```bash
-cd submission/creative-work
-./package.sh 1.0.0     # 生成 dist/RosSystem-creative-work-1.0.0.tar.gz
-./verify_package.sh    # 解包、真实启动、请求接口、检查不含密钥 → 13 项
+./package.sh 1.0.1        # 离线回放包
+./package_full.sh 1.0.1   # 完整在线包（含 runtime/ 与 docker/）
+./verify_package.sh       # 解包→启动→请求页面与回放接口→扫描密钥
 ```
 
-## 本轮实际构建记录
-
-| 项 | 值 |
-| --- | --- |
-| 文件名 | `RosSystem-creative-work-1.0.0.tar.gz` |
-| 大小 | 约 32 KB |
-| SHA-256 | `11ed2f77449439cd4e27b4d9c4ed641d3e706ab3521231d0f4fd5caf16199dc7` |
-| 校验结果 | **13/13 PASS**（`PACKAGE_VERIFY=PASS`） |
-| 构建时间 | 2026-10-21（UTC） |
-
-```
-11ed2f77449439cd4e27b4d9c4ed641d3e706ab3521231d0f4fd5caf16199dc7  RosSystem-creative-work-1.0.0.tar.gz
-```
-
-> 由于压缩包内容含构建时间戳，重跑 `package.sh` 得到的哈希可能不同；
-> 校验应以 `verify_package.sh` 的 13 项结果为准，而不是比对某一次的历史哈希。
+> 压缩包含构建时间戳，重跑后哈希会变化；应以 `verify_package.sh` 的 13 项结果为准。

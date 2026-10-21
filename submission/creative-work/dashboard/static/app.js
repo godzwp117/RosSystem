@@ -198,19 +198,64 @@ async function loadEvidence(path) {
 }
 
 async function loadReplay() {
+  // P0-1：/api/replay 直接返回统一视图模型，不再请求仓库相对路径，
+  // 因此解包后的作品包也能完整回放。
   try {
-    const r = await api('/api/replay');
-    renderTimeoutComparison(r);
-    const facts = await api('/api/run?path=' + encodeURIComponent(
-      'submission/creative-work/replay'));
-    renderFacts(facts);
+    const view = await api('/api/replay');
+    renderReplayView(view);
     setBadge($('mode-badge'), 'REPLAY / 历史证据回放', 'badge-replay');
     CURRENT_MODE = 'REPLAY';
-    $('s-mode').textContent = 'REPLAY（离线，不含 ROS 2 运行）';
-    $('s-note').textContent = '离线回放：展示已归档真实证据，不代表本次重新执行。';
+    $('s-mode').textContent = 'REPLAY（离线，读取已归档真实证据，不含 ROS 2 运行）';
+    $('s-note').textContent = view.replay_notice ||
+      '离线回放：展示已归档真实证据，不代表本次重新执行。';
   } catch (e) {
     $('s-note').textContent = '回放装载失败：' + e.message;
+    $('m3-meta').textContent = 'NOT_OBSERVED';
   }
+}
+
+function na(v) { return (v === null || v === undefined) ? 'NOT_OBSERVED' : v; }
+
+function renderReplayView(v) {
+  if (!v) return;
+  $('s-sha').textContent = na(v.tested_code_sha);
+  $('s-run').textContent = na(v.run_id);
+  $('footer-src').textContent = '证据来源：' + na(v.evidence_source);
+
+  // 三模块（回放快照的文本描述）
+  const m = v.modules || {};
+  node('n-m1', 'warn', 'M1 通信风险', na(m.m1));
+  node('n-m2', 'warn', 'M2 身份可信', na(m.m2));
+  node('n-m3', 'info', 'M3 任务风险', na(m.m3));
+
+  // F0 / Planner
+  const tr = v.three_real || {};
+  const blocked = tr.decision === 'ADAPTER_BLOCK';
+  node('n-f0', blocked ? 'bad' : 'info', 'F0 可信证据核验（STRICT）',
+       `${na(tr.decision)} / ${na(tr.reason_code)}`);
+  node('n-planner', blocked ? 'bad' : 'info', 'Planner',
+       blocked ? '未提交（F0 阻断）' : '已提交');
+
+  // Gateway / NavSim（取受控在线事实）
+  const sc = (v.controlled && v.controlled.facts && v.controlled.facts.scenarios) || {};
+  const on01 = sc.ON01 || {}, on05 = sc.ON05 || {};
+  const d01 = (on01.gateway_decisions || []).join(',') || '无';
+  const d05 = (on05.gateway_decisions || []).join(',') || '无';
+  node('n-gateway', d05 === '无' ? 'info' : 'warn',
+       'SecurityGateway · TaskPolicy（权威）',
+       `ON-01 ${d01} / ON-05 ${d05}（独立阻断）`);
+  node('n-navsim', (on01.navsim_goals || 0) > 0 ? 'ok' : 'warn',
+       'NavigationSim（recorded_only）',
+       `ON-01 Goal ${na(on01.navsim_goals)} / ON-05 Goal ${na(on05.navsim_goals)}`);
+  $('s-stack').textContent = `Gateway 到达 ${na(on01.gateway_arrivals)} / Goal ${na(on01.navsim_goals)}`;
+
+  renderM3(v.m3);
+  renderTimeoutComparison({ timeout_comparison: v.timeout_comparison });
+
+  const dds = v.dds_enforce;
+  $('s-note').textContent = dds && dds.passed != null
+    ? `DDS Enforce（独立实验，域绑定）：${dds.passed}/${dds.total} 通过`
+    : 'NOT_OBSERVED：未见 DDS Enforce 证据';
 }
 
 // ---------------------------------------------------------------- 运行
@@ -273,9 +318,11 @@ window.addEventListener('DOMContentLoaded', async () => {
   $('btn-stop').onclick = stopRun;
   await refreshHealth();
   await loadRuns();
-  renderTimeoutComparison(await api('/api/replay').catch(() => null));
   const runs = await api('/api/runs').catch(() => ({runs: []}));
   const primary = runs.runs.find(r => r.kind === 'ONLINE_EVIDENCE');
-  if (primary) loadEvidence(primary.path);
-  else loadReplay();
+  if (primary) { await loadEvidence(primary.path); }
+  else { await loadReplay(); }
+  // 无论哪种，都渲染一次 TIMEOUT 对照（来自 /api/replay 统一视图）
+  api('/api/replay').then(v => renderTimeoutComparison(
+    { timeout_comparison: (v && v.timeout_comparison) || [] })).catch(() => {});
 });

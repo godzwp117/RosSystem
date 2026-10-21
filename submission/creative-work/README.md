@@ -9,6 +9,17 @@
 
 ---
 
+## 两种作品包
+
+| 包 | 内容 | 用途 |
+| --- | --- | --- |
+| `RosSystem-creative-work-1.0.1.tar.gz`（约 42 KB） | 控制台 + 回放快照 + 文档 | **离线回放**，无需 Docker/ROS 2 |
+| `RosSystem-CreativeWork-Full-1.0.1.tar.gz`（约 1.5 MB） | 上述 + `runtime/`（ROS 2 源码/脚本/配置/接口）+ `docker/` | **在线演示**，需 Docker + ROS 2 Jazzy |
+
+完整包内的 `runtime/` 已包含 `scripts/final_system.sh`、`src/`、`modules/`、`config/`、
+`docs/interfaces/`、`identity_trust/`、`security/policies`；
+**不含 keystore、私钥或证书**（打包时强制扫描）。
+
 ## 立即运行（无需 ROS 2）
 
 ```bash

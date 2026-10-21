@@ -13,6 +13,12 @@ echo "校验: $TAR"
 
 W="$(mktemp -d)"; trap 'rm -rf "$W"' EXIT
 tar -xzf "$TAR" -C "$W" 2>/dev/null
+# 包内若只有一个顶层目录（如 RosSystem-CreativeWork-Full/），进入该目录再检查
+ENTRIES=$(ls -A "$W" | wc -l)
+if [ "$ENTRIES" -eq 1 ] && [ -d "$W/$(ls -A "$W")" ]; then
+  W="$W/$(ls -A "$W")"
+fi
+echo "  解包根: $(basename "$W")"
 for f in run.sh stop.sh dashboard/server.py dashboard/evidence_loader.py \
          dashboard/run_controller.py dashboard/static/index.html \
          dashboard/static/app.js dashboard/static/style.css \

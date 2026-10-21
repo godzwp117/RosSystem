@@ -50,6 +50,53 @@ def _safe_join(root, *parts):
     return target
 
 
+class UnsafePath(ValueError):
+    """调用方传入的证据路径不在允许范围内。"""
+
+
+def _allowed_roots():
+    """所有允许读取的*真实*根目录（realpath 之后）。含包内 replay 目录。"""
+    roots = []
+    for rel in EVIDENCE_ROOTS:
+        path = os.path.join(REPO_ROOT, rel)
+        if os.path.isdir(path):
+            roots.append(os.path.realpath(path))
+    replay_root = os.path.join(PACKAGE_ROOT, 'replay')
+    if os.path.isdir(replay_root):
+        roots.append(os.path.realpath(replay_root))
+    return roots
+
+
+def resolve_evidence_dir(requested):
+    """把用户传入的 path 解析为**受控**的证据目录。
+
+    安全要求（P0-4）
+    ----------------
+    1. 拒绝绝对路径；
+    2. 拒绝 `..` 与 `.` 段；
+    3. 解析后必须落在允许的根目录内；
+    4. 用 `realpath` 解析符号链接后再判定一次 —— 防止软链接逃逸；
+    5. 只允许目录。
+
+    违规统一抛 `UnsafePath`，由上层返回 400/403。
+    """
+    if not isinstance(requested, str) or not requested.strip():
+        raise UnsafePath('path 不能为空')
+    if os.path.isabs(requested):
+        raise UnsafePath('不允许绝对路径')
+    parts = [seg for seg in requested.replace('\\', '/').split('/') if seg]
+    if any(seg in ('.', '..') for seg in parts):
+        raise UnsafePath('路径中不允许 . 或 .. 段')
+
+    target = os.path.realpath(os.path.join(REPO_ROOT, *parts))
+    for root in _allowed_roots():
+        if target == root or target.startswith(root + os.sep):
+            if os.path.isdir(target):
+                return target
+            raise UnsafePath('目标不是目录')
+    raise UnsafePath('路径不在允许的证据根内')
+
+
 def _read_json(path):
     try:
         with open(path, encoding='utf-8') as fh:
@@ -101,8 +148,7 @@ def list_runs():
 
 def load_run(run_path):
     """装载一个 run 的跨层事实。返回 dict；缺失项为 None，不填默认值。"""
-    base = os.path.join(REPO_ROOT, run_path) if not os.path.isabs(run_path) \
-        else run_path
+    base = run_path if os.path.isabs(run_path) else os.path.join(REPO_ROOT, run_path)
     if not os.path.isdir(base):
         return None
 

@@ -62,6 +62,31 @@ def runtime_status():
     }
 
 
+def build_replay_view():
+    """把回放快照映射成与在线事实**同构**的视图模型。
+
+    字段缺失一律为 None（前端显示 NOT_OBSERVED），绝不填 0 或 PASS。
+    """
+    replay = ev.load_replay()
+    if not isinstance(replay, dict):
+        return None
+    return {
+        'contract': replay.get('contract', 'rosystem-replay-snapshot/1'),
+        'mode': 'REPLAY',
+        'run_id': replay.get('run_id'),
+        'tested_code_sha': replay.get('tested_code_sha'),
+        'evidence_source': replay.get('evidence_source'),
+        'replay_notice': replay.get('replay_notice'),
+        'm3': replay.get('m3'),
+        'controlled': replay.get('controlled'),
+        'three_real': replay.get('three_real'),
+        'dds_enforce': replay.get('dds_enforce'),
+        'timeout_comparison': replay.get('timeout_comparison') or [],
+        'semantics': replay.get('semantics'),
+        'modules': replay.get('modules'),
+    }
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = 'RosSystemDashboard/1.0'
 
@@ -120,18 +145,23 @@ class Handler(BaseHTTPRequestHandler):
             target = (qs.get('path') or [''])[0]
             if not target:
                 return self._send(400, {'error': '缺少 path 参数'})
-            if '..' in target:
-                return self._send(400, {'error': '非法路径'})
-            facts = ev.load_run(target)
+            # P0-4：绝对路径 / `..` / 软链接逃逸 / 根外访问统一拒绝
+            try:
+                resolved = ev.resolve_evidence_dir(target)
+            except ev.UnsafePath as exc:
+                return self._send(403, {'error': '路径不被允许: %s' % exc})
+            facts = ev.load_run(resolved)
             if facts is None:
                 return self._send(404, {'error': '未找到该证据目录'})
             return self._send(200, facts)
 
         if path == '/api/replay':
-            replay = ev.load_replay()
-            if replay is None:
+            # P0-1：直接返回**统一视图模型**。前端不再需要拼仓库相对路径，
+            # 解包后的作品包也能完整回放。
+            view = build_replay_view()
+            if view is None:
                 return self._send(404, {'error': '回放快照不存在'})
-            return self._send(200, replay)
+            return self._send(200, view)
 
         if path == '/api/run/status':
             state = CONTROLLER.status()
@@ -142,6 +172,13 @@ class Handler(BaseHTTPRequestHandler):
 
     # ---------------------------------------------------------------- POST
     def do_POST(self):
+        # 只接受同源 JSON；拒绝跨站表单与其他来源，防止外部网页驱动本地控制台。
+        ctype = (self.headers.get('Content-Type') or '').split(';')[0].strip().lower()
+        if ctype != 'application/json':
+            return self._send(415, {'error': 'Content-Type 必须是 application/json'})
+        origin = self.headers.get('Origin')
+        if origin and not origin.startswith(('http://127.0.0.1', 'http://localhost')):
+            return self._send(403, {'error': '拒绝跨站请求'})
         parsed = urlparse(self.path)
         length = int(self.headers.get('Content-Length') or 0)
         if length > 8192:
@@ -150,6 +187,8 @@ class Handler(BaseHTTPRequestHandler):
             payload = json.loads(self.rfile.read(length) or b'{}')
         except ValueError:
             return self._send(400, {'error': '非法 JSON'})
+        if not isinstance(payload, dict):
+            return self._send(400, {'error': '请求体必须是 JSON 对象'})
 
         if parsed.path == '/api/run/start':
             mode = payload.get('mode')

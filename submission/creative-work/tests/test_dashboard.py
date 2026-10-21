@@ -72,5 +72,83 @@ class RunControllerTest(unittest.TestCase):
 import unittest.mock  # noqa: E402  (用于 patch)
 
 
+class SecurityP0Test(unittest.TestCase):
+    """P0-4：证据路径封闭、run_id 边界、并发原子化、POST 防护。"""
+
+    def test_absolute_path_rejected(self):
+        with self.assertRaises(ev.UnsafePath):
+            ev.resolve_evidence_dir('/etc')
+
+    def test_dotdot_rejected(self):
+        for bad in ('../etc', 'a/../../etc', './x', 'a/./b'):
+            with self.assertRaises(ev.UnsafePath):
+                ev.resolve_evidence_dir(bad)
+
+    def test_outside_root_rejected(self):
+        with self.assertRaises(ev.UnsafePath):
+            ev.resolve_evidence_dir('submission/creative-work')
+
+    def test_symlink_escape_rejected(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            root = ev._allowed_roots()
+            if not root:
+                self.skipTest('无可用证据根')
+            link = os.path.join(root[0], 'escape-link')
+            try:
+                os.symlink('/etc', link)
+            except OSError:
+                self.skipTest('无法创建符号链接')
+            try:
+                with self.assertRaises(ev.UnsafePath):
+                    ev.resolve_evidence_dir(
+                        os.path.relpath(link, ev.REPO_ROOT))
+            finally:
+                os.unlink(link)
+
+    def test_run_id_boundaries(self):
+        from run_controller import validate_run_id
+        for bad in ('.', '..', '../etc', 'a/b', 'a\\b', '', 'a' * 65, ' lead'):
+            ok, _why = validate_run_id(bad)
+            self.assertFalse(ok, '应拒绝 %r' % bad)
+        for good in ('ok-1', 'dash-20261021T000000Z', 'a.b_c-1'):
+            ok, why = validate_run_id(good)
+            self.assertTrue(ok, '应接受 %r：%s' % (good, why))
+
+    def test_concurrent_start_is_atomic(self):
+        """两个并发启动只能成功一个。"""
+        import threading
+        import unittest.mock as mock
+        from run_controller import RunController
+        c = RunController()
+        results = []
+        barrier = threading.Barrier(2)
+
+        def attempt(i):
+            barrier.wait()
+            with mock.patch('subprocess.Popen') as popen:
+                popen.return_value.pid = 1000 + i
+                popen.return_value.wait.return_value = 0
+                results.append(c.start('controlled', 'conc-%d' % i))
+
+        threads = [threading.Thread(target=attempt, args=(i,)) for i in range(2)]
+        for t in threads: t.start()
+        for t in threads: t.join()
+        self.assertEqual(sum(1 for r in results if r.get('ok')), 1,
+                         '并发启动必须只有一个成功')
+
+    def test_replay_view_is_unified(self):
+        """P0-1：/api/replay 的统一视图模型必须自带 m3 / timeout_comparison。"""
+        import importlib
+        import server as srv
+        view = srv.build_replay_view()
+        self.assertIsNotNone(view)
+        self.assertEqual(view['mode'], 'REPLAY')
+        self.assertIn('m3', view)
+        self.assertEqual(view['m3']['checks'], 36)
+        self.assertEqual(len(view['timeout_comparison']), 2)
+        self.assertIsNotNone(view['tested_code_sha'])
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
