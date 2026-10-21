@@ -18,7 +18,7 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$HERE/../.." && pwd)"
-VER="${1:-1.0.2}"
+VER="${1:-1.0.3}"
 TOP="RosSystem-CreativeWork-Full"
 OUT="$HERE/dist"
 mkdir -p "$OUT"

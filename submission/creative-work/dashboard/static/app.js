@@ -324,6 +324,11 @@ function pollStatus() {
               .runs.find(r => r.run_id === s.run_id);
             if (target) await loadEvidence(target.path);
           }
+        } else if (s.status === 'INCOMPLETE') {
+          // NOT_RUN / INCOMPLETE 不是 PASS，也不是普通 FAIL：必须显式区分。
+          $('run-log').textContent += '\n\n⚠ ' + (s.error || '实验不完整（存在未执行项）');
+          setBadge($('mode-badge'), 'INCOMPLETE', 'badge-fail');
+          await loadRuns();
         } else if (s.status === 'FAIL') {
           $('run-log').textContent += '\n\n✘ ' + (s.error || '实验失败');
           setBadge($('mode-badge'), 'FAIL', 'badge-fail');

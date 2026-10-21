@@ -5,7 +5,7 @@
 # 换目录后 sha256sum -c 会找不到文件）。
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VER="${1:-1.0.2}"
+VER="${1:-1.0.3}"
 OUT="$HERE/dist"
 NAME="RosSystem-creative-work-$VER"
 mkdir -p "$OUT"

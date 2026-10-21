@@ -160,7 +160,15 @@ class RunController:
     def _wait(self, proc, fh):
         try:
             code = proc.wait(timeout=MAX_RUNTIME_SEC)
-            error = None if code == 0 else '实验以非零退出码结束: %s' % code
+            if code == 0:
+                error = None
+            elif code == 9:
+                # 9 = NOT_RUN / INCOMPLETE：实验没有失败，但也没有完整执行。
+                # 不能显示成 DONE，也不能说成 FAIL——必须单独区分。
+                error = ('实验不完整（exit 9）：存在未执行项或整体验收未完成，'
+                         '详见日志与 summary.txt')
+            else:
+                error = '实验以非零退出码结束: %s' % code
         except subprocess.TimeoutExpired:
             self._terminate(proc)
             code = None
@@ -170,18 +178,52 @@ class RunController:
                 fh.close()
             except OSError:
                 pass
+        # 容器清理放在 docker CLI 进程退出之后做，并带重试：
+        # 停止请求可能早于容器真正被创建，单次 rm -f 会扑空，
+        # 随后 docker run 才把容器创建出来，留下一个 Created 残骸。
+        self._ensure_container_removed()
+        if code == 0:
+            status = 'DONE'
+        elif code == 9:
+            status = 'INCOMPLETE'
+        else:
+            status = 'FAIL'
         with self._lock:
             self._state.update({
-                'status': 'DONE' if code == 0 else 'FAIL',
+                'status': status,
                 'exit_code': code, 'finished_at': time.time(), 'error': error})
             self._proc = None
+
+    def _ensure_container_removed(self, attempts=6, delay=0.4):
+        """确保本次 run 的容器被移除（含"停止早于创建完成"的竞态）。
+
+        只针对本实例登记过的容器名，不做任何全局清理。
+        先用 docker inspect 判断是否还存在，消失即提前返回。
+        """
+        name = self._container
+        if not name:
+            return
+        for _ in range(attempts):
+            try:
+                subprocess.run(['docker', 'rm', '-f', name],
+                               capture_output=True, timeout=30)
+                probe = subprocess.run(['docker', 'inspect', name],
+                                       capture_output=True, timeout=15)
+            except (OSError, subprocess.SubprocessError):
+                return
+            if probe.returncode != 0:
+                return
+            time.sleep(delay)
 
     def _terminate(self, proc):
         # 先杀容器（若存在），只针对本次 run 自己创建的名字，绝不做全局清理。
         container = self._container
         if container:
+            # 用 rm -f 而不是 kill：容器可能还停在 Created（docker run 尚未真正
+            # 启动进程）时 kill 会失败，残留一个 Created 容器；rm -f 对
+            # Created / Running 都有效，且能立即移除，不留残骸。
             try:
-                subprocess.run(['docker', 'kill', container],
+                subprocess.run(['docker', 'rm', '-f', container],
                                capture_output=True, timeout=30)
             except (OSError, subprocess.SubprocessError):
                 pass

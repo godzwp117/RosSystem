@@ -457,9 +457,23 @@ run_enforce() {
 #   3 = 环境自检失败
 #   4 = 单模式实验失败
 #   8 = 严格预检失败（acceptance）
-#   9 = 条件不满足，NOT_RUN（例如缺少 DDS 凭据）
+#   9 = NOT_RUN（单模式：条件不满足，如缺 DDS 凭据）
+#       或 INCOMPLETE（acceptance：无 FAIL 但存在未执行项）
 RESULTS=""
 mark() { RESULTS="${RESULTS}$1=$2\n"; }
+
+# 逐项记录真实状态：0=PASS，9=NOT_RUN，其他=FAIL。
+# 单模式与 acceptance 共用同一套状态语义；整体结论一律交给
+# scripts/acceptance_status.py 聚合，shell 不再用 rc 变量"顺带"推断 PASS。
+ITEM_ARGS=()
+record_item() {  # record_item <name> <rc>
+  local name="$1" rc="$2" status
+  if [ "$rc" -eq 0 ]; then status=PASS
+  elif [ "$rc" -eq 9 ]; then status=NOT_RUN
+  else status=FAIL; fi
+  mark "$name" "$status"
+  ITEM_ARGS+=("${name}=${status}")
+}
 
 finish() {  # finish <exit-code> <metadata-status>
   local code="$1" status="$2"
@@ -499,35 +513,53 @@ case "$MODE" in
     mark ENFORCE PASS
     ;;
   acceptance)
-    rc_all=0
     # 预检是**硬门槛**：失败立即终止，不启动任何 ROS 栈、不跑三真实、
-    # 不进 DDS Enforce。旧实现用 `|| rc_all=1` 继续往下跑，
-    # 会让"预检失败"被后续的栈启动失败掩盖，甚至误报出在线 PASS。
+    # 不进 DDS Enforce。
     if ! STRICT_PREFLIGHT=1 check_env; then
       mark PREFLIGHT FAIL
-      mark ACCEPTANCE FAIL
+      mark ACCEPTANCE PREFLIGHT_FAIL
       printf "$RESULTS" | tee "$EVIDENCE/summary.txt"
       printf "$RESULTS" >> "$EVIDENCE/commands.log"
       echo "PREFLIGHT_FAIL" | tee -a "$EVIDENCE/summary.txt"
       echo "ERROR: 预检失败，验收已终止（未启动任何后续测试）" >&2
-      update_run_result FAIL
+      update_run_result PREFLIGHT_FAIL
       exit 8
     fi
-    run_host_tests || rc_all=1
-    run_three_real || rc_all=1
-    run_controlled || rc_all=1
-    run_m3_six || rc_all=1
-    # NOT_RUN（缺凭据）不算 PASS，但也不冒充 FAIL：单独记录后继续。
-    run_enforce; rc_e=$?
-    if [ "$rc_e" -eq 9 ]; then mark ENFORCE NOT_RUN; elif [ "$rc_e" -ne 0 ]; then mark ENFORCE FAIL; rc_all=1; else mark ENFORCE PASS; fi
-    mark ACCEPTANCE "$([ "$rc_all" -eq 0 ] && echo PASS || echo FAIL)"
-    if [ "$rc_all" -eq 0 ]; then
-      log "验收通过"
-      finish 0 PASS
-    else
-      log "验收存在失败项" >&2
+
+    # 每个必需项都记录真实状态（PASS / FAIL / NOT_RUN），不再用单一 rc_all。
+    run_host_tests;  record_item HOST_TESTS  $?
+    run_three_real;  record_item THREE_REAL  $?
+    run_controlled;  record_item CONTROLLED  $?
+    run_m3_six;      record_item M3_SIX      $?
+    run_enforce;     record_item ENFORCE     $?
+
+    # 整体结论由唯一事实来源聚合：任一 FAIL -> FAIL；
+    # 否则任一 NOT_RUN -> INCOMPLETE（**不得**返回 0）。
+    ACC_LINE="$(python3 scripts/acceptance_status.py "${ITEM_ARGS[@]}")"
+    read -r ACC_STATUS ACC_CODE ACC_NOTRUN ACC_FAILED <<< "$ACC_LINE"
+    if [ -z "${ACC_STATUS:-}" ] || [ -z "${ACC_CODE:-}" ]; then
+      mark ACCEPTANCE FAIL
+      log "状态聚合失败，按 FAIL 处理" >&2
       finish 1 FAIL
     fi
+    mark ACCEPTANCE "$ACC_STATUS"
+    if [ "${ACC_NOTRUN:-'-'}" != "-" ]; then
+      mark NOT_RUN_ITEMS "$ACC_NOTRUN"
+    fi
+    case "$ACC_STATUS" in
+      PASS)
+        log "验收通过：全部必需项均已实际执行并通过"
+        ;;
+      INCOMPLETE)
+        echo "ERROR: 验收不完整——存在未执行项：$ACC_NOTRUN" >&2
+        log "验收不完整（INCOMPLETE），不得判定为 PASS" >&2
+        ;;
+      *)
+        echo "ERROR: 验收存在失败项：${ACC_FAILED:-unknown}" >&2
+        log "验收失败（FAIL）" >&2
+        ;;
+    esac
+    finish "$ACC_CODE" "$ACC_STATUS"
     ;;
 esac
 
