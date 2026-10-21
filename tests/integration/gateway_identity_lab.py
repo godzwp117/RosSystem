@@ -198,6 +198,28 @@ def main(argv=None):
         check('G3 no downstream Goal', goals3 == 0, goals3)
         check('G3 planner does not get EXECUTED',
               result3.get('status_code') != 'EXECUTED', result3.get('status_code'))
+        # G4: valid identity, out-of-region target -> TaskPolicy must still BLOCK.
+        g4 = envelope('req-gw-lab-004', 9.0, 9.0)
+        attest4, _ = send_intent(evidence, g4, keydir, 'g4')
+        shutil.copyfile(attest4, attest_dir / (g4['request_id'] + '.json'))
+        before = sc.count_lines(journal)
+        planner4 = sc.run_planner(stack, '/planner', int(DOMAIN), True,
+                                  g4['request_id'], 9.0, 9.0, 0)
+        goals4 = sc.count_lines(journal) - before
+        result4 = planner4['result'] or {}
+        decisions = [r for r in sc.read_jsonl(audit)
+                     if r.get('event_type') == 'DecisionEvent']
+        blocked4 = [d for d in decisions if d.get('request_id') == g4['request_id']
+                    and d.get('decision') == 'BLOCK']
+        identity4 = [r for r in sc.read_jsonl(evidence / 'identity_audit.jsonl')
+                     if r.get('request_id') == g4['request_id']]
+        check('G4 identity is valid but TaskPolicy still blocks OUT_OF_REGION',
+              blocked4 and blocked4[-1].get('reason_code') == 'OUT_OF_REGION'
+              and identity4 and identity4[-1].get('decision') == 'ALLOW',
+              blocked4[-1] if blocked4 else 'no decision')
+        check('G4 no downstream Goal', goals4 == 0, goals4)
+        check('G4 planner does not get EXECUTED',
+              result4.get('status_code') != 'EXECUTED', result4.get('status_code'))
     except Exception as exc:  # noqa: BLE001
         check('gateway experiment completed without exception', False,
               '{0}: {1}'.format(type(exc).__name__, str(exc)[:400]))

@@ -1,15 +1,15 @@
 {
   "contract": "dds-lab-evidence/1",
   "scope": "TEST_ONLY_LAB",
-  "run_id": "v110gwlab-20261021T192500Z",
-  "archived_at": "2026-10-21T17:46:45Z",
-  "command": "docker exec rg_v110 bash -lc 'cd /ws && source /opt/ros/jazzy/setup.bash && source install/setup.bash && python3 tests/integration/gateway_identity_lab.py --run-id v110gwlab-20261021T192500Z'",
+  "run_id": "v110gwlab-20261021T193500Z",
+  "archived_at": "2026-10-21T17:48:59Z",
+  "command": "docker exec rg_v110 bash -lc 'cd /ws && source /opt/ros/jazzy/setup.bash && source install/setup.bash && python3 tests/integration/gateway_identity_lab.py --run-id v110gwlab-20261021T193500Z'",
   "exit_code": 0,
   "normal_domain": null,
   "secure_domain": 45,
   "secure_domain_matches_expected": true,
-  "total": 11,
-  "passed": 11,
+  "total": 14,
+  "passed": 14,
   "failed": 0,
   "policy": {
     "path": "security/policies/research/m2_ingress_lab.xml",
@@ -84,7 +84,7 @@
   "secrets_included": false,
   "certificates_are_public_only": true,
   "private_key_policy": "keystore private keys are never copied; the archive is not usable to impersonate any participant",
-  "git_head": "8c37ce974e3d51d9456dc8463a8318165d5d5eca",
+  "git_head": "452f064d5b68234978dc8c235bda940d3466c761",
   "git_worktree_dirty": true,
   "host": {
     "uname": "Linux 6.18.54.1-microsoft-standard-WSL2"
@@ -119,77 +119,97 @@
       "sha256": "8e2caa256dd1fd3c62ef7d4e0a90f0fafb5fb623504f372ce6690f881b91099c",
       "bytes": 1037
     },
-    "v110gwlab-20261021T192500Z/_gateway_stack/gateway.log": {
-      "sha256": "9d136e7ff29959848595b9598709d96622069aaffddc99f7e296015edd797f37",
-      "bytes": 2750
+    "v110gwlab-20261021T193500Z/_gateway_stack/gateway.log": {
+      "sha256": "47fd128b901cab048c84f114f749b8a02002e397f93ac34298167d46393ddd7c",
+      "bytes": 3177
     },
-    "v110gwlab-20261021T192500Z/_gateway_stack/navsim.log": {
-      "sha256": "137a120f1cb2410ab8d278415046a11ecfd25379db32a8bc1e17dfced3bf83b5",
+    "v110gwlab-20261021T193500Z/_gateway_stack/navsim.log": {
+      "sha256": "706a1a53641e023d3924f3c67d7573902563bb1de17f813adfef903811efe534",
       "bytes": 1053
     },
-    "v110gwlab-20261021T192500Z/_gateway_stack/navsim_goals.jsonl": {
-      "sha256": "6c67cf73ed874b6d7b43f6cc2b849c5076fa82d881d000e3b79d79d4ab276d5b",
+    "v110gwlab-20261021T193500Z/_gateway_stack/navsim_goals.jsonl": {
+      "sha256": "c7235c8f054a9e84e036c1e734b75e17dea96bc3165d7bdfe5bb237f7f76ead4",
       "bytes": 275
     },
-    "v110gwlab-20261021T192500Z/_gateway_stack/planner.log": {
-      "sha256": "f05cf81f2d1dd7d738ec1fa498613aa1f18d2de4547381ab6c9e16a7015aca96",
-      "bytes": 574
+    "v110gwlab-20261021T193500Z/_gateway_stack/planner.log": {
+      "sha256": "f0d584c020e2e63f64ee9fcf60d9b07f43fc29028515c1af3a3539a46116e170",
+      "bytes": 608
     },
-    "v110gwlab-20261021T192500Z/attestation_g1.json": {
-      "sha256": "a2c07f14a0b92e532578de4097a262244733eeda351c70358c6fb9328b60f288",
+    "v110gwlab-20261021T193500Z/attestation_g1.json": {
+      "sha256": "321287b08b45d29d43e584f698cf746bc93f300fa237648b5ca20d727cb3e9b6",
       "bytes": 1553
     },
-    "v110gwlab-20261021T192500Z/attestation_g3.json": {
-      "sha256": "3aa5590c1eaf6938b029df1a9fcf5ae7aa4465b2d9754d0a8a265218dcf50abd",
+    "v110gwlab-20261021T193500Z/attestation_g3.json": {
+      "sha256": "82b7125a0a51fbf9b4c0616aa64428ebd01c6a04824f9be6d80344712012dc03",
       "bytes": 1553
     },
-    "v110gwlab-20261021T192500Z/attestations/req-gw-lab-001.json": {
-      "sha256": "a2c07f14a0b92e532578de4097a262244733eeda351c70358c6fb9328b60f288",
+    "v110gwlab-20261021T193500Z/attestation_g4.json": {
+      "sha256": "603c8945e4d8e11c852672974e151a73019f3afd2c9cb187565336a3db7486f5",
       "bytes": 1553
     },
-    "v110gwlab-20261021T192500Z/attestations/req-gw-lab-003.json": {
-      "sha256": "3aa5590c1eaf6938b029df1a9fcf5ae7aa4465b2d9754d0a8a265218dcf50abd",
+    "v110gwlab-20261021T193500Z/attestations/req-gw-lab-001.json": {
+      "sha256": "321287b08b45d29d43e584f698cf746bc93f300fa237648b5ca20d727cb3e9b6",
       "bytes": 1553
     },
-    "v110gwlab-20261021T192500Z/audit.jsonl": {
-      "sha256": "6f30c8840615104462439c16f44883612d7dfa3d9e7bdbcf31471dd9c0cd014e",
-      "bytes": 2383
+    "v110gwlab-20261021T193500Z/attestations/req-gw-lab-003.json": {
+      "sha256": "82b7125a0a51fbf9b4c0616aa64428ebd01c6a04824f9be6d80344712012dc03",
+      "bytes": 1553
     },
-    "v110gwlab-20261021T192500Z/envelope_g1.json": {
-      "sha256": "d69e1085c12a489bceac173cdb129612a0538e91ec18a8dad06bda4ed3d8df09",
+    "v110gwlab-20261021T193500Z/attestations/req-gw-lab-004.json": {
+      "sha256": "603c8945e4d8e11c852672974e151a73019f3afd2c9cb187565336a3db7486f5",
+      "bytes": 1553
+    },
+    "v110gwlab-20261021T193500Z/audit.jsonl": {
+      "sha256": "fc607ebff446c59fec091aaf4ca1c08aaffd62afcbf1100f89108d8b39f971fd",
+      "bytes": 3074
+    },
+    "v110gwlab-20261021T193500Z/envelope_g1.json": {
+      "sha256": "c7a9b51a1782c9be32712c0cee56e87998e77891cd4331b8d79a77e9645123ad",
       "bytes": 528
     },
-    "v110gwlab-20261021T192500Z/envelope_g3.json": {
-      "sha256": "354571890ebee194446666658be2ec0c639827da54e64daa723745b8646108c2",
+    "v110gwlab-20261021T193500Z/envelope_g3.json": {
+      "sha256": "d11ac9d6eaf85e17be5d98157edbf98bf8759c6caee66c74274dd729bb6a9127",
       "bytes": 528
     },
-    "v110gwlab-20261021T192500Z/gateway_nonce.jsonl": {
-      "sha256": "77b41ed98523d5d6e310abeaf264e5c18dcf3f6a644955a117482b59ed6da359",
-      "bytes": 184
+    "v110gwlab-20261021T193500Z/envelope_g4.json": {
+      "sha256": "bb77884652abec5c822c4814da0f60c4c88e5bae7fc928f9a9a48fc5cd0743c3",
+      "bytes": 528
     },
-    "v110gwlab-20261021T192500Z/identity_audit.jsonl": {
-      "sha256": "83e7261451e11be833ca668e13d3d0be62348759af50cda0745e3f14216343ab",
-      "bytes": 1513
+    "v110gwlab-20261021T193500Z/gateway_nonce.jsonl": {
+      "sha256": "aae518e45a5cbb25594fedf41b919f1d23d12ae492adfcf39ae720e94af86ac7",
+      "bytes": 368
     },
-    "v110gwlab-20261021T192500Z/ingress_g1.log": {
-      "sha256": "ea34b8cb5153e3b80741d2666f57c585c7249cbe77b4ddf61c44ee807e2b1c46",
+    "v110gwlab-20261021T193500Z/identity_audit.jsonl": {
+      "sha256": "8656446ca66f5e80e0cb9ca434b7c4b53e30a666323c2c323b63ff0915f16d50",
+      "bytes": 2111
+    },
+    "v110gwlab-20261021T193500Z/ingress_g1.log": {
+      "sha256": "2276c424f7196b46d6030b8ab8a418386968d37846e8c6e3bf4ed9797f128e3f",
       "bytes": 407
     },
-    "v110gwlab-20261021T192500Z/ingress_g3.log": {
-      "sha256": "629c99d5dda2310309d8bb774a10f697ba1797972fbf513e067d258faa4c2a38",
+    "v110gwlab-20261021T193500Z/ingress_g3.log": {
+      "sha256": "b6ba26a5cbd734717b8c159df474b36c34ddb3b4a0fd46073602a2b9a81a2a0b",
       "bytes": 9646
     },
-    "v110gwlab-20261021T192500Z/intent_g1.jsonl": {
-      "sha256": "cbc2e9a01efd6428aa2d3ec439e53af00bd2e460c1312dc3c281ab35e018fbcb",
+    "v110gwlab-20261021T193500Z/ingress_g4.log": {
+      "sha256": "29d967e70ae3a596cc30d557793dc49b98900fbd45dabf888ee8d62bfa45558f",
+      "bytes": 9646
+    },
+    "v110gwlab-20261021T193500Z/intent_g1.jsonl": {
+      "sha256": "5658ac7e3b50525246b20f49193b31eb3a0f6f034ac5a62a49ceb989aeb584ad",
       "bytes": 1787
     },
-    "v110gwlab-20261021T192500Z/intent_g3.jsonl": {
-      "sha256": "8bdbb1122890a209485da835a9709fe13b421a0580932cec3ea47f790070085e",
+    "v110gwlab-20261021T193500Z/intent_g3.jsonl": {
+      "sha256": "92cf88c47b22dec9a20375e87c87ec6bab2a02d0c77c6d7216ddcde93a327939",
       "bytes": 3168
     },
-    "v110gwlab-20261021T192500Z/summary.json": {
-      "sha256": "532aa7517a1192d79e26a69d775b806692ca061e0208611805ecc810d315ff06",
-      "bytes": 2803
+    "v110gwlab-20261021T193500Z/intent_g4.jsonl": {
+      "sha256": "a595f72c8acb01b37e2e96593e27b4d3ed7a7425843849afa8e6679743bd516f",
+      "bytes": 3168
+    },
+    "v110gwlab-20261021T193500Z/summary.json": {
+      "sha256": "5612d8d5037e9c002b195bc9124d4ea3d82d6fbb9945dfd3dd49c386ef4f0b5d",
+      "bytes": 3529
     }
   },
   "note": "permissions.xml are policy-derived, non-secret artifacts included so the run can be interpreted without the wiped keystore; they are NOT the 2026-10-09 historical evidence"

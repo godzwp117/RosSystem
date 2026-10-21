@@ -49,7 +49,7 @@ def test_summary_reports_eleven_checks_passed():
     summary = json.loads((run_dir() / 'summary.json').read_text(encoding='utf-8'))
     assert summary['contract'] == 'gateway-identity-lab/1'
     assert summary['failed'] == 0
-    assert summary['passed'] == summary['total'] == 11
+    assert summary['passed'] == summary['total'] == 14
 
 
 def test_gateway_allowed_only_the_valid_attestation():
@@ -60,6 +60,9 @@ def test_gateway_allowed_only_the_valid_attestation():
     for request_id in ('req-gw-lab-002', 'req-gw-lab-003'):
         assert decisions[request_id]['decision'] == 'BLOCK'
         assert decisions[request_id]['reason_code'] == 'IDENTITY_ATTESTATION_REJECTED'
+    # G4: identity is valid, but the independent TaskPolicy still blocks.
+    assert decisions['req-gw-lab-004']['decision'] == 'BLOCK'
+    assert decisions['req-gw-lab-004']['reason_code'] == 'OUT_OF_REGION'
 
 
 def test_gateway_identity_audit_is_independent_of_f0():
@@ -76,6 +79,8 @@ def test_gateway_identity_audit_is_independent_of_f0():
     assert rows['req-gw-lab-002']['decision'] == 'BLOCK'
     assert rows['req-gw-lab-003']['decision'] == 'BLOCK'
     assert rows['req-gw-lab-003']['checks']['request_binding'] == 'MISMATCH'
+    assert rows['req-gw-lab-004']['decision'] == 'ALLOW'  # identity gate allows
+    assert rows['req-gw-lab-004']['status'] == 'AUTHENTICATED_LAB'
 
 
 def test_exactly_one_downstream_goal_for_the_three_cases():

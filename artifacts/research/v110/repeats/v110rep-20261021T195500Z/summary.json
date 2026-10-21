@@ -1,0 +1,31 @@
+{
+  "contract": "v110-repeats/1",
+  "scope": "LAB_COMPONENT",
+  "run_id": "v110rep-20261021T195500Z",
+  "trials": 30,
+  "positive_ok": 30,
+  "negative_controls_ok": 3,
+  "failures": [],
+  "latency_ms": {
+    "issue": {
+      "p50": 0.588608,
+      "p95": 0.748283,
+      "p99": 0.753415,
+      "mean": 0.6060509666666667
+    },
+    "verify": {
+      "p50": 1.415823,
+      "p95": 1.589393,
+      "p99": 1.942844,
+      "mean": 1.4587283
+    },
+    "gateway_gate": {
+      "p50": 1.493696,
+      "p95": 1.720172,
+      "p99": 1.732802,
+      "mean": 1.5199261333333332
+    }
+  },
+  "note": "component-level repeated trials; not a 30x full DDS end-to-end run. Each trial used a fresh nonce and a fresh ledger.",
+  "m1_three_real_positive": "BLOCKED: M1 validation gate remains false; see M1 reports"
+}
