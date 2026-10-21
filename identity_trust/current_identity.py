@@ -53,12 +53,20 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import stat
 import time
 
 CONTRACT = 'current-identity-attestation/2'
-SUPPORTED_CONTRACTS = (CONTRACT,)
+#: v3 adds Ed25519 signatures and an explicit issuer scope. v2 (HMAC) stays
+#: supported so the controlled-test issuer and its regression tests keep
+#: working unchanged.
+CONTRACT_ED25519 = 'current-identity-attestation/3'
+SUPPORTED_CONTRACTS = (CONTRACT, CONTRACT_ED25519)
 ISSUER_CONTRACT = 'trusted-identity-issuers/1'
+#: v2 issuer entries pin an Ed25519 public key by SHA-256 and declare scope.
+ISSUER_CONTRACT_V2 = 'trusted-identity-issuers/2'
+SUPPORTED_ISSUER_CONTRACTS = (ISSUER_CONTRACT, ISSUER_CONTRACT_V2)
 #: 证据种类（签发者的**声明**，只在签发者受信任时才有意义）。
 EVIDENCE_KIND = 'MIDDLEWARE_IDENTITY_BINDING'
 EVIDENCE_KIND_SIGNED = 'SIGNED_ATTESTATION'
@@ -76,10 +84,19 @@ STATUS_DENIED = 'DENIED'
 STATUS_AUTHENTICATED = 'AUTHENTICATED'
 #: 签名与绑定都成立，但签发者只是 TEST_ONLY 角色。F0 不得据此推进。
 STATUS_TEST_ONLY = 'AUTHENTICATED_TEST_ONLY'
+#: Ed25519 evidence verified under an explicitly LAB-scoped trust anchor.
+#: F0 may accept it only when configured to allow the lab scope; it is never a
+#: production identity claim.
+STATUS_AUTHENTICATED_LAB = 'AUTHENTICATED_LAB'
 
 TRUST_VERIFIED = 'VERIFIED_IDENTITY_SOURCE'
 TRUST_TEST_ONLY = 'TEST_ONLY'
 KNOWN_TRUST = (TRUST_VERIFIED, TRUST_TEST_ONLY)
+KNOWN_SCOPES = ('LAB', 'PRODUCTION')
+#: `checks.issuer` values. LAB is deliberately distinct from production.
+ISSUER_CHECK_LAB = 'VERIFIED_LAB_IDENTITY_SOURCE'
+SCOPE_LAB = 'LAB'
+SCOPE_PRODUCTION = 'PRODUCTION'
 
 REQUIRED_FIELDS = (
     'contract', 'issuer', 'request_id', 'resource', 'operation', 'request_digest',
@@ -210,6 +227,51 @@ def sign(body, key):
     return hmac.new(key, canonical(body), hashlib.sha256).hexdigest()
 
 
+def load_ed25519_public_key(path):
+    """Load a PEM Ed25519 **public** key and return (key, sha256(DER)).
+
+    A private key is explicitly refused: verification must never require the
+    issuer's secret, and accidentally pointing the verifier at a private key
+    would silently turn a public trust anchor into secret material on disk.
+    """
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+
+    raw, _info = _read_regular(path, limit=MAX_KEY_BYTES,
+                               where='identity public key')
+    if b'PRIVATE KEY' in raw:
+        raise WitnessError('private key refused: Ed25519 verification takes a public key')
+    try:
+        key = serialization.load_pem_public_key(raw)
+    except (ValueError, TypeError):
+        raise WitnessError('public key is not a valid PEM SubjectPublicKeyInfo') from None
+    if not isinstance(key, Ed25519PublicKey):
+        raise WitnessError('public key is not Ed25519')
+    der = key.public_bytes(serialization.Encoding.DER,
+                           serialization.PublicFormat.SubjectPublicKeyInfo)
+    return key, hashlib.sha256(der).hexdigest()
+
+
+def verify_ed25519_signature(public_key, body, signature):
+    """Return True iff the 64-byte Ed25519 signature covers canonical(body)."""
+    from cryptography.exceptions import InvalidSignature
+
+    value = signature.get('value')
+    if not isinstance(value, str):
+        raise WitnessError('signature value missing')
+    try:
+        raw = bytes.fromhex(value)
+    except ValueError:
+        raise WitnessError('signature is not hex') from None
+    if len(raw) != 64:
+        raise WitnessError('Ed25519 signature must be 64 bytes')
+    try:
+        public_key.verify(raw, canonical(body))
+        return True
+    except InvalidSignature:
+        return False
+
+
 # ---------------------------------------------------------------- 证据与清单
 def load_witness(path):
     raw, _info = _read_regular(path, limit=MAX_WITNESS_BYTES, where='witness')
@@ -237,8 +299,9 @@ def load_trusted_issuers(path):
         document = strict_json(raw.decode('utf-8'))
     except UnicodeDecodeError:
         raise WitnessError('trusted issuers is not UTF-8') from None
-    if not isinstance(document, dict) or document.get('contract') != ISSUER_CONTRACT:
+    if not isinstance(document, dict) or document.get('contract') not in SUPPORTED_ISSUER_CONTRACTS:
         raise WitnessError('trusted issuers contract unsupported')
+    v2 = document.get('contract') == ISSUER_CONTRACT_V2
     entries = document.get('issuers')
     if not isinstance(entries, list):
         raise WitnessError('trusted issuers must be a list')
@@ -255,9 +318,28 @@ def load_trusted_issuers(path):
                 issuer_id, trust))
         if issuer_id in result:
             raise WitnessError('duplicate issuer id {0!r}'.format(issuer_id))
+        scope = None
+        public_key_sha256 = None
+        if v2:
+            scope = entry.get('scope')
+            if scope not in KNOWN_SCOPES:
+                raise WitnessError('issuer {0!r} has unknown scope {1!r}'.format(
+                    issuer_id, scope))
+            public_key_sha256 = entry.get('public_key_sha256')
+            if public_key_sha256 is not None:
+                if not isinstance(public_key_sha256, str) or not re.fullmatch(
+                        r'[0-9a-f]{64}', public_key_sha256):
+                    raise WitnessError('issuer {0!r} has invalid public_key_sha256'.format(
+                        issuer_id))
+            if trust == TRUST_VERIFIED and public_key_sha256 is None:
+                raise WitnessError(
+                    'issuer {0!r} claims a verified identity source but pins no '
+                    'public key'.format(issuer_id))
         result[issuer_id] = {'trust': trust,
                              'identity_source': str(entry.get('identity_source', ''))[:256],
-                             'reviewed_by': str(entry.get('reviewed_by', ''))[:128]}
+                             'reviewed_by': str(entry.get('reviewed_by', ''))[:128],
+                             'scope': scope,
+                             'public_key_sha256': public_key_sha256}
     return result
 
 
@@ -377,6 +459,7 @@ def _base_result():
                    '且业务 JSON 自报身份不构成认证'),
         'historical_only': False,
         'verifier': dict(VERIFIER),
+        'trust_scope': 'NONE',
         'checks': {'signature': 'NOT_PRESENT', 'issuer': 'NOT_EVALUATED',
                    'request_binding': 'NOT_CHECKED', 'freshness': 'NOT_CHECKED',
                    'replay': 'NOT_RESERVED'},
@@ -405,27 +488,238 @@ def contract_description():
     }
 
 
-def f0_accepts(current_identity):
+def f0_accepts(current_identity, allow_lab=False):
     """供 F0 调用的**唯一**判定入口（避免 F0 直接比较裸状态字符串）。
 
-    必须同时满足：状态为 AUTHENTICATED、证据种类为签名证据、签发者已被
-    受信任清单标记为已验证、nonce 已原子预留。任何一项缺失都视为"未绑定"。
+    Production (``AUTHENTICATED``) still requires a verified issuer, a valid
+    signature, an exact request binding, freshness and an atomically reserved
+    nonce. Lab evidence (``AUTHENTICATED_LAB``) is accepted **only** when the
+    caller explicitly passes ``allow_lab=True``; it must additionally carry
+    ``trust_scope == LAB`` and the distinct lab issuer check. A signer cannot
+    promote itself: scope comes from the trusted issuer file.
+
+    Any missing field means "not bound".
     """
     if not isinstance(current_identity, dict):
         return False
     checks = current_identity.get('checks')
     if not isinstance(checks, dict):
         return False
-    return (
-        current_identity.get('status') == STATUS_AUTHENTICATED
-        and current_identity.get('evidence_kind') == EVIDENCE_KIND_SIGNED
+    common = (
+        current_identity.get('evidence_kind') == EVIDENCE_KIND_SIGNED
         and checks.get('signature') == 'VALID'
-        and checks.get('issuer') == TRUST_VERIFIED
         and checks.get('request_binding') == 'MATCH'
         and checks.get('freshness') == 'OK'
         and checks.get('replay') == 'RESERVED'
         and current_identity.get('historical_only') is False
     )
+    if not common:
+        return False
+    if current_identity.get('status') == STATUS_AUTHENTICATED:
+        return checks.get('issuer') == TRUST_VERIFIED
+    if not allow_lab:
+        return False
+    return (
+        current_identity.get('status') == STATUS_AUTHENTICATED_LAB
+        and current_identity.get('trust_scope') == SCOPE_LAB
+        and checks.get('issuer') == ISSUER_CHECK_LAB
+    )
+
+
+# ---------------------------------------------------------------- 核验（Ed25519）
+def _verify_ed25519(envelope, body, signature, key_path, issuers, ledger,
+                    ledger_error, now, result):
+    """Verify a v3 attestation signed with Ed25519 by a pinned lab/production issuer.
+
+    The trust anchor is the pair (issuer id listed in the trusted issuers file,
+    SHA-256 of the Ed25519 public key on disk). Scope comes only from that trusted
+    file, never from the witness, so a signer cannot promote itself from LAB to
+    PRODUCTION.
+    """
+    issuer_body = body.get('issuer')
+    if not isinstance(issuer_body, dict):
+        result.update(binding='WITNESS_ISSUER_UNDECLARED',
+                      reason='证据未声明签发者')
+        result['checks']['issuer'] = 'NOT_DECLARED'
+        return result
+    issuer_id = str(issuer_body.get('id', ''))[:128]
+    entry = issuers.get(issuer_id)
+    if entry is None:
+        result.update(binding='WITNESS_ISSUER_UNTRUSTED',
+                      reason=('签发者 {0!r} 不在受信任清单内：签名有效只证明字节完整，'
+                              '不证明其掌握任何已认证身份').format(issuer_id))
+        result['checks']['issuer'] = 'NOT_LISTED'
+        return result
+    if entry['trust'] != TRUST_VERIFIED:
+        result.update(binding='WITNESS_ISSUER_TEST_ONLY',
+                      reason='签发者仅为 TEST_ONLY 角色，不得用于身份授权')
+        result['checks']['issuer'] = TRUST_TEST_ONLY
+        return result
+    scope = entry.get('scope')
+    if scope not in KNOWN_SCOPES:
+        result.update(binding='WITNESS_ISSUER_SCOPE_INVALID',
+                      reason='受信任签发者缺少有效 scope')
+        result['checks']['issuer'] = 'SCOPE_INVALID'
+        return result
+
+    try:
+        public_key, fingerprint = load_ed25519_public_key(key_path)
+    except WitnessError as exc:
+        result.update(binding='WITNESS_KEY_UNUSABLE',
+                      reason='Ed25519 公钥不可用：' + str(exc)[:240])
+        result['checks']['signature'] = 'KEY_UNUSABLE'
+        return result
+    if entry.get('public_key_sha256') != fingerprint:
+        result.update(binding='WITNESS_KEY_NOT_PINNED',
+                      reason='磁盘上的 Ed25519 公钥与受信任清单固定的指纹不一致')
+        result['checks']['signature'] = 'KEY_MISMATCH'
+        return result
+    try:
+        valid = verify_ed25519_signature(public_key, body, signature)
+    except WitnessError as exc:
+        result.update(binding='WITNESS_REJECTED', reason=str(exc)[:400])
+        result['checks']['signature'] = 'INVALID'
+        return result
+    if not valid:
+        result.update(binding='WITNESS_REJECTED', reason='Ed25519 签名无效')
+        result['checks']['signature'] = 'INVALID'
+        return result
+    result['checks']['signature'] = 'VALID'
+
+    if body.get('contract') != CONTRACT_ED25519:
+        result.update(binding='WITNESS_CONTRACT_UNSUPPORTED',
+                      reason='Ed25519 证据必须使用 {0}'.format(CONTRACT_ED25519))
+        return result
+    for field in REQUIRED_FIELDS:
+        if field not in body:
+            result.update(binding='WITNESS_REJECTED',
+                          reason='witness missing field: ' + field)
+            return result
+    if body.get('evidence_kind') != EVIDENCE_KIND_SIGNED:
+        result.update(binding='WITNESS_EVIDENCE_KIND_UNSUPPORTED',
+                      reason='Ed25519 路径只接受 {0}'.format(EVIDENCE_KIND_SIGNED))
+        return result
+    remote = body.get('remote_identity')
+    if not isinstance(remote, dict):
+        result.update(binding='WITNESS_REJECTED',
+                      reason='remote_identity must be an object')
+        return result
+    if remote.get('authenticated') is not True:
+        result.update(status=STATUS_DENIED, evidence_kind=EVIDENCE_KIND_SIGNED,
+                      binding='WITNESS_REMOTE_NOT_AUTHENTICATED',
+                      reason='证据声明远端主体未通过认证')
+        return result
+    security_identity = remote.get('security_identity')
+    if not isinstance(security_identity, str) or not security_identity.strip():
+        result.update(status=STATUS_DENIED, evidence_kind=EVIDENCE_KIND_SIGNED,
+                      binding='WITNESS_REMOTE_IDENTITY_EMPTY',
+                      reason='证据未给出已认证主体标识')
+        return result
+
+    # Request binding: same field set as the HMAC path, so a v3 attestation
+    # cannot bind a different request_id/resource/target than the current one.
+    action = (envelope or {}).get('candidate_action') or {}
+    problems = []
+    if body.get('request_id') != envelope.get('request_id'):
+        problems.append('request_id')
+    if body.get('resource') != action.get('action_resource'):
+        problems.append('resource')
+    if body.get('operation') != action.get('operation'):
+        problems.append('operation')
+    try:
+        digest = request_digest(envelope)
+    except WitnessError:
+        problems.append('digest_unavailable')
+        digest = None
+    if digest is not None and body.get('request_digest') != digest:
+        problems.append('request_digest')
+    if problems:
+        result.update(binding='WITNESS_REQUEST_BINDING_MISMATCH',
+                      reason='证据与当前请求不匹配：' + ','.join(problems))
+        result['checks']['request_binding'] = 'MISMATCH'
+        return result
+    result['checks']['request_binding'] = 'MATCH'
+
+    try:
+        received = _rfc3339_to_epoch(body.get('received_at'))
+    except WitnessError as exc:
+        result.update(binding='WITNESS_TIMESTAMP_INVALID', reason=str(exc)[:200])
+        result['checks']['freshness'] = 'INVALID'
+        return result
+    if received - now > MAX_CLOCK_SKEW_SEC:
+        result.update(binding='WITNESS_FROM_FUTURE',
+                      reason='证据时间戳晚于本地时钟允许的偏差')
+        result['checks']['freshness'] = 'FROM_FUTURE'
+        return result
+    if now - received > MAX_REMOTE_AGE_SEC:
+        result.update(binding='WITNESS_STALE',
+                      reason='证据已超出新鲜度窗口（{0:.0f}s）'.format(MAX_REMOTE_AGE_SEC))
+        result['checks']['freshness'] = 'STALE'
+        return result
+    result['checks']['freshness'] = 'OK'
+
+    result['checks']['issuer'] = (ISSUER_CHECK_LAB if scope == SCOPE_LAB
+                                  else TRUST_VERIFIED)
+    result['trust_scope'] = scope
+
+    nonce = body.get('nonce')
+    if not isinstance(nonce, str) or len(nonce) != NONCE_HEX_LEN or \
+            any(ch not in '0123456789abcdef' for ch in nonce):
+        result.update(binding='WITNESS_NONCE_INVALID', reason='nonce 格式非法')
+        result['checks']['replay'] = 'NONCE_INVALID'
+        return result
+    if ledger is None:
+        result.update(binding='WITNESS_LEDGER_UNAVAILABLE',
+                      reason=('未配置可用的重放账本（{0}）：无法排除重放，'
+                              '因此不得判定为已认证').format(
+                                  ledger_error or 'not configured'))
+        result['checks']['replay'] = 'LEDGER_UNAVAILABLE'
+        return result
+    try:
+        outcome = ledger.reserve_nonce(nonce, {
+            'request_id': body.get('request_id'),
+            'resource': body.get('resource'),
+            'issuer': issuer_id,
+            'ts': int(now),
+        })
+    except WitnessError as exc:
+        result.update(binding='WITNESS_LEDGER_WRITE_FAILED',
+                      reason='重放账本不可用（{0}）；维持 UNKNOWN'.format(str(exc)[:160]))
+        result['checks']['replay'] = 'LEDGER_ERROR'
+        return result
+    if outcome == 'already_present':
+        result.update(binding='WITNESS_NONCE_REPLAYED',
+                      reason='该证据的 nonce 已使用过（重放）')
+        result['checks']['replay'] = 'REPLAYED'
+        return result
+    result['checks']['replay'] = 'RESERVED'
+
+    status = STATUS_AUTHENTICATED_LAB if scope == SCOPE_LAB else STATUS_AUTHENTICATED
+    binding = ('CURRENT_REQUEST_BOUND_TO_LAB_DDS_OBSERVED_SUBJECT'
+               if scope == SCOPE_LAB
+               else 'CURRENT_REQUEST_BOUND_TO_AUTHENTICATED_DDS_SUBJECT')
+    result.update(status=status, evidence_kind=EVIDENCE_KIND_SIGNED,
+                  trust_scope=scope, binding=binding,
+                  reason=('受信任 LAB 签发者以 Ed25519 证明当前请求主体经 DDS 观测且已认证'
+                          if scope == SCOPE_LAB else
+                          '受信任签发者以 Ed25519 证明当前请求主体已通过 DDS 身份认证'))
+    result['attestation'] = {
+        'issuer_id': issuer_id,
+        'identity_source': entry['identity_source'] or
+        str(issuer_body.get('identity_source', ''))[:256],
+        'request_digest': str(body.get('request_digest'))[:64],
+        'security_identity': security_identity[:256],
+        'issuer_scope': scope,
+        'public_key_sha256': fingerprint,
+        'signature_alg': 'ed25519',
+    }
+    witness_meta = body.get('witness')
+    if isinstance(witness_meta, dict):
+        result['attestation']['witness'] = {
+            key: str(witness_meta.get(key, ''))[:256]
+            for key in ('ledger_sha256', 'event_line', 'event_received_at',
+                        'writer_guid', 'participant_guid', 'certificate_subject')}
+    return result
 
 
 # ---------------------------------------------------------------- 核验
@@ -450,6 +744,11 @@ def verify(envelope, witness_path, key_path, *, issuers_path=None,
 
     try:
         body, signature = load_witness(witness_path)
+        if signature.get('alg') == 'ed25519':
+            # v3: asymmetric verification. The pinned public key and issuer scope
+            # come from trusted local configuration, never from the witness.
+            return _verify_ed25519(envelope, body, signature, key_path, issuers,
+                                   ledger, ledger_error, now, result)
         key = load_key(key_path)
         if signature.get('alg') != 'hmac-sha256':
             raise WitnessError('unsupported signature algorithm')

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<policy version="0.2.0">
+  <enclaves>
+
+    <enclave path="/witness">
+      <profiles>
+        <profile ns="/" node="m2_ingress_ingress">
+          <topics subscribe="ALLOW">
+            <topic>/m2/candidate_task</topic>
+          </topics>
+        </profile>
+      </profiles>
+    </enclave>
+
+    <enclave path="/planner">
+      <profiles>
+        <profile ns="/" node="m2_ingress_client">
+          <topics publish="ALLOW">
+            <topic>/m2/candidate_task</topic>
+          </topics>
+        </profile>
+      </profiles>
+    </enclave>
+
+    <enclave path="/operator">
+      <profiles>
+        <profile ns="/" node="m2_ingress_client">
+          <topics publish="ALLOW">
+            <topic>/m2/candidate_task</topic>
+          </topics>
+        </profile>
+      </profiles>
+    </enclave>
+
+    <enclave path="/rogue">
+      <profiles>
+        <profile ns="/" node="m2_ingress_client">
+          <topics publish="ALLOW">
+            <topic>/m2/not_the_ingress</topic>
+          </topics>
+        </profile>
+      </profiles>
+    </enclave>
+
+  </enclaves>
+</policy>

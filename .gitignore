@@ -76,3 +76,7 @@ artifacts/research/**/keystore/
 # 研究环境生成的 keystore 与私钥不入库
 artifacts/research/**/keystore/
 *.key
+
+# LAB-ONLY identity issuer keys (TEST_ONLY, never committed)
+/security/lab/
+/artifacts/research/**/m2-ingress/keystore/

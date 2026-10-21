@@ -1,0 +1,37 @@
+adapter:
+  log_path: /ws/tests/evidence/v110m2lab-20261021T184500Z/adapter.jsonl
+identity_attestation:
+  allow_lab_scope: true
+  issuers_path: /ws/tests/evidence/v110m2lab-20261021T184500Z/issuer_public/issuers.json
+  key_path: /ws/tests/evidence/v110m2lab-20261021T184500Z/issuer_public/issuer.pub.pem
+  ledger_path: /ws/tests/evidence/v110m2lab-20261021T184500Z/adapter_nonce.jsonl
+  mode: STRICT
+  witness_path: /ws/tests/evidence/v110m2lab-20261021T184500Z/attestation_planner.json
+modules:
+  comm_risk:
+    allow_fault_injection: false
+    command:
+    - python3
+    - mock_modules/comm_risk_mock.py
+    interface: comm_risk_evidence
+    max_stdout_bytes: 65536
+    mode: mock
+    timeout_sec: 10
+  identity_trust:
+    allow_fault_injection: false
+    command:
+    - python3
+    - mock_modules/identity_trust_mock.py
+    interface: identity_trust_assessment
+    max_stdout_bytes: 65536
+    mode: mock
+    timeout_sec: 10
+  task_risk:
+    allow_fault_injection: false
+    command:
+    - python3
+    - mock_modules/task_risk_mock.py
+    interface: task_risk_decision
+    max_stdout_bytes: 65536
+    mode: mock
+    timeout_sec: 10

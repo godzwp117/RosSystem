@@ -1,0 +1,6 @@
+{"event":"participant_created","role":"client","domain":45,"security":true,"guid_prefix":"9a.35.09.db.63.b6.4e.33.9d.41.58.0d","resource":"rt/m2/candidate_task"}
+[37;1m2026-10-21 17:33:50.556 [31;1m[[37;1mSECURITY[31;1m Error] [37mrt/m2/candidate_task topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1192)[34;1m -> Function [36mcheck_create_datawriter[m
+[37;1m2026-10-21 17:33:50.556 [31;1m[[37;1mSECURITY[31;1m Error] [37mError checking creation of local writer  (rt/m2/candidate_task topic not found in allow rule. (./src/cpp/security/accesscontrol/Permissions.cpp:1192))
+[34;1m -> Function [36mget_datawriter_sec_attributes[m
+[37;1m2026-10-21 17:33:50.556 [31;1m[[37;1mDATA_WRITER[31;1m Error] [37mProblem creating associated Writer[34;1m -> Function [36menable[m
+FATAL: create_datawriter failed (permissions may deny PUBLISH on this resource)

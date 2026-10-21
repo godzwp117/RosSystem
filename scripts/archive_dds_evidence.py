@@ -111,6 +111,8 @@ def main(argv=None):
     parser.add_argument('--stdout-log', default=None,
                         help='optional captured stdout/stderr of the run')
     parser.add_argument('--image', default='rosystem-verify-1.0.3:latest')
+    parser.add_argument('--expected-domain', type=int, default=43,
+                        help='DDS domain the run must have used')
     parser.add_argument('--force', action='store_true')
     args = parser.parse_args(argv)
 
@@ -130,7 +132,7 @@ def main(argv=None):
     summary = json.loads(summary_path.read_text(encoding='utf-8'))
     run_id = summary.get('run_id')
     contract = summary.get('contract') or 'sros2'
-    if contract == 'dds-lab-negative/1':
+    if contract in ('dds-lab-negative/1', 'm2-lab-identity/1'):
         # Negative suite: every case is paired with a same-stack positive control;
         # the suite is only archivable when all cases pass.
         if summary.get('failed') != 0 or summary.get('passed') != summary.get('total'):
@@ -140,8 +142,8 @@ def main(argv=None):
             refuse('not a sros2 run')
         if summary.get('failed') != 0:
             refuse('run has failures; archive it as a failure, not as a passing run')
-    if str(summary.get('secure_domain')) != '43':
-        refuse('secure domain is not 43')
+    if str(summary.get('secure_domain')) != str(args.expected_domain):
+        refuse('secure domain is not {0}'.format(args.expected_domain))
     if run_id != run_dir.name:
         refuse('summary run_id does not match directory name')
 
@@ -215,6 +217,7 @@ def main(argv=None):
         'exit_code': args.exit_code,
         'normal_domain': summary.get('normal_domain'),
         'secure_domain': summary.get('secure_domain'),
+        'secure_domain_matches_expected': True,
         'total': summary.get('total'),
         'passed': summary.get('passed'),
         'failed': summary.get('failed'),

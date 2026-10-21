@@ -290,7 +290,7 @@ def _load_identity_attestation(config: dict) -> dict:
         return {'mode': IDENTITY_MODE_STRICT, 'controlled_reason': None,
                 'witness_path': None, 'key_path': None,
                 'issuers_path': None, 'ledger_path': None,
-                'declared': False}
+                'allow_lab_scope': False, 'declared': False}
     if not isinstance(block, dict):
         raise AdapterBlock(REASON_IDENTITY_ATTESTATION_CONFIG_INVALID,
                            'identity_attestation 必须是对象')
@@ -310,9 +310,19 @@ def _load_identity_attestation(config: dict) -> dict:
                 '受控身份模式必须提供非空 identity_attestation.controlled_reason：'
                 '该模式不具备真实 DDS 身份认证能力，必须有明确记录')
 
+    allow_lab = block.get('allow_lab_scope', False)
+    if not isinstance(allow_lab, bool):
+        raise AdapterBlock(
+            REASON_IDENTITY_ATTESTATION_CONFIG_INVALID,
+            'identity_attestation.allow_lab_scope 必须是布尔值')
+    if allow_lab and mode != IDENTITY_MODE_STRICT:
+        raise AdapterBlock(
+            REASON_IDENTITY_ATTESTATION_CONFIG_INVALID,
+            'allow_lab_scope 只对 STRICT 身份模式有意义；受控模式不做核验')
     parsed = {'mode': mode, 'controlled_reason': reason, 'declared': True,
               'witness_path': None, 'key_path': None,
-              'issuers_path': None, 'ledger_path': None}
+              'issuers_path': None, 'ledger_path': None,
+              'allow_lab_scope': allow_lab}
     for field in ('witness_path', 'key_path', 'issuers_path', 'ledger_path'):
         value = block.get(field)
         if value is None:
@@ -332,6 +342,16 @@ def _load_identity_attestation(config: dict) -> dict:
                 REASON_IDENTITY_ATTESTATION_CONFIG_INVALID,
                 '严格身份模式要求 identity_attestation.{0}：缺少核验材料时'
                 '不得退化为"仅看模块自报状态"'.format('/'.join(missing)))
+        if allow_lab:
+            # Lab-scoped Ed25519 evidence is only meaningful with a pinned issuer
+            # trust file and an atomic nonce ledger. Accepting it without either
+            # would be strictly weaker than the production path.
+            lab_missing = [f for f in ('issuers_path', 'ledger_path') if not parsed[f]]
+            if lab_missing:
+                raise AdapterBlock(
+                    REASON_IDENTITY_ATTESTATION_CONFIG_INVALID,
+                    'LAB 身份范围要求 identity_attestation.{0}'.format(
+                        '/'.join(lab_missing)))
         _reject_shared_witness(config, parsed['witness_path'])
 
     return parsed
@@ -964,13 +984,23 @@ def verify_identity_attestation(config: dict, envelope: dict) -> dict:
     info['status'] = outcome.get('status')
     info['checks'] = outcome.get('checks')
     info['binding'] = outcome.get('binding')
+    info['scope'] = outcome.get('trust_scope')
     info['issuer_trust'] = ((outcome.get('attestation') or {}).get('identity_source')
                             or None)
-    if info['status'] == ci.STATUS_AUTHENTICATED:
+    allow_lab = bool(block.get('allow_lab_scope'))
+    if ci.f0_accepts(outcome, allow_lab=allow_lab):
         info['verified'] = True
-        info['reason'] = '受信任签发者证明当前请求主体已通过 DDS 身份认证'
+        if outcome.get('status') == ci.STATUS_AUTHENTICATED_LAB:
+            info['reason'] = ('受信任 LAB 签发者以 Ed25519 证明当前请求主体经 DDS 观测'
+                              '且已认证；仅为实验室范围，不是生产身份')
+        else:
+            info['reason'] = '受信任签发者证明当前请求主体已通过 DDS 身份认证'
         return info
     info['reason_code'] = REASON_IDENTITY_ATTESTATION_REJECTED
+    if outcome.get('status') == ci.STATUS_AUTHENTICATED_LAB and not allow_lab:
+        info['reason'] = ('证据为 LAB 范围，但 identity_attestation.allow_lab_scope '
+                          '未启用：不得据实验室身份推进')
+        return info
     info['reason'] = ('当前请求身份证据未通过核验（status={0}, checks={1}）：{2}'
                       ).format(info['status'], info['checks'],
                                str(outcome.get('reason'))[:200])
