@@ -17,7 +17,7 @@
     "P01_THREE_REAL_POSITIVE": "NOT_RUN",
     "P02_REAL_M1_SUSPICIOUS": "NOT_RUN",
     "THIRD_PARTY_HOST_REPRO": "NOT_RUN",
-    "WEB_V110_EVIDENCE": "NOT_RUN",
+    "WEB_V110_EVIDENCE": "PASS",
     "P07_M3_BLOCK_ISOLATION": "PASS",
     "P09_PLANNER_TIMEOUT": "PASS"
   },
@@ -25,8 +25,7 @@
     "THREE_REAL_LEVEL3",
     "P01_THREE_REAL_POSITIVE",
     "P02_REAL_M1_SUSPICIOUS",
-    "THIRD_PARTY_HOST_REPRO",
-    "WEB_V110_EVIDENCE"
+    "THIRD_PARTY_HOST_REPRO"
   ],
   "failed": [],
   "rule": "FAIL>NOT_RUN>PASS；空集合=INCOMPLETE",
@@ -43,7 +42,7 @@
     "P01_THREE_REAL_POSITIVE": "same blocker as THREE_REAL_LEVEL3",
     "P02_REAL_M1_SUSPICIOUS": "only controlled/mock M1 paths; no real M1 SUSPICIOUS produced in 1.1.0",
     "THIRD_PARTY_HOST_REPRO": "fresh-directory/container reproduction done on the same host; no third-party host/CI",
-    "WEB_V110_EVIDENCE": "1.1.0 evidence is not wired into the dashboard",
+    "WEB_V110_EVIDENCE": "now PASS (archived research evidence panel); screenshot NOT_RUN",
     "P07_M3_BLOCK_ISOLATION": "now PASS (controlled isolation), see artifacts/research/v110/p07"
   },
   "evidence": {

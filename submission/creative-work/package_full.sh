@@ -44,6 +44,7 @@ for item in dashboard replay tests docs run.sh stop.sh verify_package.sh README.
 done
 cp -a "$HERE/package_full.sh" "$ROOT/"
 if [ -d "$HERE/reports" ]; then cp -a "$HERE/reports" "$ROOT/"; fi
+if [ -d "$REPO/paper" ]; then cp -a "$REPO/paper" "$ROOT/paper"; fi
 
 echo "== 2) 运行源码（白名单，保持仓库相对布局） =="
 mkdir -p "$ROOT/runtime"
@@ -83,6 +84,11 @@ for d in m2_sros2_enforce m2_sros2_enforce_v110 m2_sros2_enforce_v110_negative m
   src="$REPO/artifacts/acceptance/exports/$d"
   [ -d "$src" ] || { echo "ERROR: 缺少研究证据目录 $d" >&2; exit 1; }
   cp -a "$src" "$ROOT/evidence/"
+done
+for d in sixhour p07 p09 m1 web m2-action-probe; do
+  src="$REPO/artifacts/research/v110/$d"
+  [ -d "$src" ] || continue
+  cp -a "$src" "$ROOT/evidence/research_v110_$d"
 done
 if find "$ROOT/evidence" -type f \( -name '*.pem' -o -name '*.key' -o -name '*.p7s' \) | grep -q .; then
   echo "ERROR: 研究证据中包含密钥/证书材料，拒绝打包" >&2; exit 1
@@ -161,6 +167,8 @@ REQUIRED=(
   runtime/identity_trust/assessor.py
   runtime/BUILD_INFO.json
   reports/ROSYSTEM_1_1_0_RESEARCH_AND_SECURITY_VALIDATION_REPORT.md
+  paper/PAPER_FACTS_FINAL.md
+  paper/EXPERIMENT_RESULTS.csv
   evidence/research_v110/p01_p12_matrix.json
   dashboard/server.py
   dashboard/docker_runtime.py
