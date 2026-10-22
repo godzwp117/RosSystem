@@ -1,0 +1,33 @@
+{
+  "contract": "pytest-log-archive/1",
+  "kind": "NEW_REEXECUTION",
+  "archive_file": "paper/evidence/pytest_1_1_1_rc1_skip_audit_new_run.log",
+  "size_bytes": 3103,
+  "sha256": "3498071b28d9f371b3b9027a5d0a58d690c7f786e1b2dd0ff0c153f03656baf3",
+  "original_full_log": false,
+  "original_container": "rg_last2 (deleted; /tmp/unit.log never copied to host)",
+  "original_result": "921 passed / 17 skipped / 0 failed / 603.8 s (recorded; original full stdout unavailable)",
+  "new_run_container": "rg_audit (new container, same package)",
+  "new_run_result": "921 passed, 17 skipped in 600.79s (0:10:00)",
+  "new_run_environment": "SAME_HOST_FRESH_ENV; image rosystem-jazzy:1.1.0; package extracted to /tmp/rc1-audit",
+  "new_run_command": "pytest tests/unit -q -rs -p no:cacheprovider (stdout redirected to container /tmp/full_rs.log)",
+  "package_sha256": "d69737cf9dbd039a4a0b8a127eb15bb3db55b5514512c119befd46d5e0fe32d2",
+  "contains_full_pytest_output": true,
+  "contains_all_skipped_reasons": true,
+  "caveat": "This is a NEW re-execution, not the original rg_last2 log. It confirms 921/17 and gives skip nodeids/reasons, but cannot replace the missing original 603.8 s log.",
+  "new_run_passed": 921,
+  "new_run_skipped": 17,
+  "new_run_failed": 0,
+  "new_run_duration_seconds": 600.79,
+  "new_run_timestamp": "2026-10-22 (NEW_REEXECUTION; exact wall-clock timestamp not preserved)",
+  "contains_all_skipped_details": true,
+  "original_test_run_time": "2026-10-22 (time of day not preserved with the tail-only output)",
+  "new_run_details": {
+    "purpose": "recover exact skipped nodeids/reasons for audit",
+    "container": "rg_audit",
+    "source_log_in_container": "/tmp/full_rs.log",
+    "result": "921 passed, 17 skipped, 0 failed, 600.79 s",
+    "not_original": true
+  },
+  "sha256_verified": "3498071b28d9f371b3b9027a5d0a58d690c7f786e1b2dd0ff0c153f03656baf3"
+}

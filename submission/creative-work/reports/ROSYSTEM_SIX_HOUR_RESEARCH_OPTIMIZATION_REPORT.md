@@ -199,11 +199,12 @@ Planner RESULT_TIMEOUT  ≠  Gateway 未收到
 | 解压/密钥扫描 | 两包 sha256 OK；无 `.pem/.key/.p7s` |
 | colcon（最终 sha） | 4/4，0 失败 |
 | DDS Enforce（最终 sha） | **7/7 PASS** |
-| 全量单测（最终 sha） | **921 passed / 17 skipped / 0 failed（603.8 s）** |
+| 全量单测（最终 sha） | **921 passed / 17 skipped / 0 failed（603.8 s）**；原始完整日志 **NOT_RECOVERED** |
 | 最终 sha 包上的负向/身份/网关/P07/P09/三真实/Web | DDS 负向 6/6、M2 17/17、Gateway 14/14、P07 13/13、P09 10/10、三真实 L1/L2 PASS、L3 BLOCKED、Web 18 passed |
 
-**注意**：以上结果均在最终 sha 包上重跑。`tests/unit` 在包内跳过 17 项
-（依赖仓库未归档的 demo 证据/外部条件），pytest 明确列出 skipped，未计为 PASS。
+**注意**：以上结果均在最终 sha 包上重跑。`tests/unit` 在包内跳过 17 项；
+完整原始 pytest stdout 未归档，逐项原因见 `paper/FINAL_PACKAGE_SKIPPED_TESTS.csv`
+与 `paper/FINAL_UNIT_TEST_EVIDENCE_AUDIT.md`。skipped 未计为 PASS。
 
 详细记录：`paper/FINAL_PACKAGE_REPRODUCTION.md`。
 
@@ -227,7 +228,7 @@ Planner RESULT_TIMEOUT  ≠  Gateway 未收到
 | 三真实 LEVEL3 仍 BLOCKED | `sixhour/three-real/summary.json` |
 | P07 不再用错证据 | `ERRATUM_P07.md` + 隔离实验 |
 | DDS 负向仍 6/6 | `sixhour-ddsneg...` |
-| 未删除旧测试 | 全量单测 920 passed / 4 skipped |
+| 未删除旧测试 | 源码 920 passed / 4 skipped；最终包 921 passed / 17 skipped |
 
 ## 16. 仍未完成
 

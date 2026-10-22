@@ -4,6 +4,22 @@
 > 增量：`PAPER_FACTS_NEW_EXPERIMENTS.md`
 > 本表按**证据强度**分类，不按“是否希望论文好看”分类。
 
+> **最终版本归属（2026-10-22 文档收尾）**
+>
+> ```text
+> FINAL_CANDIDATE                 = 1.1.1-rc1
+> FINAL_ACCEPTANCE_SOURCE_COMMIT  = 40fded595afceced4205d2fae9756d6c90f95617
+> FINAL_FULL_SHA256               = d69737cf9dbd039a4a0b8a127eb15bb3db55b5514512c119befd46d5e0fe32d2
+> FINAL_UNIT_TESTS                = 921 passed / 17 skipped / 0 failed / 603.8 s
+> FINAL_UNIT_SCOPE                = SAME_HOST_FRESH_ENV（完整包解压后的全量单测）
+> ```
+>
+> `40fded5` 是**候选包验收来源提交**；本文件若在更晚的文档提交中更新，不得把
+> 该文档提交冒称为打包源码提交。`921/17` 来自
+> `FINAL_PACKAGE_REPRODUCTION.md` 记录的最终包运行；原始完整 pytest 日志
+> **未归档**（见 `UNIT_TEST_LOG_RECOVERY_STATUS.md`）。历史 1.1.0 的
+> `920/4` 是 `HISTORICAL_BASELINE`，与最终包结果分开记录。
+
 ## A. 已动态验证（本轮实际运行）
 
 | 结论 | 数值 | 证据 | 范围 |
@@ -29,7 +45,7 @@
 | Gateway 身份门默认关闭且无静默回退 | `security_gateway.py` + `test_gateway_identity_gate.py` |
 | P07 隔离配置显式 `CONTROLLED_TEST_ONLY` | `config/team_modules.p07-isolation.yaml` |
 
-## C. 已归档实验验证（复用，不冒充本轮重跑）
+## C. 历史基线（HISTORICAL_BASELINE，复用，不冒充最终包）
 
 | 结论 | 数值 | 证据 |
 | --- | --- | --- |
@@ -40,14 +56,33 @@
 | Gateway 双层 | 14/14 | `m2_gateway_identity_v110` |
 | 组件重复 | 30/30 + 3/3 | `v110rep-20261021T195500Z` |
 
+
+## C2. 最终包验证（FINAL_PACKAGE_VALIDATION）
+
+| 结论 | 数值 | 证据 | 口径 |
+| --- | --- | --- | --- |
+| 最终包全量单测 | **921 passed / 17 skipped / 0 failed / 603.8 s** | `FINAL_PACKAGE_REPRODUCTION.md`；原始日志未归档 | 完整包解压后的新容器；17 skipped 不计入 passed |
+| 最终包 DDS Enforce | 7/7 | `artifacts/research/v110/final-package/last-dds-20261022T051500Z/summary.json` | domain 43，TEST_ONLY_LAB |
+| 最终包 DDS 负向 | 6/6 | `artifacts/research/v110/final-package/last-ddsneg-20261022T051700Z/summary.json` | 同栈对照 |
+| 最终包 M2 意图身份 | 17/17 | `artifacts/research/v110/final-package/last-m2-20261022T052000Z/` | 意图主题，不是 Action |
+| 最终包 Gateway | 14/14 | `artifacts/research/v110/final-package/last-gw-20261022T052300Z/` | 文件 side channel |
+| 最终包 P07 | 13/13 | `artifacts/research/v110/final-package/last-p07-20261022T052500Z/` | CONTROLLED_ISOLATION |
+| 最终包 P09 | 10/10 | `artifacts/research/v110/final-package/last-p09-20261022T052700Z/` | 同容器时钟 |
+| 最终包三真实 | L1 PASS / L2 PASS / **L3 BLOCKED** | `artifacts/research/v110/final-package/three-real/summary.json` | M1 UNKNOWN |
+| 最终包 Web | 18 passed；HTTP 200 | `artifacts/research/v110/web/summary.json` | ARCHIVED_RESEARCH_EVIDENCE |
+
+> 最终包的 921 项是**单元测试检查项**，不是 921 次独立系统实验；17 个 skipped
+> 不进入成功率的分子或分母。17 项 nodeid/reason 由一次 `NEW_REEXECUTION`
+> （600.79 s，同一最终包）逐项核对；它不替代历史 603.8 s 的结果。
+
 ## D. 仅同宿主复现
 
-- 新压缩包 → 新目录/新容器 → colcon 4/4 → DDS 7/7 → 121 测试；
+- 新压缩包 → 新目录/新容器 → colcon 4/4 → DDS 7/7 → 全量单测 921/17；
 - 这是 `SAME_HOST_FRESH_ENV_VERIFIED`，**不是** `THIRD_PARTY_HOST_VERIFIED`。
 
 ## E. 实验室验证
 
-- DDS Enforce、M2 意图身份、Gateway 双层均为临时实验室 CA；
+- DDS Enforce、M2 意图身份、Gateway 双层均为临时实验室 CA（`TEST_ONLY_LAB`）；
 - 不证明生产 CA/HSM/撤销/轮换。
 
 ## F. 尚未验证
@@ -75,3 +110,21 @@
 > 主体到请求摘要的 Ed25519 绑定（意图主题）以及 F0/Gateway 双层独立阻断；
 > 但 M1 受信任 NORMAL 与 Action 级身份仍未实现，因此三真正向与生产级结论
 > 均不成立。
+
+## I. 最终状态矩阵（供论文/答辩直接引用）
+
+```text
+FINAL_CANDIDATE                  = 1.1.1-rc1
+FINAL_ACCEPTANCE_SOURCE_COMMIT   = 40fded595afceced4205d2fae9756d6c90f95617
+FINAL_UNIT_TESTS                 = 921 passed / 17 skipped / 0 failed / 603.8 s
+ORIGINAL_FULL_PYTEST_LOG         = NOT_RECOVERED
+THREE_REAL_LEVEL3                = BLOCKED
+M2_ACTION_SEND_GOAL_BINDING      = NOT_VERIFIED
+THIRD_PARTY_HOST_REPRODUCED      = NOT_RUN
+P07_SCOPE                        = CONTROLLED_ISOLATION
+WEB_RESEARCH_EVIDENCE            = ARCHIVED_RESEARCH_EVIDENCE
+DDS_CA_SCOPE                     = TEST_ONLY_LAB
+FINAL_MATURITY                   = LEVEL_C
+```
+
+`LEVEL_C` 不是生产级安全验收通过；`921 passed` 不是 921 次独立系统实验。

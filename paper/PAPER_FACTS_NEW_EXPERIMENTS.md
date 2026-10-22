@@ -35,3 +35,12 @@
 - 类别：`ARCHIVED_RESEARCH_EVIDENCE`，`online_evidence=false`
 - 证据：`artifacts/research/v110/web/`、`paper/WEB_EVIDENCE_VERIFICATION.md`
 - 限制：无无头浏览器，截图 NOT_RUN
+
+## N-005 1.1.1-rc1 最终包单测与日志边界
+
+- 最终包：`1.1.1-rc1`，SHA-256 `d69737cf…`
+- 单测：**921 passed / 17 skipped / 0 failed / 603.8 s**
+- 历史基线：1.1.0 `920 passed / 4 skipped`（HISTORICAL_BASELINE）
+- 注意：结果有记录，但**原始完整 pytest 日志未恢复**
+- 证据：`paper/FINAL_PACKAGE_REPRODUCTION.md`、`paper/UNIT_TEST_LOG_RECOVERY_STATUS.md`
+- 17 skipped 不计入 passed；不得写成 921 次独立实验
