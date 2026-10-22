@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "/usr/bin/python3",
+    "/ws/modules/member3_taskrisk/module.py",
+    "--policy",
+    "/ws/config/scenarios/task_policy_tight_region.yaml"
+  ],
+  "exit_code": 0,
+  "duration_ms": 63.601
+}

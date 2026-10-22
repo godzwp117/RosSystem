@@ -16,15 +16,15 @@
     "THREE_REAL_LEVEL3": "NOT_RUN",
     "P01_THREE_REAL_POSITIVE": "NOT_RUN",
     "P02_REAL_M1_SUSPICIOUS": "NOT_RUN",
-    "P09_PLANNER_TIMEOUT": "NOT_RUN",
     "THIRD_PARTY_HOST_REPRO": "NOT_RUN",
-    "WEB_V110_EVIDENCE": "NOT_RUN"
+    "WEB_V110_EVIDENCE": "NOT_RUN",
+    "P07_M3_BLOCK_ISOLATION": "PASS",
+    "P09_PLANNER_TIMEOUT": "PASS"
   },
   "not_run": [
     "THREE_REAL_LEVEL3",
     "P01_THREE_REAL_POSITIVE",
     "P02_REAL_M1_SUSPICIOUS",
-    "P09_PLANNER_TIMEOUT",
     "THIRD_PARTY_HOST_REPRO",
     "WEB_V110_EVIDENCE"
   ],
@@ -42,9 +42,9 @@
     "THREE_REAL_LEVEL3": "M1 validation_gate_passed=false -> comm_risk UNKNOWN -> F0 ADAPTER_BLOCK; no mock substituted",
     "P01_THREE_REAL_POSITIVE": "same blocker as THREE_REAL_LEVEL3",
     "P02_REAL_M1_SUSPICIOUS": "only controlled/mock M1 paths; no real M1 SUSPICIOUS produced in 1.1.0",
-    "P09_PLANNER_TIMEOUT": "not rerun in 1.1.0; 1.0.3 evidence remains the reference",
     "THIRD_PARTY_HOST_REPRO": "fresh-directory/container reproduction done on the same host; no third-party host/CI",
-    "WEB_V110_EVIDENCE": "1.1.0 evidence is not wired into the dashboard"
+    "WEB_V110_EVIDENCE": "1.1.0 evidence is not wired into the dashboard",
+    "P07_M3_BLOCK_ISOLATION": "now PASS (controlled isolation), see artifacts/research/v110/p07"
   },
   "evidence": {
     "dds": "artifacts/acceptance/exports/m2_sros2_enforce_v110/evidence_manifest.json",
@@ -54,5 +54,6 @@
     "package": "artifacts/acceptance/exports/package_v110_verification/package_verification.json",
     "matrix": "artifacts/acceptance/exports/research_v110/p01_p12_matrix.json",
     "report": "submission/creative-work/reports/ROSYSTEM_1_1_0_RESEARCH_AND_SECURITY_VALIDATION_REPORT.md"
-  }
+  },
+  "registry_note": "Items updated after P07 isolation and P09 rerun; overall status recomputed by the same strict rule."
 }

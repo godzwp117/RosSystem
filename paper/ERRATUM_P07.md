@@ -1,6 +1,6 @@
 # 勘误 E-001：P07 的“M3 阻断 → F0 阻断”证据不匹配
 
-> 状态：**已定位，待本轮隔离实验复核**
+> 状态：**已复核并更正**（隔离实验 13/13，run `p07-20261022T024200Z`）
 > 影响：论文中任何引用“P07 PASS”或“M3 建议阻断已被验证”的句子
 
 ## 1. 原声明
@@ -52,3 +52,18 @@
 - 在复核完成前：**不得**引用 P07 PASS；
 - 可安全引用的是独立的 Gateway S5 `OUT_OF_REGION` 阻断结论；
 - 若隔离实验失败：P07 应改为 `NOT_VERIFIED`，并保留上述独立结论。
+
+
+---
+
+## 6. 复核结果（2026-10-22）
+
+隔离实验 `p07-20261022T024200Z` 13/13 通过：
+
+- 真实 M3 External 输出 `BLOCK_RECOMMENDED`，`OUT_OF_REGION`；
+- F0 `ADAPTER_BLOCK`，reason `ADAPTER_MODULE_STATUS_NOT_PROCEED`，detail 明确指向 `task_risk`；
+- Planner `submitted=false`；
+- Gateway/NavigationSim 未启动，0 收到/0 Goal 由“未提交”推出，未伪造运行事件。
+
+因此 P07 可标为 **PASS（CONTROLLED_ISOLATION）**；原 Gateway `OUT_OF_REGION`
+证据仍作为独立结论保留。该结果**不是**三真实正向，也不改变 LEVEL 3 = BLOCKED。

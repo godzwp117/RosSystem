@@ -66,12 +66,18 @@
     },
     {
       "id": "P07",
-      "target": "M3 recommendation BLOCK -> F0 BLOCK",
+      "target": "real M3 BLOCK_RECOMMENDED -> F0 BLOCK, Planner not submitted, 0 Goal (controlled isolation)",
       "status": "PASS",
-      "reason": "M3 real module returns ALLOW_RECOMMENDED for legal request; S5 OUT_OF_REGION blocks at TaskPolicy; M3 block path covered by member3 acceptance",
+      "reason": "P07 isolation: real M3 External with tight read-only policy outputs BLOCK_RECOMMENDED/OUT_OF_REGION; M1/M2 MOCK only to isolate M3; F0 ADAPTER_BLOCK names task_risk; Planner not submitted; no Gateway/Goal. The separate Gateway S5 OUT_OF_REGION block remains an independent result, not the basis for P07.",
       "evidence": [
-        "artifacts/research/v110/three-real/summary.json",
-        "artifacts/acceptance/exports/m2_sros2_enforce_v110"
+        "artifacts/research/v110/p07/p07-20261022T024200Z/summary.json",
+        "artifacts/research/v110/p07/p07-20261022T024200Z/f0_result.json",
+        "artifacts/research/v110/p07/p07-20261022T024200Z/task_risk.stdout.txt"
+      ],
+      "scope": "CONTROLLED_ISOLATION",
+      "limitations": [
+        "M1/M2 are MOCK in this isolation; not a three-real result",
+        "Gateway and NavigationSim were not started; 0 received/0 goal follows from no submission"
       ]
     },
     {
@@ -85,11 +91,16 @@
     },
     {
       "id": "P09",
-      "target": "Planner TIMEOUT semantics",
-      "status": "NOT_RUN",
-      "reason": "not rerun in 1.1.0; 1.0.3 timeout evidence remains the reference (see LIMITATIONS.md)",
+      "target": "Planner RESULT_TIMEOUT vs Gateway ALLOW/execution, no cancellation",
+      "status": "PASS",
+      "reason": "P09 rerun: planner waited 1 s and exited RESULT_TIMEOUT; Gateway received 1 request, DecisionEvent ALLOW_IN_POLICY, NavigationSim 1 Goal; ExecutionEvent EXECUTED at 02:37:47.665Z, after the planner had already exited. No cancel was sent.",
       "evidence": [
-        "submission/creative-work/docs/LIMITATIONS.md"
+        "artifacts/research/v110/p09/p09-20261022T030000Z/summary.json"
+      ],
+      "scope": "LAB_SINGLE_CONTAINER",
+      "limitations": [
+        "same-container clock domain; no cross-host ordering claim",
+        "NavigationSim is recorded_only, not a physical robot"
       ]
     },
     {
@@ -123,10 +134,10 @@
     }
   ],
   "summary": {
-    "PASS": 9,
+    "PASS": 10,
     "FAIL": 0,
     "BLOCKED": 1,
-    "NOT_RUN": 1,
+    "NOT_RUN": 0,
     "NOT_VERIFIED": 1
   },
   "runs": {
@@ -169,5 +180,24 @@
       "trials": 30,
       "positive_ok": 30
     }
-  }
+  },
+  "updated_at": "2026-10-22T03:05:00Z",
+  "corrections": [
+    {
+      "erratum": "E-001",
+      "case": "P07",
+      "original": "PASS based on Gateway S5 OUT_OF_REGION",
+      "corrected": "PASS only after the P07 controlled-isolation experiment; the old basis is rejected",
+      "run_id": "p07-20261022T024200Z",
+      "scope": "CONTROLLED_ISOLATION"
+    },
+    {
+      "erratum": "E-002",
+      "case": "P09",
+      "original": "NOT_RUN in 1.1.0",
+      "corrected": "PASS after a fresh 1.1.0 planner-timeout run",
+      "run_id": "p09-20261022T030000Z",
+      "scope": "LAB_SINGLE_CONTAINER"
+    }
+  ]
 }

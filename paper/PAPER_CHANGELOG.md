@@ -14,3 +14,6 @@
 - M1 新观测/评估（本轮）
 - Web 1.1.0 证据展示（本轮）
 - 最终包复现（本轮）
+| 2026-10-22T03:05:00Z | P07 由 DISPUTED 改为 PASS（CONTROLLED_ISOLATION） | 新增真实 M3 隔离实验，13/13；原 Gateway 证据被明确排除 | 论文可引用“M3 阻断在 F0 生效”，但必须标注 M1/M2 为 MOCK |
+| 2026-10-22T03:05:00Z | P09 由 NOT_RUN 改为 PASS | 新增 1.1.0 Planner 超时重测，10/10 | 论文可写“Planner 超时 ≠ Gateway 未收到/未执行”，限制为同容器时钟 |
+| 2026-10-22T03:05:00Z | 矩阵 PASS 10 / BLOCKED 1 / NOT_VERIFIED 1 | P07/P09 更新 | 三真正向仍 BLOCKED，LEVEL C 不变 |
