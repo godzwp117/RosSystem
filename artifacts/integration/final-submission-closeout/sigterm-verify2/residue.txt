@@ -1,0 +1,4 @@
+   2018    2018 Ss   bash -lc set +u; source /opt/ros/jazzy/setup.bash; source /ws/install/setup.bash; set -u; cd /ws && export ROS_DOMAIN_ID=76; bash tests/integration/test_sigterm_cleanup.sh /ws sigterm-verify2 > /tmp/st2.log 2>&1; echo RC=$?; tail -14 /tmp/st2.log
+   2041    2018 S    bash tests/integration/test_sigterm_cleanup.sh /ws sigterm-verify2
+   2135    2018 R    ps -eo pid=,pgid=,stat=,args=
+   2136    2018 S    awk -v g=2018 $2==g

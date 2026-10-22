@@ -1,0 +1,168 @@
+{
+  "contract": "dds-lab-evidence/1",
+  "scope": "TEST_ONLY_LAB",
+  "run_id": "v110m2lab-20261021T184500Z",
+  "archived_at": "2026-10-21T17:34:39Z",
+  "command": "docker exec rg_v110 bash -lc 'cd /ws && source /opt/ros/jazzy/setup.bash && python3 tests/integration/m2_lab_identity_chain.py --run-id v110m2lab-20261021T184500Z'",
+  "exit_code": 0,
+  "normal_domain": null,
+  "secure_domain": 45,
+  "secure_domain_matches_expected": true,
+  "total": 17,
+  "passed": 17,
+  "failed": 0,
+  "policy": {
+    "path": "security/policies/research/m2_ingress_lab.xml",
+    "sha256": "ecffe8d4c66d76b06cde12b7cc3802f4bfa23659de8a48f573fce2ff3c2b91e4"
+  },
+  "ca_certificate": {
+    "subject": "CN = sros2CA",
+    "sha256_fingerprint": "0E:9F:2B:95:30:5D:26:62:0C:A0:87:27:60:2A:C8:BC:F9:3D:08:D6:7D:33:96:37:D4:B9:9F:D5:E9:95:37:43"
+  },
+  "enclaves": {
+    "operator": {
+      "permissions_sha256": "ddb08b8b643f2a1bae8c86addc2257abff9475424a9cb6110f4892917b4210e1",
+      "permissions_path": "keystore_permissions/operator/permissions.xml",
+      "default_deny": true,
+      "domain_43": false,
+      "certificate": {
+        "subject": "CN = /operator",
+        "sha256_fingerprint": "A5:AD:DA:97:68:BE:DB:4C:60:7A:FD:4C:5A:90:7A:E5:98:C7:86:7E:34:10:B9:FD:7F:FC:90:9A:80:FD:0F:23"
+      }
+    },
+    "planner": {
+      "permissions_sha256": "25590599a3035326683aefe6928fb3d4517312d5c715ec5631c4f78e99c5b5be",
+      "permissions_path": "keystore_permissions/planner/permissions.xml",
+      "default_deny": true,
+      "domain_43": false,
+      "certificate": {
+        "subject": "CN = /planner",
+        "sha256_fingerprint": "92:3B:ED:AD:A6:A1:D6:E3:4D:F7:63:1D:5E:EC:50:37:4D:8F:5E:00:BE:EC:A1:9F:9B:CD:DF:37:B5:36:05:17"
+      }
+    },
+    "rogue": {
+      "permissions_sha256": "c9df71d683c06354461d375866170690f24848cdde097095b35ef9ea40dc3de9",
+      "permissions_path": "keystore_permissions/rogue/permissions.xml",
+      "default_deny": true,
+      "domain_43": false,
+      "certificate": {
+        "subject": "CN = /rogue",
+        "sha256_fingerprint": "5A:29:CD:EB:2B:6B:3F:A6:03:69:BD:A4:55:2C:61:A4:12:93:A6:5B:B7:3B:A4:D5:E4:33:F2:81:E9:43:A1:59"
+      }
+    },
+    "witness": {
+      "permissions_sha256": "72421f17f6fb2d7468f3a163d46971cec898e384d065d1914d2247c2f5cc0c59",
+      "permissions_path": "keystore_permissions/witness/permissions.xml",
+      "default_deny": true,
+      "domain_43": false,
+      "certificate": {
+        "subject": "CN = /witness",
+        "sha256_fingerprint": "8E:9D:59:7F:06:CE:12:82:DE:F8:48:1A:25:68:CD:B5:25:79:E0:7C:A8:5C:3D:C6:26:18:AA:8A:B5:BF:E9:46"
+      }
+    }
+  },
+  "secrets_included": false,
+  "certificates_are_public_only": true,
+  "private_key_policy": "keystore private keys are never copied; the archive is not usable to impersonate any participant",
+  "git_head": "e4dce17a356f7d559d24ea3348deccfeb747869b",
+  "git_worktree_dirty": true,
+  "host": {
+    "uname": "Linux 6.18.54.1-microsoft-standard-WSL2"
+  },
+  "image": {
+    "name": "rosystem-verify-1.0.3:latest",
+    "digest": "rosystem-verify-1.0.3@sha256:ad4e6d2703b72c6fe09470e191edd569f6470077ddedde7ae41c8e7fc356fa75"
+  },
+  "run_stdout": null,
+  "files": {
+    "keystore_permissions/operator/permissions.xml": {
+      "sha256": "ddb08b8b643f2a1bae8c86addc2257abff9475424a9cb6110f4892917b4210e1",
+      "bytes": 1035
+    },
+    "keystore_permissions/planner/permissions.xml": {
+      "sha256": "25590599a3035326683aefe6928fb3d4517312d5c715ec5631c4f78e99c5b5be",
+      "bytes": 1033
+    },
+    "keystore_permissions/rogue/permissions.xml": {
+      "sha256": "c9df71d683c06354461d375866170690f24848cdde097095b35ef9ea40dc3de9",
+      "bytes": 1030
+    },
+    "keystore_permissions/witness/permissions.xml": {
+      "sha256": "72421f17f6fb2d7468f3a163d46971cec898e384d065d1914d2247c2f5cc0c59",
+      "bytes": 1037
+    },
+    "v110m2lab-20261021T184500Z/adapter.jsonl": {
+      "sha256": "36059e3da3f0c5ab4105d1919db3d49997b92de45f8a40088955b9f9b74ae26f",
+      "bytes": 2527
+    },
+    "v110m2lab-20261021T184500Z/adapter2.jsonl": {
+      "sha256": "499f7a64e9a5bc4d1af0cbaa2e00b7bd7c0043845283ffe3b4eab1cf818916b5",
+      "bytes": 2836
+    },
+    "v110m2lab-20261021T184500Z/adapter_nonce.jsonl": {
+      "sha256": "86446b51ba3c47924a45a0ee68977fe32f8da4bfa0144ebe61ac4382207361c3",
+      "bytes": 181
+    },
+    "v110m2lab-20261021T184500Z/attestation_planner.json": {
+      "sha256": "7fa83d17b20fca48aa3fb63db29a589f4eecbb73cf483427005129ada9505622",
+      "bytes": 1550
+    },
+    "v110m2lab-20261021T184500Z/client_operator.log": {
+      "sha256": "4d71703f152f8692e0e61e864993a64c1dc28e977f325e4a105a21ddfa36e205",
+      "bytes": 395
+    },
+    "v110m2lab-20261021T184500Z/client_planner.log": {
+      "sha256": "59ebaabfb3300ff90f847f5d1e992863adfd01e74a1e2ae72bc1e8f3d38eae35",
+      "bytes": 395
+    },
+    "v110m2lab-20261021T184500Z/client_rogue.log": {
+      "sha256": "4f88a276bf58d0cc10d25005b8069a1df3b1a7a95e4881255ab981c0b986c5e4",
+      "bytes": 904
+    },
+    "v110m2lab-20261021T184500Z/envelope_planner.json": {
+      "sha256": "9ef286d30fdf223893be1b36a266024bbdf2771ce4c2ae038128bea9fd57c424",
+      "bytes": 645
+    },
+    "v110m2lab-20261021T184500Z/ingress.log": {
+      "sha256": "c668ba8b62ec565c1c046a158bf8e3bddde7ac805cda12453150a974ea5e9fb1",
+      "bytes": 510
+    },
+    "v110m2lab-20261021T184500Z/intent_events.jsonl": {
+      "sha256": "b555b98e19363a09c6db38d1facf83b6ddd1c517e203aa35e3f2676385007cef",
+      "bytes": 3688
+    },
+    "v110m2lab-20261021T184500Z/issuer_public.pub": {
+      "sha256": "c8871b4480ac14d489e412ec6760522bb0bca8a28a69be0eea7afe9210611550",
+      "bytes": 113
+    },
+    "v110m2lab-20261021T184500Z/issuers.json": {
+      "sha256": "08d403cfcf7eec9126e115895195dd883af5a17f39a91ab6700fb4d4cae548f4",
+      "bytes": 529
+    },
+    "v110m2lab-20261021T184500Z/nonce_ledger.jsonl": {
+      "sha256": "86446b51ba3c47924a45a0ee68977fe32f8da4bfa0144ebe61ac4382207361c3",
+      "bytes": 181
+    },
+    "v110m2lab-20261021T184500Z/stale_ledger.jsonl": {
+      "sha256": "9ff02fb9c3673f33e0f944c2a4a44c5293bf3f9fd947d260948c5bc9e972dae7",
+      "bytes": 3933
+    },
+    "v110m2lab-20261021T184500Z/summary.json": {
+      "sha256": "fc567ec48c4905103b57bc870be5261e29e0a87cc4fdd571f875f68c5171fe30",
+      "bytes": 5919
+    },
+    "v110m2lab-20261021T184500Z/tampered_attestation.json": {
+      "sha256": "a702139f795b7e75d8a3d22becc9ba4d7774aea3f5dc967a8c7a7fe426b8c321",
+      "bytes": 1349
+    },
+    "v110m2lab-20261021T184500Z/tampered_ledger.jsonl": {
+      "sha256": "454ba6416b983f707c746be5f1fe6dfad7af7fdaaa4ef8b8ba039f4a0e00da0a",
+      "bytes": 3943
+    },
+    "v110m2lab-20261021T184500Z/team_modules.lab.yaml": {
+      "sha256": "f7fdceedeb35e7642704d240dfb72c9a456887feadd9788181380cd566d6c67e",
+      "bytes": 1133
+    }
+  },
+  "note": "permissions.xml are policy-derived, non-secret artifacts included so the run can be interpreted without the wiped keystore; they are NOT the 2026-10-09 historical evidence"
+}

@@ -1,0 +1,1 @@
+{"received_at": "2026-10-19T15:57:47.747Z", "action": "/rg/nav_execute", "goal_id": "6611576918ea40238ea3aa0a5dde595d", "request_id": "pos-audit-control", "task_id": "patrol_a_001", "frame_id": "map", "x": 1.0, "y": 1.0, "z": 0.0, "recorded_only": true, "path_planning": false}

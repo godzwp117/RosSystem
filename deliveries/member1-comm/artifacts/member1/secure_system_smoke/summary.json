@@ -1,0 +1,202 @@
+{
+  "run_id": "member1-secure-smoke",
+  "finished_at": "2026-10-13T10:55:49Z",
+  "workspace": "/ws",
+  "suite": "sros2",
+  "normal_domain": "61",
+  "secure_domain": "51",
+  "total": 2,
+  "passed": 2,
+  "failed": 0,
+  "scenarios": [
+    {
+      "scenario": "S2",
+      "scenario_id": "S2",
+      "description": "Enforce 模式合法 A 区请求：Planner→Gateway→NavigationSim 正常完成",
+      "scenario_name": "Enforce 模式合法 A 区请求：Planner→Gateway→NavigationSim 正常完成",
+      "expected_result": "Enforce 模式合法 A 区请求：Planner→Gateway→NavigationSim 正常完成",
+      "actual_result": "Enforce 下 Planner 成功拿到执行结果（EXECUTED）=PASS; Enforce 下下游新增 1 条 Goal=PASS; Enforce 下判定为 ALLOW_IN_POLICY=PASS; 授权链完整（身份合法 + 基础通信许可 + 业务放行）=PASS",
+      "result": "PASS",
+      "status": "PASS",
+      "evidence_dir": "tests/evidence/member1-secure-smoke/S2",
+      "command": [
+        "ros2",
+        "run",
+        "rg_demo_nodes",
+        "planner_node",
+        "--ros-args",
+        "-p",
+        "request_id:=s2-a-zone",
+        "-p",
+        "task_id:=patrol_a_001",
+        "-p",
+        "frame_id:=map",
+        "-p",
+        "target_x:=1.5",
+        "-p",
+        "target_y:=1.5",
+        "-p",
+        "expect_success:=1"
+      ],
+      "commands": [
+        {
+          "step": "planner",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "planner_node",
+            "--ros-args",
+            "-p",
+            "request_id:=s2-a-zone",
+            "-p",
+            "task_id:=patrol_a_001",
+            "-p",
+            "frame_id:=map",
+            "-p",
+            "target_x:=1.5",
+            "-p",
+            "target_y:=1.5",
+            "-p",
+            "expect_success:=1"
+          ],
+          "exit_code": 0,
+          "duration_sec": 1.274
+        }
+      ],
+      "exit_code": 0,
+      "duration_ms": 1274,
+      "log_path": "tests/evidence/member1-secure-smoke/S2/planner.log",
+      "evidence_files": [
+        "tests/evidence/member1-secure-smoke/S2/planner.log"
+      ],
+      "reason_code": "ALLOW_IN_POLICY",
+      "security_mode": "enforce",
+      "source_role": "planner",
+      "source_enclave": "/planner",
+      "requested_resource": "/rg/guarded_navigate",
+      "downstream_goal_count": 1,
+      "rejection_layer": "not_applicable",
+      "checks": [
+        {
+          "check": "Enforce 下 Planner 成功拿到执行结果（EXECUTED）",
+          "result": "PASS",
+          "detail": "EXECUTED/True"
+        },
+        {
+          "check": "Enforce 下下游新增 1 条 Goal",
+          "result": "PASS",
+          "detail": "journal 增量=1"
+        },
+        {
+          "check": "Enforce 下判定为 ALLOW_IN_POLICY",
+          "result": "PASS",
+          "detail": "ALLOW_IN_POLICY"
+        },
+        {
+          "check": "授权链完整（身份合法 + 基础通信许可 + 业务放行）",
+          "result": "PASS",
+          "detail": "三项均满足"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "scenario": "S5",
+      "scenario_id": "S5",
+      "description": "Enforce 模式 B 区越界：身份合法但 TaskPolicy 拒绝",
+      "scenario_name": "Enforce 模式 B 区越界：身份合法但 TaskPolicy 拒绝",
+      "expected_result": "Enforce 模式 B 区越界：身份合法但 TaskPolicy 拒绝",
+      "actual_result": "身份与基础通信许可合法（请求确实到达网关并有判定记录）=PASS; 业务层拒绝：OUT_OF_REGION=PASS; planner 得到 success=false=PASS; 下游未新增 Goal（越权未执行）=PASS; 拒绝来自 TaskPolicy 而非 DDS（与 S3/S4 区分）=PASS",
+      "result": "PASS",
+      "status": "PASS",
+      "evidence_dir": "tests/evidence/member1-secure-smoke/S5",
+      "command": [
+        "ros2",
+        "run",
+        "rg_demo_nodes",
+        "planner_node",
+        "--ros-args",
+        "-p",
+        "request_id:=s5-b-zone",
+        "-p",
+        "task_id:=patrol_a_001",
+        "-p",
+        "frame_id:=map",
+        "-p",
+        "target_x:=9.0",
+        "-p",
+        "target_y:=9.0",
+        "-p",
+        "expect_success:=0"
+      ],
+      "commands": [
+        {
+          "step": "planner",
+          "argv": [
+            "ros2",
+            "run",
+            "rg_demo_nodes",
+            "planner_node",
+            "--ros-args",
+            "-p",
+            "request_id:=s5-b-zone",
+            "-p",
+            "task_id:=patrol_a_001",
+            "-p",
+            "frame_id:=map",
+            "-p",
+            "target_x:=9.0",
+            "-p",
+            "target_y:=9.0",
+            "-p",
+            "expect_success:=0"
+          ],
+          "exit_code": 0,
+          "duration_sec": 0.72
+        }
+      ],
+      "exit_code": 0,
+      "duration_ms": 720,
+      "log_path": "tests/evidence/member1-secure-smoke/S5/planner.log",
+      "evidence_files": [
+        "tests/evidence/member1-secure-smoke/S5/planner.log"
+      ],
+      "reason_code": "OUT_OF_REGION",
+      "security_mode": "enforce",
+      "source_role": "planner",
+      "source_enclave": "/planner",
+      "requested_resource": "/rg/guarded_navigate",
+      "downstream_goal_count": 0,
+      "rejection_layer": "business_task_policy",
+      "checks": [
+        {
+          "check": "身份与基础通信许可合法（请求确实到达网关并有判定记录）",
+          "result": "PASS",
+          "detail": "OUT_OF_REGION"
+        },
+        {
+          "check": "业务层拒绝：OUT_OF_REGION",
+          "result": "PASS",
+          "detail": "OUT_OF_REGION"
+        },
+        {
+          "check": "planner 得到 success=false",
+          "result": "PASS",
+          "detail": "OUT_OF_REGION/False"
+        },
+        {
+          "check": "下游未新增 Goal（越权未执行）",
+          "result": "PASS",
+          "detail": "journal 增量=0"
+        },
+        {
+          "check": "拒绝来自 TaskPolicy 而非 DDS（与 S3/S4 区分）",
+          "result": "PASS",
+          "detail": "business_task_policy"
+        }
+      ],
+      "notes": []
+    }
+  ]
+}

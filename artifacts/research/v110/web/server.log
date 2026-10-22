@@ -1,0 +1,5 @@
+RosSystem dashboard: http://127.0.0.1:8791/
+在线模式可用: False  原因: ['未检测到 docker 命令', '未检测到 docker 命令', '作品内缺少 scripts/final_system.sh（不是完整在线包）']
+[dash] "GET /api/health HTTP/1.1" 200 -
+[dash] "GET /api/research HTTP/1.1" 200 -
+[dash] "GET / HTTP/1.1" 200 -

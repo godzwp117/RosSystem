@@ -1,0 +1,5 @@
+{"event":"participant_created","role":"ingress","domain":45,"security":true,"guid_prefix":"ce.8e.a1.b9.02.78.da.19.c3.35.fb.93","resource":"rt/m2/candidate_task"}
+{"event":"dds_endpoint","kind":"reader","topic":"rt/m2/candidate_task","type":"m2::CandidateTask::v1"}
+{"event":"dds_endpoint","kind":"writer","topic":"rt/m2/candidate_task","type":"m2::CandidateTask::v1"}
+{"event":"dds_endpoint","kind":"writer","topic":"rt/m2/candidate_task","type":"m2::CandidateTask::v1"}
+{"event":"ingress_exit","received":2}

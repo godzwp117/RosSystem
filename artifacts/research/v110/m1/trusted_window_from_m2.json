@@ -1,0 +1,21 @@
+{
+  "contract": "trusted-action-count-window/1",
+  "resource": "rt/m2/candidate_task",
+  "window_start": "2026-10-21T17:33:34Z",
+  "window_end": "2026-10-21T17:33:54Z",
+  "as_of": "2026-10-21T17:33:56Z",
+  "safety_lag_seconds": 2.0,
+  "send_goal_count": 2,
+  "observation_source": "TRUSTED_ACTION_INGRESS",
+  "coverage": "COMPLETE",
+  "source_evidence_sha256": "b555b98e19363a09c6db38d1facf83b6ddd1c517e203aa35e3f2676385007cef",
+  "authenticated_senders": [
+    "/CN=\\/operator",
+    "/CN=\\/planner"
+  ],
+  "unauthenticated_requests": 0,
+  "notes": [
+    "窗口完整落在账本覆盖范围内，且已过安全滞后",
+    "本输出只证明请求计数，不证明任何单条请求的身份归属"
+  ]
+}

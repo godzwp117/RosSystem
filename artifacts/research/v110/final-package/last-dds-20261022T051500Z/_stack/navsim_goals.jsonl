@@ -1,0 +1,2 @@
+{"received_at": "2026-10-22T03:23:05.221Z", "action": "/rg/nav_execute", "goal_id": "b91b7e27627340e19fe597e259c6d408", "request_id": "s2-a-zone", "task_id": "patrol_a_001", "frame_id": "map", "x": 1.5, "y": 1.5, "z": 0.0, "recorded_only": true, "path_planning": false}
+{"received_at": "2026-10-22T03:23:06.824Z", "action": "/rg/nav_execute", "goal_id": "826d6f5f6dfe4168add4dd8a81c84db8", "request_id": "s3c-gateway-direct", "task_id": "patrol_a_001", "frame_id": "map", "x": 1.5, "y": 1.5, "z": 0.0, "recorded_only": true, "path_planning": false}

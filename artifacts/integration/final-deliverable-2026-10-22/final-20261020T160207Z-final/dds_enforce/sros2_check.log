@@ -1,0 +1,28 @@
+
+=== S1 普通模式合法 A 区请求 ===
+
+=== 启动 Enforce 安全栈（domain 43）===
+
+=== S2 Enforce 模式合法 A 区请求：Planner→Gateway→NavigationSim 正常完成 ===
+
+=== S5 Enforce 模式 B 区越界：身份合法但 TaskPolicy 拒绝 ===
+
+=== S3C 正向对照：/gateway 身份直连执行接口应当成功 ===
+
+=== S3 Enforce 模式：Planner 身份直连执行接口应被拒绝 ===
+
+=== S4 无授权身份访问执行接口应被拒绝 ===
+
+=== S6 安全配置失效不得静默回退为无认证通信 ===
+  [stack] 安全栈已停止；残留节点=0
+
+======================================================================
+SROS2 SUMMARY (7 passed / 7 total)
+  [PASS] S1_normal_mode_a_zone      普通模式合法 A 区请求（domain 42，未启用安全）
+  [PASS] S2                         Enforce 模式合法 A 区请求：Planner→Gateway→NavigationSim 正常完
+  [PASS] S5                         Enforce 模式 B 区越界：身份合法但 TaskPolicy 拒绝
+  [PASS] S3C                        正向对照：/gateway 身份直连执行接口应当成功
+  [PASS] S3                         Enforce 模式：Planner 身份直连执行接口应被拒绝
+  [PASS] S4                         无授权身份访问执行接口应被拒绝
+  [PASS] S6                         安全配置失效不得静默回退为无认证通信
+evidence: tests/evidence/enforce-final-20261020T160207Z-final

@@ -55,9 +55,14 @@ BLOCK_REASON_CODES: Tuple[str, ...] = tuple(
 # so that DECISION_REASON_CODES above remains the frozen contract.
 # --------------------------------------------------------------------------
 AUDIT_UNAVAILABLE = 'AUDIT_UNAVAILABLE'
+#: 1.1.0: the Gateway verified the current-request identity itself and refused.
+#: Kept outside the frozen eight for the same reason as AUDIT_UNAVAILABLE: it is
+#: a Gateway-layer cause, not a TaskPolicy admission verdict.
+IDENTITY_ATTESTATION_REJECTED = 'IDENTITY_ATTESTATION_REJECTED'
 
-#: Vocabulary accepted by DecisionEvent validation (frozen 8 + documented extension).
-ACCEPTED_DECISION_REASON_CODES: Tuple[str, ...] = DECISION_REASON_CODES + (AUDIT_UNAVAILABLE,)
+#: Vocabulary accepted by DecisionEvent validation (frozen 8 + documented extensions).
+ACCEPTED_DECISION_REASON_CODES: Tuple[str, ...] = DECISION_REASON_CODES + (
+    AUDIT_UNAVAILABLE, IDENTITY_ATTESTATION_REJECTED,)
 
 # --------------------------------------------------------------------------
 # Decision verdicts
@@ -103,6 +108,8 @@ REASON_DESCRIPTIONS = {
     DUPLICATE_REQUEST: 'request_id was already seen within the duplicate window',
     RATE_LIMIT: 'admitted request rate exceeds max_requests_per_minute',
     EXECUTION_TIMEOUT: 'downstream execution did not finish within the configured timeout',
+    IDENTITY_ATTESTATION_REJECTED: ('the gateway could not independently verify the '
+                                    'current-request identity attestation'),
     AUDIT_UNAVAILABLE: 'audit sink is unwritable; failing closed instead of bypassing admission',
 }
 

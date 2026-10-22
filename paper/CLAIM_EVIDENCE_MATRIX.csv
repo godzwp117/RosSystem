@@ -1,0 +1,20 @@
+claim_id,claim,status,scope,metric,evidence,allowed_wording,limitation
+C01,全量单元回归通过,PASS,本仓库、本容器,"920 passed, 4 skipped, 0 failed, 563 s",artifacts/acceptance/exports/research_v110/acceptance_v110.json | submission/creative-work/reports/ROSYSTEM_1_1_0_RESEARCH_AND_SECURITY_VALIDATION_REPORT.md §12,论文可写“本版本全量单元测试 920 通过、4 跳过”,非 ROS 集成测试全覆盖
+C02,原 13 项身份证据测试已实质修复,PASS,证据解释 + 权限 fixture,56/56,tests/unit/test_identity_trust_real_logs.py | tests/fixtures/sros2_lab_permissions,可写“13 项失败根因是归档缺 permissions.xml，已用非秘密 fixture 修复”,不是算法缺陷修复；历史归档仍缺权限文件
+C03,DDS 实验室 Enforce 正向 7/7,PASS,"LAB, domain 43, Fast DDS",7/7,artifacts/acceptance/exports/m2_sros2_enforce_v110,可写“实验室 Enforce 下合法通信建立、非法通信被 DDS 拒绝”,临时实验室 CA；非生产部署
+C04,DDS 实验室负向 6/6（带同栈正向对照）,PASS,"LAB, domain 43",6/6,artifacts/acceptance/exports/m2_sros2_enforce_v110_negative,可写“不同 CA、篡改 p7s、证书/目录错配、Enforce 关闭对照均按预期”,不覆盖跨主机/跨 RMW/生产 CA
+C05,M2 当前请求身份链（意图主题）17/17,PASS,"LAB, domain 45, intent topic",17/17; 2 个证书零串号,artifacts/acceptance/exports/m2_lab_identity_v110,可写“DDS writer→证书主体→请求摘要→Ed25519→F0 在实验室内成立”,绑定的是预准入意图主题，不是 Action send_goal；Gateway 尚未在此链中
+C06,Gateway 独立身份 + TaskPolicy 双层授权 14/14,PASS,"LAB, domain 45",14/14；G1 1 Goal；G2/G3/G4 0 Goal,artifacts/acceptance/exports/m2_gateway_identity_v110,可写“身份门与 TaskPolicy 是两道独立屏障”,证据经文件 side channel；不是 Action 协议内字段
+C07,组件级重复实验 30/30,PASS,组件级，不是完整端到端,30/30 正向；3/3 负向；verify p50 1.416 ms p99 1.943 ms,artifacts/research/v110/repeats/v110rep-20261021T195500Z,可写“组件级 30 次重复全部成功，延迟约 1.5 ms”,不得写成 30 次完整 ROS 2 安全闭环
+C08,三真实模块调用与 Schema 校验,PASS,真实 M1/M2/M3 External,"LEVEL1 PASS, LEVEL2 PASS",artifacts/research/v110/three-real/summary.json,可写“三个真实模块被实际调用并通过 Schema/关联校验”,不等于正向准入
+C09,三真正向在线准入,BLOCKED,真实三模块,LEVEL3 BLOCKED,artifacts/research/v110/three-real/summary.json,只能写“被 M1 UNKNOWN 阻断，未实现正向”,必须同时给出阻断原因
+C10,严格 acceptance,INCOMPLETE,公开科研复现,exit 9；无 FAIL；4 项 NOT_RUN（LEVEL3/P01/P02/第三方）,artifacts/acceptance/exports/research_v110/acceptance_v110.json,可写“INCOMPLETE，不是 PASS”,不得省略 NOT_RUN 列表，也不得因单测 0 failed 推导 acceptance PASS
+C11,P07 M3 建议阻断 → F0 阻断（隔离）,PASS,CONTROLLED_ISOLATION；M1/M2 MOCK，真实 M3 External,13/13；M3 BLOCK_RECOMMENDED/OUT_OF_REGION；F0 ADAPTER_BLOCK；Planner 未提交,artifacts/research/v110/p07/p07-20261022T024200Z/ | paper/ERRATUM_P07.md,可写“真实 M3 在隔离配置下阻断并在 F0 生效”，必须标注 M1/M2 为 MOCK,不是三真实；原 Gateway OUT_OF_REGION 证据已排除
+C12,P09 Planner TIMEOUT 语义,PASS,1.1.0 重测；同容器时钟,10/10；Planner RESULT_TIMEOUT 1.573 s；Gateway ALLOW；1 Goal；无 cancel,artifacts/research/v110/p09/p09-20261022T030000Z/,可写“Planner 超时 ≠ Gateway 未收到 ≠ BLOCK ≠ 未执行 ≠ 已取消”,同容器时钟；未发送取消，取消确认未验证
+C13,最新压缩包独立复现,PARTIAL,同宿主新目录/新容器,16e74e 包：colcon 4/4、DDS 7/7、121 测试；最终包 c47b7a5b 仅 SHA/121 测试复验,artifacts/acceptance/exports/package_v110_verification | submission/creative-work/reports/RELEASE_ARTIFACTS.md,只能写“同宿主独立目录/容器复现”，不能写第三方主机复现,未在第三方主机/CI 复现；最终包未重跑 DDS
+C14,当前成熟度,LEVEL_C,DDS + 当前请求身份实验室验证,LEVEL C,submission/creative-work/reports/ROSYSTEM_1_1_0_RESEARCH_AND_SECURITY_VALIDATION_REPORT.md,可写 LEVEL C,不满足 B/D/E
+C15,M1 validation gate,FALSE,M1 模型,validation_gate_passed=false,modules/member1_comm/model/comm_risk_model.json | docs/research/M1_MODEL_DEPLOYMENT_ACCEPTANCE.md,必须写“未通过，不得用于正向准入”,原因见 M1 专项报告
+C16,Action send_goal 请求级身份,NOT_VERIFIED,当前 Ed25519 链,—,docs/research/M2_LAB_ED25519_CURRENT_IDENTITY.md,不得写已实现 Action 级身份,只绑定意图主题
+C17,1.0.3 冻结版本未被修改,PASS,Git 标签/提交,tag 7b60b28→5773fb4,git,可写“1.0.3 未被覆盖”,研究分支新增提交不影响旧标签
+C18,最终包全量单测结果,PASS,1.1.1-rc1 完整包解压后新容器,921 passed / 17 skipped / 0 failed / 603.8 s,paper/FINAL_PACKAGE_REPRODUCTION.md | paper/FINAL_UNIT_TEST_EVIDENCE_AUDIT.md,可写“最终包全量单测 921 通过、17 跳过、0 失败”,原始完整 pytest 日志未归档；17 skipped 不计入 passed；不得写成 921 次独立实验
+C19,最终包原始 pytest 完整日志归档,NOT_RECOVERED,证据归档,ORIGINAL_FULL_PYTEST_LOG=NOT_RECOVERED,paper/UNIT_TEST_LOG_RECOVERY_STATUS.md,只能写“结果已记录、原始完整日志不可恢复”,不得把新重跑日志冒充为 rg_last2 的原始日志

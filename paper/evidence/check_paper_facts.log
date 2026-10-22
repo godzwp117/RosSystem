@@ -1,0 +1,19 @@
+$ python3 paper/check_paper_facts.py
+== paper fact consistency ==
+PASS final full package SHA-256 matches manifest
+PASS offline package SHA-256 matches manifest
+PASS baseline is immutable
+PASS baseline still records 920/4
+PASS paper/PAPER_FACTS_FINAL.md: required text present
+PASS paper/STATISTICAL_ANALYSIS.md: required text present
+PASS E18 is historical/source 1.1.0, not final package
+PASS E20 records final package 921/17/0 and log limitation
+PASS paper/UNIT_TEST_LOG_RECOVERY_STATUS.md: required text present
+PASS paper/FINAL_PACKAGE_REPRODUCTION.md: required text present
+PASS paper/FINAL_UNIT_TEST_EVIDENCE_AUDIT.md: required text present
+PASS claim matrix P07/P09/acceptance rows are current
+PASS report keeps LEVEL C and blocked/not-verified boundaries
+PASS forbidden-misstatement scan completed
+PASS skip CSV present (17 rows)
+RESULT: PASS (15 checks, 0 errors)
+EXIT=0

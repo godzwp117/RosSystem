@@ -1,0 +1,78 @@
+{
+  "initial": {
+    "badge": "REPLAY / 历史证据回放",
+    "start_disabled": false
+  },
+  "enforce": {
+    "launched": "已启动：enforce · run_id dash-20261021T161600Z\n日志：artifacts/integration/dashboard-runs/dash-20261021T161600Z/run.log",
+    "tail": "[16:16:01Z] 正式 DDS Enforce（S1/S2/S3/S3C/S4/S5/S6）\nDDS_ENFORCE=NOT_RUN reason=缺少授权的 security/keystore 与私钥（公开包不含凭据）\nENFORCE=NOT_RUN\n\n\n⚠ 实验不完整（exit 9）：存在未执行项或整体验收未完成，详见日志与 summary.txt",
+    "badge": "INCOMPLETE",
+    "status": {
+      "status": "INCOMPLETE",
+      "mode": "enforce",
+      "run_id": "dash-20261021T161600Z",
+      "started_at": 1792599360.7871206,
+      "finished_at": 1792599361.4282672,
+      "exit_code": 9,
+      "log_path": "artifacts/integration/dashboard-runs/dash-20261021T161600Z/run.log",
+      "error": "实验不完整（exit 9）：存在未执行项或整体验收未完成，详见日志与 summary.txt",
+      "container": "rosystem-dash-dash-20261021T161600Z",
+      "image": "rosystem-verify-1.0.3",
+      "domain": "145",
+      "log_tail": "[16:16:01Z] 正式 DDS Enforce（S1/S2/S3/S3C/S4/S5/S6）\nDDS_ENFORCE=NOT_RUN reason=缺少授权的 security/keystore 与私钥（公开包不含凭据）\nENFORCE=NOT_RUN\n"
+    }
+  },
+  "controlled": {
+    "tail": "nfig/task_policy.yaml\n  [ok] scripts/team_demo.py\n  [ok] scripts/m3_online_drive.sh\n  [ok] scripts/m3_online_extra.sh\n  [ok] scripts/verify_m3_online_evidence.py\n[16:16:06Z] 自检通过\nCHECK_RESULT=PASS\n[16:16:06Z] 受控正向在线闭环（M1/M2 MOCK + M3 EXTERNAL），Domain 145\n{\n  \"verdict\": \"PASS\",\n  \"checks\": 40,\n  \"failures\": 0,\n  \"failed\": []\n}\n  [PASS] 受控在线 request_id 级严格验收\nCONTROLLED=PASS\n\n\n✔ 实验完成（exit 0）。已刷新证据列表。",
+    "status": {
+      "status": "DONE",
+      "mode": "controlled",
+      "run_id": "dash-20261021T161606Z",
+      "started_at": 1792599366.1237013,
+      "finished_at": 1792599374.1317186,
+      "exit_code": 0,
+      "log_path": "artifacts/integration/dashboard-runs/dash-20261021T161606Z/run.log",
+      "error": null,
+      "container": "rosystem-dash-dash-20261021T161606Z",
+      "image": "rosystem-verify-1.0.3",
+      "domain": "145",
+      "log_tail": "[16:16:06Z] 环境自检 (run_id=dash-20261021T161606Z)\n  ROS: jazzy\n  Python: 3.12.3\n  jsonschema: 4.10.3\n  colcon: present\n  代码 SHA: bcbec1bfc6b0ac26db447975b41fcda762934ec9\n  未提交改动: 0\n  [ok] config/team_modules.three-real.yaml\n  [ok] config/team_modules.member3.real.yaml\n  [ok] config/task_policy.yaml\n  [ok] scripts/team_demo.py\n  [ok] scripts/m3_online_drive.sh\n  [ok] scripts/m3_online_extra.sh\n  [ok] scripts/verify_m3_online_evidence.py\n[16:16:06Z] 自检通过\nCHECK_RESULT=PASS\n[16:16:06Z] 受控正向在线闭环（M1/M2 MOCK + M3 EXTERNAL），Domain 145\n{\n  \"verdict\": \"PASS\",\n  \"checks\": 40,\n  \"failures\": 0,\n  \"failed\": []\n}\n  [PASS] 受控在线 request_id 级严格验收\nCONTROLLED=PASS\n"
+    }
+  },
+  "runs": {
+    "runs": [
+      {
+        "run_id": "dash-20261021T161606Z",
+        "kind": "ONLINE_EVIDENCE",
+        "root": "artifacts/integration/dashboard-runs",
+        "path": "artifacts/integration/dashboard-runs/dash-20261021T161606Z",
+        "tested_code_sha": "bcbec1bfc6b0ac26db447975b41fcda762934ec9"
+      },
+      {
+        "run_id": "dash-20261021T161600Z",
+        "kind": "ONLINE_EVIDENCE",
+        "root": "artifacts/integration/dashboard-runs",
+        "path": "artifacts/integration/dashboard-runs/dash-20261021T161600Z",
+        "tested_code_sha": "bcbec1bfc6b0ac26db447975b41fcda762934ec9"
+      },
+      {
+        "run_id": "closeout-20261021T023020Z",
+        "kind": "REPLAY_SNAPSHOT",
+        "root": "replay",
+        "path": "replay",
+        "tested_code_sha": "2f3de257c9eac873093201292f6b2a9571da4f03"
+      }
+    ]
+  },
+  "after": {
+    "badge": "ONLINE / 本次在线执行",
+    "s_mode": "ONLINE（本次在线执行产生的证据）",
+    "s_run": "dash-20261021T161606Z",
+    "s_sha": "bcbec1bfc6b0ac26db447975b41fcda762934ec9",
+    "s_stack": "Gateway 到达 1 / Goal 1",
+    "gateway": "ON-01 ALLOW / ON-05 BLOCK（独立阻断）",
+    "navsim": "ON-01 Goal 1 / ON-05 Goal 0",
+    "footer": "证据来源：artifacts/integration/dashboard-runs/dash-20261021T161606Z"
+  },
+  "errors": []
+}

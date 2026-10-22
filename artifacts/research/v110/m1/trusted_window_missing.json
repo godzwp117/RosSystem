@@ -1,0 +1,17 @@
+{
+  "contract": "trusted-action-count-window/1",
+  "resource": "rt/m2/candidate_task",
+  "window_start": "2026-10-21T17:33:48Z",
+  "window_end": "2026-10-21T17:34:18Z",
+  "as_of": "2026-10-21T17:34:20Z",
+  "safety_lag_seconds": 2.0,
+  "send_goal_count": null,
+  "observation_source": "TRUSTED_ACTION_INGRESS",
+  "coverage": "UNKNOWN",
+  "source_evidence_sha256": null,
+  "authenticated_senders": [],
+  "unauthenticated_requests": null,
+  "notes": [
+    "账本不可读：不得视为 0 次请求"
+  ]
+}

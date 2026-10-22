@@ -1,0 +1,23 @@
+{
+  "run_id": "sigterm-20261021T022854Z",
+  "scenarios": [
+    {
+      "cid": "ON03",
+      "request_id": "on03-sigterm-20261021T022854Z",
+      "run_id": "sigterm-20261021T022854Z",
+      "expected": "UNKNOWN_BLOCK"
+    },
+    {
+      "cid": "ON04",
+      "request_id": "on04-sigterm-20261021T022854Z",
+      "run_id": "sigterm-20261021T022854Z",
+      "expected": "ERROR_BLOCK"
+    },
+    {
+      "cid": "ON06",
+      "request_id": "on06-sigterm-20261021T022854Z",
+      "run_id": "sigterm-20261021T022854Z",
+      "expected": "TIMEOUT_NOT_BLOCK"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+[37;1m2026-10-21 17:28:01.249 [31;1m[[37;1mSECURITY[31;1m Error] [37mParticipant is not allowed with its own permissions file.[34;1m -> Function [36minit[m
+[37;1m2026-10-21 17:28:01.250 [31;1m[[37;1mSECURITY[31;1m Error] [37mError while configuring security plugin.[34;1m -> Function [36minit[m
+[37;1m2026-10-21 17:28:01.250 [31;1m[[37;1mSECURITY[31;1m Error] [37mNot found the identity subject name in permissions file. Subject name: CN=/unauthorized (./src/cpp/security/accesscontrol/Permissions.cpp:743)[34;1m -> Function [36minit[m
+[37;1m2026-10-21 17:28:01.250 [31;1m[[37;1mRTPS_PARTICIPANT[31;1m Error] [37mCannot create participant due to initialization error[34;1m -> Function [36mcreateParticipant[m
+[37;1m2026-10-21 17:28:01.250 [31;1m[[37;1mDOMAIN_PARTICIPANT[31;1m Error] [37mProblem creating RTPSParticipant[34;1m -> Function [36menable[m
+ROGUE_RESULT {"request_id": "neg-cert-mismatch", "target_action": "/rg/nav_execute", "node_name": "security_gateway", "enclave": null, "outcome": "NODE_CREATION_FAILED", "detail": "RCLError: error creating node: __create_participant failed to create participant, at ./src/participant.cpp:107, at ./src/rcl/node.c:252"}
+[INFO] [1792603681.246675243] [rcl]: Found security directory: /tmp/rg-dds-neg-mb_m1qwy/keystore_cert_mismatch/enclaves/gateway
+/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/node.py:188: RuntimeWarning: Failed to fini rosout publisher: rcl node implementation is invalid, at ./src/rcl/node.c:390
+  self.__node = _rclpy.Node(

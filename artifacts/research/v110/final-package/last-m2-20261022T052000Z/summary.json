@@ -1,0 +1,115 @@
+{
+  "contract": "m2-lab-identity/1",
+  "run_id": "last-m2-20261022T052000Z",
+  "scope": "TEST_ONLY_LAB",
+  "secure_domain": 45,
+  "started_at": "2026-10-22T03:23:41Z",
+  "checks": [
+    {
+      "check": "DDS sample of req-lab-p01 attributed to /planner",
+      "result": "PASS",
+      "detail": "[{\"certificate_subject\": \"/CN=\\\\/planner\", \"sender_authenticated\": true, \"writer_guid\": \"9b.84.5f.63.a5.a3.f4.8d.48.0d.7a.67|00000103\", \"participant_guid\": \"9b.84.5f.63.a5.a3.f4.8d.48.0d.7a.67\"}]"
+    },
+    {
+      "check": "DDS sample of req-lab-p02 attributed to /operator",
+      "result": "PASS",
+      "detail": "[{\"certificate_subject\": \"/CN=\\\\/operator\", \"sender_authenticated\": true, \"writer_guid\": \"dd.cf.62.6c.6f.95.57.68.08.a1.dc.3d|00000103\", \"participant_guid\": \"dd.cf.62.6c.6f.95.57.68.08.a1.dc.3d\"}]"
+    },
+    {
+      "check": "no cross-identity attribution in the ledger",
+      "result": "PASS",
+      "detail": "['/CN=\\\\/operator', '/CN=\\\\/planner']"
+    },
+    {
+      "check": "unauthorized /rogue participant produced no sample",
+      "result": "PASS",
+      "detail": "DDS access control blocks the writer; the witness cannot observe a blocked sender (recorded as a blind spot)"
+    },
+    {
+      "check": "each client process exited 0",
+      "result": "PASS",
+      "detail": "[0, 0]"
+    },
+    {
+      "check": "unauthorized writer cannot create a secured writer",
+      "result": "PASS",
+      "detail": "6"
+    },
+    {
+      "check": "issuer required the DDS-observed /planner subject",
+      "result": "PASS",
+      "detail": "/CN=\\/planner"
+    },
+    {
+      "check": "verifier returns AUTHENTICATED_LAB with all checks valid",
+      "result": "PASS",
+      "detail": "{\"status\": \"AUTHENTICATED_LAB\", \"trust_scope\": \"LAB\", \"checks\": {\"signature\": \"VALID\", \"issuer\": \"VERIFIED_LAB_IDENTITY_SOURCE\", \"request_binding\": \"MATCH\", \"freshness\": \"OK\", \"replay\": \"RESERVED\"}, \"binding\": \"CURRENT_REQUEST_BOUND_TO_LAB_DDS_OBSERVED_SUBJECT\", \"f0_accepts_lab\": true, \"f0_accepts_default\": false, \"reason\": \"受信任 LAB 签发者以 Ed25519 证明当前请求主体经 DDS 观测且已认证\"}"
+    },
+    {
+      "check": "default F0 acceptance rejects lab status, opt-in accepts it",
+      "result": "PASS",
+      "detail": "{\"status\": \"AUTHENTICATED_LAB\", \"trust_scope\": \"LAB\", \"checks\": {\"signature\": \"VALID\", \"issuer\": \"VERIFIED_LAB_IDENTITY_SOURCE\", \"request_binding\": \"MATCH\", \"freshness\": \"OK\", \"replay\": \"RESERVED\"}, \"binding\": \"CURRENT_REQUEST_BOUND_TO_LAB_DDS_OBSERVED_SUBJECT\", \"f0_accepts_lab\": true, \"f0_accepts_default\": false, \"reason\": \"受信任 LAB 签发者以 Ed25519 证明当前请求主体经 DDS 观测且已认证\"}"
+    },
+    {
+      "check": "replaying the same nonce fails closed",
+      "result": "PASS",
+      "detail": "{'signature': 'VALID', 'issuer': 'VERIFIED_LAB_IDENTITY_SOURCE', 'request_binding': 'MATCH', 'freshness': 'OK', 'replay': 'REPLAYED'}"
+    },
+    {
+      "check": "issuer refuses a subject that does not match the observation",
+      "result": "PASS",
+      "detail": "wrong subject rejected"
+    },
+    {
+      "check": "issuer refuses a ledger whose payload digest was altered",
+      "result": "PASS",
+      "detail": "tampered payload rejected"
+    },
+    {
+      "check": "issuer refuses a stale observation",
+      "result": "PASS",
+      "detail": "stale rejected"
+    },
+    {
+      "check": "tampered signature is rejected",
+      "result": "PASS",
+      "detail": "{'signature': 'INVALID', 'issuer': 'NOT_EVALUATED', 'request_binding': 'NOT_CHECKED', 'freshness': 'NOT_CHECKED', 'replay': 'NOT_RESERVED'}"
+    },
+    {
+      "check": "F0 adapter reaches READY with the real-wire lab attestation",
+      "result": "PASS",
+      "detail": "{\"decision\": \"READY_FOR_GATEWAY_SUBMISSION\", \"reason_code\": \"ADAPTER_OK\", \"identity_attestation\": {\"mode\": \"STRICT\", \"verified\": true, \"status\": \"AUTHENTICATED_LAB\", \"verified_by\": \"F0_LOCAL_VERIFIER\", \"reason_code\": null, \"detail_code\": null, \"reason\": \"受信任 LAB 签发者以 Ed25519 证明当前请求主体经 DDS 观测且已认证；仅为实验室范围，不是生产身份\", \"checks\": {\"signature\": \"VALID\", \"issuer\": \"VERIFIED_LAB_IDENTITY_SOURCE\", \"request_binding\": \"MATCH\", \"freshness\": \"OK\", \"replay\": \"RESERVED\"}, \"issuer_trust\": \"LAB_DDS_INGRESS_WITNESS\", \"binding\": \"CURRENT_REQUEST_BOUND_TO_LAB_DDS_OBSERVED_SUBJECT\", \"scope\": \"LAB\"}}"
+    },
+    {
+      "check": "F0 adapter blocks the replayed attestation",
+      "result": "PASS",
+      "detail": "ADAPTER_IDENTITY_ATTESTATION_REJECTED"
+    },
+    {
+      "check": "private issuer key removed before archiving",
+      "result": "PASS",
+      "detail": "no private key in evidence"
+    }
+  ],
+  "note": "attested resource is the pre-admission intent topic (rt/m2/candidate_task); this is not the ROS Action send_goal service request; the DDS witness proves writer-GUID -> authenticated certificate subject and request payload binding; it does not prove the later ROS Action send_goal was sent by the same participant, which remains a documented gap",
+  "build": {
+    "binary": "/tmp/m2_ingress",
+    "reused": true
+  },
+  "ledger_sha256": "d48febda1e35d97098c51cc4879f13994f633afdb4f09f51bcfccafc78b1a50a",
+  "ingress_open_events": 1,
+  "send_goal_events": 2,
+  "attestation": {
+    "request_id": "req-lab-p01",
+    "subject": "/CN=\\/planner",
+    "issuer": "lab-ed25519-ingress-1",
+    "scope": "LAB",
+    "ledger_sha256": "d48febda1e35d97098c51cc4879f13994f633afdb4f09f51bcfccafc78b1a50a",
+    "public_key_sha256": "89a96f11cb13e8e914d1edd342856402c65fcf5dd8ad95cc3c0d8a2626b33557"
+  },
+  "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+  "finished_at": "2026-10-22T03:24:15Z",
+  "total": 17,
+  "passed": 17,
+  "failed": 0
+}

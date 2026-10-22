@@ -1,0 +1,77 @@
+=== 2026-10-22T00:15:36+08:00 1.0.3 运行 ===
+=== check ===
+[16:15:36Z] 环境自检 (run_id=v103-check)
+  ROS: jazzy
+  Python: 3.12.3
+  jsonschema: 4.10.3
+  colcon: present
+  代码 SHA: bcbec1bfc6b0ac26db447975b41fcda762934ec9
+  未提交改动: 0
+  [ok] config/team_modules.three-real.yaml
+  [ok] config/team_modules.member3.real.yaml
+  [ok] config/task_policy.yaml
+  [ok] scripts/team_demo.py
+  [ok] scripts/m3_online_drive.sh
+  [ok] scripts/m3_online_extra.sh
+  [ok] scripts/verify_m3_online_evidence.py
+[16:15:36Z] 自检通过
+CHECK_RESULT=PASS
+EXIT_CODE=0
+
+=== controlled ===
+[16:15:37Z] 环境自检 (run_id=v103-controlled)
+  ROS: jazzy
+  Python: 3.12.3
+  jsonschema: 4.10.3
+  colcon: present
+  代码 SHA: bcbec1bfc6b0ac26db447975b41fcda762934ec9
+  未提交改动: 0
+  [ok] config/team_modules.three-real.yaml
+  [ok] config/team_modules.member3.real.yaml
+  [ok] config/task_policy.yaml
+  [ok] scripts/team_demo.py
+  [ok] scripts/m3_online_drive.sh
+  [ok] scripts/m3_online_extra.sh
+  [ok] scripts/verify_m3_online_evidence.py
+[16:15:37Z] 自检通过
+CHECK_RESULT=PASS
+[16:15:37Z] 受控正向在线闭环（M1/M2 MOCK + M3 EXTERNAL），Domain 144
+{
+  "verdict": "PASS",
+  "checks": 40,
+  "failures": 0,
+  "failed": []
+}
+  [PASS] 受控在线 request_id 级严格验收
+CONTROLLED=PASS
+EXIT_CODE=0
+
+=== three ===
+[16:15:45Z] 环境自检 (run_id=v103-threereal)
+  ROS: jazzy
+  Python: 3.12.3
+  jsonschema: 4.10.3
+  colcon: present
+  代码 SHA: bcbec1bfc6b0ac26db447975b41fcda762934ec9
+  未提交改动: 0
+  [ok] config/team_modules.three-real.yaml
+  [ok] config/team_modules.member3.real.yaml
+  [ok] config/task_policy.yaml
+  [ok] scripts/team_demo.py
+  [ok] scripts/m3_online_drive.sh
+  [ok] scripts/m3_online_extra.sh
+  [ok] scripts/verify_m3_online_evidence.py
+[16:15:45Z] 自检通过
+CHECK_RESULT=PASS
+[16:15:45Z] 三真实 External 严格准入
+  LEVEL1 模块真实调用 : PASS
+  LEVEL2 证据契约有效 : PASS
+  LEVEL3 联合准入     : BLOCKED
+  F0: ADAPTER_BLOCK ADAPTER_MODULE_STATUS_NOT_PROCEED
+    blocker: comm_risk: status='UNKNOWN'，推进需要 'NORMAL'
+    blocker: identity_trust: status='UNKNOWN'，推进需要 'AUTHORIZED'
+    blocker: identity_trust: current_request_identity.status='UNKNOWN'，本轮没有可信的当前请求身份绑定
+    blocker: F0 决策为 'ADAPTER_BLOCK'（ADAPTER_MODULE_STATUS_NOT_PROCEED），未提交 Planner
+  [PASS] 三真实 External 调用、证据契约与预期阻断均已核对
+THREE_REAL=PASS
+EXIT_CODE=0

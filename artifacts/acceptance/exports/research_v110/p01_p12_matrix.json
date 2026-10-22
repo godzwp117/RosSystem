@@ -1,0 +1,203 @@
+{
+  "contract": "roSystem-v110-matrix/1",
+  "generated_at": "2026-10-21T20:00:00Z",
+  "final_level": "C",
+  "final_level_name": "DDS_AND_IDENTITY_LAB_VERIFIED",
+  "level_b_reason": "three-real positive chain requires M1 NORMAL; M1 validation gate is false",
+  "cases": [
+    {
+      "id": "P01",
+      "target": "truthful identity + legal task -> F0 READY, Gateway ALLOW, 1 Goal",
+      "status": "BLOCKED",
+      "reason": "M1 has no validated NORMAL path (validation_gate_passed=false); LEVEL3=BLOCKED",
+      "evidence": [
+        "artifacts/research/v110/three-real/summary.json",
+        "docs/research/M1_EFFECTIVENESS_ACCEPTANCE.md",
+        "docs/research/M1_MODEL_DEPLOYMENT_ACCEPTANCE.md"
+      ]
+    },
+    {
+      "id": "P02",
+      "target": "M1 SUSPICIOUS -> F0 BLOCK, 0 Goal",
+      "status": "NOT_VERIFIED",
+      "reason": "only controlled/mock M1 paths exist; no real M1 SUSPICIOUS produced in 1.1.0",
+      "evidence": [
+        "tests/unit/test_joint_three_modules.py"
+      ]
+    },
+    {
+      "id": "P03",
+      "target": "M1 UNKNOWN/stale -> F0 BLOCK, 0 Goal",
+      "status": "PASS",
+      "reason": "real three-module run: comm_risk=UNKNOWN, F0=ADAPTER_BLOCK, Planner not submitted",
+      "evidence": [
+        "artifacts/research/v110/three-real/summary.json"
+      ]
+    },
+    {
+      "id": "P04",
+      "target": "M2 invalid signature -> BLOCK",
+      "status": "PASS",
+      "reason": "Ed25519 tampered signature -> checks.signature=INVALID; F0 adapter blocks",
+      "evidence": [
+        "artifacts/acceptance/exports/m2_lab_identity_v110",
+        "tests/unit/test_identity_lab_ed25519.py"
+      ]
+    },
+    {
+      "id": "P05",
+      "target": "replayed current request identity -> BLOCK",
+      "status": "PASS",
+      "reason": "same nonce re-verified -> REPLAYED; F0 adapter blocks the replay",
+      "evidence": [
+        "artifacts/acceptance/exports/m2_lab_identity_v110",
+        "artifacts/research/v110/repeats/v110rep-20261021T195500Z/summary.json"
+      ]
+    },
+    {
+      "id": "P06",
+      "target": "legal identity but no resource permission -> BLOCK",
+      "status": "PASS",
+      "reason": "DDS Enforce S3/S4 deny planner/unauthorized on /rg/nav_execute; permission file matches policy",
+      "evidence": [
+        "artifacts/acceptance/exports/m2_sros2_enforce_v110",
+        "tests/unit/test_identity_trust_real_logs.py"
+      ]
+    },
+    {
+      "id": "P07",
+      "target": "real M3 BLOCK_RECOMMENDED -> F0 BLOCK, Planner not submitted, 0 Goal (controlled isolation)",
+      "status": "PASS",
+      "reason": "P07 isolation: real M3 External with tight read-only policy outputs BLOCK_RECOMMENDED/OUT_OF_REGION; M1/M2 MOCK only to isolate M3; F0 ADAPTER_BLOCK names task_risk; Planner not submitted; no Gateway/Goal. The separate Gateway S5 OUT_OF_REGION block remains an independent result, not the basis for P07.",
+      "evidence": [
+        "artifacts/research/v110/p07/p07-20261022T024200Z/summary.json",
+        "artifacts/research/v110/p07/p07-20261022T024200Z/f0_result.json",
+        "artifacts/research/v110/p07/p07-20261022T024200Z/task_risk.stdout.txt"
+      ],
+      "scope": "CONTROLLED_ISOLATION",
+      "limitations": [
+        "M1/M2 are MOCK in this isolation; not a three-real result",
+        "Gateway and NavigationSim were not started; 0 received/0 goal follows from no submission"
+      ]
+    },
+    {
+      "id": "P08",
+      "target": "identity valid, target out of region -> Gateway BLOCK, 0 Goal",
+      "status": "PASS",
+      "reason": "G4: Gateway identity check ALLOW, TaskPolicy OUT_OF_REGION, NavigationSim 0 Goal",
+      "evidence": [
+        "artifacts/acceptance/exports/m2_gateway_identity_v110"
+      ]
+    },
+    {
+      "id": "P09",
+      "target": "Planner RESULT_TIMEOUT vs Gateway ALLOW/execution, no cancellation",
+      "status": "PASS",
+      "reason": "P09 rerun: planner waited 1 s and exited RESULT_TIMEOUT; Gateway received 1 request, DecisionEvent ALLOW_IN_POLICY, NavigationSim 1 Goal; ExecutionEvent EXECUTED at 02:37:47.665Z, after the planner had already exited. No cancel was sent.",
+      "evidence": [
+        "artifacts/research/v110/p09/p09-20261022T030000Z/summary.json"
+      ],
+      "scope": "LAB_SINGLE_CONTAINER",
+      "limitations": [
+        "same-container clock domain; no cross-host ordering claim",
+        "NavigationSim is recorded_only, not a physical robot"
+      ]
+    },
+    {
+      "id": "P10",
+      "target": "Gateway reject / module timeout -> no unauthorized Goal",
+      "status": "PASS",
+      "reason": "G2 missing attestation and G3 target mismatch both BLOCK with 0 Goal; module timeout unit tests pass",
+      "evidence": [
+        "artifacts/acceptance/exports/m2_gateway_identity_v110"
+      ]
+    },
+    {
+      "id": "P11",
+      "target": "tampered request_id / digest -> reject",
+      "status": "PASS",
+      "reason": "G3 request_binding=MISMATCH; digest mismatch unit tests",
+      "evidence": [
+        "artifacts/acceptance/exports/m2_gateway_identity_v110",
+        "tests/unit/test_identity_lab_ed25519.py"
+      ]
+    },
+    {
+      "id": "P12",
+      "target": "missing config/credentials -> FAIL/BLOCKED/NOT_RUN, never PASS",
+      "status": "PASS",
+      "reason": "S6 missing keystore does not fall back; F0 strict config rejects missing witness/key/issuers/ledger",
+      "evidence": [
+        "artifacts/acceptance/exports/m2_sros2_enforce_v110",
+        "tests/unit/test_f0_lab_scope.py"
+      ]
+    }
+  ],
+  "summary": {
+    "PASS": 10,
+    "FAIL": 0,
+    "BLOCKED": 1,
+    "NOT_RUN": 0,
+    "NOT_VERIFIED": 1
+  },
+  "runs": {
+    "dds_positive": {
+      "manifest": "artifacts/acceptance/exports/m2_sros2_enforce_v110/evidence_manifest.json",
+      "sha256": "705e8e622f903d1ae9bf7375eb2c1dc176c0fbd8a0527922db14f2e5b5f9bac4",
+      "passed": 7,
+      "total": 7
+    },
+    "dds_negative": {
+      "manifest": "artifacts/acceptance/exports/m2_sros2_enforce_v110_negative/evidence_manifest.json",
+      "sha256": "e26dfe75b6cefd901a088503fa9d1bc4a128513b8e705a5d076164929643a898",
+      "passed": 6,
+      "total": 6
+    },
+    "m2_lab_identity": {
+      "manifest": "artifacts/acceptance/exports/m2_lab_identity_v110/evidence_manifest.json",
+      "sha256": "b1eddf696c34170a967cd1ae1b33b4e05ec16eb1b3dec55ab95ad06ff13ca598",
+      "passed": 17,
+      "total": 17
+    },
+    "gateway_identity": {
+      "manifest": "artifacts/acceptance/exports/m2_gateway_identity_v110/evidence_manifest.json",
+      "sha256": "d16f732cb07f51d65660764ad10cc1d87e111586546258589ecfc81817aef86f",
+      "passed": 14,
+      "total": 14
+    },
+    "three_real": {
+      "summary": "artifacts/research/v110/three-real/summary.json",
+      "sha256": "adca96a0e4e20958cea0a3148b91d7af6171d9ce75030dce484818a3ca048ab6",
+      "levels": {
+        "THREE_EXTERNAL_CALLED": "PASS",
+        "THREE_EXTERNAL_VALIDATED": "PASS",
+        "THREE_EXTERNAL_ONLINE_PROCEED": "BLOCKED"
+      }
+    },
+    "repeats": {
+      "summary": "artifacts/research/v110/repeats/v110rep-20261021T195500Z/summary.json",
+      "sha256": "955b2193b2f973dafcdc6715b662311e895ed0fb22b9369dbb06b5917bd470e9",
+      "trials": 30,
+      "positive_ok": 30
+    }
+  },
+  "updated_at": "2026-10-22T03:05:00Z",
+  "corrections": [
+    {
+      "erratum": "E-001",
+      "case": "P07",
+      "original": "PASS based on Gateway S5 OUT_OF_REGION",
+      "corrected": "PASS only after the P07 controlled-isolation experiment; the old basis is rejected",
+      "run_id": "p07-20261022T024200Z",
+      "scope": "CONTROLLED_ISOLATION"
+    },
+    {
+      "erratum": "E-002",
+      "case": "P09",
+      "original": "NOT_RUN in 1.1.0",
+      "corrected": "PASS after a fresh 1.1.0 planner-timeout run",
+      "run_id": "p09-20261022T030000Z",
+      "scope": "LAB_SINGLE_CONTAINER"
+    }
+  ]
+}

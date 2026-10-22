@@ -1,0 +1,25 @@
+=== 2026-10-22T00:16:21+08:00 边界与并发回归 ===
+--- 路径穿越 / 绝对路径 ---
+    ../../../etc/passwd -> 403
+    /etc/passwd -> 403
+--- 非法 run_id / 未知模式 ---
+{  "ok": false,  "error": "run_id 非法: run_id 不能包含路径分隔符"}
+{  "ok": false,  "error": "不允许的模式: rm -rf /"}
+--- 3 路并发 ---
+    resp1: {  "ok": false,  "error": "已有实验在运行；请等待结束或停止后再试（�
+    resp2: {  "ok": false,  "error": "已有实验在运行；请等待结束或停止后再试（�
+    resp3: {  "ok": true,  "mode": "controlled",  "run_id": "v103conc-3",  "log_path": "artifacts
+    accepted=1 (<=1)
+--- 残留容器 ---
+0
+=== 离线回放包 1.0.3 ===
+  /              -> 200
+  /api/health    -> 200
+  /api/replay    -> 200
+  /api/runs      -> 200
+Terminated
+  [PASS] 回放证据接口可用
+
+结果: 13 passed / 13 total
+PACKAGE_VERIFY=PASS
+已停止控制台 PID=400310

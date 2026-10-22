@@ -154,6 +154,10 @@ def test_reason_code_vocabulary_is_frozen():
     # the only documented addition, kept outside the frozen tuple
     assert reason_codes.AUDIT_UNAVAILABLE not in reason_codes.DECISION_REASON_CODES
     assert reason_codes.AUDIT_UNAVAILABLE in reason_codes.ACCEPTED_DECISION_REASON_CODES
+    # 1.1.0 Gateway-layer extension: same pattern, kept out of the frozen eight.
+    assert reason_codes.IDENTITY_ATTESTATION_REJECTED not in reason_codes.DECISION_REASON_CODES
+    assert reason_codes.IDENTITY_ATTESTATION_REJECTED in \
+        reason_codes.ACCEPTED_DECISION_REASON_CODES
 
 
 def test_policy_schema_fields_are_frozen():
@@ -212,7 +216,8 @@ def test_no_key_material_is_committed():
     """
     import subprocess
 
-    key_dir_prefixes = ('security/keystore', 'security/enclaves')
+    key_dir_prefixes = ('security/keystore', 'security/enclaves',
+                        'artifacts/research/v110/m2-ingress/keystore')
     forbidden_suffixes = ('.pem', '.key', '.p12', '.pfx', '.crt', '.csr', '.der', '.srl')
 
     # --- 1) 任何被 git 跟踪的密钥类文件都是违规 ---
@@ -241,12 +246,17 @@ def test_no_key_material_is_committed():
     if os.path.isfile(ignore_path):
         with open(ignore_path, 'r', encoding='utf-8') as handle:
             ignore_text = handle.read()
-    for pattern in ('/security/keystore/', '/security/enclaves/'):
+    for pattern in ('/security/keystore/', '/security/enclaves/',
+                    '/artifacts/research/**/keystore/'):
         assert pattern in ignore_text, '.gitignore 缺少密钥目录排除规则: {0}'.format(pattern)
 
     # --- 4) 真被 git 忽略时才允许存在（防止 ignore 规则被写错方向）---
     if os.path.isdir(os.path.join(WORKSPACE_ROOT, 'security', 'keystore')):
-        check = subprocess.run(
-            ['git', 'check-ignore', '-q', 'security/keystore/private/ca.key.pem'],
-            cwd=WORKSPACE_ROOT, check=False).returncode
-        assert check == 0, 'security/keystore 未被 git 忽略，存在误提交风险'
+        # A full package has no .git; the .gitignore text assertion above is the
+        # available check there. In a Git checkout, additionally prove that the
+        # ignore rule actually matches.
+        if os.path.isdir(os.path.join(WORKSPACE_ROOT, '.git')):
+            check = subprocess.run(
+                ['git', 'check-ignore', '-q', 'security/keystore/private/ca.key.pem'],
+                cwd=WORKSPACE_ROOT, check=False).returncode
+            assert check == 0, 'security/keystore 未被 git 忽略，存在误提交风险'

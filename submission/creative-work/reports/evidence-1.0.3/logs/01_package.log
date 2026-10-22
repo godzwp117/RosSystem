@@ -1,0 +1,49 @@
+=== 2026-10-22T00:15:28+08:00 1.0.3 独立复现：包核验 ===
+total 1776
+drwxr-xr-x 2 root root    4096 Oct 22 00:15 .
+drwxr-xr-x 7 root root    4096 Oct 22 00:15 ..
+-rw-r--r-- 1 root root 1765195 Oct 22 00:15 RosSystem-CreativeWork-Full-1.0.3.tar.gz
+-rw-r--r-- 1 root root     107 Oct 22 00:15 RosSystem-CreativeWork-Full-1.0.3.tar.gz.sha256
+-rw-r--r-- 1 root root   33202 Oct 22 00:15 RosSystem-creative-work-1.0.3.tar.gz
+-rw-r--r-- 1 root root     103 Oct 22 00:15 RosSystem-creative-work-1.0.3.tar.gz.sha256
+--- sha256 ---
+RosSystem-CreativeWork-Full-1.0.3.tar.gz: OK
+RosSystem-creative-work-1.0.3.tar.gz: OK
+--- 字节数 ---
+RosSystem-CreativeWork-Full-1.0.3.tar.gz 1765195 bytes
+RosSystem-creative-work-1.0.3.tar.gz 33202 bytes
+--- 穿越/绝对路径 ---
+NONE
+--- 符号链接 ---
+NO SYMLINKS
+--- 顶层 ---
+RosSystem-CreativeWork-Full
+--- 完整性 ---
+  PRESENT runtime/scripts/final_system.sh
+  PRESENT runtime/scripts/acceptance_status.py
+  PRESENT runtime/docs/interfaces/schemas/module_input.schema.json
+  PRESENT runtime/docs/interfaces/examples/module_input_valid.json
+  PRESENT runtime/mock_modules/comm_risk_mock.py
+  PRESENT runtime/tests/fixtures/member1/rospace_comm_rows.json
+  PRESENT runtime/tests/integration/sros2_check.py
+  PRESENT runtime/tests/unit/test_acceptance_status.py
+  PRESENT runtime/tests/integration/acceptance_wiring_check.sh
+  PRESENT runtime/BUILD_INFO.json
+  PRESENT docker/Dockerfile
+  PRESENT dashboard/server.py
+  PRESENT run.sh
+  MISSING_FLAG=0
+--- 密钥扫描 ---
+  hits: 0
+--- BUILD_INFO ---
+{
+  "package": "RosSystem-CreativeWork-Full",
+  "version": "1.0.3",
+  "built_at": "2026-10-21T16:15:18Z",
+  "artifact_commit": "bcbec1bfc6b0ac26db447975b41fcda762934ec9",
+  "source_tree_dirty_entries": 0,
+  "baseline_core_sha": "2f3de257c9eac873093201292f6b2a9571da4f03",
+  "archive_baseline_sha": "e69325d8094e1d2bc309772650ae85a241751b31",
+  "runtime_layout": "runtime/docs/interfaces",
+  "note": "本包不含 .git。artifact_commit 是生成该包的源码提交，baseline_core_sha 是安全判定所基于的历史受测核心；两者不得混用。"
+}

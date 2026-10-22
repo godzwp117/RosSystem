@@ -1,0 +1,6 @@
+numpy>=1.26,<3
+scikit-learn>=1.5,<2
+jsonschema>=4.20,<5
+PyYAML>=6,<7
+# Jazzy launch_testing still uses hook parameters removed in pytest 9.
+pytest>=8,<9

@@ -1,0 +1,2 @@
+{"issuer": "lab-ed25519-ingress-1", "kind": "nonce", "nonce": "f263493db0721b5855e61ea686124e64", "request_id": "req-gw-lab-001", "resource": "/rg/guarded_navigate", "ts": 1792639477}
+{"issuer": "lab-ed25519-ingress-1", "kind": "nonce", "nonce": "71fb65c47dbc2d31f6910ee41572a30d", "request_id": "req-gw-lab-004", "resource": "/rg/guarded_navigate", "ts": 1792639519}

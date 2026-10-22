@@ -1,0 +1,144 @@
+{
+  "run_id": "last-three-20261022T053000Z",
+  "request_id": "legal-last-three-20261022T053000Z",
+  "case": "legal",
+  "generated_at": "2026-10-22T03:25:33Z",
+  "config": "config/team_modules.three-real.yaml",
+  "levels": {
+    "THREE_EXTERNAL_CALLED": "PASS",
+    "THREE_EXTERNAL_VALIDATED": "PASS",
+    "THREE_EXTERNAL_ONLINE_PROCEED": "BLOCKED"
+  },
+  "blockers": [
+    "comm_risk: status='UNKNOWN'，推进需要 'NORMAL'",
+    "identity_trust: current_request_identity.status='UNKNOWN'，本轮没有可信的当前请求身份绑定",
+    "F0 决策为 'ADAPTER_BLOCK'（ADAPTER_MODULE_STATUS_NOT_PROCEED），未提交 Planner"
+  ],
+  "notes": [
+    "identity_trust: current_request_identity.status='UNKNOWN' binding='UNBOUND_NO_TRUSTED_CURRENT_IDENTITY_WITNESS' historical_only=False",
+    "comm_risk: trusted_provenance='UNKNOWN' envelope_provenance='RUNTIME_LOG' gate=None controlled_test=False"
+  ],
+  "modules": {
+    "comm_risk": {
+      "module": "comm_risk",
+      "mode": "external",
+      "command": [
+        "/ws/scripts/module_python.sh",
+        "modules/member1_comm/module.py",
+        "--model",
+        "modules/member1_comm/model/comm_risk_model.json",
+        "--model-sha256",
+        "d45d272eea9dfef67b2b0066af0fd078270d559a4a4e350b7558d072c21c40df",
+        "--features",
+        "modules/member1_comm/features.json",
+        "--observation-provenance",
+        "UNKNOWN"
+      ],
+      "returncode": 0,
+      "duration_ms": 134,
+      "timed_out": false,
+      "stdout_bytes": 1752,
+      "stderr_bytes": 38,
+      "schema_ok": true,
+      "schema_errors": [],
+      "status": "UNKNOWN"
+    },
+    "identity_trust": {
+      "module": "identity_trust",
+      "mode": "external",
+      "command": [
+        "/ws/scripts/module_python.sh",
+        "identity_trust/assessor.py",
+        "--experiment-run",
+        "20261009T093144Z",
+        "--evidence-root",
+        "artifacts/acceptance/exports/m2_sros2_enforce/logs/tests_evidence",
+        "--policy",
+        "security/policies/minimal_permissions.xml",
+        "--keystore",
+        "security/keystore",
+        "--case",
+        "S2",
+        "--identity-ledger",
+        "/ws/artifacts/research/last-three/identity_ledger.probe.jsonl"
+      ],
+      "returncode": 0,
+      "duration_ms": 121,
+      "timed_out": false,
+      "stdout_bytes": 2766,
+      "stderr_bytes": 0,
+      "schema_ok": true,
+      "schema_errors": [],
+      "status": "AUTHORIZED"
+    },
+    "task_risk": {
+      "module": "task_risk",
+      "mode": "external",
+      "command": [
+        "/ws/scripts/module_python.sh",
+        "modules/member3_taskrisk/module.py",
+        "--policy",
+        "config/task_policy.yaml"
+      ],
+      "returncode": 0,
+      "duration_ms": 123,
+      "timed_out": false,
+      "stdout_bytes": 1771,
+      "stderr_bytes": 35,
+      "schema_ok": true,
+      "schema_errors": [],
+      "status": "ALLOW_RECOMMENDED"
+    }
+  },
+  "f0": {
+    "command": [
+      "/usr/bin/python3",
+      "scripts/team_demo.py",
+      "--input",
+      "/ws/artifacts/research/last-three/envelope.json",
+      "--config",
+      "config/team_modules.three-real.yaml",
+      "--log",
+      "/ws/artifacts/research/last-three/adapter.jsonl"
+    ],
+    "returncode": 10,
+    "duration_ms": 451,
+    "decision": "ADAPTER_BLOCK",
+    "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+    "detail": "模块 comm_risk 状态为 'UNKNOWN'，不是允许推进的 'NORMAL'；本地阻断，不进入提交流程",
+    "modules": [
+      {
+        "module": "comm_risk",
+        "mode": "external",
+        "exit_code": 0,
+        "schema_ok": true,
+        "status": "UNKNOWN"
+      },
+      {
+        "module": "identity_trust",
+        "mode": "external",
+        "exit_code": 0,
+        "schema_ok": true,
+        "status": "AUTHORIZED"
+      },
+      {
+        "module": "task_risk",
+        "mode": "external",
+        "exit_code": 0,
+        "schema_ok": true,
+        "status": "ALLOW_RECOMMENDED"
+      }
+    ],
+    "stderr_tail": "[adapter] 模块 comm_risk stderr: status=UNKNOWN; offline advisory only\n[adapter] 模块 task_risk stderr: [member3] status=ALLOW_RECOMMENDED\n"
+  },
+  "gateway": {
+    "checked": false,
+    "note": "Gateway 判定在在线阶段单独验证，不由本工具代填"
+  },
+  "verdict": {
+    "level1": "PASS",
+    "level2": "PASS",
+    "level3": "BLOCKED",
+    "overall": "B1_INTEGRATED_BLOCKING"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "/usr/bin/python3",
+    "/ws/scripts/team_demo.py",
+    "--input",
+    "/ws/artifacts/research/v110/p07/p07-20261022T024200Z/envelope.json",
+    "--config",
+    "/ws/config/team_modules.p07-isolation.yaml",
+    "--log",
+    "/ws/artifacts/research/v110/p07/p07-20261022T024200Z/adapter.jsonl",
+    "--workdir",
+    "/ws",
+    "--online"
+  ],
+  "exit_code": 10,
+  "duration_ms": 160.373
+}

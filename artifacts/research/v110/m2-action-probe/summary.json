@@ -1,0 +1,65 @@
+{
+  "contract": "m2-action-binding-probe/1",
+  "scope": "LAB_PROBE",
+  "result": "BLOCKED",
+  "typesupport": {
+    "symbol": "ROSIDL_TYPESUPPORT_INTERFACE__MESSAGE_SYMBOL_NAME(rosidl_typesupport_fastrtps_cpp, rg_interfaces, action, PatrolNavigate_SendGoal_Request)",
+    "namespace": "rg_interfaces::action",
+    "message_name": "PatrolNavigate_SendGoal_Request",
+    "dds_type_name_used": "rg_interfaces::action::dds_::PatrolNavigate_SendGoal_Request_",
+    "struct_size": 176,
+    "probe_file": "artifacts/research/v110/m2-action-probe/probe_action_typesupport.cpp"
+  },
+  "capture_with_action_reader": {
+    "run": "artifacts/research/v110/m2-action-probe2",
+    "action_reader_ready": true,
+    "action_events_captured": 0,
+    "planner_result": {
+      "request_id": "action-capture-002",
+      "task_id": "patrol_a_001",
+      "frame_id": "map",
+      "target": {
+        "x": 1.5,
+        "y": 1.5,
+        "z": 0.0
+      },
+      "egress_action": "/rg/guarded_navigate",
+      "goal_id": "26e74292db714aa982a7bca8d00ffce9",
+      "outcome": "NO_ACTION_SERVER",
+      "detail": "Action Server /rg/guarded_navigate was not available within 20.0s"
+    },
+    "finding": "planner NO_ACTION_SERVER when the ad-hoc ActionRequestType reader is present"
+  },
+  "control_without_action_reader": {
+    "run": "artifacts/research/v110/m2-action-probe-control",
+    "planner_result": {
+      "request_id": "action-capture-002",
+      "task_id": "patrol_a_001",
+      "frame_id": "map",
+      "target": {
+        "x": 1.5,
+        "y": 1.5,
+        "z": 0.0
+      },
+      "egress_action": "/rg/guarded_navigate",
+      "goal_id": "a8f4c145ccb24597994d163e78555fae",
+      "outcome": "RESULT",
+      "accepted": true,
+      "goal_status": "STATUS_SUCCEEDED",
+      "success": true,
+      "status_code": "EXECUTED",
+      "detail": "recorded target (1.5, 1.5, 0.0) in frame map; no path planning performed",
+      "feedback_seen": {
+        "progress": 0.5,
+        "phase": "DOWNSTREAM:EXECUTING"
+      }
+    },
+    "finding": "same witness and same stack without --action-capture: planner EXECUTED"
+  },
+  "conclusion": "A raw DDS reader built with a hand-written TopicDataType perturbs Action service discovery; Action send_goal identity remains NOT_VERIFIED. Intent-topic evidence must not be renamed.",
+  "next_steps": [
+    "construct the exact rmw_fastrtps_cpp RequestTypeSupport / register its TypeObject, or patch rmw to expose the service reader identity",
+    "or use service introspection if a Jazzy-supported path exposes request payload plus client_gid",
+    "re-run with positive control and content tamper checks only after exact type support is used"
+  ]
+}

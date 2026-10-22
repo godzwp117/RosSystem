@@ -1,0 +1,39 @@
+# P07 隔离实验配置（受信任本地文件）
+#
+# 目的：只验证“真实 M3 输出 BLOCK_RECOMMENDED -> F0 阻断”，不冒充三真实。
+# M1/M2 使用 MOCK，仅用于让 F0 越过 M1/M2 状态门，从而隔离 M3 的贡献。
+# M3 是真实 External 进程，策略是只读测试 fixture（允许区域 [0,1]^2）。
+# 不得用于 Gateway 启动，也不得用于“三真正向”声明。
+adapter:
+  log_path: logs/p07-isolation/adapter.jsonl
+  planner_command: [ros2, run, rg_demo_nodes, planner_node]
+
+modules:
+  comm_risk:
+    mode: mock
+    interface: comm_risk_evidence
+    command: [python3, mock_modules/comm_risk_mock.py]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+  identity_trust:
+    mode: mock
+    interface: identity_trust_assessment
+    command: [python3, mock_modules/identity_trust_mock.py]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+  task_risk:
+    mode: external
+    interface: task_risk_decision
+    command: [python3, modules/member3_taskrisk/module.py,
+              --policy, config/scenarios/task_policy_tight_region.yaml]
+    timeout_sec: 10
+    max_stdout_bytes: 65536
+    allow_fault_injection: false
+
+identity_attestation:
+  mode: CONTROLLED_TEST_ONLY
+  controlled_reason: >-
+    P07 隔离实验：M1/M2 为 MOCK，仅用于隔离真实 M3 的阻断贡献；
+    本实验不构成真实 DDS 身份认证，也不构成三真正向。
