@@ -252,7 +252,11 @@ def test_no_key_material_is_committed():
 
     # --- 4) 真被 git 忽略时才允许存在（防止 ignore 规则被写错方向）---
     if os.path.isdir(os.path.join(WORKSPACE_ROOT, 'security', 'keystore')):
-        check = subprocess.run(
-            ['git', 'check-ignore', '-q', 'security/keystore/private/ca.key.pem'],
-            cwd=WORKSPACE_ROOT, check=False).returncode
-        assert check == 0, 'security/keystore 未被 git 忽略，存在误提交风险'
+        # A full package has no .git; the .gitignore text assertion above is the
+        # available check there. In a Git checkout, additionally prove that the
+        # ignore rule actually matches.
+        if os.path.isdir(os.path.join(WORKSPACE_ROOT, '.git')):
+            check = subprocess.run(
+                ['git', 'check-ignore', '-q', 'security/keystore/private/ca.key.pem'],
+                cwd=WORKSPACE_ROOT, check=False).returncode
+            assert check == 0, 'security/keystore 未被 git 忽略，存在误提交风险'
