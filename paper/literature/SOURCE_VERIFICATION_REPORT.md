@@ -101,6 +101,22 @@ ACCESS_DATE                 = 2026-10-22
 | ROS 2 Jazzy 文档 | Jazzy | 2026-10-22 |
 | RFC 8032 | 2017 | 2026-10-22 |
 
+### 3.4 DOI 解析复核（独立于 Crossref 的第二道检查）
+
+对 40 个 DOI 逐一请求 `https://doi.org/{doi}` 并读取重定向目标（不跟随到出版方页面，
+以避免反爬误判）：
+
+```text
+DOI_REDIRECT_CHECK = 40/40（全部返回 301/302 并指向出版方）
+```
+
+映射结果（按重定向主机统计，合计 40）：IEEE Xplore 14、ACM DL 10、Elsevier 3、
+NIST 3、Nature 2、Springer 1、Science 1、Wiley 1、Oxford University Press 1、
+Taylor & Francis 1、Project Euclid 1、RFC Editor 1、计算机工程与应用 1。
+
+> 说明：直接跟随重定向时，IEEE 返回 202、ACM/Wiley 返回 403，这是**出版方反爬**，
+> 不是 DOI 不存在。判定 DOI 是否注册应看 `doi.org` 的重定向，而不是落地页状态码。
+
 ---
 
 ## 4. 访问限制（必须如实记录）
@@ -193,6 +209,7 @@ Crossref 中文关键词检索（`机器人操作系统 安全`、`ROS2 安全 �
 
 ```text
 DOI_VERIFICATION            = 40/40 resolved (39 Crossref + 1 publisher-registered)
+DOI_REDIRECT_CHECK          = 40/40 redirect at doi.org to the expected publisher
 METADATA_MATCH              = PASS（题名/作者/年份/来源逐项比对）
 DUPLICATE_CHECK             = PASS（0 重复）
 UNVERIFIABLE_EXCLUDED       = 5 类（见 §5）
