@@ -1,0 +1,3 @@
+ROGUE_RESULT {"request_id": "neg-wrong-ca", "target_action": "/rg/nav_execute", "node_name": "security_gateway", "enclave": null, "outcome": "NO_ACTION_SERVER", "detail": "在 8.0s 内未发现 Action Server /rg/nav_execute"}
+[INFO] [1792639390.627869670] [rcl]: Found security directory: /tmp/rg-dds-neg-ovj3b46m/keystore_other_ca/enclaves/gateway
+terminate called without an active exception

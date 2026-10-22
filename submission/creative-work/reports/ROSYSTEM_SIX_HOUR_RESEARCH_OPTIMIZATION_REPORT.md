@@ -41,7 +41,7 @@
 
 | 项 | 1.1.0 基线 | 六小时轮次 | 说明 |
 | --- | --- | --- | --- |
-| 全量单测 | 920 passed / 4 skipped | **920 passed / 4 skipped（591.50 s）** | 代码新增后重跑 |
+| 全量单测 | 920 passed / 4 skipped | **920 passed / 4 skipped（源码）/ 921 passed / 17 skipped（最终包，603.8 s）** | 两处环境分别重跑 |
 | DDS Enforce | 7/7 | **7/7（重跑）** | 新 run `sixhour-dds-20261022T034500Z` |
 | DDS 负向 | 6/6 | **6/6（重跑）** | 新 run `sixhour-ddsneg-20261022T034800Z` |
 | M2 身份链 | 17/17 | 17/17（回归） | 意图主题；默认 witness 路径 |
@@ -187,7 +187,25 @@ Planner RESULT_TIMEOUT  ≠  Gateway 未收到
 
 候选版本：**1.1.1-rc1**（不覆盖 1.1.0 包）。
 
-__PACKAGE_SECTION__
+### 13.1 最终候选包
+
+| 项 | 值 |
+| --- | --- |
+| 完整包 | `RosSystem-CreativeWork-Full-1.1.1-rc1.tar.gz`（2,453,717 B） |
+| 完整包 SHA-256 | `d69737cf9dbd039a4a0b8a127eb15bb3db55b5514512c119befd46d5e0fe32d2` |
+| 离线包 | `RosSystem-creative-work-1.1.1-rc1.tar.gz`（110,269 B） |
+| 离线包 SHA-256 | `2fa7892deee52c079a76b51064acf7357f7b4bd7d655b3ab04d5081efa00a2b9` |
+| 构建时源码提交 | 见包内 `runtime/BUILD_INFO.json`；构建时 tracked worktree 干净 |
+| 解压/密钥扫描 | 两包 sha256 OK；无 `.pem/.key/.p7s` |
+| colcon（最终 sha） | 4/4，0 失败 |
+| DDS Enforce（最终 sha） | **7/7 PASS** |
+| 全量单测（最终 sha） | **921 passed / 17 skipped / 0 failed（603.8 s）** |
+| 最终 sha 包上的负向/身份/网关/P07/P09/三真实/Web | DDS 负向 6/6、M2 17/17、Gateway 14/14、P07 13/13、P09 10/10、三真实 L1/L2 PASS、L3 BLOCKED、Web 18 passed |
+
+**注意**：以上结果均在最终 sha 包上重跑。`tests/unit` 在包内跳过 17 项
+（依赖仓库未归档的 demo 证据/外部条件），pytest 明确列出 skipped，未计为 PASS。
+
+详细记录：`paper/FINAL_PACKAGE_REPRODUCTION.md`。
 
 ## 14. 性能、统计与重复性
 
@@ -248,7 +266,7 @@ THREE_REAL_LEVEL2               = PASS
 THREE_REAL_LEVEL3               = BLOCKED
 CONTROLLED_REGRESSION           = PASS
 WEB_RESEARCH_EVIDENCE           = PASS
-LATEST_ARCHIVE_REPRODUCED       = __PACKAGE_STATUS__
+LATEST_ARCHIVE_REPRODUCED       = PASS（SAME_HOST_FRESH_ENV）
 THIRD_PARTY_HOST_REPRODUCED     = NOT_RUN
 PAPER_TABLES_COMPLETE           = PASS
 PAPER_FIGURES_COMPLETE          = PASS
