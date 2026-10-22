@@ -9,8 +9,13 @@ import os
 import tempfile
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-MODULE = os.path.join(REPO, 'submission', 'creative-work', 'dashboard',
-                      'run_controller.py')
+# Repo layout: <repo>/submission/creative-work/dashboard.
+# Full package layout: <package>/runtime is REPO and <package>/dashboard is a sibling.
+_CANDIDATES = (
+    os.path.join(REPO, 'submission', 'creative-work', 'dashboard', 'run_controller.py'),
+    os.path.join(os.path.dirname(REPO), 'dashboard', 'run_controller.py'),
+)
+MODULE = next((p for p in _CANDIDATES if os.path.isfile(p)), _CANDIDATES[0])
 
 spec = importlib.util.spec_from_file_location('run_controller', MODULE)
 rc = importlib.util.module_from_spec(spec)
