@@ -1,0 +1,277 @@
+{
+  "contract": "paper-facts-baseline/1",
+  "immutable": true,
+  "frozen_at_utc": "2026-10-22T02:34:45Z",
+  "research_version": "1.1.0",
+  "branch": "research/cross-layer-security-v1.1.0",
+  "head": "488491f5320a6b83ab199d6da2f21169645b0b24",
+  "package_source_commit": "d50604452603ea3dbd5cd7d067f6eef967fb48c1",
+  "frozen_tag": {
+    "name": "creative-work-v1.0.3",
+    "object": "7b60b2890cc70925d9618d8f3c971035651c6789",
+    "commit": "5773fb486c8eabdf7c0dfa039b600faabacffe75"
+  },
+  "packages": {
+    "full": {
+      "name": "RosSystem-CreativeWork-Full-1.1.0.tar.gz",
+      "sha256": "c47b7a5b6bc933d22cd3fd6cf023f360648f200f94e2b740f4a3e1d1244aa9e0",
+      "bytes": 2179249,
+      "source_commit": "d50604452603ea3dbd5cd7d067f6eef967fb48c1"
+    },
+    "offline": {
+      "name": "RosSystem-creative-work-1.1.0.tar.gz",
+      "sha256": "45026b057643e80262a2ba82c05b3ab781e201d80e08be0c5323081f9a2a5057",
+      "bytes": 69628
+    }
+  },
+  "environment": {
+    "host": "Ubuntu 22.04.5 LTS WSL2 x86_64",
+    "ros_distro": "jazzy",
+    "rmw": "rmw_fastrtps_cpp",
+    "fastdds": "2.14.x",
+    "container": "ros:jazzy derived (rosystem-jazzy:1.1.0 / rosystem-verify-1.0.3)",
+    "python": "3.12.3 in container; 3.10.12 on host"
+  },
+  "facts": [
+    {
+      "id": "C01",
+      "claim": "全量单元回归通过",
+      "status": "PASS",
+      "scope": "本仓库、本容器",
+      "metric": "920 passed, 4 skipped, 0 failed, 563 s",
+      "evidence": [
+        "artifacts/acceptance/exports/research_v110/acceptance_v110.json",
+        "submission/creative-work/reports/ROSYSTEM_1_1_0_RESEARCH_AND_SECURITY_VALIDATION_REPORT.md §12"
+      ],
+      "allowed": "论文可写“本版本全量单元测试 920 通过、4 跳过”",
+      "limitation": "非 ROS 集成测试全覆盖"
+    },
+    {
+      "id": "C02",
+      "claim": "原 13 项身份证据测试已实质修复",
+      "status": "PASS",
+      "scope": "证据解释 + 权限 fixture",
+      "metric": "56/56",
+      "evidence": [
+        "tests/unit/test_identity_trust_real_logs.py",
+        "tests/fixtures/sros2_lab_permissions"
+      ],
+      "allowed": "可写“13 项失败根因是归档缺 permissions.xml，已用非秘密 fixture 修复”",
+      "limitation": "不是算法缺陷修复；历史归档仍缺权限文件"
+    },
+    {
+      "id": "C03",
+      "claim": "DDS 实验室 Enforce 正向 7/7",
+      "status": "PASS",
+      "scope": "LAB, domain 43, Fast DDS",
+      "metric": "7/7",
+      "evidence": [
+        "artifacts/acceptance/exports/m2_sros2_enforce_v110"
+      ],
+      "allowed": "可写“实验室 Enforce 下合法通信建立、非法通信被 DDS 拒绝”",
+      "limitation": "临时实验室 CA；非生产部署"
+    },
+    {
+      "id": "C04",
+      "claim": "DDS 实验室负向 6/6（带同栈正向对照）",
+      "status": "PASS",
+      "scope": "LAB, domain 43",
+      "metric": "6/6",
+      "evidence": [
+        "artifacts/acceptance/exports/m2_sros2_enforce_v110_negative"
+      ],
+      "allowed": "可写“不同 CA、篡改 p7s、证书/目录错配、Enforce 关闭对照均按预期”",
+      "limitation": "不覆盖跨主机/跨 RMW/生产 CA"
+    },
+    {
+      "id": "C05",
+      "claim": "M2 当前请求身份链（意图主题）17/17",
+      "status": "PASS",
+      "scope": "LAB, domain 45, intent topic",
+      "metric": "17/17; 2 个证书零串号",
+      "evidence": [
+        "artifacts/acceptance/exports/m2_lab_identity_v110"
+      ],
+      "allowed": "可写“DDS writer→证书主体→请求摘要→Ed25519→F0 在实验室内成立”",
+      "limitation": "绑定的是预准入意图主题，不是 Action send_goal；Gateway 尚未在此链中"
+    },
+    {
+      "id": "C06",
+      "claim": "Gateway 独立身份 + TaskPolicy 双层授权 14/14",
+      "status": "PASS",
+      "scope": "LAB, domain 45",
+      "metric": "14/14；G1 1 Goal；G2/G3/G4 0 Goal",
+      "evidence": [
+        "artifacts/acceptance/exports/m2_gateway_identity_v110"
+      ],
+      "allowed": "可写“身份门与 TaskPolicy 是两道独立屏障”",
+      "limitation": "证据经文件 side channel；不是 Action 协议内字段"
+    },
+    {
+      "id": "C07",
+      "claim": "组件级重复实验 30/30",
+      "status": "PASS",
+      "scope": "组件级，不是完整端到端",
+      "metric": "30/30 正向；3/3 负向；verify p50 1.416 ms p99 1.943 ms",
+      "evidence": [
+        "artifacts/research/v110/repeats/v110rep-20261021T195500Z"
+      ],
+      "allowed": "可写“组件级 30 次重复全部成功，延迟约 1.5 ms”",
+      "limitation": "不得写成 30 次完整 ROS 2 安全闭环"
+    },
+    {
+      "id": "C08",
+      "claim": "三真实模块调用与 Schema 校验",
+      "status": "PASS",
+      "scope": "真实 M1/M2/M3 External",
+      "metric": "LEVEL1 PASS, LEVEL2 PASS",
+      "evidence": [
+        "artifacts/research/v110/three-real/summary.json"
+      ],
+      "allowed": "可写“三个真实模块被实际调用并通过 Schema/关联校验”",
+      "limitation": "不等于正向准入"
+    },
+    {
+      "id": "C09",
+      "claim": "三真正向在线准入",
+      "status": "BLOCKED",
+      "scope": "真实三模块",
+      "metric": "LEVEL3 BLOCKED",
+      "evidence": [
+        "artifacts/research/v110/three-real/summary.json"
+      ],
+      "allowed": "只能写“被 M1 UNKNOWN 阻断，未实现正向”",
+      "limitation": "必须同时给出阻断原因"
+    },
+    {
+      "id": "C10",
+      "claim": "严格 acceptance",
+      "status": "INCOMPLETE",
+      "scope": "公开科研复现",
+      "metric": "exit 9；无 FAIL；6 项 NOT_RUN",
+      "evidence": [
+        "artifacts/acceptance/exports/research_v110/acceptance_v110.json"
+      ],
+      "allowed": "可写“INCOMPLETE，不是 PASS”",
+      "limitation": "不得省略 NOT_RUN 列表"
+    },
+    {
+      "id": "C11",
+      "claim": "P07 M3 建议阻断 → F0 阻断",
+      "status": "DISPUTED",
+      "scope": "原矩阵标为 PASS，但证据不匹配",
+      "metric": "原证据主要是 Gateway OUT_OF_REGION",
+      "evidence": [
+        "artifacts/acceptance/exports/research_v110/p01_p12_matrix.json"
+      ],
+      "allowed": "论文暂不得引用 P07 PASS；等待本轮隔离实验或改为 NOT_VERIFIED",
+      "limitation": "见 ERRATUM_P07.md"
+    },
+    {
+      "id": "C12",
+      "claim": "P09 Planner TIMEOUT 语义",
+      "status": "NOT_RUN",
+      "scope": "1.1.0 未重跑",
+      "metric": "—",
+      "evidence": [
+        "submission/creative-work/docs/LIMITATIONS.md"
+      ],
+      "allowed": "不得引用为 1.1.0 新证据",
+      "limitation": "仅 1.0.3 历史证据"
+    },
+    {
+      "id": "C13",
+      "claim": "最新压缩包独立复现",
+      "status": "PARTIAL",
+      "scope": "同宿主新目录/新容器",
+      "metric": "16e74e 包：colcon 4/4、DDS 7/7、121 测试；最终包 c47b7a5b 仅 SHA/121 测试复验",
+      "evidence": [
+        "artifacts/acceptance/exports/package_v110_verification",
+        "submission/creative-work/reports/RELEASE_ARTIFACTS.md"
+      ],
+      "allowed": "只能写“同宿主独立目录/容器复现”，不能写第三方主机复现",
+      "limitation": "未在第三方主机/CI 复现；最终包未重跑 DDS"
+    },
+    {
+      "id": "C14",
+      "claim": "当前成熟度",
+      "status": "LEVEL_C",
+      "scope": "DDS + 当前请求身份实验室验证",
+      "metric": "LEVEL C",
+      "evidence": [
+        "submission/creative-work/reports/ROSYSTEM_1_1_0_RESEARCH_AND_SECURITY_VALIDATION_REPORT.md"
+      ],
+      "allowed": "可写 LEVEL C",
+      "limitation": "不满足 B/D/E"
+    },
+    {
+      "id": "C15",
+      "claim": "M1 validation gate",
+      "status": "FALSE",
+      "scope": "M1 模型",
+      "metric": "validation_gate_passed=false",
+      "evidence": [
+        "modules/member1_comm/model/comm_risk_model.json",
+        "docs/research/M1_MODEL_DEPLOYMENT_ACCEPTANCE.md"
+      ],
+      "allowed": "必须写“未通过，不得用于正向准入”",
+      "limitation": "原因见 M1 专项报告"
+    },
+    {
+      "id": "C16",
+      "claim": "Action send_goal 请求级身份",
+      "status": "NOT_VERIFIED",
+      "scope": "当前 Ed25519 链",
+      "metric": "—",
+      "evidence": [
+        "docs/research/M2_LAB_ED25519_CURRENT_IDENTITY.md"
+      ],
+      "allowed": "不得写已实现 Action 级身份",
+      "limitation": "只绑定意图主题"
+    },
+    {
+      "id": "C17",
+      "claim": "1.0.3 冻结版本未被修改",
+      "status": "PASS",
+      "scope": "Git 标签/提交",
+      "metric": "tag 7b60b28→5773fb4",
+      "evidence": [
+        "git"
+      ],
+      "allowed": "可写“1.0.3 未被覆盖”",
+      "limitation": "研究分支新增提交不影响旧标签"
+    }
+  ],
+  "not_claimable": [
+    "生产级身份认证 / 生产 CA / HSM / 撤销轮换",
+    "Action send_goal 请求级身份绑定",
+    "M1 生产级 IDS 或受信任 NORMAL",
+    "三真实正向 LEVEL3",
+    "第三方主机独立复现",
+    "30 次完整端到端重复",
+    "P07 M3 阻断已被证明（原证据不匹配）",
+    "P09 超时/取消已在 1.1.0 验证",
+    "Web 控制台已展示 1.1.0 证据（尚未接入）"
+  ],
+  "unfinished": [
+    "P07 证据纠正",
+    "P09 超时重测",
+    "M1 新数据/模型门槛",
+    "Action send_goal 绑定",
+    "Web 1.1.0 证据",
+    "第三方主机复现",
+    "生产密钥生命周期"
+  ],
+  "snapshot_hashes": {
+    "artifacts/acceptance/exports/research_v110/acceptance_v110.json": "629e74cd90aa6a5800f9acc612340757a36a2867864d4a39f8717747915700e6",
+    "artifacts/acceptance/exports/research_v110/p01_p12_matrix.json": "ab3332eafe241e4b4d9055c10aee813d35959ec2dff4655cb879cf93f8fcbe37",
+    "artifacts/acceptance/exports/m2_sros2_enforce_v110/evidence_manifest.json": "705e8e622f903d1ae9bf7375eb2c1dc176c0fbd8a0527922db14f2e5b5f9bac4",
+    "artifacts/acceptance/exports/m2_sros2_enforce_v110_negative/evidence_manifest.json": "e26dfe75b6cefd901a088503fa9d1bc4a128513b8e705a5d076164929643a898",
+    "artifacts/acceptance/exports/m2_lab_identity_v110/evidence_manifest.json": "b1eddf696c34170a967cd1ae1b33b4e05ec16eb1b3dec55ab95ad06ff13ca598",
+    "artifacts/acceptance/exports/m2_gateway_identity_v110/evidence_manifest.json": "d16f732cb07f51d65660764ad10cc1d87e111586546258589ecfc81817aef86f",
+    "artifacts/acceptance/exports/package_v110_verification/package_verification.json": "2828f8b6eb71c26500cb7fd0034030fcc602c3571de401f73fafc3c00f90079b",
+    "artifacts/research/v110/three-real/summary.json": "adca96a0e4e20958cea0a3148b91d7af6171d9ce75030dce484818a3ca048ab6",
+    "artifacts/research/v110/repeats/v110rep-20261021T195500Z/summary.json": "955b2193b2f973dafcdc6715b662311e895ed0fb22b9369dbb06b5917bd470e9",
+    "submission/creative-work/reports/ROSYSTEM_1_1_0_RESEARCH_AND_SECURITY_VALIDATION_REPORT.md": "f0d1a873e1dd701aab3f06505d103bc7ebdfb709ca62d096e01c2ea95fe6f0eb"
+  }
+}
