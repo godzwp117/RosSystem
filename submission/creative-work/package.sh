@@ -12,10 +12,15 @@ mkdir -p "$OUT"
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 
-for item in dashboard replay tests docs reports paper run.sh stop.sh package.sh package_full.sh verify_package.sh README.md; do
+for item in dashboard replay tests docs reports run.sh stop.sh package.sh package_full.sh verify_package.sh README.md; do
   [ -e "$HERE/$item" ] || { echo "ERROR: 缺少 $item" >&2; exit 1; }
   cp -a "$HERE/$item" "$STAGE/"
 done
+# paper/ lives at the repository root, not under submission/creative-work.
+PAPER_SRC="$(cd "$HERE/../.." && pwd)/paper"
+[ -d "$PAPER_SRC" ] || { echo "ERROR: 缺少 $PAPER_SRC" >&2; exit 1; }
+cp -a "$PAPER_SRC" "$STAGE/paper"
+
 find "$STAGE" -name '__pycache__' -type d -prune -exec rm -rf {} + 2>/dev/null || true
 find "$STAGE" -name '*.pyc' -delete 2>/dev/null || true
 
