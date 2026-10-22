@@ -1,0 +1,18 @@
+{
+  "claims": {
+    "item9_ros2_downstream": "PASS",
+    "item10_m3_online_six_scenarios": "PASS",
+    "item11_formal_dds_enforce": "PASS (7/7)",
+    "three_real_positive_admission": "NOT_ACHIEVED"
+  },
+  "evidence_sources": {
+    "downstream_negative_and_positive": "downstream_v2/ (same stack session)",
+    "m3_online_six": "m3_online/merged/verification.json",
+    "dds_enforce_formal": "../../tests/evidence/sros2-formal-online-online-20261019T155522Z"
+  },
+  "explicit_non_claims": [
+    "不宣称三真实模块 LEVEL 3 通过",
+    "不宣称 M1 检测有效",
+    "不宣称 M2 生产身份信任根就绪"
+  ]
+}

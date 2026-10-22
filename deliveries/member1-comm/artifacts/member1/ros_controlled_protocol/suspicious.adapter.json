@@ -1,0 +1,90 @@
+{
+  "adapter_version": "0.1.0",
+  "contract_version": "1.0.0-proposed",
+  "invocation_id": "bb5f2e385a9d",
+  "checked_at": "2026-10-13T11:39:58Z",
+  "decision": "ADAPTER_BLOCK",
+  "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+  "detail": "模块 comm_risk 状态为 'SUSPICIOUS'，不是允许推进的 'NORMAL'；本地阻断，不进入提交流程",
+  "run_id": "member1-ros-controlled-2e40e3d96141",
+  "request_id": "member1-ros-controlled-2e40e3d96141-suspicious",
+  "modules": [
+    {
+      "invocation_id": "bb5f2e385a9d",
+      "module": "comm_risk",
+      "mode": "external",
+      "interface": "comm_risk_evidence",
+      "command": [
+        "/usr/bin/python3",
+        "/ws/modules/my_comm/module.py",
+        "--model",
+        "/ws/training_runs/member1-ros-controlled-2e40e3d96141/model.json",
+        "--model-sha256",
+        "ce2770caaea02f0af8ac3e90495ee18a4aa66859d8a92d574935efd9a58bf4b8",
+        "--controlled-test"
+      ],
+      "timeout_sec": 10.0,
+      "max_stdout_bytes": 65536,
+      "pid": 2150,
+      "pgid": 2150,
+      "exit_code": 0,
+      "duration_ms": 86,
+      "stdout_bytes": 1470,
+      "status": "SUSPICIOUS",
+      "schema_ok": true,
+      "cleanup": "not_needed",
+      "stderr_bytes_kept": 41
+    },
+    {
+      "invocation_id": "bb5f2e385a9d",
+      "module": "identity_trust",
+      "mode": "mock",
+      "interface": "identity_trust_assessment",
+      "command": [
+        "/usr/bin/python3",
+        "mock_modules/identity_trust_mock.py"
+      ],
+      "timeout_sec": 10.0,
+      "max_stdout_bytes": 65536,
+      "pid": 2151,
+      "pgid": 2151,
+      "exit_code": 0,
+      "duration_ms": 19,
+      "stdout_bytes": 1009,
+      "status": "AUTHORIZED",
+      "schema_ok": true,
+      "cleanup": "not_needed",
+      "stderr_bytes_kept": 43
+    },
+    {
+      "invocation_id": "bb5f2e385a9d",
+      "module": "task_risk",
+      "mode": "mock",
+      "interface": "task_risk_decision",
+      "command": [
+        "/usr/bin/python3",
+        "mock_modules/task_risk_mock.py"
+      ],
+      "timeout_sec": 10.0,
+      "max_stdout_bytes": 65536,
+      "pid": 2152,
+      "pgid": 2152,
+      "exit_code": 0,
+      "duration_ms": 19,
+      "stdout_bytes": 881,
+      "status": "ALLOW_RECOMMENDED",
+      "schema_ok": true,
+      "cleanup": "not_needed",
+      "stderr_bytes_kept": 45
+    }
+  ],
+  "adapter_peak_rss_kb": 28804,
+  "note": "本结果仅表示适配层的候选输入检查结论；READY_FOR_GATEWAY_SUBMISSION 不代表 Gateway 已允许，也不代表下游已执行。本层不提交真实 Action。",
+  "audit_written": true,
+  "online": {
+    "enabled": true,
+    "submitted": false,
+    "outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+    "detail": "适配层未通过推进条件，因此不启动 Planner、不发送任何 Goal"
+  }
+}

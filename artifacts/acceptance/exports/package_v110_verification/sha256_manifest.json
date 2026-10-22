@@ -1,0 +1,108 @@
+{
+  "files": {
+    "evidence_manifest.json": {
+      "sha256": "ff8e1f4934e6a2a4f7e614141c3b100fd457f03b2db8307d9b2ecf7de72bdad7",
+      "bytes": 7947
+    },
+    "keystore_permissions/gateway/permissions.xml": {
+      "sha256": "16e78703790923b035521d65263122712e9470945c5a1049da24e7c9a8715103",
+      "bytes": 3281
+    },
+    "keystore_permissions/navsim/permissions.xml": {
+      "sha256": "ea0c565138e99687c097e5110bd91cb4ea290638057ad6e83fbe06508a2f298d",
+      "bytes": 2669
+    },
+    "keystore_permissions/operator/permissions.xml": {
+      "sha256": "2390c0c6270632691a620c020413794832c8dfaab01c7b13b57381f38ad03201",
+      "bytes": 2160
+    },
+    "keystore_permissions/planner/permissions.xml": {
+      "sha256": "f2d100e826bd0c8b16a65ebe66ccc28db30b8c3b0ba03a6819ff984a5e5f4bb0",
+      "bytes": 2683
+    },
+    "keystore_permissions/unauthorized/permissions.xml": {
+      "sha256": "4768f3d55c91a00b911b3b478c14033a2751e500309024708ae04a7b642d291c",
+      "bytes": 2111
+    },
+    "package_verification.json": {
+      "sha256": "2828f8b6eb71c26500cb7fd0034030fcc602c3571de401f73fafc3c00f90079b",
+      "bytes": 1162
+    },
+    "pkgenforce-20261021T200500Z/S1_normal_mode_a_zone/audit.jsonl": {
+      "sha256": "e887125c944c5ae142daf8bbce3a0f4e83d8fbda590a8fce6207a5321593f274",
+      "bytes": 1067
+    },
+    "pkgenforce-20261021T200500Z/S1_normal_mode_a_zone/gateway.log": {
+      "sha256": "098d7a2b3a63eade855ffe689eab93ce9969f23967b810e427aae3be6ddfce30",
+      "bytes": 1864
+    },
+    "pkgenforce-20261021T200500Z/S1_normal_mode_a_zone/navsim.log": {
+      "sha256": "dd016f13a3047380839d07b8fb8ee8821b9604492798a7932a082408b6ca9a9e",
+      "bytes": 937
+    },
+    "pkgenforce-20261021T200500Z/S1_normal_mode_a_zone/navsim_goals.jsonl": {
+      "sha256": "3eb85a180bda6e515f247cbbf88540111d402049d0536549f3ca5c36d34d97d3",
+      "bytes": 270
+    },
+    "pkgenforce-20261021T200500Z/S1_normal_mode_a_zone/operator.log": {
+      "sha256": "217fad6948a2d23fce2645c98c31db3e8ca348b1d174586f68cf7316775496ee",
+      "bytes": 802
+    },
+    "pkgenforce-20261021T200500Z/S1_normal_mode_a_zone/planner.log": {
+      "sha256": "68605e54f3140c07cbc2ad7d6c09210e0fd3e765a80de4afde5e840e662661bb",
+      "bytes": 492
+    },
+    "pkgenforce-20261021T200500Z/S2/planner.log": {
+      "sha256": "023f103ed66af7363ebfb449a4a72f1ff608187886054bcb96ab36fb8ca0d9ad",
+      "bytes": 594
+    },
+    "pkgenforce-20261021T200500Z/S3/rogue_planner.log": {
+      "sha256": "3d22448e3aeb494422d92fe6074d73f496c92938f9e2985f082aa78d92f44cf2",
+      "bytes": 1385
+    },
+    "pkgenforce-20261021T200500Z/S3C/rogue_gateway.log": {
+      "sha256": "8a506e61a2ae2d351464ad98b2519f66f39817e56871f1cd3844078076faaddc",
+      "bytes": 389
+    },
+    "pkgenforce-20261021T200500Z/S4/rogue_unauthorized.log": {
+      "sha256": "981852fba4546dff6d42e95a46217b1b895a04d1f07ee6ebf7148ba1dd664ed2",
+      "bytes": 1388
+    },
+    "pkgenforce-20261021T200500Z/S5/planner.log": {
+      "sha256": "d3e8e759466d8bd24e302f9cbd746ca9377a701514c61e3b6ba61d2f191610d5",
+      "bytes": 577
+    },
+    "pkgenforce-20261021T200500Z/S6/rogue_bad_keystore.log": {
+      "sha256": "33c854c34813c407ad85b1518d03366dbc7b019d3fc15581ab77a992a864dcf2",
+      "bytes": 370
+    },
+    "pkgenforce-20261021T200500Z/_stack/audit.jsonl": {
+      "sha256": "6a0fe400da8cfd7f1dca95e825796582b1cb326dd9449239ca2d0ba0e1fd648b",
+      "bytes": 1748
+    },
+    "pkgenforce-20261021T200500Z/_stack/gateway.log": {
+      "sha256": "36dd37388503c008b7cf88708e37b28e70adf1c60ee575fce2867c8e0f6bb1a6",
+      "bytes": 2373
+    },
+    "pkgenforce-20261021T200500Z/_stack/navsim.log": {
+      "sha256": "d7696f302fb32ce411dce13f4def95f476f13075a17766ae8a3d3ddff210b994",
+      "bytes": 1292
+    },
+    "pkgenforce-20261021T200500Z/_stack/navsim_goals.jsonl": {
+      "sha256": "a52ac6daf4da7766b0fcdc1de100f7f36a8b1a442df5518a4e7e0a27bba06117",
+      "bytes": 549
+    },
+    "pkgenforce-20261021T200500Z/_stack/operator.log": {
+      "sha256": "3637e2d3ce635f99525f7c662308ef6147385888fbd7a83dc225a9211da5e55a",
+      "bytes": 2549
+    },
+    "pkgenforce-20261021T200500Z/summary.json": {
+      "sha256": "59a84c0d3e5e9da84f58d062af1664980f48edfbbaace36588996e4e56e3b819",
+      "bytes": 22927
+    },
+    "three_real_summary.json": {
+      "sha256": "7e1888ef8586d32fb41af37a33adc03051c3586e0f1514c7139c291eff49c119",
+      "bytes": 4397
+    }
+  }
+}

@@ -1,0 +1,2 @@
+PLANNER_RESULT {"request_id": "p09-timeout-last-p09-20261022T052700Z", "task_id": "patrol_a_001", "frame_id": "map", "target": {"x": 1.5, "y": 1.5, "z": 0.0}, "egress_action": "/rg/guarded_navigate", "goal_id": "cd02797501a34ebc9d9bdaef3e6b9ee1", "outcome": "RESULT_TIMEOUT", "accepted": true, "detail": "get_result_async did not complete within 1.000s"}
+[ros2run]: Process exited with failure 2

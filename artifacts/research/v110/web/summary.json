@@ -1,0 +1,81 @@
+{
+  "contract": "web-research-evidence/1",
+  "run": "dashboard server on 127.0.0.1:8791",
+  "http": {
+    "/api/health": 200,
+    "/api/research": 200,
+    "/": 200
+  },
+  "evidence_class": "ARCHIVED_RESEARCH_EVIDENCE",
+  "online_evidence": false,
+  "acceptance": {
+    "status": "INCOMPLETE",
+    "exit_code": 9,
+    "not_run": [
+      "THREE_REAL_LEVEL3",
+      "P01_THREE_REAL_POSITIVE",
+      "P02_REAL_M1_SUSPICIOUS",
+      "THIRD_PARTY_HOST_REPRO",
+      "WEB_V110_EVIDENCE"
+    ]
+  },
+  "items": {
+    "DDS_ENFORCE": {
+      "status": "PASS",
+      "value": "7/7"
+    },
+    "DDS_NEGATIVE": {
+      "status": "PASS",
+      "value": "6/6"
+    },
+    "M2_IDENTITY": {
+      "status": "PASS",
+      "value": "17/17"
+    },
+    "GATEWAY": {
+      "status": "PASS",
+      "value": "14/14"
+    },
+    "REPEATS": {
+      "status": "PASS",
+      "value": "30/30"
+    },
+    "THREE_REAL_L1": {
+      "status": "PASS",
+      "value": "PASS"
+    },
+    "THREE_REAL_L2": {
+      "status": "PASS",
+      "value": "PASS"
+    },
+    "THREE_REAL_L3": {
+      "status": "BLOCKED",
+      "value": "BLOCKED"
+    },
+    "M1_GATE": {
+      "status": "FALSE",
+      "value": "false"
+    },
+    "P07": {
+      "status": "PASS",
+      "value": "13/13"
+    },
+    "P09": {
+      "status": "PASS",
+      "value": "10/10"
+    },
+    "ACTION_BINDING": {
+      "status": "NOT_VERIFIED",
+      "value": "—"
+    }
+  },
+  "html_panel_present": true,
+  "screenshot": "NOT_RUN (no headless browser in environment)",
+  "hashes": {
+    "resp_api_health.txt": "c502f5260f49794cbe5e23308ec015c9d2bc28589fb7af9c77265b405a220080",
+    "resp_api_research.txt": "690bbfbdb3b748e963a559dac12bbaa39c55729d6d6ba57cb27b60b0c073260b",
+    "resp_.txt": "3dc7d6a9668486fd450caa6c35d2db93e20e38e3bcfab2f2188342cc4a567bc3",
+    "server.log": "a40c44d073a0e8babbd689092739feaba44ac3345e09be555b2e92b0250e9dd0"
+  },
+  "notice": "ARCHIVED_RESEARCH_EVIDENCE is distinct from REPLAY and ONLINE_EVIDENCE; the page never labels archived data as a live run."
+}

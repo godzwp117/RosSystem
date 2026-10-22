@@ -1,0 +1,5 @@
+{
+  "decision": "ADAPTER_BLOCK",
+  "reason_code": "ADAPTER_DEPENDENCY_MISSING",
+  "detail": "缺少 jsonschema>=4.0（Draft 2020-12 需要）。安装方式：\n    apt-get update && apt-get install -y python3-jsonschema\n或由 scripts/container_up.sh 在新建容器时自动安装。"
+}

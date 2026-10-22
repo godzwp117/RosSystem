@@ -74,6 +74,8 @@ from rg_policy.policy_engine import Decision, NavRequest, evaluate
 from rg_policy.request_tracker import RequestTracker
 from rg_policy.task_policy import PolicyProvider
 
+from . import identity_gate
+
 DEFAULT_UPSTREAM_ACTION = '/rg/guarded_navigate'
 DEFAULT_DOWNSTREAM_ACTION = '/rg/nav_execute'
 EXECUTOR_THREADS = 4
@@ -121,6 +123,51 @@ class SecurityGateway(Node):
             'duplicate_ttl_sec', 600.0).value)
         rate_window_sec = float(self.declare_parameter(
             'rate_window_sec', 60.0).value)
+        # Gateway-side identity gate (1.1.0). Disabled unless a trusted
+        # attestation directory is configured; when enabled it never falls back
+        # to policy-only admission.
+        identity_dir = str(self.declare_parameter(
+            'identity_attestation_dir', '').value or '').strip()
+        identity_public_key = str(self.declare_parameter(
+            'identity_public_key', '').value or '').strip()
+        identity_issuers = str(self.declare_parameter(
+            'identity_issuers', '').value or '').strip()
+        identity_ledger = str(self.declare_parameter(
+            'identity_nonce_ledger', '').value or '').strip()
+        identity_allow_lab = bool(self.declare_parameter(
+            'identity_allow_lab_scope', False).value)
+        identity_audit = str(self.declare_parameter(
+            'identity_audit_path', '').value or '').strip()
+        if identity_dir:
+            missing = [name for name, value in (
+                ('identity_public_key', identity_public_key),
+                ('identity_issuers', identity_issuers),
+                ('identity_nonce_ledger', identity_ledger)) if not value]
+            if missing:
+                raise ValueError('identity gate enabled but missing: ' + ', '.join(missing))
+            for name, value in (('identity_attestation_dir', identity_dir),
+                                ('identity_public_key', identity_public_key),
+                                ('identity_issuers', identity_issuers),
+                                ('identity_nonce_ledger', identity_ledger)):
+                if not os.path.isabs(value):
+                    raise ValueError(name + ' must be an absolute path')
+            if not os.path.isdir(identity_dir):
+                raise ValueError('identity_attestation_dir is not a directory')
+            if not identity_audit:
+                identity_audit = os.path.abspath(os.path.join(
+                    os.path.dirname(str(audit_log_path)) or '.',
+                    'gateway_identity_audit.jsonl'))
+            if not os.path.isabs(identity_audit):
+                raise ValueError('identity_audit_path must be absolute')
+        self._identity_gate = {
+            'attestation_dir': identity_dir,
+            'public_key': identity_public_key,
+            'issuers_path': identity_issuers,
+            'ledger_path': identity_ledger,
+            'allow_lab_scope': identity_allow_lab,
+        }
+        self._identity_audit_path = identity_audit
+        self._identity_audit_failures = 0
         self.audit_fsync = bool(self.declare_parameter('audit_fsync', False).value)
         # 仅用于故障注入测试（任务 B2）。取值 none|comm|decision|execution|all。
         # 安全性：该机制**只能制造审计写失败**，从而让请求被拒绝；它没有任何分支会放行请求，
@@ -179,6 +226,8 @@ class SecurityGateway(Node):
             'duplicate_ttl_sec': duplicate_ttl_sec,
             'rate_window_sec': rate_window_sec,
             'audit_fault_injection': self.audit_fault_injection,
+            'identity_gate_enabled': bool(self._identity_gate['attestation_dir']),
+            'identity_allow_lab_scope': self._identity_gate['allow_lab_scope'],
         }, ensure_ascii=False))
 
         if self.audit_fault_injection != 'none':
@@ -272,6 +321,30 @@ class SecurityGateway(Node):
         return False
 
     # ------------------------------------------------------------- execution
+    def _write_identity_audit(self, result: Dict[str, Any]) -> bool:
+        """Append the independent identity check; unwritable sink blocks the goal."""
+        if not self._identity_audit_path:
+            return False
+        payload = {'event_type': 'GatewayIdentityCheck',
+                   'observed_at': utc_now_iso(), **result}
+        try:
+            fd = os.open(self._identity_audit_path,
+                         os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+            with os.fdopen(fd, 'a', encoding='utf-8') as handle:
+                handle.write(json.dumps(payload, ensure_ascii=False) + '\n')
+                handle.flush()
+                if self.audit_fsync:
+                    os.fsync(handle.fileno())
+            return True
+        except OSError as exc:
+            self._identity_audit_failures += 1
+            self.get_logger().error('IDENTITY_AUDIT_UNAVAILABLE ' + json.dumps({
+                'path': self._identity_audit_path,
+                'error': exc.strerror or str(exc),
+                'effect': 'goal blocked',
+            }, ensure_ascii=False))
+            return False
+
     def _on_execute(self, goal_handle: Any) -> PatrolNavigate.Result:
         goal = goal_handle.request
         target = goal.target
@@ -331,6 +404,32 @@ class SecurityGateway(Node):
                     policy.max_requests_per_minute, self._tracker.snapshot()['rate_window_sec']),
                 policy_version=decision.policy_version,
             )
+
+        identity_result = None
+        if self._identity_gate['attestation_dir']:
+            identity_result = identity_gate.verify_goal(
+                goal,
+                attestation_dir=self._identity_gate['attestation_dir'],
+                public_key=self._identity_gate['public_key'],
+                issuers_path=self._identity_gate['issuers_path'],
+                ledger_path=self._identity_gate['ledger_path'],
+                allow_lab_scope=self._identity_gate['allow_lab_scope'],
+            )
+            identity_written = self._write_identity_audit(identity_result)
+            if not identity_written:
+                decision = Decision(
+                    decision=reason_codes.DECISION_BLOCK,
+                    reason_code=reason_codes.AUDIT_UNAVAILABLE,
+                    detail='gateway identity audit sink is unwritable; failing closed',
+                    policy_version=decision.policy_version,
+                )
+            elif decision.allowed and identity_result['decision'] != identity_gate.ALLOW:
+                decision = Decision(
+                    decision=reason_codes.DECISION_BLOCK,
+                    reason_code=reason_codes.IDENTITY_ATTESTATION_REJECTED,
+                    detail=identity_result.get('reason') or 'identity attestation rejected',
+                    policy_version=decision.policy_version,
+                )
 
         if not comm_event_written:
             decision = Decision(

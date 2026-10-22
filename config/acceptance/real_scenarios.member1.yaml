@@ -1,0 +1,403 @@
+# 成员一真实通信风险模块验收 fixture（受信任本地文件）
+#
+# 用法
+# ----
+#   python3 scripts/check_member_module.py --module comm_risk \
+#       --config config/team_modules.member1.real.yaml \
+#       --real-fixture config/acceptance/real_scenarios.member1.yaml
+#
+# 数据来源
+# --------
+# observations[].detail.rospace_comm.features 的数值不是随机数，而是
+# tests/fixtures/member1/rospace_comm_rows.json 里的**真实 held-out 数据行**
+# （ROSPaCe 测试分片 13/14，由 modules/member1_comm/export_probe_rows.py 导出，
+# 分片号/原始 CSV 行号/标签/模型打分全部可追溯）。
+#
+# 语义边界
+# --------
+# * 这是 L1 协议可达性验收：证明真实模型在真实子进程里被调用、四条状态码
+#   都能到达、失败关闭有效。**不是**检测效果评估（L2）、**不是**在线监测（L3）。
+# * normal-controlled 期望 NORMAL，但它只在受信任命令档案
+#   model_controlled_test（含 --controlled-test）下成立，输出里会写明
+#   CONTROLLED_TEST_ONLY。交付模型 validation_gate_passed=false，生产语义下
+#   低于阈值只能是 UNKNOWN。
+# * 这里没有任何按标签挑选样本的动作：期望状态由已发布的决策规则推出。
+schema_version: "1.0.0"
+
+real_scenarios:
+
+  comm_risk:
+
+
+    # ------------------------------------------------------------------
+    # 1) 模型真的检出异常 -> SUSPICIOUS（仍然只是研究建议，不推进）
+    # ------------------------------------------------------------------
+    - name: suspicious
+      description: '真实 held-out 攻击行 -> 模型打分过阈值 -> SUSPICIOUS'
+      trigger: 'shard 13 第 20 行真实特征，模型打分 0.9844 不低于阈值 0.75'
+      expected_state: SUSPICIOUS
+      expected_class: LEGAL_BLOCK
+      request_id: req-real-m1-suspicious
+      command_profile: model_valid
+      envelope_patch:
+        created_at: '2026-10-13T12:00:05Z'
+        observations:
+          - source: /rg/guarded_navigate
+            kind: MOCK
+            observed_at: '2026-10-13T12:00:03Z'
+            detail:
+              rospace_comm:
+                features:
+                  feature_names:
+                    - 'layers.sll.sll.pkttype'
+                    - 'layers.sll.sll.hatype'
+                    - 'layers.ip.ip.version'
+                    - 'layers.ip.ip.dsfield_tree.ip.dsfield.ecn'
+                    - 'layers.ip.ip.flags_tree.ip.flags.rb'
+                    - 'layers.ip.ip.flags_tree.ip.flags.df'
+                    - 'layers.ip.ip.checksum.status'
+                    - 'layers.tcp.tcp.stream'
+                    - 'layers.tcp.tcp.ack'
+                    - 'layers.tcp.tcp.flags_tree.tcp.flags.ack'
+                    - 'layers.tcp.tcp.flags_tree.tcp.flags.syn'
+                    - 'layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.severity'
+                    - 'layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.group'
+                    - 'layers.tcp.tcp.window_size_value'
+                    - 'layers.tcp.tcp.window_size'
+                    - 'layers.tcp.tcp.options_tree.tcp.options.nop'
+                    - 'layers.tcp.tcp.options_tree.tcp.options.nop_tree.tcp.option_kind'
+                    - 'layers.tcp.tcp.analysis.tcp.analysis.acks_frame'
+                    - 'layers.tcp.tcp.analysis.tcp.analysis.initial_rtt'
+                    - 'layers.ssl.ssl.record.ssl.record.content_type'
+                    - 'layers.ipv6.ip.version'
+                    - 'layers.ipv6.ipv6.tclass_tree.ipv6.tclass.ecn'
+                    - 'Net_Sent'
+                    - 'pgpgin'
+                    - 'pgactivate'
+                    - 'Disk_Read'
+                    - 'pgfault'
+                    - 'Net_Received'
+                    - 'MemFree'
+                    - 'Inactive'
+                    - 'pgdeactivate'
+                    - 'Tcp_Close'
+                    - 'pgfree'
+                    - 'nr_active_file'
+                    - 'Cached'
+                    - 'nr_inactive_file'
+                    - 'Disk_Write'
+                    - 'pgpgout'
+                    - 'Tcp_Syn'
+                    - 'Buffers'
+                    - 'Tcp_TimeWait'
+                    - 'Tcp_Listen'
+                    - 'Tcp_Established'
+                    - 'Active'
+                    - 'pgalloc_dma'
+                    - 'pgmajfault'
+                    - 'SwapFree'
+                    - 'subscribers_count'
+                    - 'publishers_count'
+                  values: [0, 1, 4, 0, 0, 0, 2, 150107, 0, 0, 1, 2097152, 33554432, 3766, 3766, null, null, null, null, null, null, null, 66000, 85592348, 176736324, 0, 2227845359, 163000, 10143484, 16838280, 175063620, 0, 2175961464, 636713, 14864188, 3172454, 532000, 68932285, 0, 398820, 0, 11, 3, 4357564, 1024, 835946, 1891760, 1, 1]
+              f0_runtime:
+                communication:
+                  resource: /rg/guarded_navigate
+                  resource_type: Action
+                  operation: GOAL_SEND
+                request_count: 12
+                window:
+                  start: '2026-10-13T12:00:00Z'
+                  end: '2026-10-13T12:00:05Z'
+                  duration_ms: 5000
+        evidence_refs:
+          - {ref: tests/fixtures/member1/rospace_comm_rows.json, kind: MOCK}
+      expect:
+        allowed_states: [SUSPICIOUS]
+        contains: ['ANOMALY_DETECTED', '"anomaly_category": "UNKNOWN"']
+    # ------------------------------------------------------------------
+    # 2) 低于阈值 + 门槛未通过 -> UNKNOWN（不得当成 NORMAL）
+    # ------------------------------------------------------------------
+    - name: unknown
+      description: '真实 held-out 行低于阈值，但模型未通过验证门槛 -> UNKNOWN'
+      trigger: 'shard 13 第 12882 行真实特征，打分 0.1821 低于阈值 0.75，且 validation_gate_passed=false'
+      expected_state: UNKNOWN
+      expected_class: LEGAL_BLOCK
+      request_id: req-real-m1-unknown
+      command_profile: model_valid
+      envelope_patch:
+        created_at: '2026-10-13T12:00:05Z'
+        observations:
+          - source: /rg/guarded_navigate
+            kind: MOCK
+            observed_at: '2026-10-13T12:00:03Z'
+            detail:
+              rospace_comm:
+                features:
+                  feature_names:
+                    - 'layers.sll.sll.pkttype'
+                    - 'layers.sll.sll.hatype'
+                    - 'layers.ip.ip.version'
+                    - 'layers.ip.ip.dsfield_tree.ip.dsfield.ecn'
+                    - 'layers.ip.ip.flags_tree.ip.flags.rb'
+                    - 'layers.ip.ip.flags_tree.ip.flags.df'
+                    - 'layers.ip.ip.checksum.status'
+                    - 'layers.tcp.tcp.stream'
+                    - 'layers.tcp.tcp.ack'
+                    - 'layers.tcp.tcp.flags_tree.tcp.flags.ack'
+                    - 'layers.tcp.tcp.flags_tree.tcp.flags.syn'
+                    - 'layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.severity'
+                    - 'layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.group'
+                    - 'layers.tcp.tcp.window_size_value'
+                    - 'layers.tcp.tcp.window_size'
+                    - 'layers.tcp.tcp.options_tree.tcp.options.nop'
+                    - 'layers.tcp.tcp.options_tree.tcp.options.nop_tree.tcp.option_kind'
+                    - 'layers.tcp.tcp.analysis.tcp.analysis.acks_frame'
+                    - 'layers.tcp.tcp.analysis.tcp.analysis.initial_rtt'
+                    - 'layers.ssl.ssl.record.ssl.record.content_type'
+                    - 'layers.ipv6.ip.version'
+                    - 'layers.ipv6.ipv6.tclass_tree.ipv6.tclass.ecn'
+                    - 'Net_Sent'
+                    - 'pgpgin'
+                    - 'pgactivate'
+                    - 'Disk_Read'
+                    - 'pgfault'
+                    - 'Net_Received'
+                    - 'MemFree'
+                    - 'Inactive'
+                    - 'pgdeactivate'
+                    - 'Tcp_Close'
+                    - 'pgfree'
+                    - 'nr_active_file'
+                    - 'Cached'
+                    - 'nr_inactive_file'
+                    - 'Disk_Write'
+                    - 'pgpgout'
+                    - 'Tcp_Syn'
+                    - 'Buffers'
+                    - 'Tcp_TimeWait'
+                    - 'Tcp_Listen'
+                    - 'Tcp_Established'
+                    - 'Active'
+                    - 'pgalloc_dma'
+                    - 'pgmajfault'
+                    - 'SwapFree'
+                    - 'subscribers_count'
+                    - 'publishers_count'
+                  values: [0, 772, 4, 0, 0, 1, 2, 62156, 32291, 1, 0, null, null, 512, 65536, 1, 1, 167594, 0.000080266, null, null, null, 62000, 85592348, 176736336, 0, 2227971097, 924, 10144084, 16839164, 175063620, 0, 2176057708, 636735, 14865676, 3172828, 764000, 68942361, 0, 398916, 0, 11, 3, 4357652, 1024, 835946, 1891760, 1, 2]
+              f0_runtime:
+                communication:
+                  resource: /rg/guarded_navigate
+                  resource_type: Action
+                  operation: GOAL_SEND
+                request_count: 12
+                window:
+                  start: '2026-10-13T12:00:00Z'
+                  end: '2026-10-13T12:00:05Z'
+                  duration_ms: 5000
+        evidence_refs:
+          - {ref: tests/fixtures/member1/rospace_comm_rows.json, kind: MOCK}
+      expect:
+        allowed_states: [UNKNOWN]
+        contains: ['MODEL_NOT_ACCEPTED']
+    # ------------------------------------------------------------------
+    # 3) NORMAL 只在受控测试配置下可达，且输出必须写明 CONTROLLED_TEST_ONLY
+    # ------------------------------------------------------------------
+    - name: normal-controlled
+      description: '同一行在受控测试配置下才能得到 NORMAL（显式 CONTROLLED_TEST_ONLY）'
+      trigger: '同一真实行；命令档案 model_controlled_test 追加 --controlled-test（受信任配置）'
+      expected_state: NORMAL
+      expected_class: PROCEED
+      request_id: req-real-m1-normal
+      command_profile: model_controlled_test
+      envelope_patch:
+        created_at: '2026-10-13T12:00:05Z'
+        observations:
+          - source: /rg/guarded_navigate
+            kind: MOCK
+            observed_at: '2026-10-13T12:00:03Z'
+            detail:
+              rospace_comm:
+                features:
+                  feature_names:
+                    - 'layers.sll.sll.pkttype'
+                    - 'layers.sll.sll.hatype'
+                    - 'layers.ip.ip.version'
+                    - 'layers.ip.ip.dsfield_tree.ip.dsfield.ecn'
+                    - 'layers.ip.ip.flags_tree.ip.flags.rb'
+                    - 'layers.ip.ip.flags_tree.ip.flags.df'
+                    - 'layers.ip.ip.checksum.status'
+                    - 'layers.tcp.tcp.stream'
+                    - 'layers.tcp.tcp.ack'
+                    - 'layers.tcp.tcp.flags_tree.tcp.flags.ack'
+                    - 'layers.tcp.tcp.flags_tree.tcp.flags.syn'
+                    - 'layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.severity'
+                    - 'layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.group'
+                    - 'layers.tcp.tcp.window_size_value'
+                    - 'layers.tcp.tcp.window_size'
+                    - 'layers.tcp.tcp.options_tree.tcp.options.nop'
+                    - 'layers.tcp.tcp.options_tree.tcp.options.nop_tree.tcp.option_kind'
+                    - 'layers.tcp.tcp.analysis.tcp.analysis.acks_frame'
+                    - 'layers.tcp.tcp.analysis.tcp.analysis.initial_rtt'
+                    - 'layers.ssl.ssl.record.ssl.record.content_type'
+                    - 'layers.ipv6.ip.version'
+                    - 'layers.ipv6.ipv6.tclass_tree.ipv6.tclass.ecn'
+                    - 'Net_Sent'
+                    - 'pgpgin'
+                    - 'pgactivate'
+                    - 'Disk_Read'
+                    - 'pgfault'
+                    - 'Net_Received'
+                    - 'MemFree'
+                    - 'Inactive'
+                    - 'pgdeactivate'
+                    - 'Tcp_Close'
+                    - 'pgfree'
+                    - 'nr_active_file'
+                    - 'Cached'
+                    - 'nr_inactive_file'
+                    - 'Disk_Write'
+                    - 'pgpgout'
+                    - 'Tcp_Syn'
+                    - 'Buffers'
+                    - 'Tcp_TimeWait'
+                    - 'Tcp_Listen'
+                    - 'Tcp_Established'
+                    - 'Active'
+                    - 'pgalloc_dma'
+                    - 'pgmajfault'
+                    - 'SwapFree'
+                    - 'subscribers_count'
+                    - 'publishers_count'
+                  values: [0, 772, 4, 0, 0, 1, 2, 62156, 32291, 1, 0, null, null, 512, 65536, 1, 1, 167594, 0.000080266, null, null, null, 62000, 85592348, 176736336, 0, 2227971097, 924, 10144084, 16839164, 175063620, 0, 2176057708, 636735, 14865676, 3172828, 764000, 68942361, 0, 398916, 0, 11, 3, 4357652, 1024, 835946, 1891760, 1, 2]
+              f0_runtime:
+                communication:
+                  resource: /rg/guarded_navigate
+                  resource_type: Action
+                  operation: GOAL_SEND
+                request_count: 12
+                window:
+                  start: '2026-10-13T12:00:00Z'
+                  end: '2026-10-13T12:00:05Z'
+                  duration_ms: 5000
+        evidence_refs:
+          - {ref: tests/fixtures/member1/rospace_comm_rows.json, kind: MOCK}
+      expect:
+        allowed_states: [NORMAL]
+        contains: ['CONTROLLED_TEST_ONLY']
+    # ------------------------------------------------------------------
+    # 4) 特征缺失 -> UNKNOWN（失败关闭）
+    # ------------------------------------------------------------------
+    - name: features-absent
+      description: '缺少特征向量 -> UNKNOWN（不补零、不猜列名）'
+      trigger: 'observations[0].detail 中没有 rospace_comm.features'
+      expected_state: UNKNOWN
+      expected_class: LEGAL_BLOCK
+      request_id: req-real-m1-nofeature
+      command_profile: model_valid
+      envelope_patch:
+        created_at: '2026-10-13T12:00:05Z'
+        observations:
+          - source: /rg/guarded_navigate
+            kind: MOCK
+            observed_at: '2026-10-13T12:00:03Z'
+            detail:
+              f0_runtime:
+                communication:
+                  resource: /rg/guarded_navigate
+                  resource_type: Action
+                  operation: GOAL_SEND
+                request_count: 12
+                window:
+                  start: '2026-10-13T12:00:00Z'
+                  end: '2026-10-13T12:00:05Z'
+                  duration_ms: 5000
+        evidence_refs:
+          - {ref: tests/fixtures/member1/rospace_comm_rows.json, kind: MOCK}
+      expect:
+        allowed_states: [UNKNOWN]
+        contains: ['FEATURES_INVALID', 'FEATURE_NAMES_ABSENT_OR_ORDER_MISMATCH']
+    # ------------------------------------------------------------------
+    # 5) 模型哈希不符 -> ERROR
+    # ------------------------------------------------------------------
+    - name: error
+      description: '模型 SHA-256 不符 -> ERROR（失败关闭，不是放行）'
+      trigger: '命令档案 model_bad_hash 声明了错误的 --model-sha256'
+      expected_state: ERROR
+      expected_class: LEGAL_BLOCK
+      request_id: req-real-m1-error
+      command_profile: model_bad_hash
+      envelope_patch:
+        created_at: '2026-10-13T12:00:05Z'
+        observations:
+          - source: /rg/guarded_navigate
+            kind: MOCK
+            observed_at: '2026-10-13T12:00:03Z'
+            detail:
+              rospace_comm:
+                features:
+                  feature_names:
+                    - 'layers.sll.sll.pkttype'
+                    - 'layers.sll.sll.hatype'
+                    - 'layers.ip.ip.version'
+                    - 'layers.ip.ip.dsfield_tree.ip.dsfield.ecn'
+                    - 'layers.ip.ip.flags_tree.ip.flags.rb'
+                    - 'layers.ip.ip.flags_tree.ip.flags.df'
+                    - 'layers.ip.ip.checksum.status'
+                    - 'layers.tcp.tcp.stream'
+                    - 'layers.tcp.tcp.ack'
+                    - 'layers.tcp.tcp.flags_tree.tcp.flags.ack'
+                    - 'layers.tcp.tcp.flags_tree.tcp.flags.syn'
+                    - 'layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.severity'
+                    - 'layers.tcp.tcp.flags_tree.tcp.flags.syn_tree._ws.expert._ws.expert.group'
+                    - 'layers.tcp.tcp.window_size_value'
+                    - 'layers.tcp.tcp.window_size'
+                    - 'layers.tcp.tcp.options_tree.tcp.options.nop'
+                    - 'layers.tcp.tcp.options_tree.tcp.options.nop_tree.tcp.option_kind'
+                    - 'layers.tcp.tcp.analysis.tcp.analysis.acks_frame'
+                    - 'layers.tcp.tcp.analysis.tcp.analysis.initial_rtt'
+                    - 'layers.ssl.ssl.record.ssl.record.content_type'
+                    - 'layers.ipv6.ip.version'
+                    - 'layers.ipv6.ipv6.tclass_tree.ipv6.tclass.ecn'
+                    - 'Net_Sent'
+                    - 'pgpgin'
+                    - 'pgactivate'
+                    - 'Disk_Read'
+                    - 'pgfault'
+                    - 'Net_Received'
+                    - 'MemFree'
+                    - 'Inactive'
+                    - 'pgdeactivate'
+                    - 'Tcp_Close'
+                    - 'pgfree'
+                    - 'nr_active_file'
+                    - 'Cached'
+                    - 'nr_inactive_file'
+                    - 'Disk_Write'
+                    - 'pgpgout'
+                    - 'Tcp_Syn'
+                    - 'Buffers'
+                    - 'Tcp_TimeWait'
+                    - 'Tcp_Listen'
+                    - 'Tcp_Established'
+                    - 'Active'
+                    - 'pgalloc_dma'
+                    - 'pgmajfault'
+                    - 'SwapFree'
+                    - 'subscribers_count'
+                    - 'publishers_count'
+                  values: [0, 772, 4, 0, 0, 1, 2, 62156, 32291, 1, 0, null, null, 512, 65536, 1, 1, 167594, 0.000080266, null, null, null, 62000, 85592348, 176736336, 0, 2227971097, 924, 10144084, 16839164, 175063620, 0, 2176057708, 636735, 14865676, 3172828, 764000, 68942361, 0, 398916, 0, 11, 3, 4357652, 1024, 835946, 1891760, 1, 2]
+              f0_runtime:
+                communication:
+                  resource: /rg/guarded_navigate
+                  resource_type: Action
+                  operation: GOAL_SEND
+                request_count: 12
+                window:
+                  start: '2026-10-13T12:00:00Z'
+                  end: '2026-10-13T12:00:05Z'
+                  duration_ms: 5000
+        evidence_refs:
+          - {ref: tests/fixtures/member1/rospace_comm_rows.json, kind: MOCK}
+      expect:
+        allowed_states: [ERROR]
+        contains: ['MODEL_INVALID', 'SHA256']

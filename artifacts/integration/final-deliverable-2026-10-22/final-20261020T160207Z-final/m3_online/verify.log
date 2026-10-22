@@ -1,0 +1,359 @@
+{
+  "run_dir": "/ws/artifacts/integration/final-deliverable-2026-10-22/final-20261020T160207Z-final/m3_online/merged",
+  "claims_checked": false,
+  "manifest_used": true,
+  "manifest_scenarios": [
+    "ON01",
+    "ON02",
+    "ON03",
+    "ON04",
+    "ON05",
+    "ON06"
+  ],
+  "gateway_audit_rows": 0,
+  "navsim_goal_rows": 0,
+  "scenarios_verified": 6,
+  "scenarios": [
+    {
+      "cid": "ON01",
+      "request_id": null,
+      "run_id": null,
+      "adapter_decision": "ADAPTER_BLOCK",
+      "adapter_reason": "ADAPTER_DEPENDENCY_MISSING",
+      "m3_status": null,
+      "planner_outcome": null,
+      "planner_started": false,
+      "gateway_arrivals": 0,
+      "gateway_decisions": [],
+      "gateway_executions": 0,
+      "navsim_goals": 0
+    },
+    {
+      "cid": "ON02",
+      "request_id": null,
+      "run_id": null,
+      "adapter_decision": "ADAPTER_BLOCK",
+      "adapter_reason": "ADAPTER_DEPENDENCY_MISSING",
+      "m3_status": null,
+      "planner_outcome": null,
+      "planner_started": false,
+      "gateway_arrivals": 0,
+      "gateway_decisions": [],
+      "gateway_executions": 0,
+      "navsim_goals": 0
+    },
+    {
+      "cid": "ON03",
+      "request_id": null,
+      "run_id": null,
+      "adapter_decision": "ADAPTER_BLOCK",
+      "adapter_reason": "ADAPTER_DEPENDENCY_MISSING",
+      "m3_status": null,
+      "planner_outcome": null,
+      "planner_started": false,
+      "gateway_arrivals": 0,
+      "gateway_decisions": [],
+      "gateway_executions": 0,
+      "navsim_goals": 0
+    },
+    {
+      "cid": "ON04",
+      "request_id": null,
+      "run_id": null,
+      "adapter_decision": "ADAPTER_BLOCK",
+      "adapter_reason": "ADAPTER_DEPENDENCY_MISSING",
+      "m3_status": null,
+      "planner_outcome": null,
+      "planner_started": false,
+      "gateway_arrivals": 0,
+      "gateway_decisions": [],
+      "gateway_executions": 0,
+      "navsim_goals": 0
+    },
+    {
+      "cid": "ON05",
+      "request_id": null,
+      "run_id": null,
+      "adapter_decision": "ADAPTER_BLOCK",
+      "adapter_reason": "ADAPTER_DEPENDENCY_MISSING",
+      "m3_status": null,
+      "planner_outcome": null,
+      "planner_started": false,
+      "gateway_arrivals": 0,
+      "gateway_decisions": [],
+      "gateway_executions": 0,
+      "navsim_goals": 0
+    },
+    {
+      "cid": "ON06",
+      "request_id": null,
+      "run_id": null,
+      "adapter_decision": "ADAPTER_BLOCK",
+      "adapter_reason": "ADAPTER_DEPENDENCY_MISSING",
+      "m3_status": null,
+      "planner_outcome": null,
+      "planner_started": false,
+      "gateway_arrivals": 0,
+      "gateway_decisions": [],
+      "gateway_executions": 0,
+      "navsim_goals": 0
+    }
+  ],
+  "findings": [
+    {
+      "scenario": "ON01",
+      "code": "ADAPTER_LOG_MISSING",
+      "ok": false,
+      "detail": "adapter_ON01.jsonl"
+    },
+    {
+      "scenario": "ON01",
+      "code": "REQUEST_ID_MISMATCH",
+      "ok": false,
+      "detail": "适配层记录 request_id=None 与权威清单 'on01-legal-allow-final-20261020T160207Z-final-six' 不一致"
+    },
+    {
+      "scenario": "ON01",
+      "code": "RUN_ID_MISMATCH",
+      "ok": false,
+      "detail": "适配层记录 run_id=None 与权威清单 'final-20261020T160207Z-final-six' 不一致"
+    },
+    {
+      "scenario": "ON01",
+      "code": "BLOCK_NO_PLANNER",
+      "ok": false,
+      "detail": "outcome=None"
+    },
+    {
+      "scenario": "ON01",
+      "code": "BLOCK_NO_GATEWAY_ARRIVAL",
+      "ok": true,
+      "detail": "Gateway arrival=0"
+    },
+    {
+      "scenario": "ON01",
+      "code": "BLOCK_NO_GOAL",
+      "ok": true,
+      "detail": "Goal 数=0"
+    },
+    {
+      "scenario": "ON01",
+      "code": "BLOCK_NO_EXECUTION",
+      "ok": true,
+      "detail": "ExecutionEvent=0"
+    },
+    {
+      "scenario": "ON02",
+      "code": "ADAPTER_LOG_MISSING",
+      "ok": false,
+      "detail": "adapter_ON02.jsonl"
+    },
+    {
+      "scenario": "ON02",
+      "code": "REQUEST_ID_MISMATCH",
+      "ok": false,
+      "detail": "适配层记录 request_id=None 与权威清单 'on02-oor-block-final-20261020T160207Z-final-six' 不一致"
+    },
+    {
+      "scenario": "ON02",
+      "code": "RUN_ID_MISMATCH",
+      "ok": false,
+      "detail": "适配层记录 run_id=None 与权威清单 'final-20261020T160207Z-final-six' 不一致"
+    },
+    {
+      "scenario": "ON02",
+      "code": "BLOCK_NO_PLANNER",
+      "ok": false,
+      "detail": "outcome=None"
+    },
+    {
+      "scenario": "ON02",
+      "code": "BLOCK_NO_GATEWAY_ARRIVAL",
+      "ok": true,
+      "detail": "Gateway arrival=0"
+    },
+    {
+      "scenario": "ON02",
+      "code": "BLOCK_NO_GOAL",
+      "ok": true,
+      "detail": "Goal 数=0"
+    },
+    {
+      "scenario": "ON02",
+      "code": "BLOCK_NO_EXECUTION",
+      "ok": true,
+      "detail": "ExecutionEvent=0"
+    },
+    {
+      "scenario": "ON03",
+      "code": "ADAPTER_LOG_MISSING",
+      "ok": false,
+      "detail": "adapter_ON03.jsonl"
+    },
+    {
+      "scenario": "ON03",
+      "code": "REQUEST_ID_MISMATCH",
+      "ok": false,
+      "detail": "适配层记录 request_id=None 与权威清单 'on03-final-20261020T160207Z-final-six' 不一致"
+    },
+    {
+      "scenario": "ON03",
+      "code": "RUN_ID_MISMATCH",
+      "ok": false,
+      "detail": "适配层记录 run_id=None 与权威清单 'final-20261020T160207Z-final-six' 不一致"
+    },
+    {
+      "scenario": "ON03",
+      "code": "BLOCK_NO_PLANNER",
+      "ok": false,
+      "detail": "outcome=None"
+    },
+    {
+      "scenario": "ON03",
+      "code": "BLOCK_NO_GATEWAY_ARRIVAL",
+      "ok": true,
+      "detail": "Gateway arrival=0"
+    },
+    {
+      "scenario": "ON03",
+      "code": "BLOCK_NO_GOAL",
+      "ok": true,
+      "detail": "Goal 数=0"
+    },
+    {
+      "scenario": "ON03",
+      "code": "BLOCK_NO_EXECUTION",
+      "ok": true,
+      "detail": "ExecutionEvent=0"
+    },
+    {
+      "scenario": "ON04",
+      "code": "ADAPTER_LOG_MISSING",
+      "ok": false,
+      "detail": "adapter_ON04.jsonl"
+    },
+    {
+      "scenario": "ON04",
+      "code": "REQUEST_ID_MISMATCH",
+      "ok": false,
+      "detail": "适配层记录 request_id=None 与权威清单 'on04-final-20261020T160207Z-final-six' 不一致"
+    },
+    {
+      "scenario": "ON04",
+      "code": "RUN_ID_MISMATCH",
+      "ok": false,
+      "detail": "适配层记录 run_id=None 与权威清单 'final-20261020T160207Z-final-six' 不一致"
+    },
+    {
+      "scenario": "ON04",
+      "code": "BLOCK_NO_PLANNER",
+      "ok": false,
+      "detail": "outcome=None"
+    },
+    {
+      "scenario": "ON04",
+      "code": "BLOCK_NO_GATEWAY_ARRIVAL",
+      "ok": true,
+      "detail": "Gateway arrival=0"
+    },
+    {
+      "scenario": "ON04",
+      "code": "BLOCK_NO_GOAL",
+      "ok": true,
+      "detail": "Goal 数=0"
+    },
+    {
+      "scenario": "ON04",
+      "code": "BLOCK_NO_EXECUTION",
+      "ok": true,
+      "detail": "ExecutionEvent=0"
+    },
+    {
+      "scenario": "ON05",
+      "code": "ADAPTER_LOG_MISSING",
+      "ok": false,
+      "detail": "adapter_ON05.jsonl"
+    },
+    {
+      "scenario": "ON05",
+      "code": "REQUEST_ID_MISMATCH",
+      "ok": false,
+      "detail": "适配层记录 request_id=None 与权威清单 'on05-gateway-authority-final-20261020T160207Z-final-six' 不一致"
+    },
+    {
+      "scenario": "ON05",
+      "code": "RUN_ID_MISMATCH",
+      "ok": false,
+      "detail": "适配层记录 run_id=None 与权威清单 'final-20261020T160207Z-final-six' 不一致"
+    },
+    {
+      "scenario": "ON05",
+      "code": "BLOCK_NO_PLANNER",
+      "ok": false,
+      "detail": "outcome=None"
+    },
+    {
+      "scenario": "ON05",
+      "code": "BLOCK_NO_GATEWAY_ARRIVAL",
+      "ok": true,
+      "detail": "Gateway arrival=0"
+    },
+    {
+      "scenario": "ON05",
+      "code": "BLOCK_NO_GOAL",
+      "ok": true,
+      "detail": "Goal 数=0"
+    },
+    {
+      "scenario": "ON05",
+      "code": "BLOCK_NO_EXECUTION",
+      "ok": true,
+      "detail": "ExecutionEvent=0"
+    },
+    {
+      "scenario": "ON06",
+      "code": "ADAPTER_LOG_MISSING",
+      "ok": false,
+      "detail": "adapter_ON06.jsonl"
+    },
+    {
+      "scenario": "ON06",
+      "code": "REQUEST_ID_MISMATCH",
+      "ok": false,
+      "detail": "适配层记录 request_id=None 与权威清单 'on06-final-20261020T160207Z-final-six' 不一致"
+    },
+    {
+      "scenario": "ON06",
+      "code": "RUN_ID_MISMATCH",
+      "ok": false,
+      "detail": "适配层记录 run_id=None 与权威清单 'final-20261020T160207Z-final-six' 不一致"
+    },
+    {
+      "scenario": "ON06",
+      "code": "BLOCK_NO_PLANNER",
+      "ok": false,
+      "detail": "outcome=None"
+    },
+    {
+      "scenario": "ON06",
+      "code": "BLOCK_NO_GATEWAY_ARRIVAL",
+      "ok": true,
+      "detail": "Gateway arrival=0"
+    },
+    {
+      "scenario": "ON06",
+      "code": "BLOCK_NO_GOAL",
+      "ok": true,
+      "detail": "Goal 数=0"
+    },
+    {
+      "scenario": "ON06",
+      "code": "BLOCK_NO_EXECUTION",
+      "ok": true,
+      "detail": "ExecutionEvent=0"
+    }
+  ],
+  "failures": 24,
+  "checks": 42,
+  "verdict": "FAIL"
+}

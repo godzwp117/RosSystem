@@ -1,0 +1,23 @@
+{
+  "run_id": "sigterm-verify",
+  "scenarios": [
+    {
+      "cid": "ON03",
+      "request_id": "on03-sigterm-verify",
+      "run_id": "sigterm-verify",
+      "expected": "UNKNOWN_BLOCK"
+    },
+    {
+      "cid": "ON04",
+      "request_id": "on04-sigterm-verify",
+      "run_id": "sigterm-verify",
+      "expected": "ERROR_BLOCK"
+    },
+    {
+      "cid": "ON06",
+      "request_id": "on06-sigterm-verify",
+      "run_id": "sigterm-verify",
+      "expected": "TIMEOUT_NOT_BLOCK"
+    }
+  ]
+}

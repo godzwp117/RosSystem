@@ -1,0 +1,216 @@
+{
+  "contract": "dds-lab-evidence/1",
+  "scope": "TEST_ONLY_LAB",
+  "run_id": "v110gwlab-20261021T193500Z",
+  "archived_at": "2026-10-21T17:48:59Z",
+  "command": "docker exec rg_v110 bash -lc 'cd /ws && source /opt/ros/jazzy/setup.bash && source install/setup.bash && python3 tests/integration/gateway_identity_lab.py --run-id v110gwlab-20261021T193500Z'",
+  "exit_code": 0,
+  "normal_domain": null,
+  "secure_domain": 45,
+  "secure_domain_matches_expected": true,
+  "total": 14,
+  "passed": 14,
+  "failed": 0,
+  "policy": {
+    "path": "security/policies/research/m2_ingress_lab.xml",
+    "sha256": "6d5a0ed471aea2f57b131454b2544c6bc10f967bfc15054f69eafc9dd5414b15"
+  },
+  "ca_certificate": {
+    "subject": "CN = sros2CA",
+    "sha256_fingerprint": "BD:B2:73:92:C8:73:35:BC:B7:E1:40:B7:A1:EB:09:B5:62:04:01:B6:83:3E:B4:4A:C0:DA:C7:2F:8C:7E:4F:E2"
+  },
+  "enclaves": {
+    "gateway": {
+      "permissions_sha256": "b976c28050bcb156b3916e86b5833242bdd2df65396c24d5b057d852e7785c84",
+      "permissions_path": "keystore_permissions/gateway/permissions.xml",
+      "default_deny": true,
+      "domain_43": false,
+      "certificate": {
+        "subject": "CN = /gateway",
+        "sha256_fingerprint": "55:6A:5F:5A:66:04:A7:2F:2C:C7:D8:A3:1D:7C:BC:7F:4F:ED:04:2E:66:56:3E:EE:28:4D:B7:65:36:85:F8:8D"
+      }
+    },
+    "navsim": {
+      "permissions_sha256": "4b179f36c1cb5836da22ab93d059cd9640d26755bafe16ededfe48545bb8981f",
+      "permissions_path": "keystore_permissions/navsim/permissions.xml",
+      "default_deny": true,
+      "domain_43": false,
+      "certificate": {
+        "subject": "CN = /navsim",
+        "sha256_fingerprint": "E5:81:97:50:08:6A:E5:86:CB:5A:91:32:99:57:31:12:03:75:4A:72:A6:56:9D:B1:91:CD:68:AF:15:43:E0:B9"
+      }
+    },
+    "operator": {
+      "permissions_sha256": "2983548f9b97a035e35ae7fb4ffe45b3011d257805d635518c21984e49298232",
+      "permissions_path": "keystore_permissions/operator/permissions.xml",
+      "default_deny": true,
+      "domain_43": false,
+      "certificate": {
+        "subject": "CN = /operator",
+        "sha256_fingerprint": "25:E8:C4:04:1C:A7:4A:93:80:AC:6C:FE:DE:B0:7E:55:3C:FC:C5:7F:B7:80:88:BF:B3:5E:D1:97:DF:30:3D:2F"
+      }
+    },
+    "planner": {
+      "permissions_sha256": "b643b6133477e5405ef9278fe0fa42445591680229d252e42faa02450e2b3b5e",
+      "permissions_path": "keystore_permissions/planner/permissions.xml",
+      "default_deny": true,
+      "domain_43": false,
+      "certificate": {
+        "subject": "CN = /planner",
+        "sha256_fingerprint": "A8:17:C7:29:BC:A3:AC:67:FC:06:3B:7F:7D:67:98:D5:19:9E:43:CD:18:2E:10:79:24:54:FD:8C:FB:00:59:7D"
+      }
+    },
+    "rogue": {
+      "permissions_sha256": "f78aa0f067b346a2ed3d9b9fad2cd9489519ebea3e22e3b602f93397f2860dd4",
+      "permissions_path": "keystore_permissions/rogue/permissions.xml",
+      "default_deny": true,
+      "domain_43": false,
+      "certificate": {
+        "subject": "CN = /rogue",
+        "sha256_fingerprint": "03:6E:0A:5A:73:CE:56:72:F9:B8:49:1F:02:4E:82:2E:6E:0C:61:25:D1:20:42:48:9D:84:87:D3:B6:12:F7:24"
+      }
+    },
+    "witness": {
+      "permissions_sha256": "8e2caa256dd1fd3c62ef7d4e0a90f0fafb5fb623504f372ce6690f881b91099c",
+      "permissions_path": "keystore_permissions/witness/permissions.xml",
+      "default_deny": true,
+      "domain_43": false,
+      "certificate": {
+        "subject": "CN = /witness",
+        "sha256_fingerprint": "D2:42:5D:CA:78:AC:23:13:B4:D7:ED:3A:AB:54:73:74:BA:61:8D:27:25:A3:53:0E:14:6E:B8:5B:23:2B:82:5B"
+      }
+    }
+  },
+  "secrets_included": false,
+  "certificates_are_public_only": true,
+  "private_key_policy": "keystore private keys are never copied; the archive is not usable to impersonate any participant",
+  "git_head": "452f064d5b68234978dc8c235bda940d3466c761",
+  "git_worktree_dirty": true,
+  "host": {
+    "uname": "Linux 6.18.54.1-microsoft-standard-WSL2"
+  },
+  "image": {
+    "name": "rosystem-verify-1.0.3:latest",
+    "digest": "rosystem-verify-1.0.3@sha256:ad4e6d2703b72c6fe09470e191edd569f6470077ddedde7ae41c8e7fc356fa75"
+  },
+  "run_stdout": null,
+  "files": {
+    "keystore_permissions/gateway/permissions.xml": {
+      "sha256": "b976c28050bcb156b3916e86b5833242bdd2df65396c24d5b057d852e7785c84",
+      "bytes": 3281
+    },
+    "keystore_permissions/navsim/permissions.xml": {
+      "sha256": "4b179f36c1cb5836da22ab93d059cd9640d26755bafe16ededfe48545bb8981f",
+      "bytes": 2669
+    },
+    "keystore_permissions/operator/permissions.xml": {
+      "sha256": "2983548f9b97a035e35ae7fb4ffe45b3011d257805d635518c21984e49298232",
+      "bytes": 1035
+    },
+    "keystore_permissions/planner/permissions.xml": {
+      "sha256": "b643b6133477e5405ef9278fe0fa42445591680229d252e42faa02450e2b3b5e",
+      "bytes": 2779
+    },
+    "keystore_permissions/rogue/permissions.xml": {
+      "sha256": "f78aa0f067b346a2ed3d9b9fad2cd9489519ebea3e22e3b602f93397f2860dd4",
+      "bytes": 1030
+    },
+    "keystore_permissions/witness/permissions.xml": {
+      "sha256": "8e2caa256dd1fd3c62ef7d4e0a90f0fafb5fb623504f372ce6690f881b91099c",
+      "bytes": 1037
+    },
+    "v110gwlab-20261021T193500Z/_gateway_stack/gateway.log": {
+      "sha256": "47fd128b901cab048c84f114f749b8a02002e397f93ac34298167d46393ddd7c",
+      "bytes": 3177
+    },
+    "v110gwlab-20261021T193500Z/_gateway_stack/navsim.log": {
+      "sha256": "706a1a53641e023d3924f3c67d7573902563bb1de17f813adfef903811efe534",
+      "bytes": 1053
+    },
+    "v110gwlab-20261021T193500Z/_gateway_stack/navsim_goals.jsonl": {
+      "sha256": "c7235c8f054a9e84e036c1e734b75e17dea96bc3165d7bdfe5bb237f7f76ead4",
+      "bytes": 275
+    },
+    "v110gwlab-20261021T193500Z/_gateway_stack/planner.log": {
+      "sha256": "f0d584c020e2e63f64ee9fcf60d9b07f43fc29028515c1af3a3539a46116e170",
+      "bytes": 608
+    },
+    "v110gwlab-20261021T193500Z/attestation_g1.json": {
+      "sha256": "321287b08b45d29d43e584f698cf746bc93f300fa237648b5ca20d727cb3e9b6",
+      "bytes": 1553
+    },
+    "v110gwlab-20261021T193500Z/attestation_g3.json": {
+      "sha256": "82b7125a0a51fbf9b4c0616aa64428ebd01c6a04824f9be6d80344712012dc03",
+      "bytes": 1553
+    },
+    "v110gwlab-20261021T193500Z/attestation_g4.json": {
+      "sha256": "603c8945e4d8e11c852672974e151a73019f3afd2c9cb187565336a3db7486f5",
+      "bytes": 1553
+    },
+    "v110gwlab-20261021T193500Z/attestations/req-gw-lab-001.json": {
+      "sha256": "321287b08b45d29d43e584f698cf746bc93f300fa237648b5ca20d727cb3e9b6",
+      "bytes": 1553
+    },
+    "v110gwlab-20261021T193500Z/attestations/req-gw-lab-003.json": {
+      "sha256": "82b7125a0a51fbf9b4c0616aa64428ebd01c6a04824f9be6d80344712012dc03",
+      "bytes": 1553
+    },
+    "v110gwlab-20261021T193500Z/attestations/req-gw-lab-004.json": {
+      "sha256": "603c8945e4d8e11c852672974e151a73019f3afd2c9cb187565336a3db7486f5",
+      "bytes": 1553
+    },
+    "v110gwlab-20261021T193500Z/audit.jsonl": {
+      "sha256": "fc607ebff446c59fec091aaf4ca1c08aaffd62afcbf1100f89108d8b39f971fd",
+      "bytes": 3074
+    },
+    "v110gwlab-20261021T193500Z/envelope_g1.json": {
+      "sha256": "c7a9b51a1782c9be32712c0cee56e87998e77891cd4331b8d79a77e9645123ad",
+      "bytes": 528
+    },
+    "v110gwlab-20261021T193500Z/envelope_g3.json": {
+      "sha256": "d11ac9d6eaf85e17be5d98157edbf98bf8759c6caee66c74274dd729bb6a9127",
+      "bytes": 528
+    },
+    "v110gwlab-20261021T193500Z/envelope_g4.json": {
+      "sha256": "bb77884652abec5c822c4814da0f60c4c88e5bae7fc928f9a9a48fc5cd0743c3",
+      "bytes": 528
+    },
+    "v110gwlab-20261021T193500Z/gateway_nonce.jsonl": {
+      "sha256": "aae518e45a5cbb25594fedf41b919f1d23d12ae492adfcf39ae720e94af86ac7",
+      "bytes": 368
+    },
+    "v110gwlab-20261021T193500Z/identity_audit.jsonl": {
+      "sha256": "8656446ca66f5e80e0cb9ca434b7c4b53e30a666323c2c323b63ff0915f16d50",
+      "bytes": 2111
+    },
+    "v110gwlab-20261021T193500Z/ingress_g1.log": {
+      "sha256": "2276c424f7196b46d6030b8ab8a418386968d37846e8c6e3bf4ed9797f128e3f",
+      "bytes": 407
+    },
+    "v110gwlab-20261021T193500Z/ingress_g3.log": {
+      "sha256": "b6ba26a5cbd734717b8c159df474b36c34ddb3b4a0fd46073602a2b9a81a2a0b",
+      "bytes": 9646
+    },
+    "v110gwlab-20261021T193500Z/ingress_g4.log": {
+      "sha256": "29d967e70ae3a596cc30d557793dc49b98900fbd45dabf888ee8d62bfa45558f",
+      "bytes": 9646
+    },
+    "v110gwlab-20261021T193500Z/intent_g1.jsonl": {
+      "sha256": "5658ac7e3b50525246b20f49193b31eb3a0f6f034ac5a62a49ceb989aeb584ad",
+      "bytes": 1787
+    },
+    "v110gwlab-20261021T193500Z/intent_g3.jsonl": {
+      "sha256": "92cf88c47b22dec9a20375e87c87ec6bab2a02d0c77c6d7216ddcde93a327939",
+      "bytes": 3168
+    },
+    "v110gwlab-20261021T193500Z/intent_g4.jsonl": {
+      "sha256": "a595f72c8acb01b37e2e96593e27b4d3ed7a7425843849afa8e6679743bd516f",
+      "bytes": 3168
+    },
+    "v110gwlab-20261021T193500Z/summary.json": {
+      "sha256": "5612d8d5037e9c002b195bc9124d4ea3d82d6fbb9945dfd3dd49c386ef4f0b5d",
+      "bytes": 3529
+    }
+  },
+  "note": "permissions.xml are policy-derived, non-secret artifacts included so the run can be interpreted without the wiped keystore; they are NOT the 2026-10-09 historical evidence"
+}

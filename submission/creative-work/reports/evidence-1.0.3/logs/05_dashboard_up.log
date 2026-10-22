@@ -1,0 +1,13 @@
+=== 2026-10-22T00:15:57+08:00 控制台启动 ===
+==============================================
+ RosSystem 跨层安全决策可视化控制台
+ 端口: 8787   只监听 127.0.0.1
+==============================================
+依赖检查: OK（仅标准库）
+RosSystem dashboard: http://127.0.0.1:8787/
+在线模式可用: True  原因: []
+--- PID ---
+397436
+--- health ---
+online_possible= True
+probe= {"docker_cli": true, "docker_daemon": true, "image": "rosystem-verify-1.0.3", "image_present": true, "runtime_source_present": true, "runtime_workspace_root": "/home/zhangwei/project/RosSystem_test/verify_1.0.3/full/RosSystem-CreativeWork-Full/runtime", "container_ros_jazzy_ok": true, "online_domain

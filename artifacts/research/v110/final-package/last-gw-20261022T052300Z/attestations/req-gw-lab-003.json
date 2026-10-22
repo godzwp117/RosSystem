@@ -1,0 +1,42 @@
+{
+  "body": {
+    "contract": "current-identity-attestation/3",
+    "issuer": {
+      "id": "lab-ed25519-ingress-1",
+      "identity_source": "LAB_DDS_INGRESS_WITNESS",
+      "assertion": "LAB_DDS_INGRESS_OBSERVATION"
+    },
+    "request_id": "req-gw-lab-003",
+    "resource": "/rg/guarded_navigate",
+    "operation": "NAVIGATE",
+    "request_digest": "fa6101f9305e25d78da81a487834e4caf46b7a7f37d724679e8949263c8231af",
+    "received_at": "2026-10-22T03:24:56Z",
+    "nonce": "4771fe8c70479f81ca76063408e617e1",
+    "evidence_kind": "SIGNED_ATTESTATION",
+    "remote_identity": {
+      "authenticated": true,
+      "security_identity": "/CN=\\/planner"
+    },
+    "producer": {
+      "name": "identity_trust/lab_issuer.py",
+      "version": "1.0.0",
+      "scope": "TEST_ONLY_LAB",
+      "witness": "M2_TRUSTED_DDS_INGRESS"
+    },
+    "witness": {
+      "ledger_sha256": "60b97690fc0f615ff8144e34ef71c125689eb6eeab0cd1b9c4af2eef302aee98",
+      "event_line": 8,
+      "event_received_at": "2026-10-22T03:24:44.219Z",
+      "writer_guid": "9b.84.5f.63.a5.a3.44.b0.87.67.8c.12|00000103",
+      "participant_guid": "9b.84.5f.63.a5.a3.44.b0.87.67.8c.12",
+      "certificate_subject": "/CN=\\/planner",
+      "matches": 1,
+      "ingress_resource": "rt/m2/candidate_task"
+    }
+  },
+  "signature": {
+    "alg": "ed25519",
+    "value": "0487f75fc26301f9448a2a0c6201cab494b8645d9e579fe0d58c056e3e0fee448af522ebe9bacb5af07d36d1bfd9a3bc2998f6cd3fb688e35394687c43e52e00",
+    "key_sha256": "99a09db28ec1e7b60397a647174537a3aaa1c2c79dce6d1d060f3be89a7df67b"
+  }
+}

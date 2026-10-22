@@ -17,6 +17,18 @@ set -o pipefail
 
 RG_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RG_WS_HOST="$(cd "${RG_SCRIPT_DIR}/.." && pwd)"
+
+# 成员档位解析（一成员一容器一开发 Domain）。显式指定的 RG_CONTAINER /
+# ROS_DOMAIN_ID 优先级最高；与成员档位冲突时 member_env.sh 会直接失败，
+# 避免"以为在自己的环境里"却实际用了别人的容器或通信域。
+RG_CONTAINER_EXPLICIT=""
+[ -n "${RG_CONTAINER:-}" ] && RG_CONTAINER_EXPLICIT=1
+RG_DOMAIN_EXPLICIT=""
+[ -n "${ROS_DOMAIN_ID:-}" ] && RG_DOMAIN_EXPLICIT=1
+# shellcheck source=member_env.sh
+source "${RG_SCRIPT_DIR}/member_env.sh"
+rg_apply_member_profile || { echo "ERROR: 成员环境配置冲突" >&2; return 2 2>/dev/null || exit 2; }
+
 RG_CONTAINER="${RG_CONTAINER:-rg_jazzy}"
 RG_IMAGE="${RG_IMAGE:-ros:jazzy}"
 RG_CONTAINER_WS="${RG_CONTAINER_WS:-/ws}"
@@ -49,6 +61,9 @@ rg_ros() {
     native)
       (
         cd "${RG_WS_HOST}" || exit 3
+        # ROS 2 setup scripts reference unset variables; the caller may have set
+        # `set -u` (setup_sros2.sh does). Disable it only while sourcing.
+        set +u
         # shellcheck disable=SC1090
         source "/opt/ros/${ROS_DISTRO}/setup.bash"
         if [ -f install/setup.bash ]; then
@@ -59,13 +74,28 @@ rg_ros() {
       )
       ;;
     container)
-      docker exec "${RG_CONTAINER}" bash -lc "
-        set -o pipefail
-        cd ${RG_CONTAINER_WS} || exit 3
-        source /opt/ros/jazzy/setup.bash
-        if [ -f install/setup.bash ]; then source install/setup.bash; fi
-        ${command_string}
-      "
+      # 显式把本次生效的 Domain 传给容器进程。
+      # 原因：容器创建时固化的环境变量不会随宿主机后来修改而更新；显式传入
+      # 才能保证"测试进程实际用的 Domain"与"记录下来的值"一致（GAP-06）。
+      local _rg_domain
+      _rg_domain="$(rg_effective_domain "${RG_CONTAINER}")"
+      if [ -n "${_rg_domain}" ]; then
+        docker exec -e "ROS_DOMAIN_ID=${_rg_domain}" "${RG_CONTAINER}" bash -lc "
+          set -o pipefail
+          cd ${RG_CONTAINER_WS} || exit 3
+          source /opt/ros/jazzy/setup.bash
+          if [ -f install/setup.bash ]; then source install/setup.bash; fi
+          ${command_string}
+        "
+      else
+        docker exec "${RG_CONTAINER}" bash -lc "
+          set -o pipefail
+          cd ${RG_CONTAINER_WS} || exit 3
+          source /opt/ros/jazzy/setup.bash
+          if [ -f install/setup.bash ]; then source install/setup.bash; fi
+          ${command_string}
+        "
+      fi
       ;;
     *)
       echo "ERROR: no ROS environment available." >&2
@@ -164,26 +194,21 @@ rg_require_no_running_instance() {
   return 0
 }
 
-# 清理上一轮遗留的节点进程。
-# 为安全起见：检测到**运行中的受管理实例**时默认跳过清理，避免误杀用户正在使用的系统；
-# 测试脚手架确实需要强制清理时，显式设置 RG_REAP_FORCE=1。
-rg_reap_stragglers() {
-  if [ "${RG_REAP_FORCE:-0}" != "1" ]; then
-    if ! rg_require_no_running_instance >/dev/null 2>&1; then
-      echo "[reap] 检测到运行中的受管理实例 -> 跳过清理（确需强制清理请设 RG_REAP_FORCE=1）" >&2
-      return 0
-    fi
-  fi
-  rg_ros '
-    killed=0
-    for pattern in \
-        "rg_gateway/lib/rg_gateway/security_[g]ateway" \
-        "rg_demo_nodes/lib/rg_demo_nodes/navigation_[s]im" \
-        "rg_demo_nodes/lib/rg_demo_nodes/planner_[n]ode" \
-        "rg_demo_nodes/lib/rg_demo_nodes/operator_[n]ode"; do
-      if pkill -9 -f "$pattern" 2>/dev/null; then killed=1; fi
-    done
-    sleep 0.4
-    if [ "$killed" = "1" ]; then echo "[reap] killed leftover node process(es)"; fi
-  ' >/dev/null 2>&1 || true
-}
+# ---------------------------------------------------------------------------
+# rg_reap_stragglers() 已于本轮安全审查中**删除**。
+#
+# 删除原因（有证据）：
+#   1. 它按**进程名**做 `pkill -9 -f`，无法区分本实例遗留节点与
+#      同容器内其他成员/其他运行实例正在使用的节点；
+#   2. 它提供 RG_REAP_FORCE=1 绕过实例守卫，等于重新开放全局强制清理；
+#   3. 唯一的真实调用点 scripts/run_demo.sh 已移除该调用 ——
+#      它调用的 demo_live.sh 自带基于 PIDS 记录的所有权清理；
+#   4. 其余脚本（build.sh / run_all.sh / run_unit_tests.sh / start_system.sh）
+#      经核查均**不调用**它；start_system.sh 只做**检测**并在发现实例时拒绝启动，
+#      从不终止进程。
+#
+# 需要清理遗留节点时的正确做法：
+#   * 用 scripts/start_system.sh 的诊断输出确认归属后人工处理；或
+#   * 由启动方记录自己创建进程的 PID + 启动时间 + PGID，只操作这些进程。
+#     参考 scripts/demo_live.sh 的 `PIDS+=($!)` + `trap cleanup EXIT` 模式。
+# ---------------------------------------------------------------------------

@@ -1,0 +1,224 @@
+{
+  "contract": "rosystem-replay-snapshot/1",
+  "generated_from": "archived real evidence (read-only)",
+  "run_id": "closeout-20261021T023020Z",
+  "tested_code_sha": "2f3de257c9eac873093201292f6b2a9571da4f03",
+  "evidence_source": "artifacts/integration/final-submission-closeout/closeout-20261021T023020Z",
+  "modules": {
+    "m1": "M1 [('external', 'UNKNOWN')]",
+    "m2": "M2 external · AUTHORIZED（历史解释，不是当前请求身份）",
+    "m3": "M3 external · ALLOW_RECOMMENDED（建议，非权威放行）"
+  },
+  "m3": {
+    "verdict": "PASS",
+    "checks": 36,
+    "failures": 0,
+    "claims_checked": true,
+    "scenarios_verified": 6,
+    "scenarios": [
+      {
+        "cid": "ON01",
+        "request_id": "on01-legal-allow-closeout-20261021T023020Z-six",
+        "run_id": "closeout-20261021T023020Z-six",
+        "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+        "adapter_reason": "ADAPTER_OK",
+        "m3_status": "ALLOW_RECOMMENDED",
+        "planner_outcome": "PLANNER_RESULT_RECEIVED",
+        "planner_started": true,
+        "gateway_arrivals": 1,
+        "gateway_decisions": [
+          {
+            "decision": "ALLOW",
+            "reason_code": "ALLOW_IN_POLICY"
+          }
+        ],
+        "gateway_executions": 1,
+        "navsim_goals": 1
+      },
+      {
+        "cid": "ON02",
+        "request_id": "on02-oor-block-closeout-20261021T023020Z-six",
+        "run_id": "closeout-20261021T023020Z-six",
+        "adapter_decision": "ADAPTER_BLOCK",
+        "adapter_reason": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+        "m3_status": "BLOCK_RECOMMENDED",
+        "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+        "planner_started": false,
+        "gateway_arrivals": 0,
+        "gateway_decisions": [],
+        "gateway_executions": 0,
+        "navsim_goals": 0
+      },
+      {
+        "cid": "ON03",
+        "request_id": "on03-closeout-20261021T023020Z-six",
+        "run_id": "closeout-20261021T023020Z-six",
+        "adapter_decision": "ADAPTER_BLOCK",
+        "adapter_reason": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+        "m3_status": "UNKNOWN",
+        "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+        "planner_started": false,
+        "gateway_arrivals": 0,
+        "gateway_decisions": [],
+        "gateway_executions": 0,
+        "navsim_goals": 0
+      },
+      {
+        "cid": "ON04",
+        "request_id": "on04-closeout-20261021T023020Z-six",
+        "run_id": "closeout-20261021T023020Z-six",
+        "adapter_decision": "ADAPTER_BLOCK",
+        "adapter_reason": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+        "m3_status": "ERROR",
+        "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+        "planner_started": false,
+        "gateway_arrivals": 0,
+        "gateway_decisions": [],
+        "gateway_executions": 0,
+        "navsim_goals": 0
+      },
+      {
+        "cid": "ON05",
+        "request_id": "on05-gateway-authority-closeout-20261021T023020Z-six",
+        "run_id": "closeout-20261021T023020Z-six",
+        "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+        "adapter_reason": "ADAPTER_OK",
+        "m3_status": "ALLOW_RECOMMENDED",
+        "planner_outcome": "PLANNER_RESULT_RECEIVED",
+        "planner_started": true,
+        "gateway_arrivals": 1,
+        "gateway_decisions": [
+          {
+            "decision": "BLOCK",
+            "reason_code": "OUT_OF_REGION"
+          }
+        ],
+        "gateway_executions": 0,
+        "navsim_goals": 0
+      },
+      {
+        "cid": "ON06",
+        "request_id": "on06-closeout-20261021T023020Z-six",
+        "run_id": "closeout-20261021T023020Z-six",
+        "adapter_decision": "READY_FOR_GATEWAY_SUBMISSION",
+        "adapter_reason": "ADAPTER_OK",
+        "m3_status": "ALLOW_RECOMMENDED",
+        "planner_outcome": "PLANNER_RESULT_TIMEOUT",
+        "planner_started": true,
+        "gateway_arrivals": 0,
+        "gateway_decisions": [],
+        "gateway_executions": 0,
+        "navsim_goals": 0
+      }
+    ]
+  },
+  "controlled": {
+    "verdict": "PASS",
+    "checks": 40,
+    "failures": 0,
+    "facts": {
+      "run_id": "closeout-20261021T023020Z-controlled",
+      "scenarios": {
+        "ON01": {
+          "request_id": "on01-legal-allow-closeout-20261021T023020Z-controlled",
+          "f0_decision": "READY_FOR_GATEWAY_SUBMISSION",
+          "planner_outcome": "PLANNER_RESULT_RECEIVED",
+          "gateway_arrivals": 1,
+          "gateway_decisions": [
+            "ALLOW"
+          ],
+          "gateway_reasons": [
+            "ALLOW_IN_POLICY"
+          ],
+          "gateway_executions": 1,
+          "navsim_goals": 1,
+          "goal_ids": [
+            "f587ed1a23934dbd85cdbf0586b5d839"
+          ]
+        },
+        "ON02": {
+          "request_id": "on02-oor-block-closeout-20261021T023020Z-controlled",
+          "f0_decision": "ADAPTER_BLOCK",
+          "planner_outcome": "NOT_SUBMITTED_ADAPTER_BLOCK",
+          "gateway_arrivals": 0,
+          "gateway_decisions": [],
+          "gateway_reasons": [],
+          "gateway_executions": 0,
+          "navsim_goals": 0,
+          "goal_ids": []
+        },
+        "ON05": {
+          "request_id": "on05-gateway-authority-closeout-20261021T023020Z-controlled",
+          "f0_decision": "READY_FOR_GATEWAY_SUBMISSION",
+          "planner_outcome": "PLANNER_RESULT_RECEIVED",
+          "gateway_arrivals": 1,
+          "gateway_decisions": [
+            "BLOCK"
+          ],
+          "gateway_reasons": [
+            "OUT_OF_REGION"
+          ],
+          "gateway_executions": 0,
+          "navsim_goals": 0,
+          "goal_ids": []
+        }
+      }
+    }
+  },
+  "three_real": {
+    "decision": "ADAPTER_BLOCK",
+    "reason_code": "ADAPTER_MODULE_STATUS_NOT_PROCEED",
+    "modules": [
+      {
+        "module": "comm_risk",
+        "mode": "external",
+        "status": "UNKNOWN",
+        "schema_ok": true
+      },
+      {
+        "module": "identity_trust",
+        "mode": "external",
+        "status": "AUTHORIZED",
+        "schema_ok": true
+      },
+      {
+        "module": "task_risk",
+        "mode": "external",
+        "status": "ALLOW_RECOMMENDED",
+        "schema_ok": true
+      }
+    ]
+  },
+  "dds_enforce": {
+    "passed": 7,
+    "total": 7,
+    "independent_experiment": true,
+    "note": "正式 SROS 2 权限，域绑定，与在线模式为不同 run 的独立实验"
+  },
+  "timeout_comparison": [
+    {
+      "label": "最终封版（本次）",
+      "run_id": "closeout-20261021T023020Z",
+      "tested_code_sha": "2f3de257c9eac873093201292f6b2a9571da4f03",
+      "planner": "PLANNER_RESULT_TIMEOUT",
+      "gateway_arrivals": 0,
+      "gateway_decision": null,
+      "navsim_goals": 0
+    },
+    {
+      "label": "历史加固轮",
+      "run_id": "harden-20261020T171740Z",
+      "tested_code_sha": "ba16e7f39261bd5898a186d29561170a46c950d5",
+      "planner": "PLANNER_RESULT_TIMEOUT",
+      "gateway_arrivals": 1,
+      "gateway_decision": "ALLOW",
+      "navsim_goals": 1
+    }
+  ],
+  "semantics": {
+    "timeout_is_not_block": true,
+    "ordering_not_claimed": "现有日志无可严格比较的 Planner 超时与 Goal 时间戳，不宣称先后",
+    "replay_is_not_online": "本快照来自已归档证据，不代表本次重新执行"
+  },
+  "replay_notice": "REPLAY / 历史证据回放：只读展示已归档真实实验，不启动 ROS 2。"
+}

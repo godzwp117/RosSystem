@@ -1,0 +1,4 @@
+[INFO] [1792116906.251092857] [navigation_sim]: NAVSIM_READY {"node": "navigation_sim", "action": "/rg/nav_execute", "record_path": "/ws/logs/demo/navsim_goals.jsonl", "simulate_delay_sec": 0.0, "simulate_failure": false, "simulate_reject": false, "path_planning": "none (stub executor)", "executor_threads": 4}
+[INFO] [1792116908.811526673] [navigation_sim]: NAVSIM_GOAL {"goal_id": "8764a1f77b9a4d4a884a4ad0658f7570", "request_id": "demo-a-0001", "task_id": "patrol_a_001", "frame_id": "map", "x": 1.5, "y": 1.5, "z": 0.0, "goals_executed": 1, "received_at": "2026-10-16T02:15:08.810Z"}
+[INFO] [1792116910.538834465] [navigation_sim]: NAVSIM_COUNTERS {"goals_executed": 1, "journal_path": "/ws/logs/demo/navsim_goals.jsonl"}
+Failed to publish log message to rosout: publisher's context is invalid, at ./src/rcl/publisher.c:423

@@ -1,0 +1,14 @@
+{
+  "contract": "trusted-identity-issuers/2",
+  "issuers": [
+    {
+      "id": "lab-ed25519-ingress-1",
+      "trust": "VERIFIED_IDENTITY_SOURCE",
+      "scope": "LAB",
+      "identity_source": "LAB_DDS_INGRESS_WITNESS",
+      "reviewed_by": "LAB_SELF_REVIEW_TEST_ONLY",
+      "public_key_sha256": "89cafe2cd61fca6e8747148b3dc68b1abe1630dfb96c459a7f5d2e7d3073c171"
+    }
+  ],
+  "note": "TEST_ONLY lab trust anchor. The identity source is a lab DDS ingress witness on a separate research domain; it is not a production issuer."
+}

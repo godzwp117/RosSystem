@@ -1,0 +1,181 @@
+{
+  "contract": "dds-lab-evidence/1",
+  "scope": "TEST_ONLY_LAB",
+  "run_id": "v110enforce-20261021T173000Z",
+  "archived_at": "2026-10-21T17:25:42Z",
+  "command": "docker exec rg_v110 bash -lc 'cd /ws && source /opt/ros/jazzy/setup.bash && source install/setup.bash && python3 tests/integration/sros2_check.py --run-id v110enforce-20261021T173000Z'",
+  "exit_code": 0,
+  "normal_domain": "42",
+  "secure_domain": "43",
+  "total": 7,
+  "passed": 7,
+  "failed": 0,
+  "policy": {
+    "path": "security/policies/minimal_permissions.xml",
+    "sha256": "13313fc15e9b6fe8b3ddc14cced5900570c7cf39bd589117707f62724ef9781f"
+  },
+  "ca_certificate": {
+    "subject": "CN = sros2CA",
+    "sha256_fingerprint": "79:56:09:02:73:CC:1E:4E:CB:78:C3:EF:60:69:7A:74:10:3D:9C:9C:49:C8:89:71:75:1F:B5:11:3A:4C:40:96"
+  },
+  "enclaves": {
+    "gateway": {
+      "permissions_sha256": "a318bae7fdce90389bab8b13d97c060de5bc8b5e9342804286eed91692039673",
+      "permissions_path": "keystore_permissions/gateway/permissions.xml",
+      "default_deny": true,
+      "domain_43": true,
+      "certificate": {
+        "subject": "CN = /gateway",
+        "sha256_fingerprint": "8C:66:EF:E8:BF:94:D0:08:39:FB:79:0F:6A:5E:9F:41:9D:CE:DA:33:3B:4E:D9:59:FA:14:50:F7:05:7F:33:C5"
+      }
+    },
+    "navsim": {
+      "permissions_sha256": "f108738e4169b38dcc46306975172374c95906a407ca448f7e78451461588f29",
+      "permissions_path": "keystore_permissions/navsim/permissions.xml",
+      "default_deny": true,
+      "domain_43": true,
+      "certificate": {
+        "subject": "CN = /navsim",
+        "sha256_fingerprint": "2D:5C:51:7F:FE:5D:A2:D0:57:BB:21:3D:B2:17:79:F1:C3:29:A3:EC:A9:A2:A6:32:5A:29:24:91:DA:4F:94:DA"
+      }
+    },
+    "operator": {
+      "permissions_sha256": "32b37f07204fd5fcbe7a17bbd56adce9a90564911fb82855b6ddb92e35286ed4",
+      "permissions_path": "keystore_permissions/operator/permissions.xml",
+      "default_deny": true,
+      "domain_43": true,
+      "certificate": {
+        "subject": "CN = /operator",
+        "sha256_fingerprint": "95:EA:39:FA:BC:F6:75:6E:36:D8:34:1D:16:D9:C6:34:59:1A:C5:FF:8D:CA:24:A1:32:C1:BD:B5:27:E7:4D:27"
+      }
+    },
+    "planner": {
+      "permissions_sha256": "a61ab158dc77b001813c6a6cf8e8dab1560b3d8e94a8155019baa72a4f47e1b8",
+      "permissions_path": "keystore_permissions/planner/permissions.xml",
+      "default_deny": true,
+      "domain_43": true,
+      "certificate": {
+        "subject": "CN = /planner",
+        "sha256_fingerprint": "84:30:D0:53:C3:C0:1A:61:68:CF:14:54:D8:9C:01:F1:4D:57:1D:93:74:CD:B4:C5:0E:15:91:12:D1:68:80:85"
+      }
+    },
+    "unauthorized": {
+      "permissions_sha256": "1fc8bc6cc5f46a69764fdd9e9695820443d9e5e3494962cd2db6ed2adf356264",
+      "permissions_path": "keystore_permissions/unauthorized/permissions.xml",
+      "default_deny": true,
+      "domain_43": true,
+      "certificate": {
+        "subject": "CN = /unauthorized",
+        "sha256_fingerprint": "F0:37:F0:2F:04:FA:88:17:AC:DC:9B:BB:B0:97:EC:4D:22:39:8F:50:B6:BE:78:41:F9:F8:7D:AA:8E:3F:D2:AD"
+      }
+    }
+  },
+  "secrets_included": false,
+  "certificates_are_public_only": true,
+  "private_key_policy": "keystore private keys are never copied; the archive is not usable to impersonate any participant",
+  "git_head": "0a5389821f8cafab242435b698c5918ce1f74108",
+  "git_worktree_dirty": true,
+  "host": {
+    "uname": "Linux 6.18.54.1-microsoft-standard-WSL2"
+  },
+  "image": {
+    "name": "rosystem-verify-1.0.3:latest",
+    "digest": "rosystem-verify-1.0.3@sha256:ad4e6d2703b72c6fe09470e191edd569f6470077ddedde7ae41c8e7fc356fa75"
+  },
+  "run_stdout": null,
+  "files": {
+    "keystore_permissions/gateway/permissions.xml": {
+      "sha256": "a318bae7fdce90389bab8b13d97c060de5bc8b5e9342804286eed91692039673",
+      "bytes": 3281
+    },
+    "keystore_permissions/navsim/permissions.xml": {
+      "sha256": "f108738e4169b38dcc46306975172374c95906a407ca448f7e78451461588f29",
+      "bytes": 2669
+    },
+    "keystore_permissions/operator/permissions.xml": {
+      "sha256": "32b37f07204fd5fcbe7a17bbd56adce9a90564911fb82855b6ddb92e35286ed4",
+      "bytes": 2160
+    },
+    "keystore_permissions/planner/permissions.xml": {
+      "sha256": "a61ab158dc77b001813c6a6cf8e8dab1560b3d8e94a8155019baa72a4f47e1b8",
+      "bytes": 2683
+    },
+    "keystore_permissions/unauthorized/permissions.xml": {
+      "sha256": "1fc8bc6cc5f46a69764fdd9e9695820443d9e5e3494962cd2db6ed2adf356264",
+      "bytes": 2111
+    },
+    "v110enforce-20261021T173000Z/S1_normal_mode_a_zone/audit.jsonl": {
+      "sha256": "ef510b3c50d028439a9802b37aa7027f22c520f4e5321ea86fe2b52fbbfee5fd",
+      "bytes": 1067
+    },
+    "v110enforce-20261021T173000Z/S1_normal_mode_a_zone/gateway.log": {
+      "sha256": "d0edfe83189e00dd439582b71e15c1db1969679267951baafc17fdb0a403199a",
+      "bytes": 1798
+    },
+    "v110enforce-20261021T173000Z/S1_normal_mode_a_zone/navsim.log": {
+      "sha256": "2dbcfe14a169e4eea57fd6e09d865df8323c7d3e45b4529048b9521bc2a4fc0c",
+      "bytes": 939
+    },
+    "v110enforce-20261021T173000Z/S1_normal_mode_a_zone/navsim_goals.jsonl": {
+      "sha256": "61032d2fae332532fec16377981fb0cd0acd4944857a1dc54db005d09c957018",
+      "bytes": 270
+    },
+    "v110enforce-20261021T173000Z/S1_normal_mode_a_zone/operator.log": {
+      "sha256": "28c9cea53cc0592cd8f24ef0ba195ea2d7888c1059533f000da3f532a2989960",
+      "bytes": 802
+    },
+    "v110enforce-20261021T173000Z/S1_normal_mode_a_zone/planner.log": {
+      "sha256": "10248dee972fde656a1390512a0ae8f2fa0b61abf8341e3db0725678e81a9815",
+      "bytes": 492
+    },
+    "v110enforce-20261021T173000Z/S2/planner.log": {
+      "sha256": "fb3cef905da567547b1e9d0a90951281605600a663d01f93eb9c74f414409239",
+      "bytes": 594
+    },
+    "v110enforce-20261021T173000Z/S3/rogue_planner.log": {
+      "sha256": "927a00f50df8462ff197f6dbe74878c2e4a736fbd41d44eb97e17a00dfe2617d",
+      "bytes": 1385
+    },
+    "v110enforce-20261021T173000Z/S3C/rogue_gateway.log": {
+      "sha256": "1ff253a4b2b893f17f1f3df7b1bd6186ed4c6c7d773ad5e23bcd2738d0a6bf8a",
+      "bytes": 389
+    },
+    "v110enforce-20261021T173000Z/S4/rogue_unauthorized.log": {
+      "sha256": "f428171722c3640b337737a8d20c18b167b64a9443214214ac3806de04f0c7c1",
+      "bytes": 1388
+    },
+    "v110enforce-20261021T173000Z/S5/planner.log": {
+      "sha256": "96fe1f7dd8649c18892381df6f7bb3abd69679db3b554a8e2844979004bc084e",
+      "bytes": 979
+    },
+    "v110enforce-20261021T173000Z/S6/rogue_bad_keystore.log": {
+      "sha256": "b1ffca6db646656cea85cbaade94a2e3a743e901865df4eb8d7d0e9e8938b6f4",
+      "bytes": 371
+    },
+    "v110enforce-20261021T173000Z/_stack/audit.jsonl": {
+      "sha256": "28defe161e0456078e0e26eb10c0c963ab00faa589e2b7810dffb18a04924ac9",
+      "bytes": 1748
+    },
+    "v110enforce-20261021T173000Z/_stack/gateway.log": {
+      "sha256": "cd3b69127f4a344f307413e62f29f0f5f5137238590b63556a6f6d754e15efeb",
+      "bytes": 2307
+    },
+    "v110enforce-20261021T173000Z/_stack/navsim.log": {
+      "sha256": "72dcf6c8c83696f739794d54cbc1b01fdbae59394eb3c682705ab2887d3564cd",
+      "bytes": 1294
+    },
+    "v110enforce-20261021T173000Z/_stack/navsim_goals.jsonl": {
+      "sha256": "3ccdcc32fca497a377ba0196b01acde7a91d6eba497d1dfd554e8619375fb654",
+      "bytes": 549
+    },
+    "v110enforce-20261021T173000Z/_stack/operator.log": {
+      "sha256": "2082e2fde081362e6e006e7bf8f5843ee7e7f05e4edaba1b16f4a7b191d77444",
+      "bytes": 1316
+    },
+    "v110enforce-20261021T173000Z/summary.json": {
+      "sha256": "dcd1bfcf4587fb88912a8c6b959f9514ea6d8333993c5d63cad62d55eef0e2c9",
+      "bytes": 22950
+    }
+  },
+  "note": "permissions.xml are policy-derived, non-secret artifacts included so the run can be interpreted without the wiped keystore; they are NOT the 2026-10-09 historical evidence"
+}

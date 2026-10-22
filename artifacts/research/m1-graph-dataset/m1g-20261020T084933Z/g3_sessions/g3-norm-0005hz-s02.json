@@ -1,0 +1,96 @@
+{
+  "contract": "m1-graph-session/1",
+  "session_id": "g3-norm-0005hz-s02",
+  "scenario": "normal-rate",
+  "label": "normal",
+  "label_basis": "authorized 5 Hz publisher, within expected workload",
+  "label_source": "EXPERIMENT_CONDITION",
+  "model_used_for_labeling": false,
+  "topic": "/m1g/g3_norm_0005hz_s02",
+  "message_type": "std_msgs/msg/String",
+  "domain_id": 69,
+  "window_sec": 30.0,
+  "window_policy": "time-driven, fixed, contiguous, non-overlapping",
+  "graph_poll_interval_sec": 0.2,
+  "graph_feature_semantics": "graph_snapshot_transition_count = 相邻轮询快照的差异次数；不是 DDS Discovery 报文数，两次轮询之间的短时变化会被漏掉",
+  "started_at": "2026-10-20T08:58:18.619Z",
+  "ended_at": "2026-10-20T08:59:04.511Z",
+  "min_samples": 10,
+  "windows": [
+    {
+      "contract": "m1-observation-window/2",
+      "window_start": 0.0,
+      "window_end": 30.0,
+      "window_complete": true,
+      "message_observation": {
+        "status": "OK",
+        "samples": 149,
+        "features": {
+          "message_count": 149,
+          "frequency_hz": 4.9667,
+          "gap_median_ms": 200.5897,
+          "gap_p95_ms": 201.0522,
+          "gap_max_ms": 208.3703,
+          "gap_cv": 0.0037,
+          "publisher_count_in_window": 2,
+          "late_messages_dropped": 0,
+          "dropped_timestamps": 0
+        }
+      },
+      "graph_observation": {
+        "status": "VALID",
+        "successful_polls": 133,
+        "failed_polls": 0,
+        "features": {
+          "graph_snapshot_transition_count": 2
+        }
+      },
+      "overall_observation_status": "FULL"
+    },
+    {
+      "contract": "m1-observation-window/2",
+      "window_start": 30.0,
+      "window_end": 40.02,
+      "window_complete": false,
+      "message_observation": {
+        "status": "OK",
+        "samples": 41,
+        "features": {
+          "message_count": 41,
+          "frequency_hz": 1.3667,
+          "gap_median_ms": 200.6429,
+          "gap_p95_ms": 201.2062,
+          "gap_max_ms": 204.1844,
+          "gap_cv": 0.0032,
+          "publisher_count_in_window": 1,
+          "late_messages_dropped": 0,
+          "dropped_timestamps": 0
+        }
+      },
+      "graph_observation": {
+        "status": "VALID",
+        "successful_polls": 44,
+        "failed_polls": 0,
+        "features": {
+          "graph_snapshot_transition_count": 1
+        }
+      },
+      "overall_observation_status": "FULL"
+    }
+  ],
+  "summary": {
+    "session_sec": 40.021,
+    "windows_total": 2,
+    "windows_complete": 1,
+    "windows_incomplete": 1,
+    "windows_message_ok": 1,
+    "windows_graph_valid": 1,
+    "windows_overall_full": 1,
+    "late_ticks": 0,
+    "uncovered_sec": 0.0,
+    "dropped_timestamps": 0,
+    "late_messages_dropped": 0
+  },
+  "tick_lateness_samples": [],
+  "collector": "scripts/m1_graph_collector.py"
+}

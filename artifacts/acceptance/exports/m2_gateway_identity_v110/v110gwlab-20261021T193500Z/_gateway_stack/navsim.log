@@ -1,0 +1,5 @@
+[INFO] [1792604872.099620058] [rcl]: Found security directory: /ws/artifacts/research/v110/m2-ingress/keystore/enclaves/navsim
+[INFO] [1792604872.142711842] [navigation_sim]: NAVSIM_READY {"node": "navigation_sim", "action": "/rg/nav_execute", "record_path": "/ws/tests/evidence/v110gwlab-20261021T193500Z/_gateway_stack/navsim_goals.jsonl", "simulate_delay_sec": 0.0, "simulate_failure": false, "simulate_reject": false, "path_planning": "none (stub executor)", "executor_threads": 4}
+[INFO] [1792604873.809744235] [navigation_sim]: NAVSIM_GOAL {"goal_id": "d7ab38fbb17f4dc8be759c74b4f6a9c5", "request_id": "req-gw-lab-001", "task_id": "patrol_a_001", "frame_id": "map", "x": 1.5, "y": 1.5, "z": 0.0, "goals_executed": 1, "received_at": "2026-10-21T17:47:53.809Z"}
+[INFO] [1792604913.045228170] [navigation_sim]: NAVSIM_COUNTERS {"goals_executed": 1, "journal_path": "/ws/tests/evidence/v110gwlab-20261021T193500Z/_gateway_stack/navsim_goals.jsonl"}
+Failed to publish log message to rosout: publisher's context is invalid, at ./src/rcl/publisher.c:423

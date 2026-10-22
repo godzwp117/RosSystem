@@ -1,0 +1,4 @@
+{"event":"participant_created","role":"client","domain":45,"security":true,"guid_prefix":"9b.84.5f.63.a5.a3.70.5d.97.d9.6a.57","resource":"rt/m2/candidate_task"}
+{"event":"dds_endpoint","kind":"writer","topic":"rt/m2/candidate_task","type":"m2::CandidateTask::v1"}
+{"event":"dds_endpoint","kind":"reader","topic":"rt/m2/candidate_task","type":"m2::CandidateTask::v1"}
+{"event":"sent","index":0}

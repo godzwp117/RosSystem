@@ -1,0 +1,26 @@
+{
+  "contract": "package-verification/1",
+  "package": "RosSystem-CreativeWork-Full-1.1.0.tar.gz",
+  "package_sha256": "16e74ea0cb02e34a9cccb003eaa16ede859ccc88fce3d318d560f07ce9247359",
+  "extraction_dir": "/tmp/v110pkg-verify2/RosSystem-CreativeWork-Full",
+  "container_image": "rosystem-jazzy:1.1.0",
+  "steps": [
+    "sha256sum -c (OK)",
+    "tar -xzf",
+    "colcon build --symlink-install (4 packages, 0 failures)",
+    "RG_MODE=native scripts/setup_sros2.sh (permissions verify PASS)",
+    "python3 tests/integration/sros2_check.py (7/7)",
+    "pytest 6 targeted files (121 passed)",
+    "run_three_real_online.py (LEVEL1 PASS, LEVEL2 PASS, LEVEL3 BLOCKED)"
+  ],
+  "dds_enforce": "7/7 PASS",
+  "targeted_tests": "121 passed",
+  "three_real_levels": {
+    "THREE_EXTERNAL_CALLED": "PASS",
+    "THREE_EXTERNAL_VALIDATED": "PASS",
+    "THREE_EXTERNAL_ONLINE_PROCEED": "BLOCKED"
+  },
+  "secrets_included": false,
+  "scope": "TEST_ONLY_LAB",
+  "note": "Fresh directory and fresh container on the same host. Not a third-party host reproduction. The package runtime tests need the curated 1.0.3 archive and 1.1.0 evidence, which the fixed package now carries."
+}

@@ -1,0 +1,4 @@
+PLANNER_RESULT {"request_id": "s5-b-zone", "task_id": "patrol_a_001", "frame_id": "map", "target": {"x": 9.0, "y": 9.0, "z": 0.0}, "egress_action": "/rg/guarded_navigate", "goal_id": "0d246812859445abb53e406ae9bb6146", "outcome": "RESULT", "accepted": true, "goal_status": "STATUS_ABORTED", "success": false, "status_code": "OUT_OF_REGION", "detail": "target (9.0, 9.0) outside allowed_region {'x_min': 0.0, 'x_max': 4.0, 'y_min': 0.0, 'y_max': 4.0}", "feedback_seen": null}
+[37;1m2026-10-21 17:25:16.356 [31;1m[[37;1mSECURITY[31;1m Error] [37mCannot find local reader 9b.84.5f.63.a5.a3.90.fb.b3.00.fd.dd|0.0.17.4[34;1m -> Function [36mencode_reader_submessage[m
+[37;1m2026-10-21 17:25:16.356 [31;1m[[37;1mRTPS_READER[31;1m Error] [37mCannot encrypt ACKNACK submessage for writer 9b.84.5f.63.a5.a3.90.fb.b3.00.fd.dd|0.0.17.4[34;1m -> Function [36madd_acknack[m
+[INFO] [1792603516.038165533] [rcl]: Found security directory: /ws/security/keystore/enclaves/planner

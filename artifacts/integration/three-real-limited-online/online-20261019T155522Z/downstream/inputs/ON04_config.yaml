@@ -1,0 +1,57 @@
+adapter:
+  log_path: /tmp/m3_online/adapter_ON04.jsonl
+  planner_command:
+  - ros2
+  - run
+  - rg_demo_nodes
+  - planner_node
+identity_attestation:
+  controlled_reason: RC2 受控演示：identity_trust 为 MOCK，身份结论来自模块自报，不构成真实 DDS 身份认证
+  mode: CONTROLLED_TEST_ONLY
+modules:
+  comm_risk:
+    allow_fault_injection: false
+    command:
+    - python3
+    - mock_modules/comm_risk_mock.py
+    interface: comm_risk_evidence
+    max_stdout_bytes: 65536
+    mode: mock
+    timeout_sec: 10
+  identity_trust:
+    allow_fault_injection: false
+    command:
+    - python3
+    - mock_modules/identity_trust_mock.py
+    interface: identity_trust_assessment
+    max_stdout_bytes: 65536
+    mode: mock
+    timeout_sec: 10
+  task_risk:
+    allow_fault_injection: false
+    command:
+    - python3
+    - modules/member3_taskrisk/module.py
+    - --policy
+    - /ws/artifacts/integration/three-real-limited-online/online-20261019T155522Z/downstream/inputs/task_policy_corrupt.yaml
+    interface: task_risk_decision
+    max_stdout_bytes: 65536
+    mode: external
+    timeout_sec: 10
+real_command_profiles:
+  policy_absent:
+    args:
+    - --policy
+    - config/scenarios/task_policy_absent.yaml
+  policy_corrupt:
+    args:
+    - --policy
+    - config/scenarios/task_policy_corrupt.yaml
+  policy_tight_region:
+    args:
+    - --policy
+    - config/scenarios/task_policy_tight_region.yaml
+  policy_valid:
+    args:
+    - --policy
+    - config/task_policy.yaml

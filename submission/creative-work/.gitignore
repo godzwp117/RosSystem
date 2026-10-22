@@ -1,0 +1,5 @@
+# 作品包构建产物：按赛事需要**允许入库**（见 .github/workflows/member-module-gates.yml
+# 检查 5 的参赛作品包白名单）。此处仅忽略临时文件。
+*.tmp
+__pycache__/
+.dashboard.pid

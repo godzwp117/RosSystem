@@ -1,0 +1,159 @@
+{
+  "contract": "p09-timeout/1",
+  "run_id": "p09-20261022T030000Z",
+  "request_id": "p09-timeout-p09-20261022T030000Z",
+  "scope": "LAB_SINGLE_CONTAINER",
+  "clock_domain": "same container wall clock",
+  "config": {
+    "navsim_simulate_delay_sec": 8.0,
+    "gateway_execution_timeout_sec": 10.0,
+    "planner_result_timeout_sec": 1.0
+  },
+  "planner": {
+    "argv": [
+      "ros2",
+      "run",
+      "rg_demo_nodes",
+      "planner_node",
+      "--ros-args",
+      "-p",
+      "request_id:=p09-timeout-p09-20261022T030000Z",
+      "-p",
+      "task_id:=patrol_a_001",
+      "-p",
+      "frame_id:=map",
+      "-p",
+      "target_x:=1.5",
+      "-p",
+      "target_y:=1.5",
+      "-p",
+      "result_timeout_sec:=1.0",
+      "-p",
+      "expect_success:=-1"
+    ],
+    "exit_code": 2,
+    "result": {
+      "request_id": "p09-timeout-p09-20261022T030000Z",
+      "task_id": "patrol_a_001",
+      "frame_id": "map",
+      "target": {
+        "x": 1.5,
+        "y": 1.5,
+        "z": 0.0
+      },
+      "egress_action": "/rg/guarded_navigate",
+      "goal_id": "64cffc629b6148428246c6ff278dead8",
+      "outcome": "RESULT_TIMEOUT",
+      "accepted": true,
+      "detail": "get_result_async did not complete within 1.000s"
+    },
+    "started_epoch": 1792636659.2209263,
+    "ended_epoch": 1792636660.7942991,
+    "duration_sec": 1.573,
+    "log": "planner.log"
+  },
+  "gateway": {
+    "arrivals": 1,
+    "decisions": [
+      {
+        "event_type": "DecisionEvent",
+        "event_id": "bbba2025f3fa4e11b4c04a06b24ab305",
+        "request_id": "p09-timeout-p09-20261022T030000Z",
+        "task_id": "patrol_a_001",
+        "policy_version": "1.0",
+        "decision": "ALLOW",
+        "reason_code": "ALLOW_IN_POLICY",
+        "detail": "target (1.5, 1.5) inside allowed_region {'x_min': 0.0, 'x_max': 4.0, 'y_min': 0.0, 'y_max': 4.0}",
+        "decision_at": "2026-10-22T02:37:39.659Z"
+      }
+    ],
+    "executions": [
+      {
+        "event_type": "ExecutionEvent",
+        "event_id": "bbba2025f3fa4e11b4c04a06b24ab305",
+        "request_id": "p09-timeout-p09-20261022T030000Z",
+        "task_id": "patrol_a_001",
+        "downstream_goal_id": "b8d02568d50a41d2929a69f7e31dbcc6",
+        "success": true,
+        "status_code": "EXECUTED",
+        "detail": "downstream result: recorded target (1.5, 1.5, 0.0) in frame map; no path planning performed",
+        "finished_at": "2026-10-22T02:37:47.665Z"
+      }
+    ]
+  },
+  "navsim_goals": [
+    {
+      "received_at": "2026-10-22T02:37:39.662Z",
+      "action": "/rg/nav_execute",
+      "goal_id": "b8d02568d50a41d2929a69f7e31dbcc6",
+      "request_id": "p09-timeout-p09-20261022T030000Z",
+      "task_id": "patrol_a_001",
+      "frame_id": "map",
+      "x": 1.5,
+      "y": 1.5,
+      "z": 0.0,
+      "recorded_only": true,
+      "path_planning": false
+    }
+  ],
+  "checks": [
+    {
+      "check": "Planner actually sent the goal then timed out waiting for Result",
+      "result": "PASS",
+      "detail": "{'request_id': 'p09-timeout-p09-20261022T030000Z', 'task_id': 'patrol_a_001', 'frame_id': 'map', 'target': {'x': 1.5, 'y': 1.5, 'z': 0.0}, 'egress_action': '/rg/guarded_navigate', 'goal_id': '64cffc629b6148428246c6ff278dead8', 'outcome': 'RESULT_TIMEOUT', 'accepted': True, 'detail': 'get_result_async did not complete within 1.000s'}"
+    },
+    {
+      "check": "Planner exit code is 2 (no Result)",
+      "result": "PASS",
+      "detail": "2"
+    },
+    {
+      "check": "Gateway received the request (arrival event)",
+      "result": "PASS",
+      "detail": "1"
+    },
+    {
+      "check": "Gateway decision is ALLOW / ALLOW_IN_POLICY",
+      "result": "PASS",
+      "detail": "[{'event_type': 'DecisionEvent', 'event_id': 'bbba2025f3fa4e11b4c04a06b24ab305', 'request_id': 'p09-timeout-p09-20261022T030000Z', 'task_id': 'patrol_a_001', 'policy_version': '1.0', 'decision': 'ALLOW', 'reason_code': 'ALLOW_IN_POLICY', 'detail': \"target (1.5, 1.5) inside allowed_region {'x_min': 0.0, 'x_max': 4.0, 'y_min': 0.0, 'y_max': 4.0}\", 'decision_at': '2026-10-22T02:37:39.659Z'}]"
+    },
+    {
+      "check": "NavigationSim received exactly 1 Goal",
+      "result": "PASS",
+      "detail": "1"
+    },
+    {
+      "check": "Gateway recorded an ExecutionEvent (not a BLOCK)",
+      "result": "PASS",
+      "detail": "[{'event_type': 'ExecutionEvent', 'event_id': 'bbba2025f3fa4e11b4c04a06b24ab305', 'request_id': 'p09-timeout-p09-20261022T030000Z', 'task_id': 'patrol_a_001', 'downstream_goal_id': 'b8d02568d50a41d2929a69f7e31dbcc6', 'success': True, 'status_code': 'EXECUTED', 'detail': 'downstream result: recorded target (1.5, 1.5, 0.0) in frame map; no path planning performed', 'finished_at': '2026-10-22T02:37:47.665Z'}]"
+    },
+    {
+      "check": "Execution result is EXECUTED or an explicit EXECUTION_TIMEOUT (unknown, not BLOCK)",
+      "result": "PASS",
+      "detail": "EXECUTED"
+    },
+    {
+      "check": "Execution completed after the Planner timed out (late result)",
+      "result": "PASS",
+      "detail": "{'finished_at': '2026-10-22T02:37:47.665Z', 'planner_ended': '2026-10-22T02:37:40.794299+00:00'}"
+    },
+    {
+      "check": "Goal belongs to this request_id",
+      "result": "PASS",
+      "detail": "p09-timeout-p09-20261022T030000Z"
+    },
+    {
+      "check": "No cancel was requested by the timeout path",
+      "result": "PASS",
+      "detail": "planner returns on WaitTimeout; no cancel call in planner_node"
+    }
+  ],
+  "limitations": [
+    "Same container/host clock; no cross-host ordering claim.",
+    "This is a simulated NavigationSim (recorded_only), not a physical robot.",
+    "Planner timeout is not cancellation; the execution completed after the planner left."
+  ],
+  "total": 10,
+  "passed": 10,
+  "failed": 0
+}

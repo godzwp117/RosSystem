@@ -1,0 +1,18 @@
+{
+  "contract": "trusted-action-count-window/1",
+  "resource": "rt/m2/candidate_task",
+  "window_start": "2026-10-18T23:59:28Z",
+  "window_end": "2026-10-18T23:59:58Z",
+  "as_of": "2026-10-19T00:00:00Z",
+  "safety_lag_seconds": 2.0,
+  "send_goal_count": 0,
+  "observation_source": "TRUSTED_ACTION_INGRESS",
+  "coverage": "UNKNOWN",
+  "source_evidence_sha256": "3d5e9fe4106a3d93b4d1ce2a128af1753901145c339d767e48d984b6599c3808",
+  "authenticated_senders": [],
+  "unauthenticated_requests": 0,
+  "notes": [
+    "窗口起点早于账本最早事件，账本未覆盖整个窗口",
+    "本输出只证明请求计数，不证明任何单条请求的身份归属"
+  ]
+}

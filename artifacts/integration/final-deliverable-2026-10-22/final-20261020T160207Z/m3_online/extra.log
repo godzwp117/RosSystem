@@ -1,0 +1,42 @@
+STACK_READY=1
+input ON03 -> on03-final-20261020T160207Z-six
+input ON04 -> on04-final-20261020T160207Z-six
+input ON06 -> on06-final-20261020T160207Z-six
+config ON03 -> policy /tmp/m3_online_inputs/task_policy_absent.yaml
+config ON04 -> policy /tmp/m3_online_inputs/task_policy_corrupt.yaml
+config ON06 -> policy /ws/config/task_policy.yaml
+manifest -> artifacts/integration/final-deliverable-2026-10-22/final-20261020T160207Z/m3_online/stack-b/manifest.json
+
+########## SCENARIO ON03 ##########
+F0_EXIT_ON03=10
+  decision=ADAPTER_BLOCK reason=ADAPTER_MODULE_STATUS_NOT_PROCEED
+    comm_risk       mode=mock      exit=0 status=NORMAL
+    identity_trust  mode=mock      exit=0 status=AUTHORIZED
+    task_risk       mode=external  exit=0 status=UNKNOWN
+  online: enabled=True outcome=NOT_SUBMITTED_ADAPTER_BLOCK planner_exit=None
+  journal 行数: 0
+
+########## SCENARIO ON04 ##########
+F0_EXIT_ON04=10
+  decision=ADAPTER_BLOCK reason=ADAPTER_MODULE_STATUS_NOT_PROCEED
+    comm_risk       mode=mock      exit=0 status=NORMAL
+    identity_trust  mode=mock      exit=0 status=AUTHORIZED
+    task_risk       mode=external  exit=0 status=ERROR
+  online: enabled=True outcome=NOT_SUBMITTED_ADAPTER_BLOCK planner_exit=None
+  journal 行数: 0
+
+########## SCENARIO ON06 ##########
+F0_EXIT_ON06=0
+  decision=READY_FOR_GATEWAY_SUBMISSION reason=ADAPTER_OK
+    comm_risk       mode=mock      exit=0 status=NORMAL
+    identity_trust  mode=mock      exit=0 status=AUTHORIZED
+    task_risk       mode=external  exit=0 status=ALLOW_RECOMMENDED
+  online: enabled=True outcome=PLANNER_RESULT_TIMEOUT planner_exit=None
+  journal 行数: 1
+
+=== 关闭 ===
+[1]-  Terminated              ros2 run rg_demo_nodes navigation_sim --ros-args -p record_path:="$JOURNAL" > "$OUT/navsim.log" 2>&1
+[2]+  Terminated              ros2 run rg_gateway security_gateway --ros-args -p policy_path:="$WS/config/task_policy.yaml" -p audit_log_path:="$AUDIT" > "$OUT/gateway.log" 2>&1
+STRAY_GROUPS=0
+audit 行数: 3  journal 行数: 1
+DONE_EXTRA
