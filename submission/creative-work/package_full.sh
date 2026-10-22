@@ -72,6 +72,9 @@ done
 [ -d "$REPO/docs/interfaces" ] || { echo "ERROR: 缺少 docs/interfaces" >&2; exit 1; }
 mkdir -p "$ROOT/runtime/docs"
 cp -a "$REPO/docs/interfaces" "$ROOT/runtime/docs/"
+# Tests read docs/integration and the repository .gitignore (key-material gate).
+[ -d "$REPO/docs/integration" ] && cp -a "$REPO/docs/integration" "$ROOT/runtime/docs/"
+[ -f "$REPO/.gitignore" ] && cp -a "$REPO/.gitignore" "$ROOT/runtime/.gitignore"
 
 # Local runtime test evidence is not part of the deliverable: the curated,
 # non-secret evidence archive is copied to $ROOT/evidence in step 2b. Removing
