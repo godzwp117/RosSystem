@@ -53,7 +53,7 @@ if [ -d "$REPO/paper" ]; then cp -a "$REPO/paper" "$ROOT/paper"; fi
 echo "== 2) 运行源码（白名单，保持仓库相对布局） =="
 mkdir -p "$ROOT/runtime"
 # 注意：docs/interfaces 必须单独处理，cp -a 到 runtime/ 会把父目录拍平。
-for item in src modules scripts config mock_modules tests identity_trust security; do
+for item in src modules scripts config mock_modules tests identity_trust security templates .github; do
   [ -e "$REPO/$item" ] || { echo "ERROR: 仓库缺少必需目录 $item" >&2; exit 1; }
   case "$item" in
     security)
