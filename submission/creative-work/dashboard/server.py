@@ -142,6 +142,12 @@ class Handler(BaseHTTPRequestHandler):
                 'allowed_modes': sorted(ALLOWED_MODES),
             })
 
+        if path == '/api/research':
+            research = ev.load_research_evidence()
+            if research is None:
+                return self._send(404, {'error': '研究证据快照不存在或格式非法'})
+            return self._send(200, research)
+
         if path == '/api/runs':
             return self._send(200, {'runs': ev.list_runs()})
 

@@ -55,12 +55,7 @@ def sh(argv, **kwargs):
 def build_binary():
     if BINARY.is_file():
         return {'binary': str(BINARY), 'reused': True}
-    argv = ['g++', '-std=c++17', '-O2',
-            str(ROOT / 'src' / 'm2_witness' / 'm2_ingress_witness.cpp'),
-            '-o', str(BINARY),
-            '-I/opt/ros/jazzy/include/fastrtps',
-            '-I/opt/ros/jazzy/include/fastcdr',
-            '-L/opt/ros/jazzy/lib', '-lfastrtps', '-lfastcdr', '-lpthread']
+    argv = ['bash', str(ROOT / 'scripts' / 'build_m2_ingress.sh'), str(BINARY)]
     proc = sh(argv, timeout=300)
     if proc.returncode != 0:
         raise RuntimeError('compile failed: ' + (proc.stderr or proc.stdout)[-800:])

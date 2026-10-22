@@ -44,6 +44,32 @@ class EvidenceTest(unittest.TestCase):
         self.assertIsNone(ev.load_run('artifacts/does-not-exist'))
 
 
+class ResearchEvidenceTest(unittest.TestCase):
+    def test_research_snapshot_is_archived_not_online(self):
+        r = ev.load_research_evidence()
+        self.assertIsInstance(r, dict)
+        self.assertEqual(r['contract'], 'rosystem-research-evidence/1')
+        self.assertEqual(r['evidence_class'], 'ARCHIVED_RESEARCH_EVIDENCE')
+        self.assertFalse(r['online_evidence'])
+        ids = {i['id']: i for i in r['items']}
+        self.assertEqual(ids['DDS_ENFORCE']['value'], '7/7')
+        self.assertEqual(ids['DDS_NEGATIVE']['value'], '6/6')
+        self.assertEqual(ids['M2_IDENTITY']['value'], '17/17')
+        self.assertEqual(ids['GATEWAY']['value'], '14/14')
+        self.assertEqual(ids['P07']['value'], '13/13')
+        self.assertEqual(ids['P09']['value'], '10/10')
+        self.assertEqual(ids['THREE_REAL_L3']['status'], 'BLOCKED')
+        self.assertEqual(ids['ACTION_BINDING']['status'], 'NOT_VERIFIED')
+        self.assertEqual(r['acceptance']['status'], 'INCOMPLETE')
+        self.assertIn('THREE_REAL_LEVEL3', r['acceptance']['not_run'])
+        self.assertIn('不是本次在线运行', r['notice'])
+
+    def test_research_snapshot_cannot_be_mistaken_for_online(self):
+        r = ev.load_research_evidence()
+        self.assertNotEqual(r.get('evidence_class'), 'ONLINE_EVIDENCE')
+        self.assertNotEqual(r.get('evidence_class'), 'REPLAY')
+
+
 class RunControllerTest(unittest.TestCase):
     def test_whitelist_only(self):
         self.assertEqual(set(ALLOWED_MODES),

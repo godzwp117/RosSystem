@@ -1,0 +1,2 @@
+ns=rg_interfaces::action name=PatrolNavigate_SendGoal_Request ser=0x73e184b04d92 deser=0x73e184b04dc3 size=0x73e184b04df4
+sizeof struct=176

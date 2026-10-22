@@ -65,6 +65,12 @@
 #include <fastdds/rtps/participant/ParticipantDiscoveryInfo.h>
 #include <fastdds/rtps/builtin/data/ParticipantProxyData.h>
 #include <fastdds/rtps/common/Token.h>
+#include <fastcdr/FastBuffer.h>
+#include <fastcdr/Cdr.h>
+
+#include "rg_interfaces/action/detail/patrol_navigate__struct.hpp"
+#include "rg_interfaces/action/detail/patrol_navigate__rosidl_typesupport_fastrtps_cpp.hpp"
+#include "rosidl_typesupport_fastrtps_cpp/message_type_support.h"
 
 namespace fdds = eprosima::fastdds::dds;
 namespace rtps = eprosima::fastrtps::rtps;
@@ -134,6 +140,70 @@ public:
     {
         delete static_cast<CandidateTask*>(data);
     }
+};
+
+// ---------------------------------------------------------------- Action 请求类型
+//: 真实 ROS 2 Action 的 send_goal 请求在 DDS 上是一个服务请求样本。
+//: 这里复用生成代码提供的序列化回调，构造一个 Fast DDS TopicDataType，
+//: 从而在原始 DDS 层订阅 rq/.../send_goalRequest 并读取 writer GUID。
+class ActionRequestType : public fdds::TopicDataType
+{
+public:
+    explicit ActionRequestType(const message_type_support_callbacks_t* callbacks)
+        : callbacks_(callbacks)
+    {
+        setName("rg_interfaces::action::dds_::PatrolNavigate_SendGoal_Request_");
+        m_typeSize = 4096;
+        m_isGetKeyDefined = false;
+    }
+
+    bool serialize(void* data, rtps::SerializedPayload_t* payload) override
+    {
+        eprosima::fastcdr::FastBuffer buffer(
+            reinterpret_cast<char*>(payload->data), payload->max_size);
+        eprosima::fastcdr::Cdr ser(buffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
+                                   eprosima::fastcdr::CdrVersion::XCDRv1);
+        if (!callbacks_->cdr_serialize(data, ser))
+        {
+            return false;
+        }
+        payload->length = static_cast<uint32_t>(ser.get_serialized_data_length());
+        return true;
+    }
+
+    bool deserialize(rtps::SerializedPayload_t* payload, void* data) override
+    {
+        eprosima::fastcdr::FastBuffer buffer(
+            reinterpret_cast<char*>(payload->data), payload->length);
+        eprosima::fastcdr::Cdr deser(buffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
+                                     eprosima::fastcdr::CdrVersion::XCDRv1);
+        return callbacks_->cdr_deserialize(deser, data);
+    }
+
+    std::function<uint32_t()> getSerializedSizeProvider(void* data) override
+    {
+        return [this, data]() -> uint32_t {
+            return callbacks_->get_serialized_size(data);
+        };
+    }
+
+    bool getKey(void*, rtps::InstanceHandle_t*, bool) override
+    {
+        return false;
+    }
+
+    void* createData() override
+    {
+        return new rg_interfaces::action::PatrolNavigate_SendGoal_Request();
+    }
+
+    void deleteData(void* data) override
+    {
+        delete static_cast<rg_interfaces::action::PatrolNavigate_SendGoal_Request*>(data);
+    }
+
+private:
+    const message_type_support_callbacks_t* callbacks_;
 };
 
 // ---------------------------------------------------------------- 工具
@@ -457,6 +527,60 @@ private:
     uint64_t counter_ = 0;
 };
 
+class ActionRequestListener : public fdds::DataReaderListener
+{
+public:
+    explicit ActionRequestListener(std::string ledger) : ledger_(std::move(ledger)) {}
+
+    void on_data_available(fdds::DataReader* reader) override
+    {
+        auto* sample = new rg_interfaces::action::PatrolNavigate_SendGoal_Request();
+        fdds::SampleInfo info;
+        while (reader->take_next_sample(sample, &info) ==
+               eprosima::fastrtps::types::ReturnCode_t::RETCODE_OK)
+        {
+            if (!info.valid_data)
+            {
+                continue;
+            }
+            ++counter_;
+            std::string writer_guid = writer_guid_string(info.sample_identity.writer_guid());
+            std::string prefix = writer_guid.substr(0, writer_guid.find('|'));
+            ParticipantRecord record;
+            bool authenticated = g_identities.authenticated(prefix, record);
+            const auto& goal = sample->goal;
+            const auto& position = goal.target.pose.position;
+            std::ostringstream os;
+            os << "{\"contract\":\"trusted-action-events/1\","
+               << "\"event_kind\":\"ACTION_SEND_GOAL_RECEIVED\","
+               << "\"resource\":\"/rg/guarded_navigate\","
+               << "\"request_id\":\"" << json_escape(goal.request_id) << "\","
+               << "\"task_id\":\"" << json_escape(goal.task_id) << "\","
+               << "\"frame_id\":\"" << json_escape(goal.target.header.frame_id) << "\","
+               << "\"x\":" << position.x << ","
+               << "\"y\":" << position.y << ","
+               << "\"z\":" << position.z << ","
+               << "\"writer_guid\":\"" << writer_guid << "\","
+               << "\"participant_guid\":\"" << prefix << "\","
+               << "\"sample_sequence\":" << counter_ << ","
+               << "\"sender_authenticated\":" << (authenticated ? "true" : "false") << ","
+               << "\"certificate_subject\":\"" << json_escape(record.cert_subject) << "\","
+               << "\"ca_subject\":\"" << json_escape(record.ca_subject) << "\","
+               << "\"received_at\":\"" << now_iso() << "\","
+               << "\"source\":\"TRUSTED_ACTION_INGRESS\","
+               << "\"observer\":\"M2_ACTION_INGRESS\"}";
+            append_line(ledger_, os.str());
+        }
+        delete sample;
+    }
+
+    uint64_t counter() const { return counter_; }
+
+private:
+    std::string ledger_;
+    uint64_t counter_ = 0;
+};
+
 void add_security(fdds::DomainParticipantQos& qos, const std::string& keystore,
                   const std::string& role)
 {
@@ -497,6 +621,7 @@ int main(int argc, char** argv)
     int send_count = 1;
     bool security = true;
     bool list_topics = false;
+    bool action_capture = false;
 
     for (int i = 1; i < argc; ++i)
     {
@@ -514,6 +639,7 @@ int main(int argc, char** argv)
         else if (arg == "--send")           send_count = std::atoi(argv[++i]);
         else if (arg == "--no-security")    security = false;
         else if (arg == "--list-topics")    list_topics = true;
+        else if (arg == "--action-capture") action_capture = true;
         else if (arg == "--help")
         {
             std::cout << "usage: " << argv[0]
@@ -556,6 +682,31 @@ int main(int argc, char** argv)
     {
         std::cerr << "FATAL: create_topic failed (permissions may deny this resource)\n";
         return 4;
+    }
+
+    // Action send_goal 的真实 DDS 服务请求主题（只读观测）。
+    fdds::Topic* action_topic = nullptr;
+    const rosidl_message_type_support_t* action_ts = action_capture ?
+        ROSIDL_TYPESUPPORT_INTERFACE__MESSAGE_SYMBOL_NAME(
+            rosidl_typesupport_fastrtps_cpp, rg_interfaces, action,
+            PatrolNavigate_SendGoal_Request)() : nullptr;
+    if (action_ts != nullptr)
+    {
+        auto* callbacks = static_cast<const message_type_support_callbacks_t*>(
+            action_ts->data);
+        if (callbacks != nullptr)
+        {
+            fdds::TypeSupport action_type(new ActionRequestType(callbacks));
+            action_type.register_type(participant);
+            action_topic = participant->create_topic(
+                "rq/rg/guarded_navigate/_action/send_goalRequest",
+                action_type.get_type_name(), fdds::TOPIC_QOS_DEFAULT);
+            if (action_topic == nullptr)
+            {
+                std::cerr << "WARN: action request topic denied by DDS permissions; "
+                             "Action-level capture disabled\n";
+            }
+        }
     }
 
     std::cout << "{\"event\":\"participant_created\",\"role\":\"" << json_escape(role)
@@ -633,6 +784,26 @@ int main(int argc, char** argv)
         {
             std::cerr << "FATAL: create_datareader failed\n";
             return 5;
+        }
+        if (action_topic != nullptr)
+        {
+            fdds::DataReaderQos action_qos = fdds::DATAREADER_QOS_DEFAULT;
+            action_qos.reliability().kind = fdds::RELIABLE_RELIABILITY_QOS;
+            action_qos.history().kind = fdds::KEEP_LAST_HISTORY_QOS;
+            action_qos.history().depth = 16;
+            auto* action_requests = new ActionRequestListener(ledger);
+            fdds::DataReader* action_reader = subscriber->create_datareader(
+                action_topic, action_qos, action_requests);
+            if (action_reader == nullptr)
+            {
+                std::cerr << "WARN: action request datareader creation failed\n";
+            }
+            else
+            {
+                std::cout << "{\"event\":\"action_reader_ready\","
+                          << "\"topic\":\"rq/rg/guarded_navigate/_action/send_goalRequest\"}"
+                          << std::endl;
+            }
         }
         std::this_thread::sleep_for(std::chrono::seconds(seconds));
         std::cout << "{\"event\":\"ingress_exit\",\"received\":" << requests->counter()

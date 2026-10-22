@@ -20,3 +20,18 @@
 - 结果：10/10 PASS；Planner `RESULT_TIMEOUT`；Gateway ALLOW；Goal 1；ExecutionEvent `EXECUTED` 晚于 Planner 退出
 - 证据：`artifacts/research/v110/p09/p09-20261022T030000Z/`
 - 限制：同一容器时钟；NavigationSim recorded_only；未新增取消实验
+
+## N-003 M2 Action send_goal 绑定探测（负结果）
+
+- 结果：**BLOCKED / NOT_VERIFIED**
+- 已证明：Action 请求 typesupport 存在；原始 reader 可创建
+- 关键负结果：带 `--action-capture` 时 Planner `NO_ACTION_SERVER`；同栈不带该 reader 时 `EXECUTED`
+- 证据：`artifacts/research/v110/m2-action-probe/summary.json`
+- 影响：不得把意图主题 17/17 写成 Action 级身份；论文需保留该边界
+
+## N-004 Web 1.1.0 研究证据展示
+
+- 结果：`/api/research` 200；页面含研究证据面板；18 项 dashboard 测试通过
+- 类别：`ARCHIVED_RESEARCH_EVIDENCE`，`online_evidence=false`
+- 证据：`artifacts/research/v110/web/`、`paper/WEB_EVIDENCE_VERIFICATION.md`
+- 限制：无无头浏览器，截图 NOT_RUN

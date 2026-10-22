@@ -279,3 +279,18 @@ def load_replay():
         if isinstance(data, dict):
             return data
     return None
+
+
+def load_research_evidence():
+    """1.1.0 归档研究证据（只读快照，不是本次在线运行）。"""
+    path = os.path.join(PACKAGE_ROOT, 'dashboard', 'research_evidence.json')
+    data = _read_json(path)
+    if not isinstance(data, dict):
+        return None
+    if data.get('contract') != 'rosystem-research-evidence/1':
+        return None
+    if data.get('evidence_class') != 'ARCHIVED_RESEARCH_EVIDENCE':
+        return None
+    if data.get('online_evidence') is not False:
+        return None
+    return data

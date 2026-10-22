@@ -25,6 +25,39 @@ async function api(path, opts) {
   return body;
 }
 
+
+// ---------------------------------------------------------------- 1.1.0 研究证据
+async function loadResearchEvidence() {
+  const box = $('research-items');
+  const badge = $('research-badge');
+  try {
+    const r = await api('/api/research');
+    badge.textContent = r.evidence_class + ' · v' + r.version;
+    badge.className = 'badge badge-online';
+    box.innerHTML = '';
+    (r.items || []).forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'stat';
+      const cls = item.status === 'PASS' ? 'badge-online'
+        : (item.status === 'FALSE' || item.status === 'BLOCKED' || item.status === 'NOT_VERIFIED'
+           ? 'badge-fail' : 'badge-unknown');
+      el.innerHTML = `<label>${escapeHtml(item.label)}</label>` +
+        `<strong>${escapeHtml(item.value)} <span class="badge ${cls}">${escapeHtml(item.status)}</span></strong>` +
+        `<p class="note">${escapeHtml(item.detail)}</p>` +
+        `<p class="note mono">${escapeHtml(item.evidence)}</p>`;
+      box.appendChild(el);
+    });
+    const a = r.acceptance || {};
+    $('research-acceptance').textContent =
+      `严格 acceptance：${a.status || 'UNKNOWN'}（exit ${a.exit_code}）；NOT_RUN：` +
+      ((a.not_run || []).join(', ') || '无');
+  } catch (e) {
+    badge.textContent = 'ARCHIVED_RESEARCH_EVIDENCE · 不可用';
+    badge.className = 'badge badge-fail';
+    box.innerHTML = '<p class="warn">研究证据快照不可用：' + escapeHtml(e.message) + '</p>';
+  }
+}
+
 // ---------------------------------------------------------------- 环境
 async function refreshHealth() {
   const h = await api('/api/health');
@@ -349,6 +382,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   $('btn-start').onclick = startRun;
   $('btn-stop').onclick = stopRun;
   await refreshHealth();
+  await loadResearchEvidence();
   await loadRuns();
   const runs = await api('/api/runs').catch(() => ({runs: []}));
   const primary = runs.runs.find(r => r.kind === 'ONLINE_EVIDENCE');

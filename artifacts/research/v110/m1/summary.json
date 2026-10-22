@@ -1,0 +1,49 @@
+{
+  "contract": "m1-round-summary/1",
+  "scope": "analysis + trusted intent window",
+  "new_data": {
+    "trusted_intent_window": {
+      "path": "artifacts/research/v110/m1/trusted_window_from_m2.json",
+      "count": 2,
+      "coverage": "COMPLETE",
+      "authenticated_senders": [
+        "/CN=\\/operator",
+        "/CN=\\/planner"
+      ],
+      "unauth": 0,
+      "resource": "rt/m2/candidate_task",
+      "source": "M2 trusted DDS ingress ledger from run v110m2lab-20261021T184500Z",
+      "limitation": "intent topic rt/m2/candidate_task, not Action send_goal"
+    },
+    "missing_ledger": {
+      "path": "artifacts/research/v110/m1/trusted_window_missing.json",
+      "count": null,
+      "coverage": "UNKNOWN",
+      "note": "missing ledger is UNKNOWN, never count=0"
+    }
+  },
+  "model_facts": {
+    "deployed_model": {
+      "path": "modules/member1_comm/model/comm_risk_model.json",
+      "gate": false,
+      "features": 49
+    },
+    "candidate_window_model": {
+      "path": "modules/member1_comm/model/comm_risk_window_model.json",
+      "gate": true,
+      "features": 6,
+      "problem": "duration_ms is label-correlated; high F1 largely reads window length, not attack behaviour",
+      "deployed": false
+    },
+    "phase6_both": {
+      "overall_fpr_pooled": 0.037037037037037035,
+      "worst_session_fpr": 1.0,
+      "anomaly-churn_recall": 1.0,
+      "anomaly-endpoint-recon_recall": 0.0,
+      "anomaly-flood_recall": 0.8,
+      "path": "artifacts/research/m1-phase6/m1p6-20261020T123752Z/g4_evaluation_v2.json"
+    }
+  },
+  "gate_decision": "KEEP validation_gate_passed=false for the deployed model; do not enable the candidate model.",
+  "blocker": "both model validation and trusted observation"
+}

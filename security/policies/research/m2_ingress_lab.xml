@@ -8,6 +8,9 @@
           <topics subscribe="ALLOW">
             <topic>/m2/candidate_task</topic>
           </topics>
+          <services reply="ALLOW">
+            <service>/rg/guarded_navigate/_action/send_goal</service>
+          </services>
         </profile>
       </profiles>
     </enclave>

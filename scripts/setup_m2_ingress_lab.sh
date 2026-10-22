@@ -50,7 +50,10 @@ import xml.etree.ElementTree as ET
 keystore = pathlib.Path(sys.argv[1])
 domain = sys.argv[2]
 expected = {
-    'witness': ('CN=/witness', {'subscribe': {'rt/m2/candidate_task'}}, set()),
+    'witness': ('CN=/witness', {
+        'subscribe': {'rt/m2/candidate_task',
+                      'rq/rg/guarded_navigate/_action/send_goalRequest'},
+        'publish': {'rr/rg/guarded_navigate/_action/send_goalReply'}}, set()),
     'planner': ('CN=/planner', {
         'publish': {'rt/m2/candidate_task',
                     'rq/rg/guarded_navigate/_action/send_goalRequest'},

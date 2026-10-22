@@ -1,0 +1,49 @@
+{
+  "service": "RosSystem dashboard",
+  "runtime": {
+    "docker_available": false,
+    "ros_jazzy_installed_on_host": true,
+    "workspace_built": true,
+    "online_possible": false,
+    "online_blocked_reasons": [
+      "未检测到 docker 命令",
+      "未检测到 docker 命令",
+      "作品内缺少 scripts/final_system.sh（不是完整在线包）"
+    ],
+    "probe": {
+      "docker_cli": false,
+      "docker_daemon": false,
+      "image": "ros:jazzy",
+      "image_present": false,
+      "runtime_source_present": false,
+      "runtime_workspace_root": null,
+      "container_ros_jazzy_ok": false,
+      "online_domain": "77",
+      "online_possible": false,
+      "blocked_reasons": [
+        "未检测到 docker 命令",
+        "未检测到 docker 命令",
+        "作品内缺少 scripts/final_system.sh（不是完整在线包）"
+      ],
+      "note": "在线模式需要 docker daemon + 运行镜像 + 容器内 ROS 2 Jazzy + 作品内完整 runtime 源码。缺任何一项即 UNAVAILABLE，不会伪报 ONLINE READY。"
+    },
+    "note": "在线模式需要 docker daemon + 运行镜像 + 容器内 ROS 2 Jazzy + 作品内完整 runtime 源码。缺任何一项即 UNAVAILABLE，不会伪报 ONLINE READY。"
+  },
+  "controller": {
+    "status": "IDLE",
+    "mode": null,
+    "run_id": null,
+    "started_at": null,
+    "finished_at": null,
+    "exit_code": null,
+    "log_path": null,
+    "error": null
+  },
+  "allowed_modes": [
+    "acceptance",
+    "check",
+    "controlled",
+    "enforce",
+    "three-real-strict"
+  ]
+}
