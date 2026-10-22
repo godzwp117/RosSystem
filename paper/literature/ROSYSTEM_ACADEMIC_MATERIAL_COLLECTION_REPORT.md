@@ -2,7 +2,7 @@
 
 > 执行日期：2026-10-22（UTC）
 > 基线：`99ea7cd94fc25320900ba3d268b075dd4d1e3ac3`（`research/cross-layer-security-v1.1.0`）
-> 资料库提交：`28e6cf95da128e013ccf62b1e08f72e3fa5f1d50`
+> 资料库提交：`28e6cf95da128e013ccf62b1e08f72e3fa5f1d50`（文献库）→ `c61e1d248af0dd41d56333ac30dd0accedb620ef`（本报告）→ `fc16a2e1fe437aaee70bc5b1b15bea2b831b427a`（DOI 复核）
 > 最终候选包：`1.1.1-rc1`，SHA-256 `d69737cf9dbd039a4a0b8a127eb15bb3db55b5514512c119befd46d5e0fe32d2`（本轮复核一致）
 > 交付目录：`paper/literature/`
 
@@ -209,7 +209,10 @@
 |---|---|
 | 基线提交 | `99ea7cd94fc25320900ba3d268b075dd4d1e3ac3` |
 | 交付分支 | `paper/literature-v1.1.1`（从基线新建） |
-| 资料库提交 | `28e6cf95da128e013ccf62b1e08f72e3fa5f1d50` |
+| 文献库提交 | `28e6cf95da128e013ccf62b1e08f72e3fa5f1d50` |
+| 报告提交 | `c61e1d248af0dd41d56333ac30dd0accedb620ef` |
+| DOI 复核提交 | `fc16a2e1fe437aaee70bc5b1b15bea2b831b427a` |
+| 最终 HEAD | 以 `git log -1` 为准（本报告的最后一次文档更新会再产生一个提交） |
 | 工作树 | `/home/zhangwei/project/RosSystem/.worktrees/lit-research` |
 
 ### H.2 文件清单（仅新增 `paper/literature/`）
