@@ -43,6 +43,10 @@ for item in dashboard replay tests docs run.sh stop.sh verify_package.sh README.
   cp -a "$HERE/$item" "$ROOT/"
 done
 cp -a "$HERE/package_full.sh" "$ROOT/"
+# The runtime tests also import the dashboard controller; make the package-root
+# dashboard resolvable from a runtime-only mount (e.g. docker -v runtime:/ws).
+mkdir -p "$ROOT/runtime"
+cp -a "$ROOT/dashboard" "$ROOT/runtime/dashboard"
 if [ -d "$HERE/reports" ]; then cp -a "$HERE/reports" "$ROOT/"; fi
 if [ -d "$REPO/paper" ]; then cp -a "$REPO/paper" "$ROOT/paper"; fi
 

@@ -14,6 +14,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 _CANDIDATES = (
     os.path.join(REPO, 'submission', 'creative-work', 'dashboard', 'run_controller.py'),
     os.path.join(os.path.dirname(REPO), 'dashboard', 'run_controller.py'),
+    os.path.join(REPO, 'dashboard', 'run_controller.py'),
 )
 MODULE = next((p for p in _CANDIDATES if os.path.isfile(p)), _CANDIDATES[0])
 
